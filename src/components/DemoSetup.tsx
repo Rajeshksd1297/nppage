@@ -18,7 +18,7 @@ export const DemoSetup = () => {
 
       toast({
         title: "Demo Users Created!",
-        description: "admin@demo.com (admin role) and user@demo.com (user role) - password: demo123",
+        description: "admin@demo.com (password: admin123) and user@demo.com (password: user123)",
       });
 
       console.log('Demo setup result:', data);
@@ -41,9 +41,8 @@ export const DemoSetup = () => {
         Create demo users for testing:
       </p>
       <ul className="text-sm mb-4 space-y-1">
-        <li>• admin@demo.com (admin role)</li>
-        <li>• user@demo.com (user role)</li>
-        <li>• Password for both: demo123</li>
+        <li>• admin@demo.com (admin role) - password: admin123</li>
+        <li>• user@demo.com (user role) - password: user123</li>
       </ul>
       <Button onClick={setupDemoUsers} disabled={isLoading}>
         {isLoading ? 'Setting up...' : 'Setup Demo Users'}
