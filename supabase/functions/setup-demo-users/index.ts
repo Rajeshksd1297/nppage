@@ -57,78 +57,65 @@ Deno.serve(async (req) => {
         const { data: existingUsers } = await supabase.auth.admin.listUsers();
         const existingUser = existingUsers.users.find(u => u.email === demoUser.email);
         
+        let userId: string;
+        
         if (existingUser) {
-          console.log(`User ${demoUser.email} already exists, updating role...`);
+          console.log(`User ${demoUser.email} already exists, updating password and role...`);
           
-          // Update user role
-          const { error: roleError } = await supabase
-            .from('user_roles')
+          // Update the user's password
+          const { error: updateError } = await supabase.auth.admin.updateUserById(
+            existingUser.id,
+            { password: demoUser.password }
+          );
+          
+          if (updateError) {
+            console.error(`Error updating password for ${demoUser.email}:`, updateError);
+          }
+          
+          userId = existingUser.id;
+        } else {
+          // Create new user
+          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+            email: demoUser.email,
+            password: demoUser.password,
+            email_confirm: true,
+            user_metadata: {
+              full_name: demoUser.full_name
+            }
+          });
+
+          if (createError) {
+            console.error(`Error creating user ${demoUser.email}:`, createError);
+            results.push({
+              email: demoUser.email,
+              status: 'error',
+              error: createError.message
+            });
+            continue;
+          }
+
+          console.log(`User ${demoUser.email} created successfully`);
+          userId = newUser.user.id;
+
+          // Create profile
+          const { error: profileError } = await supabase
+            .from('profiles')
             .upsert({
-              user_id: existingUser.id,
-              role: demoUser.role
+              id: userId,
+              email: demoUser.email,
+              full_name: demoUser.full_name
             });
 
-          if (roleError) {
-            console.error(`Error updating role for ${demoUser.email}:`, roleError);
+          if (profileError) {
+            console.error(`Error creating profile for ${demoUser.email}:`, profileError);
           }
-
-          results.push({
-            email: demoUser.email,
-            status: 'updated',
-            role: demoUser.role
-          });
-          continue;
         }
 
-        // Create new user
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: demoUser.email,
-          password: demoUser.password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: demoUser.full_name
-          }
-        });
-
-        if (createError) {
-          console.error(`Error creating user ${demoUser.email}:`, createError);
-          results.push({
-            email: demoUser.email,
-            status: 'error',
-            error: createError.message
-          });
-          continue;
-        }
-
-        console.log(`User ${demoUser.email} created successfully`);
-
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: newUser.user.id,
-            email: demoUser.email,
-            full_name: demoUser.full_name
-          });
-
-        if (profileError) {
-          console.error(`Error creating profile for ${demoUser.email}:`, profileError);
-        }
-
-        // Assign role (remove default user role first if creating admin)
-        if (demoUser.role === 'admin') {
-          // Remove default user role
-          await supabase
-            .from('user_roles')
-            .delete()
-            .eq('user_id', newUser.user.id)
-            .eq('role', 'user');
-        }
-
+        // Always update/create the role
         const { error: roleError } = await supabase
           .from('user_roles')
           .upsert({
-            user_id: newUser.user.id,
+            user_id: userId,
             role: demoUser.role
           });
 
@@ -138,7 +125,7 @@ Deno.serve(async (req) => {
 
         results.push({
           email: demoUser.email,
-          status: 'created',
+          status: existingUser ? 'updated' : 'created',
           role: demoUser.role,
           password: demoUser.password
         });
