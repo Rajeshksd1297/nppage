@@ -54,16 +54,17 @@ Deno.serve(async (req) => {
       
       try {
         // Check if user already exists
-        const { data: existingUser } = await supabase.auth.admin.getUserByEmail(demoUser.email);
+        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        const existingUser = existingUsers.users.find(u => u.email === demoUser.email);
         
-        if (existingUser.user) {
+        if (existingUser) {
           console.log(`User ${demoUser.email} already exists, updating role...`);
           
           // Update user role
           const { error: roleError } = await supabase
             .from('user_roles')
             .upsert({
-              user_id: existingUser.user.id,
+              user_id: existingUser.id,
               role: demoUser.role
             });
 

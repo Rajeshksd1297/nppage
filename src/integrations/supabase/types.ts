@@ -14,30 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
+      books: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          genres: string[] | null
+          id: string
+          isbn: string | null
+          language: string | null
+          page_count: number | null
+          publication_date: string | null
+          publisher: string | null
+          purchase_links: Json | null
+          slug: string | null
+          status: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          genres?: string[] | null
+          id?: string
+          isbn?: string | null
+          language?: string | null
+          page_count?: number | null
+          publication_date?: string | null
+          publisher?: string | null
+          purchase_links?: Json | null
+          slug?: string | null
+          status?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          genres?: string[] | null
+          id?: string
+          isbn?: string | null
+          language?: string | null
+          page_count?: number | null
+          publication_date?: string | null
+          publisher?: string | null
+          purchase_links?: Json | null
+          slug?: string | null
+          status?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      page_analytics: {
+        Row: {
+          country: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          page_id: string | null
+          page_type: string
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          page_id?: string | null
+          page_type: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          page_id?: string | null
+          page_type?: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          public_profile: boolean | null
+          slug: string | null
+          social_links: Json | null
+          specializations: string[] | null
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          public_profile?: boolean | null
+          slug?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          public_profile?: boolean | null
+          slug?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }
