@@ -14,5 +14,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Force single React instance to prevent duplicate React error
+    dedupe: ['react', 'react-dom'],
+  },
+  // Ensure all dependencies use the same React instance
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@tanstack/react-query'],
   },
 }));
