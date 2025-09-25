@@ -7,7 +7,8 @@ import {
   Settings, 
   Users,
   PlusCircle,
-  Eye
+  Eye,
+  Crown
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -33,6 +34,7 @@ const mainItems = [
 
 const bookItems = [
   { title: "Add New Book", url: "/books/new", icon: PlusCircle },
+  { title: "Subscription", url: "/subscription", icon: Crown },
   { title: "Preview Profile", url: "/preview", icon: Eye },
 ];
 

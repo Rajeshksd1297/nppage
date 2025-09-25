@@ -74,6 +74,39 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_domains: {
+        Row: {
+          created_at: string
+          dns_configured: boolean
+          domain: string
+          id: string
+          ssl_enabled: boolean
+          updated_at: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          dns_configured?: boolean
+          domain: string
+          id?: string
+          ssl_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          dns_configured?: boolean
+          domain?: string
+          id?: string
+          ssl_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       page_analytics: {
         Row: {
           country: string | null
@@ -118,6 +151,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          custom_domain_id: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -125,6 +159,8 @@ export type Database = {
           slug: string | null
           social_links: Json | null
           specializations: string[] | null
+          subscription_plan_id: string | null
+          theme_id: string | null
           updated_at: string
           website_url: string | null
         }
@@ -132,6 +168,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          custom_domain_id?: string | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -139,6 +176,8 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
+          subscription_plan_id?: string | null
+          theme_id?: string | null
           updated_at?: string
           website_url?: string | null
         }
@@ -146,6 +185,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          custom_domain_id?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -153,8 +193,122 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
+          subscription_plan_id?: string | null
+          theme_id?: string | null
           updated_at?: string
           website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_custom_domain_id_fkey"
+            columns: ["custom_domain_id"]
+            isOneToOne: false
+            referencedRelation: "custom_domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          advanced_analytics: boolean
+          contact_form: boolean
+          created_at: string
+          custom_domain: boolean
+          features: Json
+          id: string
+          max_books: number | null
+          max_publications: number | null
+          media_kit: boolean
+          name: string
+          newsletter_integration: boolean
+          no_watermark: boolean
+          premium_themes: boolean
+          price_monthly: number | null
+          price_yearly: number | null
+          updated_at: string
+        }
+        Insert: {
+          advanced_analytics?: boolean
+          contact_form?: boolean
+          created_at?: string
+          custom_domain?: boolean
+          features?: Json
+          id?: string
+          max_books?: number | null
+          max_publications?: number | null
+          media_kit?: boolean
+          name: string
+          newsletter_integration?: boolean
+          no_watermark?: boolean
+          premium_themes?: boolean
+          price_monthly?: number | null
+          price_yearly?: number | null
+          updated_at?: string
+        }
+        Update: {
+          advanced_analytics?: boolean
+          contact_form?: boolean
+          created_at?: string
+          custom_domain?: boolean
+          features?: Json
+          id?: string
+          max_books?: number | null
+          max_publications?: number | null
+          media_kit?: boolean
+          name?: string
+          newsletter_integration?: boolean
+          no_watermark?: boolean
+          premium_themes?: boolean
+          price_monthly?: number | null
+          price_yearly?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      themes: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          premium: boolean
+          preview_image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          premium?: boolean
+          preview_image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          premium?: boolean
+          preview_image_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -178,6 +332,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

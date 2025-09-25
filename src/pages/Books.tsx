@@ -12,6 +12,9 @@ import {
   ExternalLink,
   Calendar
 } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/hooks/useSubscription';
+import { UpgradeBanner } from '@/components/UpgradeBanner';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -34,6 +37,8 @@ export default function Books() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { subscription, getLimit, loading: subscriptionLoading } = useSubscription();
 
   useEffect(() => {
     fetchBooks();
@@ -70,7 +75,7 @@ export default function Books() {
     book.subtitle?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -78,18 +83,40 @@ export default function Books() {
     );
   }
 
+  const bookLimit = getLimit('books');
+  const isAtLimit = books.length >= bookLimit && bookLimit !== Infinity;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Books</h1>
-          <p className="text-muted-foreground">Manage your published works and manuscripts</p>
+          <p className="text-muted-foreground">
+            Manage your published works and manuscripts
+            {bookLimit !== Infinity && (
+              <span className="ml-2 text-sm">
+                ({books.length}/{bookLimit} books used)
+              </span>
+            )}
+          </p>
         </div>
-        <Button onClick={() => navigate('/books/new')}>
+        <Button 
+          onClick={() => navigate('/books/new')}
+          disabled={isAtLimit}
+        >
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Book
         </Button>
       </div>
+
+      {isAtLimit && (
+        <div className="mb-6">
+          <UpgradeBanner 
+            message="You've reached your book limit"
+            feature="unlimited books"
+          />
+        </div>
+      )}
 
       {/* Search and Filter */}
       <div className="flex gap-4">

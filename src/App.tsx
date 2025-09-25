@@ -12,6 +12,7 @@ import Books from "./pages/Books";
 import BookEdit from "./pages/BookEdit";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
+import Subscription from "./pages/Subscription";
 import AdminUsers from "./pages/admin/Users";
 import AdminBooks from "./pages/admin/BooksAdmin";
 import AdminSettings from "./pages/admin/Settings";
@@ -52,6 +53,11 @@ function App() {
             <Route path="/analytics" element={
               <DashboardLayout>
                 <Analytics />
+              </DashboardLayout>
+            } />
+            <Route path="/subscription" element={
+              <DashboardLayout>
+                <Subscription />
               </DashboardLayout>
             } />
             <Route path="/admin/users" element={
