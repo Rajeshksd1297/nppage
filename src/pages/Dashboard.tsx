@@ -144,75 +144,17 @@ export default function Dashboard() {
             {isAdmin ? "Welcome to the admin dashboard." : "Welcome back! Here's your author overview."}
           </p>
         </div>
-        <Button onClick={() => navigate('/books/new')}>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add New Book
-        </Button>
-      </div>
-
-      {/* User Stats Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Your Author Stats</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Books</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalBooks}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.publishedBooks} published
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Published Books</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.publishedBooks}</div>
-              <p className="text-xs text-muted-foreground">
-                Live on your profile
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews}</div>
-              <p className="text-xs text-muted-foreground">
-                All time page visits
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.thisMonthViews}</div>
-              <p className="text-xs text-muted-foreground">
-                Views this month
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {!isAdmin && (
+          <Button onClick={() => navigate('/books/new')}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add New Book
+          </Button>
+        )}
       </div>
 
       {/* Admin Stats Section - Only show if user is admin */}
-      {isAdmin && (
-        <>
-          <Separator />
-          <div>
+      {isAdmin ? (
+        <div>
             <div className="flex items-center gap-2 mb-4">
               <Shield className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-semibold">Admin Overview</h2>
@@ -297,19 +239,77 @@ export default function Dashboard() {
                 Manage Books
               </Button>
             </div>
+        </div>
+      ) : (
+        /* User Stats Section - Only show if not admin */
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Your Author Stats</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Books</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalBooks}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.publishedBooks} published
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Published Books</CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.publishedBooks}</div>
+                <p className="text-xs text-muted-foreground">
+                  Live on your profile
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalViews}</div>
+                <p className="text-xs text-muted-foreground">
+                  All time page visits
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.thisMonthViews}</div>
+                <p className="text-xs text-muted-foreground">
+                  Views this month
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Recent Books Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Recent Books</h2>
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Latest Books</CardTitle>
-            <CardDescription>Your latest book additions</CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Recent Books Section - Only show for regular users */}
+      {!isAdmin && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Recent Books</h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Latest Books</CardTitle>
+              <CardDescription>Your latest book additions</CardDescription>
+            </CardHeader>
+            <CardContent>
             {recentBooks.length === 0 ? (
               <div className="text-center py-8">
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -362,9 +362,10 @@ export default function Dashboard() {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
