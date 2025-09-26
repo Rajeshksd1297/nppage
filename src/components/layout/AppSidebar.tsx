@@ -59,10 +59,8 @@ const bookItems = [
 ];
 
 const adminItems = [
-  { title: "Admin Dashboard", url: "/admin", icon: BarChart3 },
-  { title: "All Users", url: "/admin/users", icon: Users },
-  { title: "All Books", url: "/admin/books", icon: BookOpen },
-  { title: "System Settings", url: "/admin/settings", icon: Settings },
+  { title: "Manage Access", url: "/admin/users", icon: Users },
+  { title: "Manage Packages", url: "/subscription", icon: CreditCard },
 ];
 
 export function AppSidebar() {
@@ -102,7 +100,9 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems
+                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "My Profile"))
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
@@ -116,53 +116,57 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Premium Features</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {premiumItems.map((item) => {
-                const featureKey = item.title.toLowerCase().replace(/\s+/g, '_').replace('advanced_analytics', 'advanced_analytics');
-                const canAccess = hasFeature(featureKey as any);
-                return (
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Premium Features</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {premiumItems.map((item) => {
+                  const featureKey = item.title.toLowerCase().replace(/\s+/g, '_').replace('advanced_analytics', 'advanced_analytics');
+                  const canAccess = hasFeature(featureKey as any);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink 
+                          to={item.url} 
+                          className={`${getNavCls} ${!canAccess ? 'opacity-50' : ''}`}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && (
+                            <span className="flex items-center gap-2">
+                              {item.title}
+                              {!canAccess && <Crown className="w-3 h-3 text-amber-500" />}
+                            </span>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {bookItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink 
-                        to={item.url} 
-                        className={`${getNavCls} ${!canAccess ? 'opacity-50' : ''}`}
-                      >
+                      <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && (
-                          <span className="flex items-center gap-2">
-                            {item.title}
-                            {!canAccess && <Crown className="w-3 h-3 text-amber-500" />}
-                          </span>
-                        )}
+                        {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {bookItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isAdmin && (
           <SidebarGroup>
