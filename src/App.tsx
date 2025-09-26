@@ -14,7 +14,6 @@ import Books from "./pages/Books";
 import BookEdit from "./pages/BookEdit";
 import BookEntryMethod from "./pages/BookEntryMethod";
 import BookView from "./pages/BookView";
-import Profile from "./pages/Profile";
 import ProfileManager from "./pages/ProfileManager";
 import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
@@ -94,11 +93,6 @@ function App() {
               </DashboardLayout>
             } />
             <Route path="/profile" element={
-              <DashboardLayout>
-                <Profile />
-              </DashboardLayout>
-            } />
-            <Route path="/profile-setup" element={
               <DashboardLayout>
                 <ProfileManager />
               </DashboardLayout>
