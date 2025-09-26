@@ -100,7 +100,7 @@ export default function AdminSettings() {
       </div>
 
       <Tabs defaultValue="site" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="site" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             Site
@@ -116,6 +116,10 @@ export default function AdminSettings() {
           <TabsTrigger value="themes" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             Themes
+          </TabsTrigger>
+          <TabsTrigger value="domains" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Domains
           </TabsTrigger>
         </TabsList>
 
@@ -385,17 +389,92 @@ export default function AdminSettings() {
               <CardTitle>Theme Management</CardTitle>
               <CardDescription>Manage available themes for author pages</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Palette className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Theme Management</h3>
-                <p className="text-muted-foreground mb-4">
-                  Advanced theme management features coming soon
-                </p>
-                <Button variant="outline">
-                  Add New Theme
-                </Button>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="enableThemeCustomization">Premium Theme Features</Label>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch id="premiumThemes" defaultChecked />
+                      <Label htmlFor="premiumThemes">Enable premium themes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="customColors" defaultChecked />
+                      <Label htmlFor="customColors">Allow custom color schemes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="customFonts" />
+                      <Label htmlFor="customFonts">Enable custom fonts</Label>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="themeApproval">Theme Approval Process</Label>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch id="requireApproval" />
+                      <Label htmlFor="requireApproval">Require admin approval for new themes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="userUploadThemes" />
+                      <Label htmlFor="userUploadThemes">Allow users to upload custom themes</Label>
+                    </div>
+                  </div>
+                </div>
               </div>
+              
+              <Button onClick={handleSaveSiteSettings}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Theme Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="domains" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom Domain Management</CardTitle>
+              <CardDescription>Manage custom domain settings and features</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="domainFeatures">Domain Features</Label>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch id="enableCustomDomains" defaultChecked />
+                      <Label htmlFor="enableCustomDomains">Enable custom domains</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="autoSSL" defaultChecked />
+                      <Label htmlFor="autoSSL">Automatic SSL certificates</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="subdomainSupport" defaultChecked />
+                      <Label htmlFor="subdomainSupport">Support subdomains</Label>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="domainLimits">Domain Limits</Label>
+                  <div className="space-y-2 mt-2">
+                    <div>
+                      <Label htmlFor="maxDomainsPerUser" className="text-sm">Max domains per user</Label>
+                      <Input id="maxDomainsPerUser" type="number" defaultValue="1" className="mt-1" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="requireVerification" defaultChecked />
+                      <Label htmlFor="requireVerification">Require domain verification</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <Button onClick={handleSaveSiteSettings}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Domain Settings
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

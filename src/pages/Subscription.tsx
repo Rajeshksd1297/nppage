@@ -30,10 +30,17 @@ interface UserSubscription {
   status: string;
   current_period_end: string;
   subscription_plans: SubscriptionPlan;
+  trial_ends_at?: string;
+}
+
+interface UserStats {
+  totalBooks: number;
+  publishedBooks: number;
 }
 
 export default function Subscription() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [userStats, setUserStats] = useState<UserStats>({ totalBooks: 0, publishedBooks: 0 });
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { toast } = useToast();
@@ -55,7 +62,17 @@ export default function Subscription() {
         .in('name', ['Free', 'Pro'])
         .order('price_monthly');
 
+      // Fetch user's books stats
+      const { data: booksData } = await supabase
+        .from('books')
+        .select('status')
+        .eq('user_id', user.id);
+
+      const totalBooks = booksData?.length || 0;
+      const publishedBooks = booksData?.filter(book => book.status === 'published').length || 0;
+
       setPlans(plansData || []);
+      setUserStats({ totalBooks, publishedBooks });
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {
@@ -207,7 +224,7 @@ export default function Subscription() {
             <CardDescription>Manage your subscription details</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-sm text-muted-foreground">Plan</p>
                 <p className="font-semibold">{subscription.subscription_plans.name}</p>
@@ -232,6 +249,35 @@ export default function Subscription() {
                   <p className="text-sm text-muted-foreground">Next billing date</p>
                   <p className="font-semibold">
                     {new Date(subscription.current_period_end).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Book Usage Stats */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium mb-3">Book Usage</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{userStats.totalBooks}</p>
+                  <p className="text-xs text-muted-foreground">Total Books</p>
+                  {subscription.subscription_plans.max_books && (
+                    <p className="text-xs text-muted-foreground">
+                      of {subscription.subscription_plans.max_books} allowed
+                    </p>
+                  )}
+                </div>
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{userStats.publishedBooks}</p>
+                  <p className="text-xs text-muted-foreground">Published Books</p>
+                </div>
+              </div>
+              
+              {subscription.subscription_plans.max_books && 
+               userStats.totalBooks >= subscription.subscription_plans.max_books && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    You've reached your book limit. Upgrade to Pro for unlimited books.
                   </p>
                 </div>
               )}
