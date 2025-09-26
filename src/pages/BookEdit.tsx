@@ -163,7 +163,60 @@ export default function BookEdit() {
       
       // Auto-generate purchase links based on admin affiliate settings if ISBN is provided
       if (data.isbn) {
-        const savedAffiliateSettings = localStorage.getItem('affiliateSettings');
+        // First check if affiliate settings exist, if not create default ones
+        let savedAffiliateSettings = localStorage.getItem('affiliateSettings');
+        
+        if (!savedAffiliateSettings) {
+          // Create default affiliate settings for demo
+          const defaultSettings = {
+            amazon: {
+              enabled: true,
+              displayName: 'Amazon',
+              baseUrl: 'https://amazon.com/dp/{isbn}',
+              parameters: { tag: 'demo-20' },
+              description: 'Amazon affiliate link'
+            },
+            bookshop: {
+              enabled: true,
+              displayName: 'Bookshop',
+              baseUrl: 'https://bookshop.org/books/{isbn}',
+              parameters: { a: 'demo' },
+              description: 'Bookshop affiliate link'
+            },
+            kobo: {
+              enabled: true,
+              displayName: 'Kobo',
+              baseUrl: 'https://www.kobo.com/search',
+              parameters: { query: '{isbn}' },
+              description: 'Kobo store link'
+            },
+            googleBooks: {
+              enabled: true,
+              displayName: 'Google Books',
+              baseUrl: 'https://books.google.com/books',
+              parameters: { isbn: '{isbn}' },
+              description: 'Google Books link'
+            },
+            barnesNoble: {
+              enabled: true,
+              displayName: 'Barnes & Noble',
+              baseUrl: 'https://www.barnesandnoble.com/s/{isbn}',
+              parameters: {},
+              description: 'Barnes & Noble link'
+            },
+            applebooks: {
+              enabled: true,
+              displayName: 'Apple Books',
+              baseUrl: 'https://books.apple.com/search',
+              parameters: { term: '{title}' },
+              description: 'Apple Books link'
+            }
+          };
+          
+          localStorage.setItem('affiliateSettings', JSON.stringify(defaultSettings));
+          savedAffiliateSettings = JSON.stringify(defaultSettings);
+        }
+        
         if (savedAffiliateSettings) {
           try {
             const affiliateSettings = JSON.parse(savedAffiliateSettings);
@@ -217,7 +270,14 @@ export default function BookEdit() {
               });
             }
             
-            data.purchase_links = purchaseLinks;
+            if (purchaseLinks.length > 0) {
+              data.purchase_links = purchaseLinks;
+              
+              toast({
+                title: "Affiliate Links Generated",
+                description: `${purchaseLinks.length} purchase links created automatically.`,
+              });
+            }
           } catch (error) {
             console.error('Error parsing affiliate settings:', error);
           }

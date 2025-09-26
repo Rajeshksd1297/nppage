@@ -33,8 +33,61 @@ export default function BookEntryMethod() {
   const [isSearching, setIsSearching] = useState(false);
 
   const generateAffiliateLinks = (bookInfo: BookData) => {
-    const savedAffiliateSettings = localStorage.getItem('affiliateSettings');
-    if (!savedAffiliateSettings || !bookInfo.isbn) return [];
+    // First check if affiliate settings exist, if not create default ones
+    let savedAffiliateSettings = localStorage.getItem('affiliateSettings');
+    
+    if (!savedAffiliateSettings) {
+      // Create default affiliate settings for demo
+      const defaultSettings = {
+        amazon: {
+          enabled: true,
+          displayName: 'Amazon',
+          baseUrl: 'https://amazon.com/dp/{isbn}',
+          parameters: { tag: 'demo-20' },
+          description: 'Amazon affiliate link'
+        },
+        bookshop: {
+          enabled: true,
+          displayName: 'Bookshop',
+          baseUrl: 'https://bookshop.org/books/{isbn}',
+          parameters: { a: 'demo' },
+          description: 'Bookshop affiliate link'
+        },
+        kobo: {
+          enabled: true,
+          displayName: 'Kobo',
+          baseUrl: 'https://www.kobo.com/search',
+          parameters: { query: '{isbn}' },
+          description: 'Kobo store link'
+        },
+        googleBooks: {
+          enabled: true,
+          displayName: 'Google Books',
+          baseUrl: 'https://books.google.com/books',
+          parameters: { isbn: '{isbn}' },
+          description: 'Google Books link'
+        },
+        barnesNoble: {
+          enabled: true,
+          displayName: 'Barnes & Noble',
+          baseUrl: 'https://www.barnesandnoble.com/s/{isbn}',
+          parameters: {},
+          description: 'Barnes & Noble link'
+        },
+        applebooks: {
+          enabled: true,
+          displayName: 'Apple Books',
+          baseUrl: 'https://books.apple.com/search',
+          parameters: { term: '{title}' },
+          description: 'Apple Books link'
+        }
+      };
+      
+      localStorage.setItem('affiliateSettings', JSON.stringify(defaultSettings));
+      savedAffiliateSettings = JSON.stringify(defaultSettings);
+    }
+
+    if (!bookInfo.isbn) return [];
 
     try {
       const affiliateSettings = JSON.parse(savedAffiliateSettings);

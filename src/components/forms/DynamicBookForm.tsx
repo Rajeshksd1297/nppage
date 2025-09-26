@@ -10,11 +10,127 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DynamicBookFormProps {
   form: UseFormReturn<any>;
   mode: 'add' | 'edit' | 'view';
 }
+
+const generateAffiliateLinksForForm = (isbn: string, title: string = '', form: UseFormReturn<any>) => {
+  // First check if affiliate settings exist, if not create default ones
+  let savedAffiliateSettings = localStorage.getItem('affiliateSettings');
+  
+  if (!savedAffiliateSettings) {
+    // Create default affiliate settings for demo
+    const defaultSettings = {
+      amazon: {
+        enabled: true,
+        displayName: 'Amazon',
+        baseUrl: 'https://amazon.com/dp/{isbn}',
+        parameters: { tag: 'demo-20' },
+        description: 'Amazon affiliate link'
+      },
+      bookshop: {
+        enabled: true,
+        displayName: 'Bookshop',
+        baseUrl: 'https://bookshop.org/books/{isbn}',
+        parameters: { a: 'demo' },
+        description: 'Bookshop affiliate link'
+      },
+      kobo: {
+        enabled: true,
+        displayName: 'Kobo',
+        baseUrl: 'https://www.kobo.com/search',
+        parameters: { query: '{isbn}' },
+        description: 'Kobo store link'
+      },
+      googleBooks: {
+        enabled: true,
+        displayName: 'Google Books',
+        baseUrl: 'https://books.google.com/books',
+        parameters: { isbn: '{isbn}' },
+        description: 'Google Books link'
+      },
+      barnesNoble: {
+        enabled: true,
+        displayName: 'Barnes & Noble',
+        baseUrl: 'https://www.barnesandnoble.com/s/{isbn}',
+        parameters: {},
+        description: 'Barnes & Noble link'
+      },
+      applebooks: {
+        enabled: true,
+        displayName: 'Apple Books',
+        baseUrl: 'https://books.apple.com/search',
+        parameters: { term: '{title}' },
+        description: 'Apple Books link'
+      }
+    };
+    
+    localStorage.setItem('affiliateSettings', JSON.stringify(defaultSettings));
+    savedAffiliateSettings = JSON.stringify(defaultSettings);
+  }
+
+  try {
+    const affiliateSettings = JSON.parse(savedAffiliateSettings);
+    const purchaseLinks = [];
+    
+    if (affiliateSettings.amazon?.enabled) {
+      purchaseLinks.push({
+        platform: 'Amazon',
+        url: `https://amazon.com/dp/${isbn}?tag=${affiliateSettings.amazon.parameters?.tag || 'demo-20'}`,
+        affiliate_id: affiliateSettings.amazon.parameters?.tag || 'demo-20'
+      });
+    }
+    
+    if (affiliateSettings.bookshop?.enabled) {
+      purchaseLinks.push({
+        platform: 'Bookshop',
+        url: `https://bookshop.org/books/${isbn}?a=${affiliateSettings.bookshop.parameters?.a || 'demo'}`,
+        affiliate_id: affiliateSettings.bookshop.parameters?.a || 'demo'
+      });
+    }
+
+    if (affiliateSettings.kobo?.enabled) {
+      purchaseLinks.push({
+        platform: 'Kobo',
+        url: `https://www.kobo.com/search?query=${isbn}`,
+        affiliate_id: ''
+      });
+    }
+
+    if (affiliateSettings.googleBooks?.enabled) {
+      purchaseLinks.push({
+        platform: 'Google Books',
+        url: `https://books.google.com/books?isbn=${isbn}`,
+        affiliate_id: ''
+      });
+    }
+
+    if (affiliateSettings.barnesNoble?.enabled) {
+      purchaseLinks.push({
+        platform: 'Barnes & Noble',
+        url: `https://www.barnesandnoble.com/s/${isbn}`,
+        affiliate_id: ''
+      });
+    }
+
+    if (affiliateSettings.applebooks?.enabled) {
+      purchaseLinks.push({
+        platform: 'Apple Books',
+        url: `https://books.apple.com/search?term=${encodeURIComponent(title)}`,
+        affiliate_id: ''
+      });
+    }
+    
+    form.setValue('purchase_links', purchaseLinks);
+    return purchaseLinks;
+  } catch (error) {
+    console.error('Error generating affiliate links:', error);
+    return [];
+  }
+};
 
 const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseFormReturn<any>; mode: 'add' | 'edit' | 'view' }) => {
   const isReadOnly = mode === 'view';
@@ -176,21 +292,85 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
         if (field.name === 'purchase_links') {
           const links = form.watch(field.name) || [];
           return (
-            <div className="space-y-2">
-              {isReadOnly ? (
-                links.length > 0 ? (
-                  links.map((link: any, index: number) => (
-                    <div key={index} className="p-2 bg-muted rounded">
-                      <strong>{link.platform}:</strong> {link.url}
+            <div className="space-y-3">
+              {links.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-muted-foreground">
+                      Auto-generated affiliate purchase links:
+                    </p>
+                    {!isReadOnly && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const isbn = form.watch('isbn');
+                          const title = form.watch('title');
+                          if (isbn) {
+                            // Regenerate affiliate links
+                            generateAffiliateLinksForForm(isbn, title, form);
+                          }
+                        }}
+                      >
+                        Refresh Links
+                      </Button>
+                    )}
+                  </div>
+                  {links.map((link: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-medium text-primary">
+                            {link.platform?.charAt(0) || '?'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{link.platform}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-md">
+                            {link.url}
+                          </p>
+                        </div>
+                      </div>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() => window.open(link.url, '_blank')}
+                          className="text-xs text-primary hover:text-primary/80 px-2 py-1 rounded bg-primary/10"
+                        >
+                          Test Link
+                        </button>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No purchase links available</p>
-                )
+                  ))}
+                </div>
               ) : (
-                <p className="text-muted-foreground text-sm">
-                  Purchase links are automatically managed based on affiliate settings configured by the admin.
-                </p>
+                <div className="space-y-3">
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800 mb-2">
+                      <strong>No affiliate links generated</strong>
+                    </p>
+                    <p className="text-xs text-yellow-700">
+                      {!form.watch('isbn') 
+                        ? 'ISBN is required to generate affiliate purchase links.'
+                        : 'Click the button below to generate affiliate links.'}
+                    </p>
+                  </div>
+                  
+                  {!isReadOnly && form.watch('isbn') && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const isbn = form.watch('isbn');
+                        const title = form.watch('title');
+                        generateAffiliateLinksForForm(isbn, title, form);
+                      }}
+                      className="w-full"
+                    >
+                      Generate Affiliate Links
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           );
