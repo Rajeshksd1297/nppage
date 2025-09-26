@@ -275,7 +275,7 @@ export const getCategoryDisplayName = (category: string): string => {
     case 'basic': return 'Basic Info';
     case 'publishing': return 'Publishing';
     case 'seo': return 'SEO';
-    case 'advanced': return 'Advanced (Available Links)';
+    case 'advanced': return 'Available Links';
     default: return category;
   }
 };

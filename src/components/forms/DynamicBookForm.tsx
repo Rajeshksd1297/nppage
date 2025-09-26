@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { AvailableLinksManager } from "./AvailableLinksManager";
 
 interface DynamicBookFormProps {
   form: UseFormReturn<any>;
@@ -292,87 +293,13 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
         if (field.name === 'purchase_links') {
           const links = form.watch(field.name) || [];
           return (
-            <div className="space-y-3">
-              {links.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm text-muted-foreground">
-                      Auto-generated affiliate purchase links:
-                    </p>
-                    {!isReadOnly && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const isbn = form.watch('isbn');
-                          const title = form.watch('title');
-                          if (isbn) {
-                            // Regenerate affiliate links
-                            generateAffiliateLinksForForm(isbn, title, form);
-                          }
-                        }}
-                      >
-                        Refresh Links
-                      </Button>
-                    )}
-                  </div>
-                  {links.map((link: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-medium text-primary">
-                            {link.platform?.charAt(0) || '?'}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{link.platform}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-md">
-                            {link.url}
-                          </p>
-                        </div>
-                      </div>
-                      {!isReadOnly && (
-                        <button
-                          type="button"
-                          onClick={() => window.open(link.url, '_blank')}
-                          className="text-xs text-primary hover:text-primary/80 px-2 py-1 rounded bg-primary/10"
-                        >
-                          Test Link
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800 mb-2">
-                      <strong>No affiliate links generated</strong>
-                    </p>
-                    <p className="text-xs text-yellow-700">
-                      {!form.watch('isbn') 
-                        ? 'ISBN is required to generate affiliate purchase links.'
-                        : 'Click the button below to generate affiliate links.'}
-                    </p>
-                  </div>
-                  
-                  {!isReadOnly && form.watch('isbn') && (
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        const isbn = form.watch('isbn');
-                        const title = form.watch('title');
-                        generateAffiliateLinksForForm(isbn, title, form);
-                      }}
-                      className="w-full"
-                    >
-                      Generate Affiliate Links
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
+            <AvailableLinksManager 
+              links={links}
+              onChange={(newLinks) => form.setValue(field.name, newLinks)}
+              isReadOnly={isReadOnly}
+              isbn={form.watch('isbn')}
+              title={form.watch('title')}
+            />
           );
         }
         return (
