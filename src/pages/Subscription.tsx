@@ -55,11 +55,10 @@ export default function Subscription() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch subscription plans (only Free and Pro)
+      // Fetch all available subscription plans dynamically
       const { data: plansData } = await supabase
         .from('subscription_plans')
         .select('*')
-        .in('name', ['Free', 'Pro'])
         .order('price_monthly');
 
       // Fetch user's books stats
@@ -150,13 +149,13 @@ export default function Subscription() {
         {plans.map((plan) => {
           const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
           const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
-          const isPro = plan.name === 'Pro';
+          const isPremium = plan.price_monthly > 0; // Any paid plan is considered premium
           const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
           const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
 
           return (
-            <Card key={plan.id} className={`relative ${isPro ? 'border-primary shadow-lg' : ''}`}>
-              {isPro && (
+            <Card key={plan.id} className={`relative ${isPremium ? 'border-primary shadow-lg' : ''}`}>
+              {isPremium && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-primary text-primary-foreground">
                     <Crown className="w-3 h-3 mr-1" />
@@ -167,11 +166,11 @@ export default function Subscription() {
               
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2">
-                  {isPro && <Zap className="w-5 h-5 text-primary" />}
+                  {isPremium && <Zap className="w-5 h-5 text-primary" />}
                   {plan.name}
                 </CardTitle>
                 <CardDescription>
-                  {plan.name === 'Free' ? 'Perfect for getting started' : 'Everything you need to grow'}
+                  {plan.price_monthly === 0 ? 'Perfect for getting started' : 'Everything you need to grow'}
                 </CardDescription>
                 <div className="text-3xl font-bold">
                   ${price}
@@ -196,13 +195,13 @@ export default function Subscription() {
 
                 <Button 
                   className="w-full" 
-                  variant={isPro ? "default" : "outline"}
+                  variant={isPremium ? "default" : "outline"}
                   disabled={isCurrentPlan || isOnTrialForPlan}
                   onClick={() => handleUpgrade(plan.id)}
                 >
                   {isCurrentPlan ? 'Current Plan' : 
                    isOnTrialForPlan ? 'On Trial' :
-                   plan.name === 'Free' ? 'Downgrade to Free' : 
+                   plan.price_monthly === 0 ? 'Downgrade to Free' : 
                    'Upgrade Now'}
                 </Button>
 
