@@ -14,8 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          published_at: string | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
+          category: string | null
           cover_image_url: string | null
           created_at: string
           description: string | null
@@ -27,14 +90,19 @@ export type Database = {
           publication_date: string | null
           publisher: string | null
           purchase_links: Json | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
           slug: string | null
           status: string | null
           subtitle: string | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          category?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -46,14 +114,19 @@ export type Database = {
           publication_date?: string | null
           publisher?: string | null
           purchase_links?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string | null
           status?: string | null
           subtitle?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          category?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -65,9 +138,13 @@ export type Database = {
           publication_date?: string | null
           publisher?: string | null
           purchase_links?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string | null
           status?: string | null
           subtitle?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -156,6 +233,9 @@ export type Database = {
           full_name: string | null
           id: string
           public_profile: boolean | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
           slug: string | null
           social_links: Json | null
           specializations: string[] | null
@@ -173,6 +253,9 @@ export type Database = {
           full_name?: string | null
           id: string
           public_profile?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -190,6 +273,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           public_profile?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -221,6 +307,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      search_console_data: {
+        Row: {
+          clicks: number
+          created_at: string
+          ctr: number
+          date: string
+          id: string
+          impressions: number
+          page: string
+          position: number
+          query: string
+        }
+        Insert: {
+          clicks?: number
+          created_at?: string
+          ctr?: number
+          date: string
+          id?: string
+          impressions?: number
+          page: string
+          position?: number
+          query: string
+        }
+        Update: {
+          clicks?: number
+          created_at?: string
+          ctr?: number
+          date?: string
+          id?: string
+          impressions?: number
+          page?: string
+          position?: number
+          query?: string
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          created_at: string
+          default_og_image: string | null
+          facebook_pixel_id: string | null
+          google_analytics_id: string | null
+          google_search_console_id: string | null
+          id: string
+          robots_txt: string | null
+          site_description: string
+          site_keywords: string | null
+          site_title: string
+          twitter_handle: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_og_image?: string | null
+          facebook_pixel_id?: string | null
+          google_analytics_id?: string | null
+          google_search_console_id?: string | null
+          id?: string
+          robots_txt?: string | null
+          site_description?: string
+          site_keywords?: string | null
+          site_title?: string
+          twitter_handle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_og_image?: string | null
+          facebook_pixel_id?: string | null
+          google_analytics_id?: string | null
+          google_search_console_id?: string | null
+          id?: string
+          robots_txt?: string | null
+          site_description?: string
+          site_keywords?: string | null
+          site_title?: string
+          twitter_handle?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       subscription_plans: {
         Row: {
