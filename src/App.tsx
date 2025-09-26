@@ -10,7 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import BookEdit from "./pages/BookEdit";
-import BookAdd from "./pages/BookAdd";
+import BookView from "./pages/BookView";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
@@ -68,12 +68,17 @@ function App() {
                 <Books />
               </DashboardLayout>
             } />
-            <Route path="/books/add" element={
+            <Route path="/books/new" element={
               <DashboardLayout>
-                <BookAdd />
+                <BookEdit />
               </DashboardLayout>
             } />
             <Route path="/books/:id" element={
+              <DashboardLayout>
+                <BookView />
+              </DashboardLayout>
+            } />
+            <Route path="/books/:id/edit" element={
               <DashboardLayout>
                 <BookEdit />
               </DashboardLayout>

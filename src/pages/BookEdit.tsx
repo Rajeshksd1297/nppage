@@ -8,6 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { 
   BookOpen, 
   Save, 
@@ -16,7 +20,10 @@ import {
   X,
   Search,
   ExternalLink,
-  Globe
+  Globe,
+  CalendarIcon,
+  Scan,
+  FileEdit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +49,70 @@ interface PurchaseLink {
   platform: string;
   url: string;
   price?: string;
+}
+
+interface BookField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'multiselect' | 'url' | 'email' | 'json';
+  required: boolean;
+  visible: boolean;
+  enabled: boolean;
+  placeholder?: string;
+  helpText?: string;
+  defaultValue?: string;
+  options?: string[];
+  validation?: {
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    pattern?: string;
+  };
+  category: 'basic' | 'publishing' | 'seo' | 'advanced';
+  systemField: boolean;
+  order: number;
+}
+
+interface BookData {
+  title: string;
+  subtitle?: string;
+  authors?: string[];
+  description?: string;
+  publisher?: string;
+  publishedDate?: string;
+  pageCount?: number;
+  categories?: string[];
+  language?: string;
+  imageLinks?: {
+    thumbnail?: string;
+    small?: string;
+    medium?: string;
+    large?: string;
+  };
+  isbn?: string;
+  industryIdentifiers?: Array<{
+    type: string;
+    identifier: string;
+  }>;
+}
+
+interface AffiliateConfig {
+  enabled: boolean;
+  displayName: string;
+  baseUrl: string;
+  parameters: { [key: string]: string };
+  description: string;
+}
+
+interface AffiliateSettings {
+  amazon: AffiliateConfig;
+  kobo: AffiliateConfig;
+  googleBooks: AffiliateConfig;
+  barnesNoble: AffiliateConfig;
+  bookshop: AffiliateConfig;
+  applebooks: AffiliateConfig;
 }
 
 const popularGenres = [
@@ -81,12 +152,167 @@ export default function BookEdit() {
   const [saving, setSaving] = useState(false);
   const [newGenre, setNewGenre] = useState("");
   const [newLink, setNewLink] = useState<PurchaseLink>({ platform: "", url: "", price: "" });
+  const [bookFields, setBookFields] = useState<BookField[]>([]);
+  const [affiliateSettings, setAffiliateSettings] = useState<AffiliateSettings | null>(null);
+  const [isbnSearching, setIsbnSearching] = useState(false);
+  const [isbn, setIsbn] = useState("");
+  const [bookData, setBookData] = useState<BookData | null>(null);
+  const [publicationDate, setPublicationDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
+    loadBookFields();
+    loadAffiliateSettings();
     if (!isNewBook) {
       fetchBook();
     }
   }, [id, isNewBook]);
+
+  const loadBookFields = () => {
+    const savedSettings = localStorage.getItem('bookFieldSettings');
+    if (savedSettings) {
+      try {
+        const fields = JSON.parse(savedSettings);
+        setBookFields(fields.filter((f: BookField) => f.enabled && f.visible));
+      } catch (error) {
+        console.error('Error loading field settings:', error);
+      }
+    }
+  };
+
+  const loadAffiliateSettings = () => {
+    const savedSettings = localStorage.getItem('affiliateSettings');
+    if (savedSettings) {
+      try {
+        setAffiliateSettings(JSON.parse(savedSettings));
+      } catch (error) {
+        console.error('Error loading affiliate settings:', error);
+      }
+    }
+  };
+
+  const generateAffiliateLinks = (bookInfo: any) => {
+    if (!affiliateSettings) return [];
+
+    const links: any[] = [];
+    
+    Object.entries(affiliateSettings).forEach(([platform, config]) => {
+      if (config.enabled) {
+        let url = config.baseUrl;
+        
+        // Replace placeholders
+        url = url.replace('{isbn}', bookInfo.isbn || '');
+        url = url.replace('{title}', encodeURIComponent(bookInfo.title || ''));
+        
+        // Add parameters
+        const params = new URLSearchParams();
+        Object.entries(config.parameters).forEach(([key, value]) => {
+          let paramValue = String(value)
+            .replace('{isbn}', bookInfo.isbn || '')
+            .replace('{title}', bookInfo.title || '');
+          params.append(key, paramValue);
+        });
+        
+        const finalUrl = params.toString() ? `${url}?${params.toString()}` : url;
+        
+        links.push({
+          platform: config.displayName,
+          url: finalUrl,
+          price: '' // Can be filled manually later
+        });
+      }
+    });
+
+    return links;
+  };
+
+  const lookupISBN = async () => {
+    if (!isbn.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an ISBN",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsbnSearching(true);
+    setBookData(null);
+
+    try {
+      const cleanIsbn = isbn.replace(/[-\s]/g, '');
+      
+      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        const bookInfo = data.items[0].volumeInfo;
+        const retrievedData: BookData = {
+          title: bookInfo.title || '',
+          subtitle: bookInfo.subtitle || '',
+          authors: bookInfo.authors || [],
+          description: bookInfo.description || '',
+          publisher: bookInfo.publisher || '',
+          publishedDate: bookInfo.publishedDate || '',
+          pageCount: bookInfo.pageCount || 0,
+          categories: bookInfo.categories || [],
+          language: bookInfo.language || 'en',
+          imageLinks: bookInfo.imageLinks || {},
+          isbn: cleanIsbn
+        };
+        
+        setBookData(retrievedData);
+        
+        // Auto-fill form with retrieved data
+        setBook(prev => ({
+          ...prev,
+          title: retrievedData.title,
+          subtitle: retrievedData.subtitle || '',
+          description: retrievedData.description || '',
+          isbn: cleanIsbn,
+          genres: retrievedData.categories || [],
+          publisher: retrievedData.publisher || '',
+          page_count: retrievedData.pageCount || undefined,
+          language: retrievedData.language || 'en',
+          cover_image_url: retrievedData.imageLinks?.thumbnail || retrievedData.imageLinks?.small || ''
+        }));
+
+        if (retrievedData.publishedDate) {
+          setPublicationDate(new Date(retrievedData.publishedDate));
+        }
+
+        // Generate affiliate links automatically
+        const affiliateLinks = generateAffiliateLinks({
+          isbn: cleanIsbn,
+          title: retrievedData.title
+        });
+
+        setBook(prev => ({
+          ...prev,
+          purchase_links: affiliateLinks
+        }));
+        
+        toast({
+          title: "Success",
+          description: `Book information retrieved successfully! ${affiliateLinks.length} affiliate links generated.`,
+        });
+      } else {
+        toast({
+          title: "Not Found",
+          description: "No book information found for this ISBN",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('ISBN lookup error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to lookup ISBN information",
+        variant: "destructive",
+      });
+    } finally {
+      setIsbnSearching(false);
+    }
+  };
 
   const fetchBook = async () => {
     if (!id) return;
@@ -244,144 +470,276 @@ export default function BookEdit() {
         </Button>
       </div>
 
-      <Tabs defaultValue="basic" className="w-full">
+      <Tabs defaultValue={isNewBook ? "isbn" : "basic"} className="w-full">
         <TabsList>
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="links">Purchase Links</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Sharing</TabsTrigger>
+          {isNewBook && (
+            <>
+              <TabsTrigger value="isbn" className="flex items-center gap-2">
+                <Scan className="h-4 w-4" />
+                ISBN Search
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <FileEdit className="h-4 w-4" />
+                Manual Entry
+              </TabsTrigger>
+            </>
+          )}
+          {!isNewBook && (
+            <>
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="links">Purchase Links</TabsTrigger>
+              <TabsTrigger value="seo">SEO & Sharing</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
-        <TabsContent value="basic" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        {isNewBook && (
+          <TabsContent value="isbn" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Book Details</CardTitle>
-                <CardDescription>Basic information about your book</CardDescription>
+                <CardTitle>Search by ISBN</CardTitle>
+                <CardDescription>
+                  Enter a 10 or 13-digit ISBN to automatically retrieve book information and generate affiliate links
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
+              <CardContent>
+                <div className="flex gap-4">
                   <Input
-                    id="title"
-                    value={book.title}
-                    onChange={(e) => setBook(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Enter book title"
+                    placeholder="Enter ISBN (e.g., 9780316769174)"
+                    value={isbn}
+                    onChange={(e) => setIsbn(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && lookupISBN()}
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="subtitle">Subtitle</Label>
-                  <Input
-                    id="subtitle"
-                    value={book.subtitle}
-                    onChange={(e) => setBook(prev => ({ ...prev, subtitle: e.target.value }))}
-                    placeholder="Enter book subtitle"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={book.description}
-                    onChange={(e) => setBook(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter book description"
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="isbn">ISBN</Label>
-                    <Input
-                      id="isbn"
-                      value={book.isbn}
-                      onChange={(e) => setBook(prev => ({ ...prev, isbn: e.target.value }))}
-                      placeholder="978-0-000-00000-0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="pages">Page Count</Label>
-                    <Input
-                      id="pages"
-                      type="number"
-                      value={book.page_count || ""}
-                      onChange={(e) => setBook(prev => ({ ...prev, page_count: parseInt(e.target.value) || undefined }))}
-                      placeholder="e.g. 250"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="publication_date">Publication Date</Label>
-                    <Input
-                      id="publication_date"
-                      type="date"
-                      value={book.publication_date}
-                      onChange={(e) => setBook(prev => ({ ...prev, publication_date: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={book.status} onValueChange={(value) => setBook(prev => ({ ...prev, status: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Button onClick={lookupISBN} disabled={isbnSearching}>
+                    <Search className="h-4 w-4 mr-2" />
+                    {isbnSearching ? "Searching..." : "Search"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {bookData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Retrieved Book Information</CardTitle>
+                  <CardDescription>
+                    Review the information and save to continue editing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      {bookData.imageLinks?.thumbnail ? (
+                        <img
+                          src={bookData.imageLinks.thumbnail}
+                          alt={bookData.title}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                          <BookOpen className="h-16 w-16 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <h3 className="font-bold text-lg">{bookData.title}</h3>
+                      {bookData.subtitle && <p className="text-muted-foreground">{bookData.subtitle}</p>}
+                      {bookData.authors && (
+                        <p><strong>Authors:</strong> {bookData.authors.join(', ')}</p>
+                      )}
+                      {bookData.publisher && (
+                        <p><strong>Publisher:</strong> {bookData.publisher}</p>
+                      )}
+                      {bookData.publishedDate && (
+                        <p><strong>Published:</strong> {bookData.publishedDate}</p>
+                      )}
+                      {bookData.pageCount && (
+                        <p><strong>Pages:</strong> {bookData.pageCount}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-4">
+                    <Button onClick={handleSave} disabled={saving || !book.title}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {saving ? 'Saving...' : 'Save & Continue Editing'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
+
+        <TabsContent value={isNewBook ? "manual" : "basic"} className="space-y-6">
+          <div className="grid gap-6">
+            {/* Dynamic Fields based on Admin Settings */}
+            {bookFields.length > 0 ? (
+              <>
+                {['basic', 'publishing'].map(category => {
+                  const categoryFields = bookFields.filter(field => field.category === category);
+                  if (categoryFields.length === 0) return null;
+
+                  return (
+                    <Card key={category}>
+                      <CardHeader>
+                        <CardTitle>
+                          {category === 'basic' ? 'Book Details' : 'Publishing Information'}
+                        </CardTitle>
+                        <CardDescription>
+                          {category === 'basic' 
+                            ? 'Basic information about your book' 
+                            : 'Publisher and categorization details'
+                          }
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {categoryFields.sort((a, b) => a.order - b.order).map((field) => (
+                            <div key={field.id} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
+                              <Label htmlFor={field.id}>
+                                {field.label}
+                                {field.required && ' *'}
+                              </Label>
+                              
+                              {field.type === 'text' && (
+                                <Input
+                                  id={field.id}
+                                  value={book[field.name as keyof Book] as string || ''}
+                                  onChange={(e) => setBook(prev => ({ ...prev, [field.name]: e.target.value }))}
+                                  placeholder={field.placeholder}
+                                  required={field.required}
+                                />
+                              )}
+                              
+                              {field.type === 'textarea' && (
+                                <Textarea
+                                  id={field.id}
+                                  value={book[field.name as keyof Book] as string || ''}
+                                  onChange={(e) => setBook(prev => ({ ...prev, [field.name]: e.target.value }))}
+                                  placeholder={field.placeholder}
+                                  required={field.required}
+                                  rows={4}
+                                />
+                              )}
+                              
+                              {field.type === 'number' && (
+                                <Input
+                                  id={field.id}
+                                  type="number"
+                                  value={book[field.name as keyof Book] as number || ''}
+                                  onChange={(e) => setBook(prev => ({ ...prev, [field.name]: parseInt(e.target.value) || undefined }))}
+                                  placeholder={field.placeholder}
+                                  required={field.required}
+                                />
+                              )}
+                              
+                              {field.type === 'date' && (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !publicationDate && "text-muted-foreground"
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {publicationDate ? format(publicationDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={publicationDate}
+                                      onSelect={(date) => {
+                                        setPublicationDate(date);
+                                        setBook(prev => ({ ...prev, publication_date: date ? format(date, "yyyy-MM-dd") : '' }));
+                                      }}
+                                      initialFocus
+                                      className={cn("p-3 pointer-events-auto")}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              )}
+                              
+                              {field.type === 'select' && field.options && (
+                                <Select 
+                                  value={book[field.name as keyof Book] as string || ''} 
+                                  onValueChange={(value) => setBook(prev => ({ ...prev, [field.name]: value }))}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={field.placeholder} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options.map((option) => (
+                                      <SelectItem key={option} value={option}>
+                                        {option}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              
+                              {field.helpText && (
+                                <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </>
+            ) : (
+              /* Fallback form if no admin settings */
+              <Card>
+                <CardHeader>
+                  <CardTitle>Book Details</CardTitle>
+                  <CardDescription>Basic information about your book</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title *</Label>
+                    <Input
+                      id="title"
+                      value={book.title}
+                      onChange={(e) => setBook(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Enter book title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="subtitle">Subtitle</Label>
+                    <Input
+                      id="subtitle"
+                      value={book.subtitle}
+                      onChange={(e) => setBook(prev => ({ ...prev, subtitle: e.target.value }))}
+                      placeholder="Enter book subtitle"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={book.description}
+                      onChange={(e) => setBook(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Enter book description"
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Genres Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Publishing Info</CardTitle>
-                <CardDescription>Publisher and categorization details</CardDescription>
+                <CardTitle>Genres & Categories</CardTitle>
+                <CardDescription>Categorize your book with relevant genres</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="publisher">Publisher</Label>
-                  <Input
-                    id="publisher"
-                    value={book.publisher}
-                    onChange={(e) => setBook(prev => ({ ...prev, publisher: e.target.value }))}
-                    placeholder="Publisher name"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="language">Language</Label>
-                  <Select value={book.language} onValueChange={(value) => setBook(prev => ({ ...prev, language: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                      <SelectItem value="it">Italian</SelectItem>
-                      <SelectItem value="pt">Portuguese</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="cover">Cover Image URL</Label>
-                  <Input
-                    id="cover"
-                    value={book.cover_image_url}
-                    onChange={(e) => setBook(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                    placeholder="https://example.com/cover.jpg"
-                  />
-                </div>
-
                 <div>
                   <Label>Genres</Label>
                   <div className="flex flex-wrap gap-2 mb-2">

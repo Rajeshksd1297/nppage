@@ -168,7 +168,7 @@ export default function Books() {
             )}
           </p>
         </div>
-        <Button disabled={isAtLimit} onClick={() => navigate('/books/add')}>
+        <Button disabled={isAtLimit} onClick={() => navigate('/books/new')}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Add New Book
         </Button>
@@ -207,7 +207,7 @@ export default function Books() {
                 {searchTerm ? "Try adjusting your search terms" : "Start building your library by adding your first book"}
               </p>
               {!searchTerm && (
-                <Button onClick={() => navigate('/books/add')}>
+                <Button onClick={() => navigate('/books/new')}>
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Add Your First Book
                 </Button>
@@ -339,19 +339,17 @@ export default function Books() {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => navigate(`/books/${book.id}`)}
+                          onClick={() => navigate(`/books/${book.id}/edit`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        {book.status === 'published' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => navigate(`/books/${book.slug || book.id}/preview`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/books/${book.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="sm">
