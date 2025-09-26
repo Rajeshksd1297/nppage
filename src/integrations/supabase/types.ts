@@ -76,6 +76,63 @@ export type Database = {
           },
         ]
       }
+      billing_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          processed_at: string | null
+          publisher_id: string | null
+          status: string
+          stripe_transaction_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          processed_at?: string | null
+          publisher_id?: string | null
+          status?: string
+          stripe_transaction_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          processed_at?: string | null
+          publisher_id?: string | null
+          status?: string
+          stripe_transaction_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_transactions_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           category: string | null
@@ -184,6 +241,78 @@ export type Database = {
         }
         Relationships: []
       }
+      onix_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_log: Json | null
+          failed_records: number | null
+          file_url: string | null
+          filename: string
+          id: string
+          job_type: string
+          processed_records: number | null
+          publisher_id: string | null
+          result_data: Json | null
+          started_at: string | null
+          status: string
+          successful_records: number | null
+          total_records: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json | null
+          failed_records?: number | null
+          file_url?: string | null
+          filename: string
+          id?: string
+          job_type: string
+          processed_records?: number | null
+          publisher_id?: string | null
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          successful_records?: number | null
+          total_records?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json | null
+          failed_records?: number | null
+          file_url?: string | null
+          filename?: string
+          id?: string
+          job_type?: string
+          processed_records?: number | null
+          publisher_id?: string | null
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string
+          successful_records?: number | null
+          total_records?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onix_jobs_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onix_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_analytics: {
         Row: {
           country: string | null
@@ -233,6 +362,7 @@ export type Database = {
           full_name: string | null
           id: string
           public_profile: boolean | null
+          publisher_id: string | null
           seo_description: string | null
           seo_keywords: string | null
           seo_title: string | null
@@ -253,6 +383,7 @@ export type Database = {
           full_name?: string | null
           id: string
           public_profile?: boolean | null
+          publisher_id?: string | null
           seo_description?: string | null
           seo_keywords?: string | null
           seo_title?: string | null
@@ -273,6 +404,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           public_profile?: boolean | null
+          publisher_id?: string | null
           seo_description?: string | null
           seo_keywords?: string | null
           seo_title?: string | null
@@ -293,6 +425,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_subscription_plan_id_fkey"
             columns: ["subscription_plan_id"]
             isOneToOne: false
@@ -307,6 +446,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      publisher_authors: {
+        Row: {
+          id: string
+          joined_at: string
+          publisher_id: string
+          revenue_share_percentage: number | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          publisher_id: string
+          revenue_share_percentage?: number | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          publisher_id?: string
+          revenue_share_percentage?: number | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publisher_authors_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publisher_authors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publishers: {
+        Row: {
+          billing_address: Json | null
+          brand_colors: Json | null
+          contact_email: string
+          created_at: string
+          custom_css: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          revenue_share_percentage: number | null
+          status: string
+          subdomain: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          billing_address?: Json | null
+          brand_colors?: Json | null
+          contact_email: string
+          created_at?: string
+          custom_css?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          revenue_share_percentage?: number | null
+          status?: string
+          subdomain: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          billing_address?: Json | null
+          brand_colors?: Json | null
+          contact_email?: string
+          created_at?: string
+          custom_css?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          revenue_share_percentage?: number | null
+          status?: string
+          subdomain?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
       }
       search_console_data: {
         Row: {
@@ -388,6 +617,120 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      social_connections: {
+        Row: {
+          access_token: string
+          auto_post_enabled: boolean | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          platform: string
+          platform_user_id: string
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          auto_post_enabled?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform: string
+          platform_user_id: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          auto_post_enabled?: boolean | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform?: string
+          platform_user_id?: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          article_id: string | null
+          book_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          platform: string
+          platform_post_id: string | null
+          post_content: string
+          posted_at: string | null
+          scheduled_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          article_id?: string | null
+          book_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform: string
+          platform_post_id?: string | null
+          post_content: string
+          posted_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string | null
+          book_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform?: string
+          platform_post_id?: string | null
+          post_content?: string
+          posted_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {

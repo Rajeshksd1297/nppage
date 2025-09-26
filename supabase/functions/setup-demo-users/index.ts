@@ -130,13 +130,13 @@ Deno.serve(async (req) => {
           password: demoUser.password
         });
 
-      } catch (error) {
-        console.error(`Unexpected error with user ${demoUser.email}:`, error);
-        results.push({
-          email: demoUser.email,
-          status: 'error',
-          error: error.message
-        });
+        } catch (error: any) {
+          console.error(`Unexpected error with user ${demoUser.email}:`, error);
+          results.push({
+            email: demoUser.email,
+            status: 'error',
+            error: error?.message || 'Unknown error'
+          });
       }
     }
 
@@ -154,13 +154,13 @@ Deno.serve(async (req) => {
       }
     );
 
-  } catch (error) {
-    console.error('Setup demo users error:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
+    } catch (error: any) {
+      console.error('Setup demo users error:', error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: error?.message || 'Unknown error'
+        }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

@@ -19,6 +19,9 @@ import SEODashboard from './pages/SEODashboard';
 import Articles from './pages/Articles';
 import ArticleEditor from './pages/ArticleEditor';
 import SEOSettings from './pages/admin/SEOSettings';
+import PublisherManagement from './pages/admin/PublisherManagement';
+import SocialConnections from './pages/SocialConnections';
+import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
 import MediaKit from "./pages/MediaKit";
@@ -103,6 +106,21 @@ function App() {
             <Route path="/admin/seo-settings" element={
               <DashboardLayout>
                 <SEOSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publishers" element={
+              <DashboardLayout>
+                <PublisherManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/social-connections" element={
+              <DashboardLayout>
+                <SocialConnections />
+              </DashboardLayout>
+            } />
+            <Route path="/onix-manager" element={
+              <DashboardLayout>
+                <ONIXManager />
               </DashboardLayout>
             } />
             <Route path="/themes" element={

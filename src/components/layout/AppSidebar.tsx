@@ -15,7 +15,10 @@ import {
   FileText,
   TrendingUp,
   CreditCard,
-  Search
+  Search,
+  Share2,
+  Building2,
+  Upload
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
