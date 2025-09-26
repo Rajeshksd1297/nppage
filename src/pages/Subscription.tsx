@@ -71,9 +71,17 @@ export default function Subscription() {
     };
   }, []);
 
+  const getPackageDescription = (plan: SubscriptionPlan) => {
+    if (plan.price_monthly === 0) return 'Perfect for getting started';
+    if (plan.name.toLowerCase().includes('basic')) return 'Essential features for authors';
+    if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to grow';
+    if (plan.name.toLowerCase().includes('enterprise')) return 'Advanced features for professionals';
+    return 'Complete publishing solution';
+  };
+
   const fetchData = async () => {
     try {
-      setLoading(true); // Ensure loading state is set
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -94,7 +102,7 @@ export default function Subscription() {
 
       setPlans(plansData || []);
       setUserStats({ totalBooks, publishedBooks });
-      console.log('Subscription plans loaded:', plansData); // Debug log
+      console.log(`${plansData?.length || 0} subscription plans loaded:`, plansData);
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {
@@ -139,36 +147,40 @@ export default function Subscription() {
       )}
       
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Choose Your Plan
+        </h1>
         <p className="text-muted-foreground text-lg mb-6">
           Select the plan that best fits your publishing needs
         </p>
         
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <span className={billingCycle === 'monthly' ? 'font-semibold' : 'text-muted-foreground'}>
-            Monthly
-          </span>
+        {/* Debug info */}
+        <p className="text-sm text-muted-foreground mb-4">
+          {plans.length} packages available
+        </p>
+        
+        <div className="flex items-center justify-center gap-4 mb-8 p-1 bg-muted rounded-full w-fit mx-auto">
           <Button
-            variant="outline"
+            variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-            className="relative"
+            onClick={() => setBillingCycle('monthly')}
+            className="rounded-full px-6"
           >
-            <div className={`absolute inset-0 rounded-md transition-all ${
-              billingCycle === 'yearly' ? 'bg-primary' : 'bg-muted'
-            }`} />
-            <div className="relative z-10 px-2">
-              {billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}
-            </div>
+            Monthly
           </Button>
-          <span className={billingCycle === 'yearly' ? 'font-semibold' : 'text-muted-foreground'}>
+          <Button
+            variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setBillingCycle('yearly')}
+            className="rounded-full px-6 relative"
+          >
             Yearly
-            <Badge variant="secondary" className="ml-2">Save 17%</Badge>
-          </span>
+            <Badge variant="secondary" className="ml-2 text-xs">Save 17%</Badge>
+          </Button>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6 max-w-6xl mx-auto">
+      <div className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-6 max-w-7xl mx-auto">
         {plans.map((plan, index) => {
           const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
           const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
@@ -188,20 +200,25 @@ export default function Subscription() {
                 </div>
               )}
               
-              <CardHeader className="text-center">
-                <CardTitle className="flex items-center justify-center gap-2">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="flex items-center justify-center gap-2 text-xl">
                   {isPremium && <Zap className="w-5 h-5 text-primary" />}
                   {plan.name}
                 </CardTitle>
-                <CardDescription>
-                  {plan.price_monthly === 0 ? 'Perfect for getting started' : 'Everything you need to grow'}
+                <CardDescription className="mt-2">
+                  {getPackageDescription(plan)}
                 </CardDescription>
-                <div className="text-3xl font-bold">
-                  ${price}
+                <div className="text-3xl font-bold mt-4">
+                  <span className="text-primary">${price}</span>
                   <span className="text-lg text-muted-foreground font-normal">{priceLabel}</span>
                 </div>
+                {billingCycle === 'yearly' && plan.price_monthly > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    ${(plan.price_monthly * 12).toFixed(0)} billed annually
+                  </p>
+                )}
                 {isOnTrialForPlan && (
-                  <Badge variant="outline" className="mt-2">
+                  <Badge variant="outline" className="mt-3">
                     On Trial - {trialDaysLeft} days left
                   </Badge>
                 )}
