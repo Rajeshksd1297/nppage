@@ -61,12 +61,19 @@ const bookItems = [
 
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
-  { title: "Book Management", url: "/admin/books-management", icon: BookOpen },
   { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
   { title: "Theme Management", url: "/admin/settings?tab=themes", icon: Palette },
   { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
+];
+
+const bookManagementItems = [
+  { title: "Book Catalog", url: "/admin/book-catalog", icon: BookOpen },
+  { title: "ISBN Lookup", url: "/admin/isbn-lookup", icon: Search },
+  { title: "Affiliate Settings", url: "/admin/affiliate-settings", icon: Globe },
+  { title: "Field Settings", url: "/admin/field-settings", icon: Settings },
+  { title: "Book Analytics", url: "/admin/book-analytics", icon: BarChart3 },
 ];
 
 export function AppSidebar() {
@@ -175,23 +182,43 @@ export function AppSidebar() {
         )}
 
         {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Book Management</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {bookManagementItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
         )}
       </SidebarContent>
     </Sidebar>

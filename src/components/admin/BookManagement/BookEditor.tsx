@@ -35,7 +35,7 @@ interface Book {
 
 interface BookEditorProps {
   book: Book | null;
-  onSave: () => void;
+  onSave: (savedBook: Book) => void;
   onCancel: () => void;
 }
 
@@ -266,11 +266,14 @@ export function BookEditor({ book, onSave, onCancel }: BookEditorProps) {
         if (error) throw error;
       } else {
         // Create new book
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('books')
-          .insert([bookData]);
+          .insert([bookData])
+          .select()
+          .single();
 
         if (error) throw error;
+        bookData.id = data.id;
       }
 
       toast({
@@ -278,7 +281,7 @@ export function BookEditor({ book, onSave, onCancel }: BookEditorProps) {
         description: `Book ${book?.id ? 'updated' : 'created'} successfully`,
       });
 
-      onSave();
+      onSave(bookData as any);
     } catch (error) {
       console.error('Save error:', error);
       toast({

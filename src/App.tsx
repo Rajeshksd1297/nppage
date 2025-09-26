@@ -25,6 +25,11 @@ import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
 import MediaKit from "./pages/MediaKit";
+import BookCatalog from "./pages/admin/BookCatalog";
+import ISBNLookupPage from "./pages/admin/ISBNLookup";
+import AffiliateSettingsPage from "./pages/admin/AffiliateSettings";
+import BookFieldSettingsPage from "./pages/admin/BookFieldSettings";
+import BookAnalyticsPage from "./pages/admin/BookAnalytics";
 import AdminUsers from "./pages/admin/Users";
 import AdminBooks from "./pages/admin/BooksAdmin";
 import BooksManagement from "./pages/admin/BooksManagement";
@@ -153,6 +158,55 @@ function App() {
                 <AdminUsers />
               </DashboardLayout>
             } />
+            <Route path="/admin/book-catalog" element={
+              <DashboardLayout>
+                <BookCatalog />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/isbn-lookup" element={
+              <DashboardLayout>
+                <ISBNLookupPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/affiliate-settings" element={
+              <DashboardLayout>
+                <AffiliateSettingsPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/field-settings" element={
+              <DashboardLayout>
+                <BookFieldSettingsPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/book-analytics" element={
+              <DashboardLayout>
+                <BookAnalyticsPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/book-catalog" element={
+              <DashboardLayout>
+                <BookCatalog />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/isbn-lookup" element={
+              <DashboardLayout>
+                <ISBNLookupPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/affiliate-settings" element={
+              <DashboardLayout>
+                <AffiliateSettingsPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/field-settings" element={
+              <DashboardLayout>
+                <BookFieldSettingsPage />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/book-analytics" element={
+              <DashboardLayout>
+                <BookAnalyticsPage />
+              </DashboardLayout>
             <Route path="/admin/books" element={
               <DashboardLayout>
                 <AdminBooks />
