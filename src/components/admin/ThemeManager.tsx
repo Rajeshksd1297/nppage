@@ -33,28 +33,68 @@ interface Theme {
       primary: string;
       secondary: string;
       accent: string;
+      success: string;
+      warning: string;
+      error: string;
       background: string;
+      surface: string;
       text: string;
+      textSecondary: string;
       muted: string;
+      border: string;
+      gradient?: {
+        enabled: boolean;
+        from: string;
+        to: string;
+        direction: string;
+      };
     };
     typography: {
       headingFont: string;
       bodyFont: string;
+      monoFont: string;
       headingSize: string;
       bodySize: string;
+      smallSize: string;
       lineHeight: string;
+      headingWeight: string;
+      bodyWeight: string;
+      letterSpacing: string;
+      textTransform: string;
     };
     layout: {
       containerWidth: string;
       spacing: string;
       borderRadius: string;
+      borderWidth: string;
       shadowStyle: string;
+      animationSpeed: string;
+      gridColumns: string;
+      breakpoints: {
+        mobile: string;
+        tablet: string;
+        desktop: string;
+      };
     };
     components: {
       buttonStyle: string;
+      buttonSize: string;
       cardStyle: string;
+      cardPadding: string;
       navigationStyle: string;
       footerStyle: string;
+      inputStyle: string;
+      linkStyle: string;
+      badgeStyle: string;
+      hoverEffects: boolean;
+      focusRings: boolean;
+    };
+    effects: {
+      animations: boolean;
+      transitions: boolean;
+      backgroundPattern: string;
+      overlays: boolean;
+      blurEffects: boolean;
     };
   };
 }
@@ -77,28 +117,68 @@ export default function ThemeManager() {
           primary: '#3b82f6',
           secondary: '#64748b',
           accent: '#f59e0b',
+          success: '#10b981',
+          warning: '#f59e0b',
+          error: '#ef4444',
           background: '#ffffff',
+          surface: '#f8fafc',
           text: '#1f2937',
-          muted: '#6b7280'
+          textSecondary: '#6b7280',
+          muted: '#9ca3af',
+          border: '#e5e7eb',
+          gradient: {
+            enabled: false,
+            from: '#3b82f6',
+            to: '#8b5cf6',
+            direction: 'to-r'
+          }
         },
         typography: {
           headingFont: 'Inter',
           bodyFont: 'Inter',
+          monoFont: 'JetBrains Mono',
           headingSize: '2xl',
           bodySize: 'base',
-          lineHeight: 'relaxed'
+          smallSize: 'sm',
+          lineHeight: 'relaxed',
+          headingWeight: 'bold',
+          bodyWeight: 'normal',
+          letterSpacing: 'normal',
+          textTransform: 'none'
         },
         layout: {
           containerWidth: 'max-w-6xl',
           spacing: 'normal',
           borderRadius: 'rounded-lg',
-          shadowStyle: 'shadow-lg'
+          borderWidth: '1',
+          shadowStyle: 'shadow-lg',
+          animationSpeed: 'normal',
+          gridColumns: '12',
+          breakpoints: {
+            mobile: '640px',
+            tablet: '768px',
+            desktop: '1024px'
+          }
         },
         components: {
           buttonStyle: 'modern',
+          buttonSize: 'md',
           cardStyle: 'elevated',
+          cardPadding: 'normal',
           navigationStyle: 'clean',
-          footerStyle: 'minimal'
+          footerStyle: 'minimal',
+          inputStyle: 'outlined',
+          linkStyle: 'underline',
+          badgeStyle: 'rounded',
+          hoverEffects: true,
+          focusRings: true
+        },
+        effects: {
+          animations: true,
+          transitions: true,
+          backgroundPattern: 'none',
+          overlays: false,
+          blurEffects: false
         }
       }
     },
@@ -116,29 +196,69 @@ export default function ThemeManager() {
         colors: {
           primary: '#8b5cf6',
           secondary: '#64748b',
-          accent: '#f59e0b',
+          accent: '#c084fc',
+          success: '#10b981',
+          warning: '#f59e0b',
+          error: '#ef4444',
           background: '#ffffff',
+          surface: '#f8fafc',
           text: '#1f2937',
-          muted: '#6b7280'
+          textSecondary: '#6b7280',
+          muted: '#9ca3af',
+          border: '#e5e7eb',
+          gradient: {
+            enabled: true,
+            from: '#8b5cf6',
+            to: '#c084fc',
+            direction: 'to-br'
+          }
         },
         typography: {
           headingFont: 'Montserrat',
           bodyFont: 'Inter',
+          monoFont: 'JetBrains Mono',
           headingSize: '3xl',
           bodySize: 'base',
-          lineHeight: 'relaxed'
+          smallSize: 'sm',
+          lineHeight: 'relaxed',
+          headingWeight: 'bold',
+          bodyWeight: 'normal',
+          letterSpacing: 'wide',
+          textTransform: 'none'
         },
         layout: {
           containerWidth: 'max-w-5xl',
           spacing: 'relaxed',
           borderRadius: 'rounded-xl',
-          shadowStyle: 'shadow-xl'
+          borderWidth: '2',
+          shadowStyle: 'shadow-xl',
+          animationSpeed: 'fast',
+          gridColumns: '12',
+          breakpoints: {
+            mobile: '640px',
+            tablet: '768px',
+            desktop: '1024px'
+          }
         },
         components: {
           buttonStyle: 'bold',
+          buttonSize: 'lg',
           cardStyle: 'glass',
+          cardPadding: 'relaxed',
           navigationStyle: 'pill',
-          footerStyle: 'detailed'
+          footerStyle: 'detailed',
+          inputStyle: 'filled',
+          linkStyle: 'animated',
+          badgeStyle: 'pill',
+          hoverEffects: true,
+          focusRings: true
+        },
+        effects: {
+          animations: true,
+          transitions: true,
+          backgroundPattern: 'geometric',
+          overlays: true,
+          blurEffects: true
         }
       }
     },
@@ -342,17 +462,20 @@ export default function ThemeManager() {
 
               {/* Color Palette */}
               <div>
-                <div className="text-sm font-medium mb-2">Color Palette</div>
-                <div className="flex gap-1">
-                  {Object.entries(theme.config.colors).slice(0, 4).map(([key, color]) => (
-                    <div
-                      key={key}
-                      className="w-6 h-6 rounded border"
-                      style={{ backgroundColor: color }}
-                      title={key}
-                    />
-                  ))}
-                </div>
+                 <div className="text-sm font-medium mb-2">Color Palette</div>
+                 <div className="flex gap-1">
+                   {Object.entries(theme.config.colors)
+                     .filter(([key, color]) => typeof color === 'string')
+                     .slice(0, 4)
+                     .map(([key, color]) => (
+                     <div
+                       key={key}
+                       className="w-6 h-6 rounded border"
+                       style={{ backgroundColor: color as string }}
+                       title={key}
+                     />
+                   ))}
+                 </div>
               </div>
 
               {/* Stats */}

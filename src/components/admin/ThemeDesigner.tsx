@@ -17,7 +17,16 @@ import {
   Undo,
   Redo,
   Copy,
-  Trash2
+  Trash2,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Wand2,
+  Download,
+  Upload,
+  Sparkles,
+  Layers,
+  Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,28 +42,68 @@ interface Theme {
       primary: string;
       secondary: string;
       accent: string;
+      success: string;
+      warning: string;
+      error: string;
       background: string;
+      surface: string;
       text: string;
+      textSecondary: string;
       muted: string;
+      border: string;
+      gradient?: {
+        enabled: boolean;
+        from: string;
+        to: string;
+        direction: string;
+      };
     };
     typography: {
       headingFont: string;
       bodyFont: string;
+      monoFont: string;
       headingSize: string;
       bodySize: string;
+      smallSize: string;
       lineHeight: string;
+      headingWeight: string;
+      bodyWeight: string;
+      letterSpacing: string;
+      textTransform: string;
     };
     layout: {
       containerWidth: string;
       spacing: string;
       borderRadius: string;
+      borderWidth: string;
       shadowStyle: string;
+      animationSpeed: string;
+      gridColumns: string;
+      breakpoints: {
+        mobile: string;
+        tablet: string;
+        desktop: string;
+      };
     };
     components: {
       buttonStyle: string;
+      buttonSize: string;
       cardStyle: string;
+      cardPadding: string;
       navigationStyle: string;
       footerStyle: string;
+      inputStyle: string;
+      linkStyle: string;
+      badgeStyle: string;
+      hoverEffects: boolean;
+      focusRings: boolean;
+    };
+    effects: {
+      animations: boolean;
+      transitions: boolean;
+      backgroundPattern: string;
+      overlays: boolean;
+      blurEffects: boolean;
     };
   };
 }
@@ -80,34 +129,76 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
         primary: '#3b82f6',
         secondary: '#64748b',
         accent: '#f59e0b',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444',
         background: '#ffffff',
+        surface: '#f8fafc',
         text: '#1f2937',
-        muted: '#6b7280'
+        textSecondary: '#6b7280',
+        muted: '#9ca3af',
+        border: '#e5e7eb',
+        gradient: {
+          enabled: false,
+          from: '#3b82f6',
+          to: '#8b5cf6',
+          direction: 'to-r'
+        }
       },
       typography: {
         headingFont: 'Inter',
         bodyFont: 'Inter',
+        monoFont: 'JetBrains Mono',
         headingSize: '2xl',
         bodySize: 'base',
-        lineHeight: 'relaxed'
+        smallSize: 'sm',
+        lineHeight: 'relaxed',
+        headingWeight: 'bold',
+        bodyWeight: 'normal',
+        letterSpacing: 'normal',
+        textTransform: 'none'
       },
       layout: {
         containerWidth: 'max-w-6xl',
         spacing: 'normal',
         borderRadius: 'rounded-lg',
-        shadowStyle: 'shadow-lg'
+        borderWidth: '1',
+        shadowStyle: 'shadow-lg',
+        animationSpeed: 'normal',
+        gridColumns: '12',
+        breakpoints: {
+          mobile: '640px',
+          tablet: '768px',
+          desktop: '1024px'
+        }
       },
       components: {
         buttonStyle: 'modern',
+        buttonSize: 'md',
         cardStyle: 'elevated',
+        cardPadding: 'normal',
         navigationStyle: 'clean',
-        footerStyle: 'minimal'
+        footerStyle: 'minimal',
+        inputStyle: 'outlined',
+        linkStyle: 'underline',
+        badgeStyle: 'rounded',
+        hoverEffects: true,
+        focusRings: true
+      },
+      effects: {
+        animations: true,
+        transitions: true,
+        backgroundPattern: 'none',
+        overlays: false,
+        blurEffects: false
       }
     }
   });
 
   const [history, setHistory] = useState<Theme[]>([currentTheme]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewContent, setPreviewContent] = useState<'simple' | 'detailed' | 'interactive'>('detailed');
 
   const updateTheme = (updates: Partial<Theme>) => {
     const newTheme = { ...currentTheme, ...updates };
@@ -172,22 +263,162 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
   };
 
   const colorPalettes = [
-    { name: 'Blue', primary: '#3b82f6', secondary: '#64748b', accent: '#f59e0b' },
-    { name: 'Purple', primary: '#8b5cf6', secondary: '#64748b', accent: '#f59e0b' },
-    { name: 'Green', primary: '#10b981', secondary: '#64748b', accent: '#f59e0b' },
-    { name: 'Rose', primary: '#f43f5e', secondary: '#64748b', accent: '#f59e0b' },
-    { name: 'Orange', primary: '#f97316', secondary: '#64748b', accent: '#3b82f6' },
+    { 
+      name: 'Ocean Blue', 
+      colors: { primary: '#0ea5e9', secondary: '#64748b', accent: '#06b6d4', success: '#10b981', warning: '#f59e0b', error: '#ef4444' }
+    },
+    { 
+      name: 'Purple Magic', 
+      colors: { primary: '#8b5cf6', secondary: '#64748b', accent: '#c084fc', success: '#10b981', warning: '#f59e0b', error: '#ef4444' }
+    },
+    { 
+      name: 'Forest Green', 
+      colors: { primary: '#10b981', secondary: '#64748b', accent: '#34d399', success: '#059669', warning: '#f59e0b', error: '#ef4444' }
+    },
+    { 
+      name: 'Sunset Rose', 
+      colors: { primary: '#f43f5e', secondary: '#64748b', accent: '#fb7185', success: '#10b981', warning: '#f59e0b', error: '#dc2626' }
+    },
+    { 
+      name: 'Warm Orange', 
+      colors: { primary: '#f97316', secondary: '#64748b', accent: '#fb923c', success: '#10b981', warning: '#ea580c', error: '#ef4444' }
+    },
+    { 
+      name: 'Dark Mode', 
+      colors: { primary: '#3b82f6', secondary: '#1f2937', accent: '#60a5fa', success: '#10b981', warning: '#f59e0b', error: '#ef4444' }
+    },
   ];
 
   const fontOptions = [
-    { name: 'Inter', value: 'Inter' },
-    { name: 'Roboto', value: 'Roboto' },
-    { name: 'Open Sans', value: 'Open Sans' },
-    { name: 'Lato', value: 'Lato' },
-    { name: 'Montserrat', value: 'Montserrat' },
-    { name: 'Playfair Display', value: 'Playfair Display' },
-    { name: 'Merriweather', value: 'Merriweather' },
+    { name: 'Inter', value: 'Inter', category: 'Sans Serif' },
+    { name: 'Roboto', value: 'Roboto', category: 'Sans Serif' },
+    { name: 'Open Sans', value: 'Open Sans', category: 'Sans Serif' },
+    { name: 'Lato', value: 'Lato', category: 'Sans Serif' },
+    { name: 'Montserrat', value: 'Montserrat', category: 'Sans Serif' },
+    { name: 'Poppins', value: 'Poppins', category: 'Sans Serif' },
+    { name: 'Playfair Display', value: 'Playfair Display', category: 'Serif' },
+    { name: 'Merriweather', value: 'Merriweather', category: 'Serif' },
+    { name: 'Crimson Text', value: 'Crimson Text', category: 'Serif' },
+    { name: 'JetBrains Mono', value: 'JetBrains Mono', category: 'Monospace' },
+    { name: 'Fira Code', value: 'Fira Code', category: 'Monospace' },
+    { name: 'Source Code Pro', value: 'Source Code Pro', category: 'Monospace' },
   ];
+
+  const backgroundPatterns = [
+    { name: 'None', value: 'none' },
+    { name: 'Dots', value: 'dots' },
+    { name: 'Grid', value: 'grid' },
+    { name: 'Diagonal Lines', value: 'diagonal' },
+    { name: 'Waves', value: 'waves' },
+    { name: 'Geometric', value: 'geometric' },
+  ];
+
+  const generateColorHarmony = (baseColor: string, type: 'monochromatic' | 'analogous' | 'complementary' | 'triadic') => {
+    // Simple color harmony generator (in a real app, you'd use a proper color library)
+    const hsl = hexToHsl(baseColor);
+    const harmonies = {
+      monochromatic: [
+        hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 0)),
+        baseColor,
+        hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 20, 100))
+      ],
+      analogous: [
+        hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l),
+        baseColor,
+        hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l)
+      ],
+      complementary: [
+        baseColor,
+        hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l)
+      ],
+      triadic: [
+        baseColor,
+        hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l),
+        hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l)
+      ]
+    };
+    return harmonies[type];
+  };
+
+  const hexToHsl = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  };
+
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  const applyColorPalette = (palette: any) => {
+    updateConfig('colors', palette.colors);
+  };
+
+  const exportTheme = () => {
+    const themeCSS = generateThemeCSS(currentTheme);
+    const blob = new Blob([themeCSS], { type: 'text/css' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentTheme.name.toLowerCase().replace(/\s+/g, '-')}-theme.css`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const generateThemeCSS = (theme: Theme) => {
+    return `
+/* ${theme.name} Theme */
+:root {
+  /* Colors */
+  --color-primary: ${theme.config.colors.primary};
+  --color-secondary: ${theme.config.colors.secondary};
+  --color-accent: ${theme.config.colors.accent};
+  --color-success: ${theme.config.colors.success};
+  --color-warning: ${theme.config.colors.warning};
+  --color-error: ${theme.config.colors.error};
+  --color-background: ${theme.config.colors.background};
+  --color-surface: ${theme.config.colors.surface};
+  --color-text: ${theme.config.colors.text};
+  --color-text-secondary: ${theme.config.colors.textSecondary};
+  --color-muted: ${theme.config.colors.muted};
+  --color-border: ${theme.config.colors.border};
+  
+  /* Typography */
+  --font-heading: ${theme.config.typography.headingFont};
+  --font-body: ${theme.config.typography.bodyFont};
+  --font-mono: ${theme.config.typography.monoFont};
+  
+  /* Layout */
+  --container-width: ${theme.config.layout.containerWidth};
+  --border-radius: ${theme.config.layout.borderRadius.replace('rounded-', '')};
+  --shadow: ${theme.config.layout.shadowStyle.replace('shadow-', '')};
+  
+  /* Effects */
+  --transition-speed: ${theme.config.layout.animationSpeed === 'fast' ? '150ms' : theme.config.layout.animationSpeed === 'slow' ? '500ms' : '300ms'};
+}
+`;
+  };
 
   return (
     <div className="space-y-6">
@@ -207,6 +438,10 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
           <Button variant="outline" size="sm" onClick={duplicateTheme}>
             <Copy className="h-4 w-4" />
             Duplicate
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportTheme}>
+            <Download className="h-4 w-4" />
+            Export CSS
           </Button>
           <Button variant="outline" onClick={onCancel}>
             Cancel
@@ -274,7 +509,7 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
           </Card>
 
           <Tabs defaultValue="colors" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="colors" className="flex items-center gap-2">
                 <Palette className="h-4 w-4" />
                 Colors
@@ -291,6 +526,10 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
                 <Image className="h-4 w-4" />
                 Components
               </TabsTrigger>
+              <TabsTrigger value="effects" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Effects
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="colors" className="space-y-4">
@@ -303,57 +542,177 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
                   {/* Quick Color Palettes */}
                   <div>
                     <Label className="text-sm font-medium mb-2 block">Quick Palettes</Label>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {colorPalettes.map((palette) => (
                         <button
                           key={palette.name}
-                          onClick={() => updateConfig('colors', {
-                            primary: palette.primary,
-                            secondary: palette.secondary,
-                            accent: palette.accent,
-                          })}
-                          className="flex flex-col items-center p-2 border rounded-lg hover:shadow-md transition-shadow"
+                          onClick={() => applyColorPalette(palette)}
+                          className="flex flex-col items-center p-3 border rounded-lg hover:shadow-md transition-all hover:scale-105"
                         >
-                          <div className="flex gap-1 mb-1">
+                          <div className="flex gap-1 mb-2">
                             <div 
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: palette.primary }}
+                              className="w-3 h-3 rounded-full border"
+                              style={{ backgroundColor: palette.colors.primary }}
                             />
                             <div 
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: palette.secondary }}
+                              className="w-3 h-3 rounded-full border"
+                              style={{ backgroundColor: palette.colors.accent }}
                             />
                             <div 
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: palette.accent }}
+                              className="w-3 h-3 rounded-full border"
+                              style={{ backgroundColor: palette.colors.success }}
                             />
                           </div>
-                          <span className="text-xs">{palette.name}</span>
+                          <span className="text-xs font-medium">{palette.name}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
+                  {/* Gradient Settings */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-sm font-medium">Gradient Background</Label>
+                      <Switch
+                        checked={currentTheme.config.colors.gradient?.enabled || false}
+                        onCheckedChange={(checked) => updateConfig('colors', {
+                          gradient: { ...currentTheme.config.colors.gradient, enabled: checked }
+                        })}
+                      />
+                    </div>
+                    {currentTheme.config.colors.gradient?.enabled && (
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <div>
+                          <Label className="text-xs">From</Label>
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={currentTheme.config.colors.gradient?.from || '#3b82f6'}
+                              onChange={(e) => updateConfig('colors', {
+                                gradient: { ...currentTheme.config.colors.gradient, from: e.target.value }
+                              })}
+                              className="w-12 h-8 p-1"
+                            />
+                            <Input
+                              value={currentTheme.config.colors.gradient?.from || '#3b82f6'}
+                              onChange={(e) => updateConfig('colors', {
+                                gradient: { ...currentTheme.config.colors.gradient, from: e.target.value }
+                              })}
+                              className="text-xs"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs">To</Label>
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={currentTheme.config.colors.gradient?.to || '#8b5cf6'}
+                              onChange={(e) => updateConfig('colors', {
+                                gradient: { ...currentTheme.config.colors.gradient, to: e.target.value }
+                              })}
+                              className="w-12 h-8 p-1"
+                            />
+                            <Input
+                              value={currentTheme.config.colors.gradient?.to || '#8b5cf6'}
+                              onChange={(e) => updateConfig('colors', {
+                                gradient: { ...currentTheme.config.colors.gradient, to: e.target.value }
+                              })}
+                              className="text-xs"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Direction</Label>
+                          <select
+                            value={currentTheme.config.colors.gradient?.direction || 'to-r'}
+                            onChange={(e) => updateConfig('colors', {
+                              gradient: { ...currentTheme.config.colors.gradient, direction: e.target.value }
+                            })}
+                            className="w-full p-1 text-xs border rounded"
+                          >
+                            <option value="to-r">Left to Right</option>
+                            <option value="to-l">Right to Left</option>
+                            <option value="to-t">Bottom to Top</option>
+                            <option value="to-b">Top to Bottom</option>
+                            <option value="to-br">Top-Left to Bottom-Right</option>
+                            <option value="to-bl">Top-Right to Bottom-Left</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Individual Color Controls */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {Object.entries(currentTheme.config.colors).map(([key, value]) => (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {Object.entries(currentTheme.config.colors)
+                      .filter(([key]) => key !== 'gradient')
+                      .map(([key, value]) => (
                       <div key={key}>
-                        <Label className="capitalize">{key}</Label>
+                        <Label className="text-sm capitalize">
+                          {key === 'textSecondary' ? 'Text Secondary' : key}
+                        </Label>
                         <div className="flex gap-2 items-center">
                           <Input
                             type="color"
-                            value={value}
+                            value={value as string}
                             onChange={(e) => updateConfig('colors', { [key]: e.target.value })}
-                            className="w-16 h-10 p-1 border"
+                            className="w-12 h-8 p-1 border"
                           />
                           <Input
-                            value={value}
+                            value={value as string}
                             onChange={(e) => updateConfig('colors', { [key]: e.target.value })}
-                            className="flex-1"
+                            className="flex-1 text-sm"
+                            placeholder="#000000"
                           />
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Color Harmony Generator */}
+                  <div className="border-t pt-4">
+                    <Label className="text-sm font-medium mb-2 block">Color Harmony Generator</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={currentTheme.config.colors.primary}
+                        onChange={(e) => {
+                          const harmonies = generateColorHarmony(e.target.value, 'analogous');
+                          updateConfig('colors', {
+                            primary: harmonies[1],
+                            accent: harmonies[0],
+                            secondary: harmonies[2]
+                          });
+                        }}
+                        className="w-12 h-8 p-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const harmonies = generateColorHarmony(currentTheme.config.colors.primary, 'complementary');
+                          updateConfig('colors', { accent: harmonies[1] });
+                        }}
+                      >
+                        <Wand2 className="h-3 w-3 mr-1" />
+                        Complementary
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const harmonies = generateColorHarmony(currentTheme.config.colors.primary, 'triadic');
+                          updateConfig('colors', { 
+                            accent: harmonies[1],
+                            success: harmonies[2]
+                          });
+                        }}
+                      >
+                        <Wand2 className="h-3 w-3 mr-1" />
+                        Triadic
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -569,50 +928,241 @@ export default function ThemeDesigner({ theme, onSave, onCancel }: ThemeDesigner
                 <Eye className="h-4 w-4" />
                 Live Preview
               </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={previewMode === 'desktop' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPreviewMode('desktop')}
+                >
+                  <Monitor className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={previewMode === 'tablet' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPreviewMode('tablet')}
+                >
+                  <Tablet className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={previewMode === 'mobile' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPreviewMode('mobile')}
+                >
+                  <Smartphone className="h-4 w-4" />
+                </Button>
+                <select
+                  value={previewContent}
+                  onChange={(e) => setPreviewContent(e.target.value as any)}
+                  className="ml-2 text-sm border rounded px-2 py-1"
+                >
+                  <option value="simple">Simple</option>
+                  <option value="detailed">Detailed</option>
+                  <option value="interactive">Interactive</option>
+                </select>
+              </div>
             </CardHeader>
             <CardContent>
-              <div 
-                className="border rounded-lg p-4 min-h-64"
-                style={{
-                  backgroundColor: currentTheme.config.colors.background,
-                  color: currentTheme.config.colors.text,
-                  fontFamily: currentTheme.config.typography.bodyFont,
-                }}
-              >
-                <div className="space-y-4">
-                  <h1 
-                    className="font-bold"
-                    style={{
-                      color: currentTheme.config.colors.primary,
-                      fontFamily: currentTheme.config.typography.headingFont,
-                    }}
-                  >
-                    Sample Heading
-                  </h1>
-                  <p style={{ color: currentTheme.config.colors.text }}>
-                    This is sample body text to show how your theme will look. 
-                    The typography and colors are applied as per your settings.
-                  </p>
-                  <button
-                    className="px-4 py-2 rounded font-medium"
-                    style={{
-                      backgroundColor: currentTheme.config.colors.primary,
-                      color: currentTheme.config.colors.background,
-                      borderRadius: currentTheme.config.layout.borderRadius.replace('rounded-', ''),
-                    }}
-                  >
-                    Sample Button
-                  </button>
-                  <div 
-                    className="p-4 border"
-                    style={{
-                      backgroundColor: currentTheme.config.colors.muted + '20',
-                      borderColor: currentTheme.config.colors.muted,
-                      borderRadius: currentTheme.config.layout.borderRadius.replace('rounded-', ''),
-                    }}
-                  >
-                    Sample Card Component
-                  </div>
+              <div className={`
+                border rounded-lg overflow-hidden transition-all
+                ${previewMode === 'mobile' ? 'max-w-sm' : 
+                  previewMode === 'tablet' ? 'max-w-md' : 'w-full'}
+                mx-auto
+              `}>
+                <div 
+                  className="p-4 min-h-64"
+                  style={{
+                    background: currentTheme.config.colors.gradient?.enabled 
+                      ? `linear-gradient(${currentTheme.config.colors.gradient.direction}, ${currentTheme.config.colors.gradient.from}, ${currentTheme.config.colors.gradient.to})`
+                      : currentTheme.config.colors.background,
+                    color: currentTheme.config.colors.text,
+                    fontFamily: currentTheme.config.typography.bodyFont,
+                    fontSize: currentTheme.config.typography.bodySize === 'sm' ? '14px' : 
+                             currentTheme.config.typography.bodySize === 'lg' ? '18px' : '16px',
+                  }}
+                >
+                  {previewContent === 'simple' && (
+                    <div className="space-y-4">
+                      <h1 
+                        className={`font-${currentTheme.config.typography.headingWeight}`}
+                        style={{
+                          color: currentTheme.config.colors.primary,
+                          fontFamily: currentTheme.config.typography.headingFont,
+                          fontSize: currentTheme.config.typography.headingSize === '2xl' ? '24px' : 
+                                   currentTheme.config.typography.headingSize === '3xl' ? '30px' : '20px',
+                        }}
+                      >
+                        Sample Heading
+                      </h1>
+                      <p style={{ color: currentTheme.config.colors.text }}>
+                        This is sample body text to show how your theme will look.
+                      </p>
+                      <button
+                        className={`px-4 py-2 ${currentTheme.config.layout.borderRadius} font-medium transition-colors hover:opacity-90`}
+                        style={{
+                          backgroundColor: currentTheme.config.colors.primary,
+                          color: currentTheme.config.colors.background,
+                        }}
+                      >
+                        Sample Button
+                      </button>
+                    </div>
+                  )}
+
+                  {previewContent === 'detailed' && (
+                    <div className="space-y-6">
+                      {/* Header */}
+                      <header className="pb-4 border-b" style={{ borderColor: currentTheme.config.colors.border }}>
+                        <h1 
+                          className={`font-${currentTheme.config.typography.headingWeight} mb-2`}
+                          style={{
+                            color: currentTheme.config.colors.primary,
+                            fontFamily: currentTheme.config.typography.headingFont,
+                          }}
+                        >
+                          Author Name
+                        </h1>
+                        <p style={{ color: currentTheme.config.colors.textSecondary }}>
+                          Professional author and storyteller
+                        </p>
+                      </header>
+
+                      {/* Navigation */}
+                      <nav className="flex gap-4">
+                        {['Home', 'Books', 'About', 'Contact'].map((item) => (
+                          <a
+                            key={item}
+                            href="#"
+                            className={`px-3 py-1 ${currentTheme.config.layout.borderRadius} transition-colors`}
+                            style={{
+                              color: currentTheme.config.colors.text,
+                              backgroundColor: currentTheme.config.colors.surface,
+                            }}
+                          >
+                            {item}
+                          </a>
+                        ))}
+                      </nav>
+
+                      {/* Content Cards */}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div 
+                          className={`p-4 ${currentTheme.config.layout.borderRadius} ${currentTheme.config.layout.shadowStyle}`}
+                          style={{
+                            backgroundColor: currentTheme.config.colors.surface,
+                            borderColor: currentTheme.config.colors.border,
+                            borderWidth: currentTheme.config.layout.borderWidth + 'px',
+                          }}
+                        >
+                          <h3 className="font-semibold mb-2" style={{ color: currentTheme.config.colors.primary }}>
+                            Latest Book
+                          </h3>
+                          <p className="text-sm" style={{ color: currentTheme.config.colors.textSecondary }}>
+                            A thrilling adventure that will keep you on the edge of your seat.
+                          </p>
+                          <span 
+                            className={`inline-block px-2 py-1 text-xs ${currentTheme.config.layout.borderRadius} mt-2`}
+                            style={{
+                              backgroundColor: currentTheme.config.colors.accent,
+                              color: currentTheme.config.colors.background,
+                            }}
+                          >
+                            Fiction
+                          </span>
+                        </div>
+
+                        <div 
+                          className={`p-4 ${currentTheme.config.layout.borderRadius} ${currentTheme.config.layout.shadowStyle}`}
+                          style={{
+                            backgroundColor: currentTheme.config.colors.surface,
+                            borderColor: currentTheme.config.colors.border,
+                            borderWidth: currentTheme.config.layout.borderWidth + 'px',
+                          }}
+                        >
+                          <h3 className="font-semibold mb-2" style={{ color: currentTheme.config.colors.primary }}>
+                            About Me
+                          </h3>
+                          <p className="text-sm" style={{ color: currentTheme.config.colors.textSecondary }}>
+                            I've been writing stories for over a decade, crafting worlds that readers love to explore.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3">
+                        <button
+                          className={`px-4 py-2 ${currentTheme.config.layout.borderRadius} font-medium transition-all hover:scale-105`}
+                          style={{
+                            backgroundColor: currentTheme.config.colors.primary,
+                            color: currentTheme.config.colors.background,
+                          }}
+                        >
+                          View Books
+                        </button>
+                        <button
+                          className={`px-4 py-2 ${currentTheme.config.layout.borderRadius} font-medium border transition-all hover:scale-105`}
+                          style={{
+                            borderColor: currentTheme.config.colors.primary,
+                            color: currentTheme.config.colors.primary,
+                            backgroundColor: 'transparent',
+                          }}
+                        >
+                          Contact
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {previewContent === 'interactive' && (
+                    <div className="space-y-6">
+                      <h2 className="text-xl font-bold" style={{ color: currentTheme.config.colors.primary }}>
+                        Interactive Elements
+                      </h2>
+                      
+                      {/* Color States */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          className="p-3 rounded"
+                          style={{ backgroundColor: currentTheme.config.colors.success + '20', borderColor: currentTheme.config.colors.success }}
+                        >
+                          <span style={{ color: currentTheme.config.colors.success }}>✓ Success</span>
+                        </div>
+                        <div 
+                          className="p-3 rounded"
+                          style={{ backgroundColor: currentTheme.config.colors.warning + '20', borderColor: currentTheme.config.colors.warning }}
+                        >
+                          <span style={{ color: currentTheme.config.colors.warning }}>⚠ Warning</span>
+                        </div>
+                        <div 
+                          className="p-3 rounded"
+                          style={{ backgroundColor: currentTheme.config.colors.error + '20', borderColor: currentTheme.config.colors.error }}
+                        >
+                          <span style={{ color: currentTheme.config.colors.error }}>✗ Error</span>
+                        </div>
+                        <div 
+                          className="p-3 rounded"
+                          style={{ backgroundColor: currentTheme.config.colors.accent + '20', borderColor: currentTheme.config.colors.accent }}
+                        >
+                          <span style={{ color: currentTheme.config.colors.accent }}>★ Featured</span>
+                        </div>
+                      </div>
+
+                      {/* Typography Showcase */}
+                      <div className="space-y-2">
+                        <h1 style={{ fontFamily: currentTheme.config.typography.headingFont, color: currentTheme.config.colors.primary }}>
+                          Heading 1
+                        </h1>
+                        <h2 style={{ fontFamily: currentTheme.config.typography.headingFont, color: currentTheme.config.colors.primary }}>
+                          Heading 2
+                        </h2>
+                        <p style={{ fontFamily: currentTheme.config.typography.bodyFont, color: currentTheme.config.colors.text }}>
+                          Body text with {currentTheme.config.typography.bodyFont} font
+                        </p>
+                        <p style={{ fontFamily: currentTheme.config.typography.monoFont, color: currentTheme.config.colors.textSecondary }}>
+                          Code text with {currentTheme.config.typography.monoFont}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
