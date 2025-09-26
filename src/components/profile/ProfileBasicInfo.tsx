@@ -738,27 +738,25 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6 border-t">
+      <div className="flex items-center justify-between pt-6 border-t">
         <Button 
           variant="outline"
           onClick={saveProfile}
           disabled={saving}
-          size="lg"
-          className="flex items-center space-x-3 px-6 py-4 text-lg font-semibold"
+          className="flex items-center space-x-2"
         >
-          {saving && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
-          <Save className="w-5 h-5" />
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <Save className="w-4 h-4" />
           <span>Save Changes</span>
         </Button>
         
         <Button 
           onClick={onNext}
           disabled={!isFormValid}
-          size="lg"
-          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold bg-gradient-primary hover:shadow-xl hover:scale-105 transition-all duration-300"
+          className="flex items-center space-x-2 transition-all hover:shadow-lg"
         >
           <span>Next Step</span>
-          <ArrowRight className="w-6 h-6" />
+          <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
     </div>

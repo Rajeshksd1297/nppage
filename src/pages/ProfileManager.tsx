@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
-import { User, Link, Palette, Search, ArrowRight, ArrowLeft } from 'lucide-react';
+import { User, Link, Palette, Search, ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { SubscriptionAwareLayout } from '@/components/SubscriptionAwareLayout';
 import { ProfileBasicInfo } from '@/components/profile/ProfileBasicInfo';
@@ -138,34 +138,60 @@ export default function ProfileManager() {
           description="Manage your author profile in easy steps"
         />
 
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Author Profile Setup
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Complete your professional author profile and showcase your work to the world
-          </p>
-          <div className="flex items-center justify-center space-x-2">
+        {/* Step Navigation */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(step.id)}
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 hover:scale-105 ${
+                    index === currentStepIndex 
+                      ? 'border-primary bg-primary text-primary-foreground shadow-lg' 
+                      : index < currentStepIndex 
+                        ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/80'
+                        : 'border-muted-foreground bg-background text-muted-foreground hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {index < currentStepIndex ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <span className="text-sm font-medium">{index + 1}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(step.id)}
+                  className={`ml-3 text-sm font-medium transition-colors hover:text-primary ${
+                    index === currentStepIndex ? 'text-foreground' : 'text-muted-foreground'
+                  }`}
+                >
+                  {step.label}
+                </button>
+                {index < steps.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-4 transition-colors ${
+                    index < currentStepIndex ? 'bg-primary' : 'bg-muted'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex items-center space-x-2">
             <Badge variant="outline" className="px-3 py-1">
               Step {currentStepIndex + 1} of {steps.length}
             </Badge>
-            <span className="text-sm text-muted-foreground">
-              {steps[currentStepIndex].label}
-            </span>
           </div>
         </div>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
+        {/* Current Step Content */}
+        <Card className="border-0 shadow-lg">
           <CardHeader className="pb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
-                {React.createElement(steps[currentStepIndex].icon, { className: "w-7 h-7 text-white" })}
-              </div>
-              <div className="flex-1">
-                <CardTitle className="text-2xl font-bold">{steps[currentStepIndex].label}</CardTitle>
-                <p className="text-muted-foreground mt-1">{steps[currentStepIndex].description}</p>
-              </div>
-            </div>
+            <CardTitle className="text-xl">
+              {steps[currentStepIndex].label}
+            </CardTitle>
+            <p className="text-muted-foreground">{steps[currentStepIndex].description}</p>
           </CardHeader>
 
         <CardContent className="space-y-6">
@@ -208,36 +234,34 @@ export default function ProfileManager() {
           </Tabs>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-8 border-t border-gradient-primary/20">
+          <div className="flex items-center justify-between pt-6 border-t">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={isFirstStep}
-              size="lg"
-              className={`flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 ${
-                isFirstStep ? 'opacity-50 cursor-not-allowed' : 'hover:bg-secondary/80 hover:scale-105 hover:shadow-lg border-2'
+              className={`flex items-center space-x-2 transition-all ${
+                isFirstStep ? 'opacity-50 cursor-not-allowed' : 'hover:bg-secondary'
               }`}
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-4 h-4" />
               <span>Previous</span>
             </Button>
 
-            <div className="text-center px-4">
-              <div className="bg-gradient-primary rounded-full px-6 py-2 text-white font-semibold shadow-md">
-                {currentStepIndex + 1} / {steps.length}
-              </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                {steps[currentStepIndex].label}
+              </p>
             </div>
 
             <Button
               onClick={handleNext}
               disabled={isLastStep}
-              size="lg"
-              className={`flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 bg-gradient-primary hover:shadow-xl ${
-                isLastStep ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 shadow-lg animate-pulse'
+              className={`flex items-center space-x-2 transition-all ${
+                isLastStep ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
               }`}
             >
               <span>{isLastStep ? 'Complete Setup' : 'Next Step'}</span>
-              <ArrowRight className="w-6 h-6" />
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </CardContent>
