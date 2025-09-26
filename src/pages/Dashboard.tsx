@@ -213,30 +213,22 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/admin')}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Admin Dashboard
-              </Button>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/admin/users')}
                 className="flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
-                Manage Users
+                Manage Access
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/admin/books')}
+                onClick={() => navigate('/subscription')}
                 className="flex items-center gap-2"
               >
-                <BookOpen className="h-4 w-4" />
-                Manage Books
+                <Settings className="h-4 w-4" />
+                Manage Packages
               </Button>
             </div>
         </div>
