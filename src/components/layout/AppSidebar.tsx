@@ -61,6 +61,7 @@ const bookItems = [
 
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
+  { title: "Book Management", url: "/admin/books-management", icon: BookOpen },
   { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
