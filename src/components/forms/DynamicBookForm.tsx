@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 interface DynamicBookFormProps {
   form: UseFormReturn<any>;
@@ -71,34 +70,22 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
       
       case 'select':
         return (
-          <FormField
-            control={form.control}
-            name={field.name}
-            rules={{ required: field.required ? `${field.label} is required` : false }}
-            render={({ field: formField }) => (
-              <FormItem>
-                <Select 
-                  onValueChange={formField.onChange} 
-                  defaultValue={formField.value}
-                  disabled={isReadOnly}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={field.placeholder} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {field.options?.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Select 
+            onValueChange={(value) => form.setValue(field.name, value)}
+            defaultValue={form.watch(field.name) || field.defaultValue || ''}
+            disabled={isReadOnly}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={field.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
       
       case 'multiselect':
