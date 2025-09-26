@@ -3,8 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Zap } from 'lucide-react';
+import { Check, Crown, Zap, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface SubscriptionPlan {
   id: string;
@@ -33,10 +34,10 @@ interface UserSubscription {
 
 export default function Subscription() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { toast } = useToast();
+  const { subscription, isOnTrial, trialDaysLeft } = useSubscription();
 
   useEffect(() => {
     fetchData();
@@ -47,25 +48,14 @@ export default function Subscription() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch subscription plans
+      // Fetch subscription plans (only Free and Pro)
       const { data: plansData } = await supabase
         .from('subscription_plans')
         .select('*')
+        .in('name', ['Free', 'Pro'])
         .order('price_monthly');
 
-      // Fetch current subscription
-      const { data: subscriptionData } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          *,
-          subscription_plans (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single();
-
       setPlans(plansData || []);
-      setCurrentSubscription(subscriptionData);
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {
@@ -87,10 +77,32 @@ export default function Subscription() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
+      {/* Trial Banner */}
+      {isOnTrial() && (
+        <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-amber-600" />
+                <div>
+                  <p className="font-medium text-amber-900">
+                    Pro Trial Active - {trialDaysLeft} days left
+                  </p>
+                  <p className="text-sm text-amber-700">
+                    Enjoy unlimited access to all Pro features during your trial
+                  </p>
+                </div>
+              </div>
+              <Clock className="w-5 h-5 text-amber-600" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-muted-foreground text-lg mb-6">
-          Unlock premium features to enhance your author presence
+          Start with a 15-day Pro trial, then choose the plan that works best for you
         </p>
         
         <div className="flex items-center justify-center gap-4 mb-8">
@@ -119,7 +131,8 @@ export default function Subscription() {
 
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {plans.map((plan) => {
-          const isCurrentPlan = currentSubscription?.subscription_plans.id === plan.id;
+          const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
+          const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
           const isPro = plan.name === 'Pro';
           const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
           const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
@@ -147,6 +160,11 @@ export default function Subscription() {
                   ${price}
                   <span className="text-lg text-muted-foreground font-normal">{priceLabel}</span>
                 </div>
+                {isOnTrialForPlan && (
+                  <Badge variant="outline" className="mt-2">
+                    On Trial - {trialDaysLeft} days left
+                  </Badge>
+                )}
               </CardHeader>
 
               <CardContent>
@@ -162,17 +180,18 @@ export default function Subscription() {
                 <Button 
                   className="w-full" 
                   variant={isPro ? "default" : "outline"}
-                  disabled={isCurrentPlan}
+                  disabled={isCurrentPlan || isOnTrialForPlan}
                   onClick={() => handleUpgrade(plan.id)}
                 >
                   {isCurrentPlan ? 'Current Plan' : 
-                   plan.name === 'Free' ? 'Get Started' : 
+                   isOnTrialForPlan ? 'On Trial' :
+                   plan.name === 'Free' ? 'Downgrade to Free' : 
                    'Upgrade Now'}
                 </Button>
 
-                {isCurrentPlan && (
+                {(isCurrentPlan || isOnTrialForPlan) && (
                   <p className="text-center text-sm text-muted-foreground mt-2">
-                    Your current active plan
+                    {isOnTrialForPlan ? 'Your trial is active' : 'Your current active plan'}
                   </p>
                 )}
               </CardContent>
@@ -181,7 +200,7 @@ export default function Subscription() {
         })}
       </div>
 
-      {currentSubscription && (
+      {subscription && (
         <Card className="mt-8 max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Current Subscription</CardTitle>
@@ -191,19 +210,28 @@ export default function Subscription() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Plan</p>
-                <p className="font-semibold">{currentSubscription.subscription_plans.name}</p>
+                <p className="font-semibold">{subscription.subscription_plans.name}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant={currentSubscription.status === 'active' ? 'default' : 'secondary'}>
-                  {currentSubscription.status}
+                <Badge variant={subscription.status === 'active' ? 'default' : 
+                              subscription.status === 'trialing' ? 'secondary' : 'secondary'}>
+                  {subscription.status === 'trialing' ? 'Trial' : subscription.status}
                 </Badge>
               </div>
-              {currentSubscription.current_period_end && (
+              {subscription.trial_ends_at && subscription.status === 'trialing' && (
+                <div className="col-span-2">
+                  <p className="text-sm text-muted-foreground">Trial ends</p>
+                  <p className="font-semibold">
+                    {new Date(subscription.trial_ends_at).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              {subscription.current_period_end && subscription.status === 'active' && (
                 <div className="col-span-2">
                   <p className="text-sm text-muted-foreground">Next billing date</p>
                   <p className="font-semibold">
-                    {new Date(currentSubscription.current_period_end).toLocaleDateString()}
+                    {new Date(subscription.current_period_end).toLocaleDateString()}
                   </p>
                 </div>
               )}

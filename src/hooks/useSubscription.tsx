@@ -16,12 +16,18 @@ interface SubscriptionPlan {
 }
 
 interface UserSubscription {
+  id: string;
+  status: string;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
   subscription_plans: SubscriptionPlan;
 }
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isTrialActive, setIsTrialActive] = useState(false);
+  const [trialDaysLeft, setTrialDaysLeft] = useState(0);
 
   useEffect(() => {
     fetchSubscription();
@@ -35,18 +41,35 @@ export function useSubscription() {
         return;
       }
 
-      // First try to get from user_subscriptions
+      // First try to get from user_subscriptions (including trials)
       const { data: subscriptionData } = await supabase
         .from('user_subscriptions')
         .select(`
+          *,
           subscription_plans (*)
         `)
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single();
+        .in('status', ['active', 'trialing'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (subscriptionData) {
         setSubscription(subscriptionData);
+        
+        // Check if trial is active
+        if (subscriptionData.status === 'trialing' && subscriptionData.trial_ends_at) {
+          const trialEnd = new Date(subscriptionData.trial_ends_at);
+          const now = new Date();
+          const isActive = trialEnd > now;
+          setIsTrialActive(isActive);
+          
+          if (isActive) {
+            const diffTime = trialEnd.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setTrialDaysLeft(diffDays);
+          }
+        }
       } else {
         // Fallback to free plan
         const { data: freePlan } = await supabase
@@ -56,7 +79,13 @@ export function useSubscription() {
           .single();
 
         if (freePlan) {
-          setSubscription({ subscription_plans: freePlan });
+          setSubscription({ 
+            id: '', 
+            status: 'inactive', 
+            trial_ends_at: null, 
+            current_period_end: null,
+            subscription_plans: freePlan 
+          });
         }
       }
     } catch (error) {
@@ -69,7 +98,13 @@ export function useSubscription() {
         .single();
 
       if (freePlan) {
-        setSubscription({ subscription_plans: freePlan });
+        setSubscription({ 
+          id: '', 
+          status: 'inactive', 
+          trial_ends_at: null, 
+          current_period_end: null,
+          subscription_plans: freePlan 
+        });
       }
     } finally {
       setLoading(false);
@@ -78,6 +113,10 @@ export function useSubscription() {
 
   const hasFeature = (feature: keyof SubscriptionPlan): boolean => {
     if (!subscription) return false;
+    // If user is on trial or has active Pro subscription, they have access to Pro features
+    if (subscription.status === 'trialing' || (subscription.status === 'active' && subscription.subscription_plans.name === 'Pro')) {
+      return true;
+    }
     const value = subscription.subscription_plans[feature];
     return typeof value === 'boolean' ? value : false;
   };
@@ -91,11 +130,15 @@ export function useSubscription() {
   };
 
   const isPro = () => {
-    return subscription?.subscription_plans.name === 'Pro';
+    return subscription?.subscription_plans.name === 'Pro' || subscription?.status === 'trialing';
   };
 
   const isFree = () => {
-    return subscription?.subscription_plans.name === 'Free';
+    return subscription?.subscription_plans.name === 'Free' && subscription?.status !== 'trialing';
+  };
+
+  const isOnTrial = () => {
+    return subscription?.status === 'trialing' && isTrialActive;
   };
 
   return {
@@ -105,6 +148,9 @@ export function useSubscription() {
     getLimit,
     isPro,
     isFree,
+    isOnTrial,
+    isTrialActive,
+    trialDaysLeft,
     refetch: fetchSubscription
   };
 }
