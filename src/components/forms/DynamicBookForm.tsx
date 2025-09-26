@@ -509,15 +509,26 @@ export function DynamicBookForm({ form, mode }: DynamicBookFormProps) {
             Previous
           </Button>
 
-          <Button
-            type="button"
-            onClick={handleNext}
-            disabled={currentStep === categories.length - 1 || !validateCurrentStep()}
-            className="flex items-center gap-2"
-          >
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          {currentStep === categories.length - 1 ? (
+            <Button
+              type="submit"
+              disabled={!validateCurrentStep()}
+              className="flex items-center gap-2"
+            >
+              <Check className="h-4 w-4" />
+              Save Book
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleNext}
+              disabled={!validateCurrentStep()}
+              className="flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       )}
 
