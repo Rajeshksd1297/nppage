@@ -12,7 +12,9 @@ import {
   Trash2, 
   CreditCard,
   Crown,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Users,
+  BookOpen
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +26,15 @@ interface Package {
   price_yearly: number;
   features: string[];
   max_books: number | null;
+  max_publications: number | null;
+  max_authors: number | null; // For publishers
+  advanced_analytics: boolean;
+  custom_domain: boolean;
+  premium_themes: boolean;
+  contact_form: boolean;
+  media_kit: boolean;
+  newsletter_integration: boolean;
+  no_watermark: boolean;
   badge_text: string;
   badge_color: string;
   description: string;
@@ -32,6 +43,7 @@ interface Package {
   discount_to: string;
   popular: boolean;
   active: boolean;
+  is_publisher_plan: boolean;
 }
 
 export default function PackageManagement() {
@@ -47,6 +59,15 @@ export default function PackageManagement() {
         price_yearly: 0,
         features: ['Up to 3 books', 'Basic profile', 'Standard themes', 'Community support'],
         max_books: 3,
+        max_publications: null,
+        max_authors: null,
+        advanced_analytics: false,
+        custom_domain: false,
+        premium_themes: false,
+        contact_form: false,
+        media_kit: false,
+        newsletter_integration: false,
+        no_watermark: false,
         badge_text: '',
         badge_color: '',
         description: 'Perfect for getting started with your author journey',
@@ -54,7 +75,8 @@ export default function PackageManagement() {
         discount_from: '',
         discount_to: '',
         popular: false,
-        active: true
+        active: true,
+        is_publisher_plan: false
       },
       {
         id: '2', 
@@ -63,6 +85,15 @@ export default function PackageManagement() {
         price_yearly: 99.99,
         features: ['Unlimited books', 'Custom domain', 'Premium themes', 'Advanced analytics', 'Priority support', 'Media kit', 'Contact forms'],
         max_books: null,
+        max_publications: null,
+        max_authors: null,
+        advanced_analytics: true,
+        custom_domain: true,
+        premium_themes: true,
+        contact_form: true,
+        media_kit: true,
+        newsletter_integration: true,
+        no_watermark: true,
         badge_text: 'Most Popular',
         badge_color: 'primary',
         description: 'Everything you need to grow your author brand',
@@ -70,14 +101,42 @@ export default function PackageManagement() {
         discount_from: '2024-12-01',
         discount_to: '2024-12-31',
         popular: true,
-        active: true
+        active: true,
+        is_publisher_plan: false
+      },
+      {
+        id: '3',
+        name: 'Publisher',
+        price_monthly: 49.99,
+        price_yearly: 499.99,
+        features: ['Everything in Pro', 'Up to 25 authors', 'Publisher dashboard', 'Revenue sharing', 'Bulk operations', 'White-label options'],
+        max_books: null,
+        max_publications: null,
+        max_authors: 25,
+        advanced_analytics: true,
+        custom_domain: true,
+        premium_themes: true,
+        contact_form: true,
+        media_kit: true,
+        newsletter_integration: true,
+        no_watermark: true,
+        badge_text: 'For Publishers',
+        badge_color: 'secondary',
+        description: 'Designed for publishers managing multiple authors',
+        discount_percent: 0,
+        discount_from: '',
+        discount_to: '',
+        popular: false,
+        active: true,
+        is_publisher_plan: true
       }
     ],
     trial_days: 15,
     allow_downgrades: true,
     prorate_charges: true,
     grace_period_days: 7,
-    auto_renewal: true
+    auto_renewal: true,
+    default_package_display_days: 30
   });
 
   const handleSavePackageSettings = async () => {
@@ -107,6 +166,15 @@ export default function PackageManagement() {
       price_yearly: 0,
       features: ['Feature 1', 'Feature 2'],
       max_books: 10,
+      max_publications: null,
+      max_authors: null,
+      advanced_analytics: false,
+      custom_domain: false,
+      premium_themes: false,
+      contact_form: false,
+      media_kit: false,
+      newsletter_integration: false,
+      no_watermark: false,
       badge_text: '',
       badge_color: '',
       description: 'Description for new package',
@@ -114,7 +182,8 @@ export default function PackageManagement() {
       discount_from: '',
       discount_to: '',
       popular: false,
-      active: true
+      active: true,
+      is_publisher_plan: false
     };
     setPackageSettings(prev => ({
       ...prev,
@@ -260,6 +329,119 @@ export default function PackageManagement() {
                       />
                     </div>
                     <div>
+                      <Label>Max Publications</Label>
+                      <Input
+                        type="number"
+                        value={pkg.max_publications || ''}
+                        placeholder="Unlimited"
+                        onChange={(e) => updatePackage(pkg.id, { max_publications: e.target.value ? parseInt(e.target.value) : null })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Max Authors {pkg.is_publisher_plan && '(Publisher Plan)'}</Label>
+                      <Input
+                        type="number"
+                        value={pkg.max_authors || ''}
+                        placeholder={pkg.is_publisher_plan ? "25" : "N/A"}
+                        onChange={(e) => updatePackage(pkg.id, { max_authors: e.target.value ? parseInt(e.target.value) : null })}
+                        disabled={!pkg.is_publisher_plan}
+                      />
+                      {pkg.is_publisher_plan && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Number of authors this publisher can manage
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Premium Features */}
+                  <Card className="border-dashed">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Crown className="h-4 w-4" />
+                        Premium Features
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.custom_domain}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { custom_domain: checked })}
+                          />
+                          <Label>Custom Domain</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.premium_themes}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { premium_themes: checked })}
+                          />
+                          <Label>Premium Themes</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.advanced_analytics}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { advanced_analytics: checked })}
+                          />
+                          <Label>Advanced Analytics</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.contact_form}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { contact_form: checked })}
+                          />
+                          <Label>Contact Form</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.media_kit}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { media_kit: checked })}
+                          />
+                          <Label>Media Kit</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.newsletter_integration}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { newsletter_integration: checked })}
+                          />
+                          <Label>Newsletter Integration</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.no_watermark}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { no_watermark: checked })}
+                          />
+                          <Label>No Watermark</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.is_publisher_plan}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { is_publisher_plan: checked })}
+                          />
+                          <Label>Publisher Plan</Label>
+                        </div>
+                      </div>
+                      
+                      {/* Feature Summary */}
+                      <div className="mt-4 p-3 bg-muted rounded-lg">
+                        <p className="text-sm font-medium mb-2">Enabled Features:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {pkg.custom_domain && <Badge variant="outline" className="text-xs">Custom Domain</Badge>}
+                          {pkg.premium_themes && <Badge variant="outline" className="text-xs">Premium Themes</Badge>}
+                          {pkg.advanced_analytics && <Badge variant="outline" className="text-xs">Advanced Analytics</Badge>}
+                          {pkg.contact_form && <Badge variant="outline" className="text-xs">Contact Form</Badge>}
+                          {pkg.media_kit && <Badge variant="outline" className="text-xs">Media Kit</Badge>}
+                          {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
+                          {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
+                          {pkg.is_publisher_plan && <Badge variant="outline" className="text-xs bg-purple-100">Publisher Plan</Badge>}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Badge Settings */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
                       <Label>Badge Text</Label>
                       <Input
                         value={pkg.badge_text}
@@ -390,7 +572,7 @@ export default function PackageManagement() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Trial Settings */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Label htmlFor="trialDays">Free Trial Days</Label>
                   <Input
@@ -417,6 +599,20 @@ export default function PackageManagement() {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Days to allow access after payment failure
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="defaultDisplayDays">Default Package Display Days</Label>
+                  <Input
+                    id="defaultDisplayDays"
+                    type="number"
+                    value={packageSettings.default_package_display_days}
+                    onChange={(e) => setPackageSettings(prev => ({ ...prev, default_package_display_days: parseInt(e.target.value) || 30 }))}
+                    min="7"
+                    max="365"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Days to display default package before auto-downgrade to free
                   </p>
                 </div>
               </div>
@@ -449,6 +645,99 @@ export default function PackageManagement() {
                     />
                     <Label htmlFor="autoRenewal">Enable auto-renewal by default</Label>
                   </div>
+                </div>
+              </div>
+
+              {/* Automatic Subscription Management */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Automatic Subscription Management</h3>
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Trial Period</p>
+                          <p className="text-sm text-muted-foreground">New users automatically get {packageSettings.trial_days} days of Pro features for free</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Auto-Downgrade to Free</p>
+                          <p className="text-sm text-muted-foreground">After {packageSettings.default_package_display_days} days without upgrade, accounts automatically move to free plan</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Grace Period</p>
+                          <p className="text-sm text-muted-foreground">Users get {packageSettings.grace_period_days} additional days of access after payment failure</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Publisher Features Explanation */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Publisher & Institution Features</h3>
+                <Card className="border-purple-200 bg-purple-50">
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Multi-Author Management</p>
+                          <p className="text-sm text-muted-foreground">Publisher plans allow managing multiple authors under one account</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Revenue Sharing</p>
+                          <p className="text-sm text-muted-foreground">Automatic revenue distribution between publishers and authors</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="font-medium">Bulk Operations</p>
+                          <p className="text-sm text-muted-foreground">Manage multiple books and authors simultaneously</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Premium Features Overview */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Premium Features Overview</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Card className="border-green-200 bg-green-50">
+                    <CardContent className="pt-4">
+                      <h4 className="font-medium text-green-800 mb-2">Core Features</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• Custom Domain - Professional branded URLs</li>
+                        <li>• Premium Themes - Advanced design options</li>
+                        <li>• No Watermark - Clean, professional appearance</li>
+                        <li>• Advanced Analytics - Detailed performance insights</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardContent className="pt-4">
+                      <h4 className="font-medium text-blue-800 mb-2">Business Features</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Contact Form - Direct reader communication</li>
+                        <li>• Media Kit - Professional press materials</li>
+                        <li>• Newsletter Integration - Email list building</li>
+                        <li>• Priority Support - Faster response times</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
 
