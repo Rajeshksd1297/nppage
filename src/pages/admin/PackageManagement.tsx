@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Package {
   id: string;
@@ -49,6 +50,7 @@ interface Package {
 export default function PackageManagement() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   const [packageSettings, setPackageSettings] = useState({
     packages: [
@@ -139,18 +141,118 @@ export default function PackageManagement() {
     default_package_display_days: 30
   });
 
+  useEffect(() => {
+    loadExistingPackages();
+  }, []);
+
+  const loadExistingPackages = async () => {
+    try {
+      setLoading(true);
+      const { data: plans, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('price_monthly');
+
+      if (error) throw error;
+
+      if (plans && plans.length > 0) {
+        const packages: Package[] = plans.map((plan: any) => ({
+          id: plan.id,
+          name: plan.name,
+          price_monthly: plan.price_monthly,
+          price_yearly: plan.price_yearly,
+          features: Array.isArray(plan.features) ? plan.features : [],
+          max_books: plan.max_books === -1 ? null : plan.max_books,
+          max_publications: plan.max_publications === -1 ? null : plan.max_publications,
+          max_authors: null,
+          advanced_analytics: plan.advanced_analytics,
+          custom_domain: plan.custom_domain,
+          premium_themes: plan.premium_themes,
+          contact_form: plan.contact_form,
+          media_kit: plan.media_kit,
+          newsletter_integration: plan.newsletter_integration,
+          no_watermark: plan.no_watermark,
+          badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
+          badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
+          description: `${plan.name} plan features`,
+          active: true,
+          popular: plan.name === 'Pro',
+          discount_percent: 0,
+          discount_from: '',
+          discount_to: '',
+          is_publisher_plan: plan.name === 'Publisher'
+        }));
+
+        setPackageSettings(prev => ({
+          ...prev,
+          packages
+        }));
+      }
+
+      console.log('Loaded packages from database:', plans);
+    } catch (error) {
+      console.error('Error loading packages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load existing packages from database",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSavePackageSettings = async () => {
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save/update packages to database
+      for (const pkg of packageSettings.packages) {
+        const packageData = {
+          name: pkg.name,
+          price_monthly: pkg.price_monthly,
+          price_yearly: pkg.price_yearly,
+          features: pkg.features,
+          max_books: pkg.max_books === null ? -1 : pkg.max_books, // -1 for unlimited
+          max_publications: pkg.max_publications === null ? -1 : pkg.max_publications,
+          advanced_analytics: pkg.advanced_analytics,
+          custom_domain: pkg.custom_domain,
+          premium_themes: pkg.premium_themes,
+          contact_form: pkg.contact_form,
+          media_kit: pkg.media_kit,
+          newsletter_integration: pkg.newsletter_integration,
+          no_watermark: pkg.no_watermark
+        };
+
+        // Check if package exists by name
+        const { data: existingPackage } = await supabase
+          .from('subscription_plans')
+          .select('id')
+          .eq('name', pkg.name)
+          .single();
+
+        if (existingPackage) {
+          // Update existing package
+          await supabase
+            .from('subscription_plans')
+            .update(packageData)
+            .eq('id', existingPackage.id);
+        } else {
+          // Insert new package
+          await supabase
+            .from('subscription_plans')
+            .insert(packageData);
+        }
+      }
+
       toast({
         title: "Success",
-        description: "Package settings saved successfully",
+        description: "Package settings saved successfully to database",
       });
     } catch (error) {
+      console.error('Error saving packages:', error);
       toast({
         title: "Error",
-        description: "Failed to save package settings",
+        description: "Failed to save package settings to database",
         variant: "destructive",
       });
     } finally {
@@ -222,20 +324,29 @@ export default function PackageManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <CreditCard className="h-8 w-8" />
-            Package Management
-          </h1>
-          <p className="text-muted-foreground">Design and manage subscription packages with pricing and features</p>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading packages from database...</p>
+          </div>
         </div>
-        <Button onClick={handleSavePackageSettings} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Saving...' : 'Save All Changes'}
-        </Button>
-      </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <CreditCard className="h-8 w-8" />
+                Package Management
+              </h1>
+              <p className="text-muted-foreground">Design and manage subscription packages with pricing and features</p>
+            </div>
+            <Button onClick={handleSavePackageSettings} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving to Database...' : 'Save All Changes'}
+            </Button>
+          </div>
 
       <Tabs defaultValue="packages" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -773,6 +884,8 @@ export default function PackageManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+      </>
+      )}
     </div>
   );
 }
