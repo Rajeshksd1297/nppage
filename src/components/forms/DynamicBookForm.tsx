@@ -93,6 +93,32 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
         );
       
       case 'multiselect':
+        if (field.name === 'genres') {
+          // Special handling for genres as dropdown
+          return (
+            <Select 
+              onValueChange={(value) => {
+                const currentValues = form.watch(field.name) || [];
+                if (!currentValues.includes(value)) {
+                  form.setValue(field.name, [...currentValues, value]);
+                }
+              }}
+              disabled={isReadOnly}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder={field.placeholder} />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {field.options?.map((option) => (
+                  <SelectItem key={option} value={option} className="hover:bg-muted">
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        }
+        // Default multiselect as checkboxes for other fields
         return (
           <div className="space-y-2">
             {field.options?.map((option) => (
@@ -210,6 +236,30 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
         {field.required && <span className="text-destructive ml-1">*</span>}
       </Label>
       {renderField()}
+      
+      {/* Show selected genres as badges */}
+      {field.name === 'genres' && form.watch(field.name)?.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {form.watch(field.name).map((genre: string) => (
+            <div key={genre} className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-md text-sm">
+              {genre}
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentValues = form.getValues(field.name) || [];
+                    form.setValue(field.name, currentValues.filter((v: string) => v !== genre));
+                  }}
+                  className="ml-1 text-primary hover:text-primary/80"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      
       {field.helpText && (
         <p className="text-xs text-muted-foreground">{field.helpText}</p>
       )}
