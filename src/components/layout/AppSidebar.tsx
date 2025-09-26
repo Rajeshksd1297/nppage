@@ -63,10 +63,10 @@ const bookItems = [
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
   { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
+  { title: "Publishers", url: "/admin/publishers", icon: Building2 },
   { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
-  { title: "Theme Management", url: "/admin/settings?tab=themes", icon: Palette },
   { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
 ];
 
@@ -183,22 +183,51 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Support Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Support</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/support-tickets" className={getNavCls}>
-                    <MessageCircle className="h-4 w-4" />
-                    {!collapsed && <span>Support Tickets</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Support Section - Show for all users except admins */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Support</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/support-tickets" className={getNavCls}>
+                      <MessageCircle className="h-4 w-4" />
+                      {!collapsed && <span>Support Tickets</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Publisher Section - Show only for publisher accounts */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Publisher Tools</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/publishers" className={getNavCls}>
+                      <Building2 className="h-4 w-4" />
+                      {!collapsed && <span>Manage Authors</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/revenue-share" className={getNavCls}>
+                      <CreditCard className="h-4 w-4" />
+                      {!collapsed && <span>Revenue Sharing</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isAdmin && (
           <>
@@ -236,7 +265,30 @@ export function AppSidebar() {
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
-            </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>Support & Settings</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/help-desk-settings" className={getNavCls}>
+                      <Settings className="h-4 w-4" />
+                      {!collapsed && <span>Help Desk Settings</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/settings" className={getNavCls}>
+                      <Palette className="h-4 w-4" />
+                      {!collapsed && <span>Theme Management</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarGroup>
           </>
         )}
       </SidebarContent>
