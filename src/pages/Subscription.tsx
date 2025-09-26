@@ -48,6 +48,27 @@ export default function Subscription() {
 
   useEffect(() => {
     fetchData();
+    
+    // Set up real-time subscription to listen for changes in subscription plans
+    const channel = supabase
+      .channel('subscription_plans_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'subscription_plans'
+        },
+        () => {
+          console.log('Subscription plans changed, refetching...');
+          fetchData(); // Refetch data when plans change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -120,7 +141,7 @@ export default function Subscription() {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-muted-foreground text-lg mb-6">
-          Start with a 15-day Pro trial, then choose the plan that works best for you
+          Select the plan that best fits your publishing needs
         </p>
         
         <div className="flex items-center justify-center gap-4 mb-8">
@@ -147,21 +168,22 @@ export default function Subscription() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {plans.map((plan) => {
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6 max-w-6xl mx-auto">
+        {plans.map((plan, index) => {
           const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
           const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
           const isPremium = plan.price_monthly > 0; // Paid plan is premium
           const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
           const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
+          const isPopular = plan.name === 'Pro' || index === 1; // Mark middle plan or Pro as popular
 
           return (
             <Card key={plan.id} className={`relative ${isPremium ? 'border-primary shadow-lg' : ''}`}>
-              {isPremium && (
+              {isPopular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-primary text-primary-foreground">
                     <Crown className="w-3 h-3 mr-1" />
-                    Most Popular
+                    Popular
                   </Badge>
                 </div>
               )}

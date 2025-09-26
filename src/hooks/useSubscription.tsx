@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 interface SubscriptionPlan {
   id: string;
   name: string;
+  price_monthly: number;
+  price_yearly: number;
   max_books: number;
   max_publications: number;
   custom_domain: boolean;
@@ -13,6 +15,7 @@ interface SubscriptionPlan {
   contact_form: boolean;
   newsletter_integration: boolean;
   media_kit: boolean;
+  features: any; // Using any to handle Json type from database
 }
 
 interface UserSubscription {
@@ -71,39 +74,41 @@ export function useSubscription() {
           }
         }
       } else {
-        // Fallback to free plan
-        const { data: freePlan } = await supabase
+        // Fallback to lowest priced plan (usually Free)
+        const { data: defaultPlan } = await supabase
           .from('subscription_plans')
           .select('*')
-          .eq('name', 'Free')
+          .order('price_monthly', { ascending: true })
+          .limit(1)
           .single();
 
-        if (freePlan) {
+        if (defaultPlan) {
           setSubscription({ 
             id: '', 
             status: 'inactive', 
             trial_ends_at: null, 
             current_period_end: null,
-            subscription_plans: freePlan 
+            subscription_plans: defaultPlan 
           });
         }
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
-      // Fallback to free plan
-      const { data: freePlan } = await supabase
+      // Fallback to lowest priced plan (usually Free)
+      const { data: defaultPlan } = await supabase
         .from('subscription_plans')
         .select('*')
-        .eq('name', 'Free')
+        .order('price_monthly', { ascending: true })
+        .limit(1)
         .single();
 
-      if (freePlan) {
+      if (defaultPlan) {
         setSubscription({ 
           id: '', 
           status: 'inactive', 
           trial_ends_at: null, 
           current_period_end: null,
-          subscription_plans: freePlan 
+          subscription_plans: defaultPlan 
         });
       }
     } finally {
@@ -113,10 +118,11 @@ export function useSubscription() {
 
   const hasFeature = (feature: keyof SubscriptionPlan): boolean => {
     if (!subscription) return false;
-    // If user is on trial or has active Pro subscription, they have access to Pro features
-    if (subscription.status === 'trialing' || (subscription.status === 'active' && subscription.subscription_plans.name === 'Pro')) {
+    // If user is on active trial, they get all premium features
+    if (subscription.status === 'trialing' && isTrialActive) {
       return true;
     }
+    // Otherwise check the plan's actual features
     const value = subscription.subscription_plans[feature];
     return typeof value === 'boolean' ? value : false;
   };
@@ -134,11 +140,15 @@ export function useSubscription() {
   };
 
   const isFree = () => {
-    return subscription?.subscription_plans.name === 'Free' && subscription?.status !== 'trialing';
+    return subscription?.subscription_plans.price_monthly === 0 && subscription?.status !== 'trialing';
   };
 
   const isOnTrial = () => {
     return subscription?.status === 'trialing' && isTrialActive;
+  };
+
+  const getCurrentPlanName = () => {
+    return subscription?.subscription_plans.name || 'Free';
   };
 
   return {
@@ -151,6 +161,7 @@ export function useSubscription() {
     isOnTrial,
     isTrialActive,
     trialDaysLeft,
+    getCurrentPlanName,
     refetch: fetchSubscription
   };
 }
