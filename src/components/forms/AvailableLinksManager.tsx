@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, ExternalLink, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, ExternalLink, RefreshCw, Check, X, ArrowUpDown } from "lucide-react";
 
 interface PurchaseLink {
   platform: string;
@@ -80,6 +81,14 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
   const { toast } = useToast();
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [sortField, setSortField] = useState<'platform' | 'url' | 'price'>('platform');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [editingData, setEditingData] = useState<PurchaseLink>({
+    platform: '',
+    url: '',
+    price: '',
+    affiliate_id: ''
+  });
   const [formData, setFormData] = useState<PurchaseLink>({
     platform: '',
     url: '',
@@ -91,7 +100,28 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
     setFormData({ platform: '', url: '', price: '', affiliate_id: '' });
     setIsAddingLink(false);
     setEditingIndex(null);
+    setEditingData({ platform: '', url: '', price: '', affiliate_id: '' });
   };
+
+  const handleSort = (field: 'platform' | 'url' | 'price') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedLinks = [...links].sort((a, b) => {
+    let aValue = a[sortField] || '';
+    let bValue = b[sortField] || '';
+    
+    if (sortDirection === 'desc') {
+      [aValue, bValue] = [bValue, aValue];
+    }
+    
+    return aValue.localeCompare(bValue);
+  });
 
   const handleAddLink = () => {
     if (!formData.platform || !formData.url) {
@@ -107,34 +137,66 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
     const finalUrl = getAffiliateUrl(formData.platform, formData.url, isbn, title);
     const newLink = { ...formData, url: finalUrl };
 
+    onChange([...links, newLink]);
+    toast({
+      title: "Success",
+      description: "Purchase link added successfully",
+    });
+
+    resetForm();
+  };
+
+  const startInlineEdit = (index: number) => {
+    const originalIndex = links.findIndex(link => 
+      sortedLinks[index].platform === link.platform && 
+      sortedLinks[index].url === link.url
+    );
+    setEditingIndex(originalIndex);
+    setEditingData(links[originalIndex]);
+  };
+
+  const saveInlineEdit = () => {
+    if (!editingData.platform || !editingData.url) {
+      toast({
+        title: "Error",
+        description: "Platform and URL are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingIndex !== null) {
+      const finalUrl = getAffiliateUrl(editingData.platform, editingData.url, isbn, title);
       const updatedLinks = [...links];
-      updatedLinks[editingIndex] = newLink;
+      updatedLinks[editingIndex] = { ...editingData, url: finalUrl };
       onChange(updatedLinks);
+      
       toast({
         title: "Success",
         description: "Purchase link updated successfully",
-      });
-    } else {
-      onChange([...links, newLink]);
-      toast({
-        title: "Success",
-        description: "Purchase link added successfully",
       });
     }
 
     resetForm();
   };
 
-  const handleEditLink = (index: number) => {
-    setFormData(links[index]);
-    setEditingIndex(index);
-    setIsAddingLink(true);
+  const cancelInlineEdit = () => {
+    resetForm();
   };
 
   const handleDeleteLink = (index: number) => {
-    const updatedLinks = links.filter((_, i) => i !== index);
+    const originalIndex = links.findIndex(link => 
+      sortedLinks[index].platform === link.platform && 
+      sortedLinks[index].url === link.url
+    );
+    
+    const updatedLinks = links.filter((_, i) => i !== originalIndex);
     onChange(updatedLinks);
+    
+    if (editingIndex === originalIndex) {
+      resetForm();
+    }
+    
     toast({
       title: "Success",
       description: "Purchase link removed successfully",
@@ -218,9 +280,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>
-                    {editingIndex !== null ? 'Edit Purchase Link' : 'Add Purchase Link'}
-                  </DialogTitle>
+                  <DialogTitle>Add Purchase Link</DialogTitle>
                 </DialogHeader>
                 
                 <div className="space-y-4">
@@ -272,7 +332,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
                       Cancel
                     </Button>
                     <Button type="button" onClick={handleAddLink}>
-                      {editingIndex !== null ? 'Update Link' : 'Add Link'}
+                      Add Link
                     </Button>
                   </div>
                 </div>
@@ -283,66 +343,186 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
       </div>
 
       {links.length > 0 ? (
-        <div className="space-y-3">
-          {links.map((link, index) => (
-            <Card key={index} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">
-                      {link.platform.charAt(0)}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{link.platform}</p>
-                      {link.price && (
-                        <Badge variant="secondary" className="text-xs">
-                          {link.price}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate max-w-md">
-                      {link.url}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(link.url, '_blank')}
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('platform')}
                   >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                    <div className="flex items-center space-x-2">
+                      <span>Platform</span>
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('url')}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>Purchase Link</span>
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleSort('price')}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>Price</span>
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-32">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedLinks.map((link, index) => {
+                  const originalIndex = links.findIndex(originalLink => 
+                    originalLink.platform === link.platform && originalLink.url === link.url
+                  );
+                  const isEditing = editingIndex === originalIndex;
                   
-                  {!isReadOnly && (
-                    <>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditLink(index)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteLink(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+                  return (
+                    <TableRow key={`${link.platform}-${index}`}>
+                      <TableCell>
+                        {isEditing ? (
+                          <Select 
+                            value={editingData.platform} 
+                            onValueChange={(value) => setEditingData({...editingData, platform: value})}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {popularPlatforms.map(platform => (
+                                <SelectItem key={platform} value={platform}>
+                                  {platform}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                              <span className="text-xs font-medium text-primary">
+                                {link.platform.charAt(0)}
+                              </span>
+                            </div>
+                            <span className="font-medium">{link.platform}</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      
+                      <TableCell>
+                        {isEditing ? (
+                          <Input
+                            type="url"
+                            value={editingData.url}
+                            onChange={(e) => setEditingData({...editingData, url: e.target.value})}
+                            className="w-full"
+                          />
+                        ) : (
+                          <div className="max-w-md">
+                            <a 
+                              href={link.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline truncate block"
+                            >
+                              {link.url}
+                            </a>
+                          </div>
+                        )}
+                      </TableCell>
+                      
+                      <TableCell>
+                        {isEditing ? (
+                          <Input
+                            value={editingData.price || ''}
+                            onChange={(e) => setEditingData({...editingData, price: e.target.value})}
+                            placeholder="$9.99"
+                            className="w-24"
+                          />
+                        ) : (
+                          <>
+                            {link.price ? (
+                              <Badge variant="secondary">{link.price}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </>
+                        )}
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {isEditing ? (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={saveInlineEdit}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={cancelInlineEdit}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(link.url, '_blank')}
+                                title="Open link"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                              
+                              {!isReadOnly && (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => startInlineEdit(index)}
+                                    title="Edit"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteLink(index)}
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <Card className="p-6 text-center">
           <div className="space-y-3">
