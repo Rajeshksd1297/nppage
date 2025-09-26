@@ -237,7 +237,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
       onChange([...links, ...newLinks]);
       toast({
         title: "Success",
-        description: `Added ${newLinks.length} purchase links with affiliate settings applied`,
+        description: `Added ${newLinks.length} purchase links automatically`,
       });
     } else {
       toast({
@@ -253,7 +253,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
         <div>
           <h3 className="font-medium">Available Purchase Links</h3>
           <p className="text-sm text-muted-foreground">
-            Manage where your book can be purchased. Affiliate settings are applied automatically.
+            Manage where your book can be purchased.
           </p>
         </div>
         
@@ -322,7 +322,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
                       placeholder="https://example.com/book"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Affiliate parameters will be added automatically based on admin settings
+                      URL will be automatically processed based on admin settings
                     </p>
                   </div>
 
@@ -521,7 +521,7 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
             {!isReadOnly && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Add links where your book can be purchased. Affiliate settings will be applied automatically.
+                  Add links where your book can be purchased.
                 </p>
                 {isbn && (
                   <Button type="button" variant="outline" onClick={suggestCommonLinks}>

@@ -85,7 +85,7 @@ export default function BookEdit() {
           if (data.purchase_links?.length > 0) {
             toast({
               title: "Book Data Loaded",
-              description: `Auto-filled with ${data.purchase_links.length} affiliate links generated.`
+              description: `Auto-filled with ${data.purchase_links.length} purchase links generated.`
             });
           }
         } catch (error) {
@@ -96,7 +96,7 @@ export default function BookEdit() {
         setValue('isbn', prefilledISBN);
         toast({
           title: "ISBN Added",
-          description: "Please fill in the remaining book details. Affiliate links will be generated when you save."
+          description: "Please fill in the remaining book details. Purchase links will be generated when you save."
         });
       }
     }
@@ -270,7 +270,7 @@ export default function BookEdit() {
             if (purchaseLinks.length > 0) {
               data.purchase_links = purchaseLinks;
               toast({
-                title: "Affiliate Links Generated",
+                title: "Purchase Links Generated",
                 description: `${purchaseLinks.length} purchase links created automatically.`
               });
             }
@@ -339,9 +339,9 @@ export default function BookEdit() {
         
         {/* Show ISBN requirement message for manual entry */}
         {isNewBook && !isFromISBNSearch && <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">📚 About ISBN & Affiliate Links</h3>
+            <h3 className="font-medium text-blue-900 mb-2">📚 About ISBN & Purchase Links</h3>
             <p className="text-sm text-blue-700">
-              <strong>ISBN is highly recommended</strong> for generating automatic affiliate purchase links. 
+              <strong>ISBN is highly recommended</strong> for generating automatic purchase links. 
               Without an ISBN, you'll need to manually add purchase links later.
             </p>
           </div>}

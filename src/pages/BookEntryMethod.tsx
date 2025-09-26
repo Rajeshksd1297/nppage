@@ -206,7 +206,7 @@ export default function BookEntryMethod() {
         
         toast({
           title: "Success",
-          description: `Book information retrieved! ${affiliateLinks.length} affiliate links generated.`,
+          description: `Book information retrieved! ${affiliateLinks.length} purchase links generated.`,
         });
 
         // Navigate to the form with prefilled data
@@ -268,7 +268,7 @@ export default function BookEntryMethod() {
             </div>
             <CardTitle className="text-xl">Search by ISBN</CardTitle>
             <p className="text-muted-foreground">
-              Enter an ISBN to automatically fill book details and generate affiliate links
+              Enter an ISBN to automatically fill book details and generate purchase links
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -295,7 +295,7 @@ export default function BookEntryMethod() {
 
             <div className="text-xs text-muted-foreground space-y-1">
               <p>✓ Auto-fills book information</p>
-              <p>✓ Generates affiliate purchase links</p>
+              <p>✓ Generates purchase links</p>
               <p>✓ Includes cover image and description</p>
             </div>
           </CardContent>
@@ -320,7 +320,7 @@ export default function BookEntryMethod() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center text-xs">!</span>
-                <span>ISBN is required for affiliate links</span>
+                <span>ISBN is required for purchase links</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-xs">✓</span>
@@ -353,10 +353,10 @@ export default function BookEntryMethod() {
               </p>
             </div>
             <div>
-              <h3 className="font-medium mb-2">Affiliate Links</h3>
+              <h3 className="font-medium mb-2">Purchase Links</h3>
               <p className="text-sm text-muted-foreground">
                 Automatically generated purchase links for Amazon, Bookshop, and other platforms 
-                based on your admin affiliate settings.
+                based on your admin settings.
               </p>
             </div>
           </div>
