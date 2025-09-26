@@ -20,6 +20,7 @@ interface User {
   full_name?: string;
   created_at: string;
   role?: string;
+  user_roles?: Array<{ role: string }>;
 }
 
 export default function AdminUsers() {
@@ -34,16 +35,29 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      // Fetch profiles with user roles
-      const { data: profiles, error } = await supabase
+      // First fetch all profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
+
+      // Then fetch user roles separately
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user roles
+      const roleMap = new Map();
+      roles?.forEach(role => {
+        roleMap.set(role.user_id, role.role);
+      });
 
       const usersWithRoles = profiles?.map(profile => ({
         ...profile,
-        role: 'user'
+        role: roleMap.get(profile.id) || 'user'
       })) || [];
 
       setUsers(usersWithRoles);
