@@ -69,9 +69,15 @@ export default function HelpDeskSettings() {
 
       setSettings({
         ...data,
-        ticket_number_prefix: data.ticket_number_prefix || 'TICK',
-        ticket_statuses: data.ticket_statuses || defaultStatuses,
-        categories: data.categories || defaultCategories
+        ticket_number_prefix: (data as any).ticket_number_prefix || 'TICK',
+        ticket_statuses: (data as any).ticket_statuses || defaultStatuses,
+        categories: (data.categories as string[]) || defaultCategories,
+        business_hours: (data.business_hours as any) || {
+          start: "09:00",
+          end: "17:00", 
+          timezone: "UTC",
+          days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+        }
       });
     } catch (error) {
       console.error('Error fetching settings:', error);

@@ -40,6 +40,8 @@ import EmailSettings from "./pages/admin/EmailSettings";
 import PackageManagement from "./pages/admin/PackageManagement";
 import DomainSettings from "./pages/admin/DomainSettings";
 import AdminHelpDesk from "./pages/admin/HelpDesk";
+import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
+import TicketDetails from "./pages/admin/TicketDetails";
 import SupportTickets from "./pages/SupportTickets";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
@@ -223,6 +225,16 @@ function App() {
             <Route path="/admin/help-desk" element={
               <DashboardLayout>
                 <AdminHelpDesk />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/help-desk-settings" element={
+              <DashboardLayout>
+                <HelpDeskSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/ticket/:id" element={
+              <DashboardLayout>
+                <TicketDetails />
               </DashboardLayout>
             } />
             <Route path="/support-tickets" element={

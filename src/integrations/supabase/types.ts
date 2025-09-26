@@ -251,6 +251,8 @@ export type Database = {
           email_notifications: boolean
           id: string
           sla_response_hours: number
+          ticket_number_prefix: string
+          ticket_statuses: Json
           updated_at: string
         }
         Insert: {
@@ -262,6 +264,8 @@ export type Database = {
           email_notifications?: boolean
           id?: string
           sla_response_hours?: number
+          ticket_number_prefix?: string
+          ticket_statuses?: Json
           updated_at?: string
         }
         Update: {
@@ -273,6 +277,8 @@ export type Database = {
           email_notifications?: boolean
           id?: string
           sla_response_hours?: number
+          ticket_number_prefix?: string
+          ticket_statuses?: Json
           updated_at?: string
         }
         Relationships: []
