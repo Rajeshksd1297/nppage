@@ -1,50 +1,55 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/hooks/useSubscription';
 import { 
-  User, 
   Save, 
+  Plus, 
+  X, 
+  ExternalLink, 
+  Palette, 
+  Search, 
+  Lock,
+  Check,
+  AlertCircle,
+  Loader2,
+  Upload,
   Camera,
-  Plus,
-  X,
+  User,
   Globe,
   Twitter,
   Instagram,
   Facebook,
   Linkedin,
-  Youtube,
-  ExternalLink
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradeBanner } from "@/components/UpgradeBanner";
+  Youtube
+} from 'lucide-react';
+import { UpgradeBanner } from '@/components/UpgradeBanner';
 
 interface Profile {
   id: string;
-  email?: string;
-  full_name?: string;
-  bio?: string;
-  avatar_url?: string;
-  website_url?: string;
-  slug?: string;
+  email: string;
+  full_name: string;
+  bio: string;
+  avatar_url: string;
+  website_url: string;
+  slug: string;
   public_profile: boolean;
   specializations: string[];
-  social_links: any; // JSON field from database
+  social_links: Record<string, string>;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
 }
 
-const popularSpecializations = [
-  "Fiction", "Non-Fiction", "Poetry", "Mystery", "Romance", "Science Fiction",
-  "Fantasy", "Biography", "History", "Self-Help", "Business", "Children's Books",
-  "Young Adult", "Horror", "Thriller", "Literary Fiction", "Memoir", "Essay"
-];
-
+// Mock themes for selection
 const themes = [
   { id: 'minimal', name: 'Minimal', description: 'Clean and simple design' },
   { id: 'classic', name: 'Classic', description: 'Traditional author page layout' },
@@ -70,10 +75,11 @@ export default function Profile() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [newSpecialization, setNewSpecialization] = useState("");
   const [selectedTheme, setSelectedTheme] = useState('minimal');
-  const [slugCheckLoading, setSlugCheckLoading] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [checkingSlug, setCheckingSlug] = useState(false);
   const [tempSlug, setTempSlug] = useState("");
   const { hasFeature, subscription, isPro } = useSubscription();
 
@@ -104,16 +110,18 @@ export default function Profile() {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        const profileData = {
+        setProfile({
           ...data,
-          social_links: typeof data.social_links === 'object' ? data.social_links : {}
-        };
-        setProfile(profileData);
-        setTempSlug(profileData.slug || '');
+          social_links: (typeof data.social_links === 'object' && data.social_links && !Array.isArray(data.social_links)) 
+            ? data.social_links as Record<string, string> 
+            : {}
+        });
+        setTempSlug(data.slug || '');
       } else {
         console.log('No profile found, creating new one');
+        const emailBasedSlug = user.email?.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') || 'user';
+        
         // Create profile if it doesn't exist
-        const emailBasedSlug = generateSlugFromEmail(user.email || '');
         const newProfile = {
           id: user.id,
           email: user.email,
@@ -138,11 +146,10 @@ export default function Profile() {
           console.error('Error creating profile:', insertError);
           throw insertError;
         }
-        console.log('Profile data for sidebar:', { data, error });
         
         setProfile({
           ...newProfile,
-          social_links: typeof newProfile.social_links === 'object' ? newProfile.social_links : {}
+          social_links: {} as Record<string, string>
         });
         setTempSlug(newProfile.slug);
       }
@@ -158,13 +165,20 @@ export default function Profile() {
     }
   };
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   const checkSlugAvailability = async (slug: string) => {
     if (!slug || slug === profile.slug) {
       setSlugAvailable(null);
       return;
     }
 
-    setSlugCheckLoading(true);
+    setCheckingSlug(true);
     try {
       const { data, error } = await supabase.rpc('is_slug_available', {
         slug_text: slug,
@@ -175,22 +189,10 @@ export default function Profile() {
       setSlugAvailable(data);
     } catch (error) {
       console.error('Error checking slug availability:', error);
-      setSlugAvailable(false);
+      setSlugAvailable(null);
     } finally {
-      setSlugCheckLoading(false);
+      setCheckingSlug(false);
     }
-  };
-
-  const generateSlugFromEmail = (email: string) => {
-    const emailPrefix = email.split('@')[0];
-    return emailPrefix.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'user';
-  };
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
   };
 
   const handleSave = async () => {
@@ -203,27 +205,110 @@ export default function Profile() {
         updated_at: new Date().toISOString()
       };
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('profiles')
-        .upsert(profileData);
+        .upsert(profileData)
+        .eq('id', user.id);
 
       if (error) throw error;
-      
+
       setProfile(prev => ({ ...prev, slug }));
+      setTempSlug(slug);
+      
       toast({
         title: "Success",
-        description: "Profile updated successfully",
+        description: "Profile updated successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to save profile",
+        title: "Error", 
+        description: error.message || "Failed to save profile",
         variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Delete old avatar if exists
+      if (profile.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = `avatar-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setProfile(prev => ({ ...prev, avatar_url: data.publicUrl }));
+      
+      toast({
+        title: "Success",
+        description: "Avatar uploaded successfully!",
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload avatar",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await uploadAvatar(file);
   };
 
   const addSpecialization = (specialization: string) => {
@@ -309,6 +394,47 @@ export default function Profile() {
                 <CardDescription>Your basic author details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Profile Picture Upload */}
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                      {profile.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt="Profile avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Camera className="w-8 h-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <label
+                      htmlFor="avatar-upload"
+                      className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                    >
+                      {uploading ? (
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      ) : (
+                        <Upload className="w-5 h-5 text-white" />
+                      )}
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium">Profile Picture</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Click on the image to upload a new avatar (max 5MB)
+                    </p>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="full_name">Full Name *</Label>
                   <Input
@@ -336,9 +462,9 @@ export default function Profile() {
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea
                     id="bio"
-                    value={profile.bio}
+                    value={profile.bio || ''}
                     onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
-                    placeholder="Tell readers about yourself..."
+                    placeholder="Tell readers about yourself, your writing journey, and what inspires you..."
                     rows={4}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -381,8 +507,8 @@ export default function Profile() {
                           slugAvailable === true ? 'border-green-500' : ''
                         }`}
                       />
-                      {slugCheckLoading && (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                      {checkingSlug && (
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       )}
                     </div>
                     {slugAvailable === false && (
@@ -414,84 +540,48 @@ export default function Profile() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Profile Picture & Specializations</CardTitle>
-                <CardDescription>Visual identity and areas of expertise</CardDescription>
+                <CardTitle>Specializations</CardTitle>
+                <CardDescription>Your areas of expertise as an author</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Profile Picture</Label>
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                      {profile.avatar_url ? (
-                        <img 
-                          src={profile.avatar_url} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-8 w-8 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        value={profile.avatar_url}
-                        onChange={(e) => setProfile(prev => ({ ...prev, avatar_url: e.target.value }))}
-                        placeholder="Image URL"
-                      />
-                      <Button variant="outline" size="sm" className="mt-2">
-                        <Camera className="h-4 w-4 mr-2" />
-                        Upload Photo
-                      </Button>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.specializations.map((spec, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {spec}
+                      <button
+                        onClick={() => removeSpecialization(spec)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
                 </div>
 
-                <div>
-                  <Label>Specializations</Label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {profile.specializations.map((spec) => (
-                      <Badge key={spec} variant="secondary" className="flex items-center gap-1">
-                        {spec}
-                        <X 
-                          className="h-3 w-3 cursor-pointer" 
-                          onClick={() => removeSpecialization(spec)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newSpecialization}
-                      onChange={(e) => setNewSpecialization(e.target.value)}
-                      placeholder="Add specialization"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addSpecialization(newSpecialization);
-                        }
-                      }}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => addSpecialization(newSpecialization)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {popularSpecializations.map((spec) => (
-                      <Badge
-                        key={spec}
-                        variant="outline"
-                        className="cursor-pointer text-xs"
-                        onClick={() => addSpecialization(spec)}
-                      >
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newSpecialization}
+                    onChange={(e) => setNewSpecialization(e.target.value)}
+                    placeholder="Add a specialization"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addSpecialization(newSpecialization);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => addSpecialization(newSpecialization)}
+                    disabled={!newSpecialization.trim()}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Press Enter or click + to add. Examples: Fiction, Romance, Sci-Fi, Non-fiction
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -504,195 +594,106 @@ export default function Profile() {
               <CardDescription>Connect your social media profiles</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="twitter" className="flex items-center gap-2">
-                    <Twitter className="h-4 w-4" />
-                    Twitter
-                  </Label>
-                  <Input
-                    id="twitter"
-                    value={profile.social_links.twitter || ''}
-                    onChange={(e) => updateSocialLink('twitter', e.target.value)}
-                    placeholder="https://twitter.com/username"
-                  />
+              {[
+                { platform: 'twitter', label: 'Twitter', icon: Twitter, placeholder: 'https://twitter.com/username' },
+                { platform: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/username' },
+                { platform: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/username' },
+                { platform: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
+                { platform: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/channel/...' },
+              ].map(({ platform, label, icon: Icon, placeholder }) => (
+                <div key={platform} className="flex items-center space-x-3">
+                  <Icon className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex-1">
+                    <Label htmlFor={platform}>{label}</Label>
+                    <Input
+                      id={platform}
+                      value={profile.social_links[platform] || ''}
+                      onChange={(e) => updateSocialLink(platform, e.target.value)}
+                      placeholder={placeholder}
+                    />
+                  </div>
                 </div>
-
-                <div>
-                  <Label htmlFor="instagram" className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4" />
-                    Instagram
-                  </Label>
-                  <Input
-                    id="instagram"
-                    value={profile.social_links.instagram || ''}
-                    onChange={(e) => updateSocialLink('instagram', e.target.value)}
-                    placeholder="https://instagram.com/username"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="facebook" className="flex items-center gap-2">
-                    <Facebook className="h-4 w-4" />
-                    Facebook
-                  </Label>
-                  <Input
-                    id="facebook"
-                    value={profile.social_links.facebook || ''}
-                    onChange={(e) => updateSocialLink('facebook', e.target.value)}
-                    placeholder="https://facebook.com/username"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="linkedin" className="flex items-center gap-2">
-                    <Linkedin className="h-4 w-4" />
-                    LinkedIn
-                  </Label>
-                  <Input
-                    id="linkedin"
-                    value={profile.social_links.linkedin || ''}
-                    onChange={(e) => updateSocialLink('linkedin', e.target.value)}
-                    placeholder="https://linkedin.com/in/username"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="youtube" className="flex items-center gap-2">
-                    <Youtube className="h-4 w-4" />
-                    YouTube
-                  </Label>
-                  <Input
-                    id="youtube"
-                    value={profile.social_links.youtube || ''}
-                    onChange={(e) => updateSocialLink('youtube', e.target.value)}
-                    placeholder="https://youtube.com/c/username"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="website" className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Website
-                  </Label>
-                  <Input
-                    id="website"
-                    value={profile.social_links.website || ''}
-                    onChange={(e) => updateSocialLink('website', e.target.value)}
-                    placeholder="https://your-website.com"
-                  />
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="theme" className="space-y-6">
-          {!hasFeature('premium_themes') ? (
-            <UpgradeBanner 
-              message="Premium themes are a Pro feature"
-              feature="access to all premium themes and advanced customization"
-            />
-          ) : (
+        {hasFeature('premium_themes') && (
+          <TabsContent value="theme" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Page Theme</CardTitle>
-                <CardDescription>Choose how your author page looks</CardDescription>
+                <CardTitle>Theme Selection</CardTitle>
+                <CardDescription>Choose how your profile looks to visitors</CardDescription>
               </CardHeader>
               <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {themes.map((theme) => (
-                  <div
-                    key={theme.id}
-                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                      selectedTheme === theme.id 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedTheme(theme.id)}
-                  >
-                    <div className="aspect-video bg-muted rounded mb-3 flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground">Preview</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {themes.map((theme) => (
+                    <div
+                      key={theme.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedTheme === theme.id ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
+                      }`}
+                      onClick={() => setSelectedTheme(theme.id)}
+                    >
+                      <h4 className="font-medium">{theme.name}</h4>
+                      <p className="text-sm text-muted-foreground">{theme.description}</p>
                     </div>
-                    <h4 className="font-medium">{theme.name}</h4>
-                    <p className="text-sm text-muted-foreground">{theme.description}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
+          </TabsContent>
+        )}
 
-        <TabsContent value="seo" className="space-y-6">
-          {!hasFeature('advanced_analytics') ? (
-            <UpgradeBanner 
-              message="SEO optimization is a Pro feature"
-              feature="advanced SEO controls and meta tag management"
-            />
-          ) : (
+        {hasFeature('advanced_analytics') && (
+          <TabsContent value="seo" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>SEO & Public URL</CardTitle>
-                <CardDescription>Optimize your author page for search engines</CardDescription>
+                <CardTitle>SEO Settings</CardTitle>
+                <CardDescription>Optimize your profile for search engines</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="slug">Profile URL</Label>
+                  <Label htmlFor="seo_title">SEO Title</Label>
                   <Input
-                    id="slug"
-                    value={profile.slug}
-                    onChange={(e) => setProfile(prev => ({ ...prev, slug: e.target.value }))}
-                    placeholder={generateSlug(profile.full_name || '')}
+                    id="seo_title"
+                    value={profile.seo_title || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, seo_title: e.target.value }))}
+                    placeholder="Custom title for search engines"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your author page will be accessible at: /author/{profile.slug || generateSlug(profile.full_name || '')}
-                  </p>
                 </div>
-
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="font-medium">Public Profile Preview</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Your profile will be accessible at: 
-                    <br />
-                    <code className="bg-background px-2 py-1 rounded">
-                      authorpage.app/author/{profile.slug || generateSlug(profile.full_name || '')}
-                    </code>
-                  </div>
+                <div>
+                  <Label htmlFor="seo_description">SEO Description</Label>
+                  <Textarea
+                    id="seo_description"
+                    value={profile.seo_description || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, seo_description: e.target.value }))}
+                    placeholder="Brief description for search results"
+                    rows={3}
+                  />
                 </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label>Meta Title</Label>
-                    <Input
-                      value={`${profile.full_name} - Author`}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Auto-generated from your name
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Meta Description</Label>
-                    <Input
-                      value={profile.bio ? `${profile.bio.slice(0, 150)}...` : 'Author profile page'}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Auto-generated from your bio
-                    </p>
-                  </div>
+                <div>
+                  <Label htmlFor="seo_keywords">SEO Keywords</Label>
+                  <Input
+                    id="seo_keywords"
+                    value={profile.seo_keywords || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, seo_keywords: e.target.value }))}
+                    placeholder="Keywords separated by commas"
+                  />
                 </div>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
+          </TabsContent>
+        )}
+
+        {(!hasFeature('premium_themes') || !hasFeature('advanced_analytics')) && (
+          <div className="mt-6">
+            <UpgradeBanner 
+              message="Unlock premium features like custom themes and SEO tools"
+              feature="access to premium themes and advanced SEO settings"
+            />
+          </div>
+        )}
       </Tabs>
     </div>
   );
