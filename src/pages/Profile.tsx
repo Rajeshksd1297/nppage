@@ -39,14 +39,16 @@ interface Profile {
   full_name: string;
   bio: string;
   avatar_url: string;
-  website_url: string;
-  slug: string;
-  public_profile: boolean;
-  specializations: string[];
-  social_links: Record<string, string>;
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string;
+    website_url: string;
+    slug: string;
+    public_profile: boolean;
+    specializations: string[];
+    social_links: Record<string, string>;
+    seo_title?: string;
+    seo_description?: string;
+    seo_keywords?: string;
+    mobile_number?: string;
+    country_code?: string;
 }
 
 // Mock themes for selection
@@ -70,7 +72,9 @@ export default function Profile() {
     slug: '',
     public_profile: true,
     specializations: [],
-    social_links: {}
+    social_links: {},
+    mobile_number: '',
+    country_code: '+1'
   });
 
   const [loading, setLoading] = useState(true);
@@ -361,6 +365,12 @@ export default function Profile() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.href = '/profile-setup'}
+          >
+            Enhanced Setup
+          </Button>
           {tempSlug && (
             <Button variant="outline" onClick={() => window.open(`/${tempSlug}`, '_blank')}>
               <ExternalLink className="h-4 w-4 mr-2" />
@@ -449,13 +459,40 @@ export default function Profile() {
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
-                    value={profile.email}
+                    value={profile.email || ''}
                     disabled
                     className="bg-muted"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Email cannot be changed here. Update in account settings.
                   </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="mobile_number">Mobile Number</Label>
+                  <div className="flex gap-2">
+                    <select
+                      value={profile.country_code || '+1'}
+                      onChange={(e) => setProfile(prev => ({ ...prev, country_code: e.target.value }))}
+                      className="px-3 py-2 border border-input rounded-md bg-background w-32"
+                    >
+                      <option value="+1">+1 US/CA</option>
+                      <option value="+44">+44 UK</option>
+                      <option value="+91">+91 IN</option>
+                      <option value="+33">+33 FR</option>
+                      <option value="+49">+49 DE</option>
+                      <option value="+61">+61 AU</option>
+                      <option value="+81">+81 JP</option>
+                      <option value="+86">+86 CN</option>
+                    </select>
+                    <Input
+                      id="mobile_number"
+                      value={profile.mobile_number || ''}
+                      onChange={(e) => setProfile(prev => ({ ...prev, mobile_number: e.target.value }))}
+                      placeholder="Enter your mobile number"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
 
                 <div>
