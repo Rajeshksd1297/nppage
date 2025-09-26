@@ -29,6 +29,7 @@ import { BookEditor } from "@/components/admin/BookManagement/BookEditor";
 import { BookFilters } from "@/components/admin/BookManagement/BookFilters";
 import { AffiliateSettings } from "@/components/admin/BookManagement/AffiliateSettings";
 import { ISBNLookup } from "@/components/admin/BookManagement/ISBNLookup";
+import { BookFieldSettings } from "@/components/admin/BookManagement/BookFieldSettings";
 
 interface Book {
   id: string;
@@ -303,10 +304,11 @@ export default function BooksManagement() {
 
       {/* Main Content */}
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="books">All Books</TabsTrigger>
           <TabsTrigger value="isbn">ISBN Lookup</TabsTrigger>
           <TabsTrigger value="affiliates">Affiliate Settings</TabsTrigger>
+          <TabsTrigger value="fields">Field Settings</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -423,6 +425,10 @@ export default function BooksManagement() {
 
         <TabsContent value="affiliates" className="space-y-4">
           <AffiliateSettings />
+        </TabsContent>
+
+        <TabsContent value="fields" className="space-y-4">
+          <BookFieldSettings />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
