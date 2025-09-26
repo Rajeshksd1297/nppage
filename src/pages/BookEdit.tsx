@@ -279,8 +279,16 @@ export default function BookEdit() {
           }
         }
       }
+      // Convert publication_date to proper date format if it's just a year
+      let publication_date = data.publication_date;
+      if (publication_date && /^\d{4}$/.test(publication_date)) {
+        // If it's just a year like "2019", convert to "2019-01-01"
+        publication_date = `${publication_date}-01-01`;
+      }
+
       const bookData = {
         ...data,
+        publication_date,
         genres: data.genres || [],
         updated_at: new Date().toISOString()
       };
