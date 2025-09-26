@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -21,7 +23,9 @@ import {
   Upload,
   Camera,
   ArrowRight,
-  Phone
+  Phone,
+  ChevronDown,
+  ChevronsUpDown
 } from 'lucide-react';
 
 interface Profile {
@@ -56,6 +60,7 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [tempSlug, setTempSlug] = useState(profile.slug || "");
+  const [countryCodeOpen, setCountryCodeOpen] = useState(false);
 
   // Country codes for mobile number
   const countryCodes = [
@@ -370,26 +375,39 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
     setUploading(true);
     
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+
       // Delete old avatar if it exists
       if (profile.avatar_url) {
         const oldFileName = profile.avatar_url.split('/').pop();
         if (oldFileName) {
-          await supabase.storage
+          const { error: deleteError } = await supabase.storage
             .from('avatars')
-            .remove([`${profile.id}/${oldFileName}`]);
+            .remove([`${user.id}/${oldFileName}`]);
+          
+          if (deleteError) {
+            console.warn('Failed to delete old avatar:', deleteError);
+          }
         }
       }
 
       // Upload new avatar
       const fileExt = file.name.split('.').pop();
       const fileName = `avatar_${Date.now()}.${fileExt}`;
-      const filePath = `${profile.id}/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
       
       // Get public URL
       const { data } = supabase.storage
@@ -400,14 +418,16 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
         handleInputChange('avatar_url', data.publicUrl);
         toast({
           title: "Avatar uploaded",
-          description: "Your profile picture has been updated"
+          description: "Your profile picture has been updated successfully"
         });
+      } else {
+        throw new Error('Failed to get public URL for uploaded image');
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload avatar. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload avatar. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -540,21 +560,47 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
         <div>
           <Label className="text-base font-medium">Mobile Number</Label>
           <div className="flex gap-2 mt-2">
-            <Select
-              value={profile.country_code || '+1'}
-              onValueChange={(value) => handleInputChange('country_code', value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Code" />
-              </SelectTrigger>
-              <SelectContent>
-                {countryCodes.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.code} {country.country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={countryCodeOpen} onOpenChange={setCountryCodeOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={countryCodeOpen}
+                  className="w-48 justify-between"
+                >
+                  {profile.country_code || '+1'} {countryCodes.find(country => country.code === (profile.country_code || '+1'))?.country.split(' - ')[1] || 'United States'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0">
+                <Command>
+                  <CommandInput placeholder="Search country..." />
+                  <CommandEmpty>No country found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandList className="max-h-[200px]">
+                      {countryCodes.map((country) => (
+                        <CommandItem
+                          key={country.code}
+                          value={`${country.code} ${country.country}`}
+                          onSelect={() => {
+                            handleInputChange('country_code', country.code);
+                            setCountryCodeOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              (profile.country_code || '+1') === country.code ? 'opacity-100' : 'opacity-0'
+                            }`}
+                          />
+                          <span className="font-medium">{country.code}</span>
+                          <span className="ml-2 text-muted-foreground">{country.country}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <Input
               value={profile.mobile_number || ''}
               onChange={(e) => handleInputChange('mobile_number', e.target.value)}
@@ -575,6 +621,7 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
               modules={quillModules}
               placeholder="Tell readers about yourself..."
               className="bg-background"
+              style={{ height: '300px', marginBottom: '50px' }}
             />
           </div>
           <p className="text-xs text-muted-foreground mt-1">
