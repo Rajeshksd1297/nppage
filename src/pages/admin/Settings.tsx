@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
+import ThemeManager from "@/components/admin/ThemeManager";
 
 export default function AdminSettings() {
   const { toast } = useToast();
@@ -581,51 +582,7 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="themes" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Theme Management</CardTitle>
-              <CardDescription>Manage available themes for author pages</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="enableThemeCustomization">Premium Theme Features</Label>
-                  <div className="space-y-2 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="premiumThemes" defaultChecked />
-                      <Label htmlFor="premiumThemes">Enable premium themes</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="customColors" defaultChecked />
-                      <Label htmlFor="customColors">Allow custom color schemes</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="customFonts" />
-                      <Label htmlFor="customFonts">Enable custom fonts</Label>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="themeApproval">Theme Approval Process</Label>
-                  <div className="space-y-2 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="requireApproval" />
-                      <Label htmlFor="requireApproval">Require admin approval for new themes</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="userUploadThemes" />
-                      <Label htmlFor="userUploadThemes">Allow users to upload custom themes</Label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <Button onClick={handleSaveSiteSettings}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Theme Settings
-              </Button>
-            </CardContent>
-          </Card>
+          <ThemeManager />
         </TabsContent>
 
         <TabsContent value="domains" className="space-y-6">
