@@ -389,21 +389,29 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
                     <TableRow key={`${link.platform}-${index}`}>
                       <TableCell>
                         {isEditing ? (
-                          <Select 
-                            value={editingData.platform} 
-                            onValueChange={(value) => setEditingData({...editingData, platform: value})}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {popularPlatforms.map(platform => (
-                                <SelectItem key={platform} value={platform}>
-                                  {platform}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2">
+                            <Select 
+                              value={editingData.platform} 
+                              onValueChange={(value) => setEditingData({...editingData, platform: value})}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select platform" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {popularPlatforms.map(platform => (
+                                  <SelectItem key={platform} value={platform}>
+                                    {platform}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              placeholder="Or enter custom platform name"
+                              value={editingData.platform}
+                              onChange={(e) => setEditingData({...editingData, platform: e.target.value})}
+                              className="w-full text-sm"
+                            />
+                          </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
