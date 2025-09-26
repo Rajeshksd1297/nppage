@@ -29,6 +29,10 @@ import AdminUsers from "./pages/admin/Users";
 import AdminBooks from "./pages/admin/BooksAdmin";
 import AdminSettings from "./pages/admin/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import SiteSettings from "./pages/admin/SiteSettings";
+import EmailSettings from "./pages/admin/EmailSettings";
+import PackageManagement from "./pages/admin/PackageManagement";
+import DomainSettings from "./pages/admin/DomainSettings";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -156,6 +160,26 @@ function App() {
             <Route path="/admin/settings" element={
               <DashboardLayout>
                 <AdminSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/site-settings" element={
+              <DashboardLayout>
+                <SiteSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/email-settings" element={
+              <DashboardLayout>
+                <EmailSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/package-management" element={
+              <DashboardLayout>
+                <PackageManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/domain-settings" element={
+              <DashboardLayout>
+                <DomainSettings />
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

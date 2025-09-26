@@ -18,7 +18,8 @@ import {
   Search,
   Share2,
   Building2,
-  Upload
+  Upload,
+  Mail
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -60,8 +61,11 @@ const bookItems = [
 
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
-  { title: "Manage Packages", url: "/admin/settings?tab=packages", icon: CreditCard },
-  { title: "System Settings", url: "/admin/settings", icon: Settings },
+  { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
+  { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
+  { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
+  { title: "Theme Management", url: "/admin/settings?tab=themes", icon: Palette },
+  { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
 ];
 
 export function AppSidebar() {
