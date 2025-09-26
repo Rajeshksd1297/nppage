@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import BookEdit from "./pages/BookEdit";
+import BookEntryMethod from "./pages/BookEntryMethod";
 import BookView from "./pages/BookView";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
@@ -69,6 +70,11 @@ function App() {
               </DashboardLayout>
             } />
             <Route path="/books/new" element={
+              <DashboardLayout>
+                <BookEntryMethod />
+              </DashboardLayout>
+            } />
+            <Route path="/books/new/form" element={
               <DashboardLayout>
                 <BookEdit />
               </DashboardLayout>

@@ -73,11 +73,11 @@ const defaultFields: BookField[] = [
     name: 'isbn',
     label: 'ISBN',
     type: 'text',
-    required: false,
+    required: true, // Made required for affiliate link generation
     visible: true,
     enabled: true,
     placeholder: 'Enter ISBN (10 or 13 digits)',
-    helpText: 'International Standard Book Number',
+    helpText: 'Required for automatic affiliate link generation',
     category: 'publishing',
     systemField: false,
     order: 4,
