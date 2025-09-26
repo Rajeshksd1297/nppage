@@ -118,6 +118,33 @@ export default function ProfileManager() {
     }
   };
 
+  const handleSaveAndComplete = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          seo_title: profile.seo_title,
+          seo_description: profile.seo_description,
+          seo_keywords: profile.seo_keywords
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile completed!",
+        description: "Your author profile setup is now complete"
+      });
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete setup",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleProfileUpdate = (updates: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...updates }));
   };
@@ -254,11 +281,8 @@ export default function ProfileManager() {
             </div>
 
             <Button
-              onClick={handleNext}
-              disabled={isLastStep}
-              className={`flex items-center space-x-2 transition-all ${
-                isLastStep ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
-              }`}
+              onClick={isLastStep ? () => handleSaveAndComplete() : handleNext}
+              className="flex items-center space-x-2 transition-all hover:shadow-lg hover:bg-primary/90"
             >
               <span>{isLastStep ? 'Complete Setup' : 'Next Step'}</span>
               <ArrowRight className="w-4 h-4" />
