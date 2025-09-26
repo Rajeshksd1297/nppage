@@ -15,6 +15,10 @@ import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
 import CustomDomains from "./pages/CustomDomains";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
+import SEODashboard from './pages/SEODashboard';
+import Articles from './pages/Articles';
+import ArticleEditor from './pages/ArticleEditor';
+import SEOSettings from './pages/admin/SEOSettings';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
 import MediaKit from "./pages/MediaKit";
@@ -74,6 +78,31 @@ function App() {
             <Route path="/advanced-analytics" element={
               <DashboardLayout>
                 <AdvancedAnalytics />
+              </DashboardLayout>
+            } />
+            <Route path="/seo-dashboard" element={
+              <DashboardLayout>
+                <SEODashboard />
+              </DashboardLayout>
+            } />
+            <Route path="/articles" element={
+              <DashboardLayout>
+                <Articles />
+              </DashboardLayout>
+            } />
+            <Route path="/article-editor" element={
+              <DashboardLayout>
+                <ArticleEditor />
+              </DashboardLayout>
+            } />
+            <Route path="/article-editor/:id" element={
+              <DashboardLayout>
+                <ArticleEditor />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/seo-settings" element={
+              <DashboardLayout>
+                <SEOSettings />
               </DashboardLayout>
             } />
             <Route path="/themes" element={

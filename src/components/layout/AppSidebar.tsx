@@ -14,7 +14,8 @@ import {
   MessageSquare,
   FileText,
   TrendingUp,
-  CreditCard
+  CreditCard,
+  Search
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
