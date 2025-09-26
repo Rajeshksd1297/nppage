@@ -171,15 +171,24 @@ export function ProfileThemeSettings({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous Step
+      <div className="flex justify-between items-center">
+        <Button 
+          variant="outline" 
+          onClick={onPrevious}
+          size="lg"
+          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:bg-secondary/80 hover:scale-105 hover:shadow-lg border-2"
+        >
+          <ArrowLeft className="w-6 h-6" />
+          <span>Previous</span>
         </Button>
         
-        <Button onClick={onNext}>
-          Next Step
-          <ArrowRight className="w-4 h-4 ml-2" />
+        <Button 
+          onClick={onNext}
+          size="lg"
+          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold bg-gradient-primary hover:shadow-xl hover:scale-105 transition-all duration-300"
+        >
+          <span>Next Step</span>
+          <ArrowRight className="w-6 h-6" />
         </Button>
       </div>
     </div>

@@ -266,20 +266,26 @@ export function ProfileSEOSettings({ profile, onProfileUpdate, onPrevious, isPro
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous Step
+      <div className="flex justify-between items-center">
+        <Button 
+          variant="outline" 
+          onClick={onPrevious}
+          size="lg"
+          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:bg-secondary/80 hover:scale-105 hover:shadow-lg border-2"
+        >
+          <ArrowLeft className="w-6 h-6" />
+          <span>Previous</span>
         </Button>
         
         <Button 
           onClick={saveProfile}
           disabled={saving}
-          className="bg-gradient-primary"
+          size="lg"
+          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold bg-gradient-primary hover:shadow-xl hover:scale-105 transition-all duration-300"
         >
-          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          <Save className="w-4 h-4 mr-2" />
-          Complete Setup
+          {saving && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+          <Save className="w-6 h-6 mr-2" />
+          <span>Complete Setup</span>
         </Button>
       </div>
     </div>

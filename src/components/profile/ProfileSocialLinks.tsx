@@ -167,26 +167,37 @@ export function ProfileSocialLinks({ profile, onProfileUpdate, onNext, onPreviou
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous Step
+      <div className="flex justify-between items-center">
+        <Button 
+          variant="outline" 
+          onClick={onPrevious}
+          size="lg"
+          className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:bg-secondary/80 hover:scale-105 hover:shadow-lg border-2"
+        >
+          <ArrowLeft className="w-6 h-6" />
+          <span>Previous</span>
         </Button>
         
-        <div className="space-x-2">
+        <div className="space-x-3">
           <Button 
             variant="outline"
             onClick={saveProfile}
             disabled={saving}
+            size="lg"
+            className="px-6 py-4"
           >
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            <Save className="w-4 h-4 mr-2" />
+            {saving && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+            <Save className="w-5 h-5 mr-2" />
             Save Changes
           </Button>
           
-          <Button onClick={onNext}>
-            Next Step
-            <ArrowRight className="w-4 h-4 ml-2" />
+          <Button 
+            onClick={onNext}
+            size="lg"
+            className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold bg-gradient-primary hover:shadow-xl hover:scale-105 transition-all duration-300"
+          >
+            <span>Next Step</span>
+            <ArrowRight className="w-6 h-6" />
           </Button>
         </div>
       </div>
