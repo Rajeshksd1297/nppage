@@ -362,7 +362,7 @@ export default function Profile() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => window.location.href = '/profile-setup'}>
-            Enhanced Setup
+            Author Profile
           </Button>
           {tempSlug && <Button variant="outline" onClick={() => window.open(`/${tempSlug}`, '_blank')}>
               <ExternalLink className="h-4 w-4 mr-2" />
