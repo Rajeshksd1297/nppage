@@ -76,7 +76,7 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
-  const { subscription, hasFeature } = useSubscription();
+  const { subscription, hasFeature, getLimit, isOnTrial, trialDaysLeft, isPro, isFree } = useSubscription();
 
   useEffect(() => {
     fetchDashboardData();
@@ -446,9 +446,46 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Subscription Usage Summary */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Subscription Overview
+            {subscription?.subscription_plans?.name && (
+              <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
+                {subscription.subscription_plans.name}
+                {isPro() && <Crown className="h-3 w-3 ml-1" />}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{stats.totalBooks}</p>
+              <p className="text-sm text-muted-foreground">
+                Books ({getLimit('books') === Infinity ? 'Unlimited' : `${getLimit('books')} max`})
+              </p>
+              {getLimit('books') !== Infinity && stats.totalBooks >= getLimit('books') && (
+                <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>
+              )}
+            </div>
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{stats.publishedBooks}</p>
+              <p className="text-sm text-muted-foreground">Published Books</p>
+            </div>
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{stats.totalViews}</p>
+              <p className="text-sm text-muted-foreground">Total Views</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Premium Features Quick Access */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className={`border-dashed ${hasFeature('custom_domain') ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
+        <Card className={`border-dashed ${hasFeature('custom_domain') ? 'border-green-200 bg-green-50/50' : 'border-amber-200 bg-amber-50/50'}`}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>

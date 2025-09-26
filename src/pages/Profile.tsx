@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
 
 interface Profile {
   id: string;
@@ -70,6 +72,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [newSpecialization, setNewSpecialization] = useState("");
   const [selectedTheme, setSelectedTheme] = useState('minimal');
+  const { hasFeature, subscription, isPro } = useSubscription();
 
   useEffect(() => {
     fetchProfile();
@@ -201,7 +204,14 @@ export default function Profile() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Author Profile</h1>
-          <p className="text-muted-foreground">Manage your public author information</p>
+          <p className="text-muted-foreground">
+            Manage your public author information
+            {subscription?.subscription_plans?.name && (
+              <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
+                {subscription.subscription_plans.name}
+              </Badge>
+            )}
+          </p>
         </div>
         <div className="flex gap-2">
           {profile.slug && (
@@ -221,8 +231,12 @@ export default function Profile() {
         <TabsList>
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="social">Social Links</TabsTrigger>
-          <TabsTrigger value="theme">Theme</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
+          <TabsTrigger value="theme" disabled={!hasFeature('premium_themes')}>
+            Theme {!hasFeature('premium_themes') && <Badge variant="outline" className="ml-1 text-xs">Pro</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="seo" disabled={!hasFeature('advanced_analytics')}>
+            SEO {!hasFeature('advanced_analytics') && <Badge variant="outline" className="ml-1 text-xs">Pro</Badge>}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
@@ -467,12 +481,18 @@ export default function Profile() {
         </TabsContent>
 
         <TabsContent value="theme" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Page Theme</CardTitle>
-              <CardDescription>Choose how your author page looks</CardDescription>
-            </CardHeader>
-            <CardContent>
+          {!hasFeature('premium_themes') ? (
+            <UpgradeBanner 
+              message="Premium themes are a Pro feature"
+              feature="access to all premium themes and advanced customization"
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Page Theme</CardTitle>
+                <CardDescription>Choose how your author page looks</CardDescription>
+              </CardHeader>
+              <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {themes.map((theme) => (
                   <div
@@ -492,71 +512,79 @@ export default function Profile() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO & Public URL</CardTitle>
-              <CardDescription>Optimize your author page for search engines</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="slug">Profile URL</Label>
-                <Input
-                  id="slug"
-                  value={profile.slug}
-                  onChange={(e) => setProfile(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder={generateSlug(profile.full_name || '')}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your author page will be accessible at: /author/{profile.slug || generateSlug(profile.full_name || '')}
-                </p>
-              </div>
-
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Globe className="h-4 w-4" />
-                  <span className="font-medium">Public Profile Preview</span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Your profile will be accessible at: 
-                  <br />
-                  <code className="bg-background px-2 py-1 rounded">
-                    authorpage.app/author/{profile.slug || generateSlug(profile.full_name || '')}
-                  </code>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
+          {!hasFeature('advanced_analytics') ? (
+            <UpgradeBanner 
+              message="SEO optimization is a Pro feature"
+              feature="advanced SEO controls and meta tag management"
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO & Public URL</CardTitle>
+                <CardDescription>Optimize your author page for search engines</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <Label>Meta Title</Label>
+                  <Label htmlFor="slug">Profile URL</Label>
                   <Input
-                    value={`${profile.full_name} - Author`}
-                    disabled
-                    className="bg-muted"
+                    id="slug"
+                    value={profile.slug}
+                    onChange={(e) => setProfile(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder={generateSlug(profile.full_name || '')}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Auto-generated from your name
+                    Your author page will be accessible at: /author/{profile.slug || generateSlug(profile.full_name || '')}
                   </p>
                 </div>
 
-                <div>
-                  <Label>Meta Description</Label>
-                  <Input
-                    value={profile.bio ? `${profile.bio.slice(0, 150)}...` : 'Author profile page'}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Auto-generated from your bio
-                  </p>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="font-medium">Public Profile Preview</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Your profile will be accessible at: 
+                    <br />
+                    <code className="bg-background px-2 py-1 rounded">
+                      authorpage.app/author/{profile.slug || generateSlug(profile.full_name || '')}
+                    </code>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Meta Title</Label>
+                    <Input
+                      value={`${profile.full_name} - Author`}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Auto-generated from your name
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Meta Description</Label>
+                    <Input
+                      value={profile.bio ? `${profile.bio.slice(0, 150)}...` : 'Author profile page'}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Auto-generated from your bio
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

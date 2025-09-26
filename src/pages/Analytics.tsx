@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   BarChart3, 
@@ -13,6 +14,8 @@ import {
   MapPin
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeBanner } from "@/components/UpgradeBanner";
 
 interface AnalyticsData {
   totalViews: number;
@@ -38,6 +41,7 @@ export default function Analytics() {
   });
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30d");
+  const { hasFeature } = useSubscription();
 
   useEffect(() => {
     fetchAnalytics();
@@ -182,20 +186,40 @@ export default function Analytics() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground">Track your audience engagement and reach</p>
+          <p className="text-muted-foreground">
+            Track your audience engagement and reach
+            {hasFeature('advanced_analytics') && (
+              <span className="ml-2 text-green-600">• Pro Analytics Enabled</span>
+            )}
+          </p>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="90d">Last 90 days</SelectItem>
-            <SelectItem value="1y">Last year</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4 items-center">
+          {hasFeature('advanced_analytics') && (
+            <Button variant="outline" onClick={() => window.open('/advanced-analytics', '_blank')}>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Advanced Analytics
+            </Button>
+          )}
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {!hasFeature('advanced_analytics') && (
+        <UpgradeBanner 
+          message="Unlock advanced analytics with Pro"
+          feature="detailed insights, export capabilities, and advanced reporting"
+        />
+      )}
 
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
