@@ -6,7 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { 
   Save, 
   Plus, 
@@ -17,7 +20,8 @@ import {
   Loader2,
   Upload,
   Camera,
-  ArrowRight
+  ArrowRight,
+  Phone
 } from 'lucide-react';
 
 interface Profile {
@@ -34,6 +38,8 @@ interface Profile {
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string;
+  mobile_number?: string;
+  country_code?: string;
 }
 
 interface ProfileBasicInfoProps {
@@ -50,6 +56,31 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [tempSlug, setTempSlug] = useState(profile.slug || "");
+
+  // Country codes for mobile number
+  const countryCodes = [
+    { code: '+1', country: 'US/CA' },
+    { code: '+44', country: 'UK' },
+    { code: '+91', country: 'IN' },
+    { code: '+33', country: 'FR' },
+    { code: '+49', country: 'DE' },
+    { code: '+61', country: 'AU' },
+    { code: '+81', country: 'JP' },
+    { code: '+86', country: 'CN' },
+    { code: '+55', country: 'BR' },
+    { code: '+7', country: 'RU' }
+  ];
+
+  // Rich text editor modules
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline'],
+      ['link', 'blockquote'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['clean']
+    ],
+  };
 
   const handleInputChange = (field: keyof Profile, value: any) => {
     const updatedProfile = { ...profile, [field]: value };
@@ -193,7 +224,9 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
           slug: profile.slug,
           public_profile: profile.public_profile,
           specializations: profile.specializations,
-          avatar_url: profile.avatar_url
+          avatar_url: profile.avatar_url,
+          mobile_number: profile.mobile_number,
+          country_code: profile.country_code
         })
         .eq('id', profile.id);
 
@@ -219,97 +252,173 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
 
   return (
     <div className="space-y-6">
-      {/* Avatar Upload */}
-      <div className="flex items-center space-x-4">
-        <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-muted overflow-hidden">
-            {profile.avatar_url ? (
-              <img 
-                src={profile.avatar_url} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Camera className="w-8 h-8 text-muted-foreground" />
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+      </div>
+
+      {/* Profile Picture */}
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Profile Picture</Label>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-muted overflow-hidden border-2 border-border">
+              {profile.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {uploading && (
+              <div className="absolute inset-0 bg-background/80 rounded-full flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin" />
               </div>
             )}
           </div>
-          {uploading && (
-            <div className="absolute inset-0 bg-background/80 rounded-full flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          )}
-        </div>
-        <div>
-          <Label htmlFor="avatar-upload" className="cursor-pointer">
-            <Button type="button" variant="outline" size="sm" disabled={uploading}>
-              <Upload className="w-4 h-4 mr-2" />
-              {uploading ? 'Uploading...' : 'Upload Avatar'}
-            </Button>
-          </Label>
-          <input
-            id="avatar-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            JPG, PNG, or GIF. Max 2MB.
-          </p>
+          <div>
+            <Label htmlFor="avatar-upload" className="cursor-pointer">
+              <Button type="button" variant="outline" size="sm" disabled={uploading}>
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Avatar'}
+              </Button>
+            </Label>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              JPG, PNG, or GIF. Max 2MB.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Basic Information */}
-      <div className="space-y-4">
+      {/* Form Fields */}
+      <div className="space-y-5">
+        {/* Full Name */}
         <div>
-          <Label htmlFor="full_name">Full Name *</Label>
+          <Label htmlFor="full_name" className="text-base font-medium">
+            Full Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="full_name"
             value={profile.full_name || ''}
             onChange={(e) => handleInputChange('full_name', e.target.value)}
             placeholder="Enter your full name"
+            className="mt-2"
           />
         </div>
 
+        {/* Email */}
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-base font-medium">
+            Email <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="email"
             value={profile.email || ''}
             disabled
-            className="bg-muted"
+            className="mt-2 bg-muted"
           />
           <p className="text-xs text-muted-foreground mt-1">
             Email cannot be changed here. Use account settings.
           </p>
         </div>
 
+        {/* Mobile Number */}
         <div>
-          <Label htmlFor="bio">Bio</Label>
-          <Textarea
-            id="bio"
-            value={profile.bio || ''}
-            onChange={(e) => handleInputChange('bio', e.target.value)}
-            placeholder="Tell readers about yourself..."
-            rows={4}
-          />
+          <Label className="text-base font-medium">Mobile Number</Label>
+          <div className="flex gap-2 mt-2">
+            <Select
+              value={profile.country_code || '+1'}
+              onValueChange={(value) => handleInputChange('country_code', value)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Code" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryCodes.map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    {country.code} {country.country}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={profile.mobile_number || ''}
+              onChange={(e) => handleInputChange('mobile_number', e.target.value)}
+              placeholder="Enter your mobile number"
+              className="flex-1"
+            />
+          </div>
         </div>
 
+        {/* Bio - Rich Text Editor */}
         <div>
-          <Label htmlFor="website_url">Website URL</Label>
-          <Input
-            id="website_url"
-            value={profile.website_url || ''}
-            onChange={(e) => handleInputChange('website_url', e.target.value)}
-            placeholder="https://yourwebsite.com"
-          />
+          <Label className="text-base font-medium">Bio</Label>
+          <div className="mt-2">
+            <ReactQuill
+              theme="snow"
+              value={profile.bio || ''}
+              onChange={(value) => handleInputChange('bio', value)}
+              modules={quillModules}
+              placeholder="Tell readers about yourself..."
+              className="bg-background"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Use rich formatting to make your bio more engaging
+          </p>
         </div>
 
+        {/* Specializations */}
         <div>
-          <Label htmlFor="slug">Profile URL *</Label>
-          <div className="flex">
+          <Label className="text-base font-medium">Specializations</Label>
+          <div className="mt-2">
+            <div className="flex flex-wrap gap-2 mb-3">
+              {profile.specializations?.map((spec, index) => (
+                <Badge key={index} variant="secondary" className="px-3 py-1">
+                  {spec}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-2"
+                    onClick={() => removeSpecialization(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newSpecialization}
+                onChange={(e) => setNewSpecialization(e.target.value)}
+                placeholder="Add a specialization"
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
+              />
+              <Button type="button" variant="outline" onClick={addSpecialization}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile URL Slug */}
+        <div>
+          <Label htmlFor="slug" className="text-base font-medium">
+            Profile URL Slug <span className="text-red-500">*</span>
+          </Label>
+          <div className="flex mt-2">
             <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
               authorpage.app/
             </span>
@@ -353,55 +462,25 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
           )}
         </div>
 
-        {/* Specializations */}
+        {/* Make Profile Public */}
         <div>
-          <Label>Specializations</Label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {profile.specializations?.map((spec, index) => (
-              <Badge key={index} variant="secondary" className="px-3 py-1">
-                {spec}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 ml-2"
-                  onClick={() => removeSpecialization(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Input
-              value={newSpecialization}
-              onChange={(e) => setNewSpecialization(e.target.value)}
-              placeholder="Add a specialization"
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base font-medium">Make Profile Public</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Allow your profile to be visible to the public
+              </p>
+            </div>
+            <Switch
+              checked={profile.public_profile}
+              onCheckedChange={(checked) => handleInputChange('public_profile', checked)}
             />
-            <Button type="button" variant="outline" onClick={addSpecialization}>
-              <Plus className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-
-        {/* Public Profile Toggle */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Label>Public Profile</Label>
-            <p className="text-sm text-muted-foreground">
-              Make your profile visible to the public
-            </p>
-          </div>
-          <Switch
-            checked={profile.public_profile}
-            onCheckedChange={(checked) => handleInputChange('public_profile', checked)}
-          />
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between">
+      <div className="flex justify-between pt-6 border-t">
         <Button 
           variant="outline"
           onClick={saveProfile}
