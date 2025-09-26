@@ -262,7 +262,7 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
       </div>
 
       {/* Basic Information */}
-      <div className="grid gap-4">
+      <div className="space-y-4">
         <div>
           <Label htmlFor="full_name">Full Name *</Label>
           <Input
