@@ -4,8 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AuthorProfile from "./pages/AuthorProfile";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
@@ -56,6 +58,7 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ThemeProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -260,8 +263,11 @@ function App() {
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Public author profile route - must be last before catch-all */}
+            <Route path="/:slug" element={<AuthorProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </ThemeProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
