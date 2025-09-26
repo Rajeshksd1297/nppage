@@ -9,7 +9,6 @@ import { ISBNLookup } from "@/components/admin/BookManagement/ISBNLookup";
 import { Save, ArrowLeft } from "lucide-react";
 import { DynamicBookForm } from "@/components/forms/DynamicBookForm";
 import { getEnabledVisibleFields } from "@/utils/bookFieldUtils";
-
 interface BookFormData {
   title: string;
   subtitle?: string;
@@ -28,17 +27,19 @@ interface BookFormData {
   purchase_links?: any[];
   status: 'draft' | 'published';
 }
-
 export default function BookEdit() {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const isNewBook = !id || id === 'new';
   const isFromISBNSearch = searchParams.get('prefilled') === 'true';
   const prefilledISBN = searchParams.get('isbn');
-  
   const form = useForm<BookFormData>({
     defaultValues: {
       title: '',
@@ -56,12 +57,19 @@ export default function BookEdit() {
       seo_description: '',
       seo_keywords: '',
       purchase_links: [],
-      status: 'draft',
-    },
+      status: 'draft'
+    }
   });
-
-  const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = form;
-
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: {
+      errors
+    }
+  } = form;
   useEffect(() => {
     if (id && id !== 'new') {
       fetchBook();
@@ -73,11 +81,11 @@ export default function BookEdit() {
           const data = JSON.parse(prefilledData);
           reset(data);
           localStorage.removeItem('prefilledBookData'); // Clear after use
-          
+
           if (data.purchase_links?.length > 0) {
             toast({
               title: "Book Data Loaded",
-              description: `Auto-filled with ${data.purchase_links.length} affiliate links generated.`,
+              description: `Auto-filled with ${data.purchase_links.length} affiliate links generated.`
             });
           }
         } catch (error) {
@@ -88,29 +96,25 @@ export default function BookEdit() {
         setValue('isbn', prefilledISBN);
         toast({
           title: "ISBN Added",
-          description: "Please fill in the remaining book details. Affiliate links will be generated when you save.",
+          description: "Please fill in the remaining book details. Affiliate links will be generated when you save."
         });
       }
     }
   }, [id, prefilledISBN]);
-
   const fetchBook = async () => {
     if (!id || id === 'new') return;
-    
     try {
       setIsLoading(true);
-      const { data: user } = await supabase.auth.getUser();
+      const {
+        data: user
+      } = await supabase.auth.getUser();
       if (!user.user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.user.id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('books').select('*').eq('id', id).eq('user_id', user.user.id).single();
       if (error) throw error;
-      
+
       // Parse purchase_links if it's a string and ensure proper typing
       const bookData: BookFormData = {
         title: data.title || '',
@@ -127,27 +131,21 @@ export default function BookEdit() {
         seo_title: data.seo_title || '',
         seo_description: data.seo_description || '',
         seo_keywords: data.seo_keywords || '',
-        purchase_links: Array.isArray(data.purchase_links) 
-          ? data.purchase_links 
-          : (data.purchase_links && typeof data.purchase_links === 'string' 
-              ? JSON.parse(data.purchase_links as string) 
-              : data.purchase_links || []),
-        status: (data.status as 'draft' | 'published') || 'draft'
+        purchase_links: Array.isArray(data.purchase_links) ? data.purchase_links : data.purchase_links && typeof data.purchase_links === 'string' ? JSON.parse(data.purchase_links as string) : data.purchase_links || [],
+        status: data.status as 'draft' | 'published' || 'draft'
       };
-
       reset(bookData);
     } catch (error) {
       console.error('Error fetching book:', error);
       toast({
         title: "Error",
         description: "Failed to load book details.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleISBNLookup = (bookData: any) => {
     // Update form with ISBN lookup data
     Object.keys(bookData).forEach(key => {
@@ -156,16 +154,14 @@ export default function BookEdit() {
       }
     });
   };
-
   const onSubmit = async (data: BookFormData) => {
     try {
       setIsLoading(true);
-      
+
       // Auto-generate purchase links based on admin affiliate settings if ISBN is provided
       if (data.isbn) {
         // First check if affiliate settings exist, if not create default ones
         let savedAffiliateSettings = localStorage.getItem('affiliateSettings');
-        
         if (!savedAffiliateSettings) {
           // Create default affiliate settings for demo
           const defaultSettings = {
@@ -173,28 +169,36 @@ export default function BookEdit() {
               enabled: true,
               displayName: 'Amazon',
               baseUrl: 'https://amazon.com/dp/{isbn}',
-              parameters: { tag: 'demo-20' },
+              parameters: {
+                tag: 'demo-20'
+              },
               description: 'Amazon affiliate link'
             },
             bookshop: {
               enabled: true,
               displayName: 'Bookshop',
               baseUrl: 'https://bookshop.org/books/{isbn}',
-              parameters: { a: 'demo' },
+              parameters: {
+                a: 'demo'
+              },
               description: 'Bookshop affiliate link'
             },
             kobo: {
               enabled: true,
               displayName: 'Kobo',
               baseUrl: 'https://www.kobo.com/search',
-              parameters: { query: '{isbn}' },
+              parameters: {
+                query: '{isbn}'
+              },
               description: 'Kobo store link'
             },
             googleBooks: {
               enabled: true,
               displayName: 'Google Books',
               baseUrl: 'https://books.google.com/books',
-              parameters: { isbn: '{isbn}' },
+              parameters: {
+                isbn: '{isbn}'
+              },
               description: 'Google Books link'
             },
             barnesNoble: {
@@ -208,20 +212,19 @@ export default function BookEdit() {
               enabled: true,
               displayName: 'Apple Books',
               baseUrl: 'https://books.apple.com/search',
-              parameters: { term: '{title}' },
+              parameters: {
+                term: '{title}'
+              },
               description: 'Apple Books link'
             }
           };
-          
           localStorage.setItem('affiliateSettings', JSON.stringify(defaultSettings));
           savedAffiliateSettings = JSON.stringify(defaultSettings);
         }
-        
         if (savedAffiliateSettings) {
           try {
             const affiliateSettings = JSON.parse(savedAffiliateSettings);
             const purchaseLinks = [];
-            
             if (affiliateSettings.amazon?.enabled && affiliateSettings.amazon?.parameters?.tag) {
               purchaseLinks.push({
                 platform: 'Amazon',
@@ -229,7 +232,6 @@ export default function BookEdit() {
                 affiliate_id: affiliateSettings.amazon.parameters.tag
               });
             }
-            
             if (affiliateSettings.bookshop?.enabled && affiliateSettings.bookshop?.parameters?.a) {
               purchaseLinks.push({
                 platform: 'Bookshop',
@@ -237,7 +239,6 @@ export default function BookEdit() {
                 affiliate_id: affiliateSettings.bookshop.parameters.a
               });
             }
-
             if (affiliateSettings.kobo?.enabled) {
               purchaseLinks.push({
                 platform: 'Kobo',
@@ -245,7 +246,6 @@ export default function BookEdit() {
                 affiliate_id: affiliateSettings.kobo.parameters?.aid || ''
               });
             }
-
             if (affiliateSettings.googleBooks?.enabled) {
               purchaseLinks.push({
                 platform: 'Google Books',
@@ -253,7 +253,6 @@ export default function BookEdit() {
                 affiliate_id: ''
               });
             }
-
             if (affiliateSettings.barnesNoble?.enabled) {
               purchaseLinks.push({
                 platform: 'Barnes & Noble',
@@ -261,7 +260,6 @@ export default function BookEdit() {
                 affiliate_id: ''
               });
             }
-
             if (affiliateSettings.applebooks?.enabled) {
               purchaseLinks.push({
                 platform: 'Apple Books',
@@ -269,13 +267,11 @@ export default function BookEdit() {
                 affiliate_id: ''
               });
             }
-            
             if (purchaseLinks.length > 0) {
               data.purchase_links = purchaseLinks;
-              
               toast({
                 title: "Affiliate Links Generated",
-                description: `${purchaseLinks.length} purchase links created automatically.`,
+                description: `${purchaseLinks.length} purchase links created automatically.`
               });
             }
           } catch (error) {
@@ -283,101 +279,64 @@ export default function BookEdit() {
           }
         }
       }
-
       const bookData = {
         ...data,
         genres: data.genres || [],
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-
       if (id && id !== 'new') {
-        const { error } = await supabase
-          .from('books')
-          .update(bookData)
-          .eq('id', id);
-
+        const {
+          error
+        } = await supabase.from('books').update(bookData).eq('id', id);
         if (error) throw error;
-        
         toast({
           title: "Success",
-          description: "Book updated successfully!",
+          description: "Book updated successfully!"
         });
       } else {
-        const { data: user } = await supabase.auth.getUser();
+        const {
+          data: user
+        } = await supabase.auth.getUser();
         if (!user.user) throw new Error('User not authenticated');
-
-        const { error } = await supabase
-          .from('books')
-          .insert([{
-            ...bookData,
-            user_id: user.user.id,
-            created_at: new Date().toISOString(),
-          }]);
-
+        const {
+          error
+        } = await supabase.from('books').insert([{
+          ...bookData,
+          user_id: user.user.id,
+          created_at: new Date().toISOString()
+        }]);
         if (error) throw error;
-        
         toast({
           title: "Success",
-          description: "Book created successfully!",
+          description: "Book created successfully!"
         });
       }
-
       navigate('/books');
     } catch (error) {
       console.error('Error saving book:', error);
       toast({
         title: "Error",
         description: "Failed to save book. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/books')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Books
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">
-              {id === 'new' ? 'Add New Book' : 'Edit Book'}
-            </h1>
-            <p className="text-muted-foreground">
-              {id === 'new' ? 'Create a new book entry' : 'Update book information'}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          {isNewBook && (
-            <ISBNLookup onBookFound={handleISBNLookup} />
-          )}
-          <Button form="book-form" type="submit" disabled={isLoading}>
-            <Save className="h-4 w-4 mr-2" />
-            {isLoading ? 'Saving...' : 'Save Book'}
-          </Button>
-        </div>
-      </div>
+  return <div className="space-y-6">
+      
 
       <form id="book-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <DynamicBookForm form={form} mode={isNewBook ? 'add' : 'edit'} />
         
         {/* Show ISBN requirement message for manual entry */}
-        {isNewBook && !isFromISBNSearch && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        {isNewBook && !isFromISBNSearch && <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-medium text-blue-900 mb-2">📚 About ISBN & Affiliate Links</h3>
             <p className="text-sm text-blue-700">
               <strong>ISBN is highly recommended</strong> for generating automatic affiliate purchase links. 
               Without an ISBN, you'll need to manually add purchase links later.
             </p>
-          </div>
-        )}
+          </div>}
       </form>
-    </div>
-  );
+    </div>;
 }
