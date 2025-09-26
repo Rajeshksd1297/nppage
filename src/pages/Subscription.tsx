@@ -52,6 +52,7 @@ export default function Subscription() {
 
   const fetchData = async () => {
     try {
+      setLoading(true); // Ensure loading state is set
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -72,6 +73,7 @@ export default function Subscription() {
 
       setPlans(plansData || []);
       setUserStats({ totalBooks, publishedBooks });
+      console.log('Subscription plans loaded:', plansData); // Debug log
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {
