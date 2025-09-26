@@ -1,39 +1,37 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
-  BookOpen, 
-  ArrowLeft,
-  Edit,
-  ExternalLink,
-  Calendar,
-  Globe,
-  User,
-  Hash,
-  FileText
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Edit, ExternalLink } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { DynamicBookForm } from "@/components/forms/DynamicBookForm";
 
 interface Book {
   id: string;
   title: string;
   subtitle?: string;
-  description?: string;
+  description: string;
   isbn?: string;
+  category?: string;
+  genres?: string[];
+  publisher?: string;
   publication_date?: string;
   page_count?: number;
-  language: string;
-  publisher?: string;
-  status: string;
-  genres: string[];
+  language?: string;
   cover_image_url?: string;
-  purchase_links: any;
-  slug?: string;
-  user_id: string;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  purchase_links?: Array<{
+    platform: string;
+    url: string;
+    affiliate_id?: string;
+  }>;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
 }
 
 export default function BookView() {
@@ -41,8 +39,72 @@ export default function BookView() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [canEdit, setCanEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const form = useForm();
+
+  const fetchBook = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching book:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load book details.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        // Parse purchase_links if it's a string and ensure proper typing
+        const bookData: Book = {
+          id: data.id,
+          title: data.title || '',
+          subtitle: data.subtitle || undefined,
+          description: data.description || '',
+          isbn: data.isbn || undefined,
+          category: data.category || undefined,
+          genres: data.genres || [],
+          publisher: data.publisher || undefined,
+          publication_date: data.publication_date || undefined,
+          page_count: data.page_count || undefined,
+          language: data.language || 'en',
+          cover_image_url: data.cover_image_url || undefined,
+          seo_title: data.seo_title || undefined,
+          seo_description: data.seo_description || undefined,
+          seo_keywords: data.seo_keywords || undefined,
+          purchase_links: Array.isArray(data.purchase_links) 
+            ? data.purchase_links 
+            : (data.purchase_links && typeof data.purchase_links === 'string' 
+                ? JSON.parse(data.purchase_links as string) 
+                : data.purchase_links || []),
+          status: (data.status as 'draft' | 'published') || 'draft',
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
+        
+        setBook(bookData);
+        // Populate form with book data for read-only display
+        form.reset(bookData);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -50,47 +112,7 @@ export default function BookView() {
     }
   }, [id]);
 
-  const fetchBook = async () => {
-    if (!id) return;
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        // Parse purchase_links if it's a string
-        const parsedBook = {
-          ...data,
-          purchase_links: Array.isArray(data.purchase_links) 
-            ? data.purchase_links 
-            : (data.purchase_links && typeof data.purchase_links === 'string' 
-                ? JSON.parse(data.purchase_links) 
-                : data.purchase_links || [])
-        };
-        
-        setBook(parsedBook);
-        setCanEdit(user?.id === data.user_id);
-      }
-    } catch (error) {
-      console.error('Error fetching book:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load book details",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -102,22 +124,17 @@ export default function BookView() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/books')}>
+          <Button variant="outline" onClick={() => navigate('/books')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Books
           </Button>
         </div>
-        <Card>
-          <CardContent className="py-16">
-            <div className="text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Book not found</h3>
-              <p className="text-muted-foreground">
-                The book you're looking for doesn't exist or has been removed.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center py-16">
+          <h3 className="text-lg font-medium mb-2">Book not found</h3>
+          <p className="text-muted-foreground">
+            The book you're looking for doesn't exist or has been removed.
+          </p>
+        </div>
       </div>
     );
   }
@@ -126,7 +143,7 @@ export default function BookView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/books')}>
+          <Button variant="outline" onClick={() => navigate('/books')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Books
           </Button>
@@ -137,138 +154,58 @@ export default function BookView() {
             )}
           </div>
         </div>
-        {canEdit && (
-          <Button onClick={() => navigate(`/books/${book.id}/edit`)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Book
-          </Button>
-        )}
+        
+        <Button onClick={() => navigate(`/books/${book.id}/edit`)}>
+          <Edit className="h-4 w-4 mr-2" />
+          Edit Book
+        </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Book Cover */}
-        <div className="md:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <div className="aspect-[3/4] bg-muted rounded-lg flex items-center justify-center mb-4">
-                {book.cover_image_url ? (
-                  <img
-                    src={book.cover_image_url}
-                    alt={`Cover of ${book.title}`}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <BookOpen className="h-16 w-16 text-muted-foreground" />
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Book Cover and Status */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 space-y-4">
+            {book.cover_image_url && (
+              <div className="text-center">
+                <img 
+                  src={book.cover_image_url} 
+                  alt={book.title}
+                  className="w-full max-w-xs mx-auto rounded-lg shadow-md"
+                />
               </div>
+            )}
+            
+            <div className="text-center space-y-2">
+              <Badge variant={book.status === 'published' ? 'default' : 'secondary'}>
+                {book.status}
+              </Badge>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Status:</span>
-                  <Badge variant={book.status === 'published' ? 'default' : 'secondary'}>
-                    {book.status}
-                  </Badge>
-                </div>
-                
-                {book.isbn && (
-                  <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{book.isbn}</span>
-                  </div>
-                )}
-                
-                {book.publisher && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{book.publisher}</span>
-                  </div>
-                )}
-                
-                {book.publication_date && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      {new Date(book.publication_date).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-                
-                {book.page_count && (
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{book.page_count} pages</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{book.language}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Book Details */}
-        <div className="md:col-span-2 space-y-6">
-          {book.description && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap">{book.description}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {book.genres.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Genres</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {book.genres.map((genre) => (
-                    <Badge key={genre} variant="outline">
-                      {genre}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {book.purchase_links && book.purchase_links.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Purchase Links</CardTitle>
-                <CardDescription>
-                  Available for purchase at the following retailers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {book.purchase_links.map((link: any, index: number) => (
+              {book.purchase_links && book.purchase_links.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-medium text-sm text-muted-foreground">Purchase Links</h3>
+                  {book.purchase_links.map((link, index) => (
                     <Button
                       key={index}
                       variant="outline"
-                      className="justify-start"
-                      onClick={() => window.open(link.url, '_blank')}
+                      size="sm"
+                      className="w-full justify-between"
+                      asChild
                     >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      {link.platform}
-                      {link.price && (
-                        <span className="ml-auto text-sm text-muted-foreground">
-                          {link.price}
-                        </span>
-                      )}
+                      <a href={link.url} target="_blank" rel="noopener noreferrer">
+                        {link.platform}
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
                     </Button>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Form Fields */}
+        <div className="lg:col-span-2">
+          <DynamicBookForm form={form} mode="view" />
         </div>
       </div>
     </div>
