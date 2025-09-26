@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { useState } from "react";
 
 interface DynamicBookFormProps {
   form: UseFormReturn<any>;
@@ -219,35 +223,166 @@ const FieldComponent = ({ field, form, mode }: { field: BookField; form: UseForm
 };
 
 export function DynamicBookForm({ form, mode }: DynamicBookFormProps) {
+  const [currentStep, setCurrentStep] = useState(0);
   const categories: ('basic' | 'publishing' | 'seo' | 'advanced')[] = ['basic', 'publishing', 'seo', 'advanced'];
+  const stepLabels = ['Basic Info', 'Publishing', 'SEO', 'Available Links'];
+
+  const validateCurrentStep = () => {
+    const currentCategory = categories[currentStep];
+    const fields = getFieldsByCategory(currentCategory);
+    const requiredFields = fields.filter(field => field.required);
+    
+    for (const field of requiredFields) {
+      const value = form.watch(field.name);
+      if (!value || (Array.isArray(value) && value.length === 0) || value.toString().trim() === '') {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (currentStep < categories.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const renderStep = (stepIndex: number) => {
+    const category = categories[stepIndex];
+    const fields = getFieldsByCategory(category);
+    
+    if (fields.length === 0) return null;
+
+    return (
+      <div className="space-y-4">
+        {fields.map(field => (
+          <FieldComponent 
+            key={field.id} 
+            field={field} 
+            form={form} 
+            mode={mode}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {categories.map(category => {
-        const fields = getFieldsByCategory(category);
+      {/* Step Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          {stepLabels.map((label, index) => (
+            <div key={index} className="flex items-center">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                index === currentStep 
+                  ? 'border-primary bg-primary text-primary-foreground' 
+                  : index < currentStep 
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-muted-foreground bg-background text-muted-foreground'
+              }`}>
+                {index < currentStep ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <span className="text-sm font-medium">{index + 1}</span>
+                )}
+              </div>
+              <span className={`ml-2 text-sm font-medium ${
+                index === currentStep ? 'text-foreground' : 'text-muted-foreground'
+              }`}>
+                {label}
+              </span>
+              {index < stepLabels.length - 1 && (
+                <div className={`w-8 h-0.5 mx-4 ${
+                  index < currentStep ? 'bg-primary' : 'bg-muted'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
         
-        if (fields.length === 0) return null;
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline">
+            Step {currentStep + 1} of {categories.length}
+          </Badge>
+        </div>
+      </div>
 
-        return (
-          <Card key={category}>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                {getCategoryDisplayName(category)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {fields.map(field => (
-                <FieldComponent 
-                  key={field.id} 
-                  field={field} 
-                  form={form} 
-                  mode={mode}
-                />
-              ))}
-            </CardContent>
-          </Card>
-        );
-      })}
+      {/* Current Step Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">
+            {getCategoryDisplayName(categories[currentStep])}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderStep(currentStep)}
+        </CardContent>
+      </Card>
+
+      {/* Navigation Buttons */}
+      {mode !== 'view' && (
+        <div className="flex items-center justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+
+          <Button
+            type="button"
+            onClick={handleNext}
+            disabled={currentStep === categories.length - 1 || !validateCurrentStep()}
+            className="flex items-center gap-2"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* View Mode: Show All Steps */}
+      {mode === 'view' && (
+        <div className="space-y-6">
+          {categories.map((category, index) => {
+            if (index === currentStep) return null; // Already shown above
+            
+            const fields = getFieldsByCategory(category);
+            if (fields.length === 0) return null;
+
+            return (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {getCategoryDisplayName(category)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {fields.map(field => (
+                    <FieldComponent 
+                      key={field.id} 
+                      field={field} 
+                      form={form} 
+                      mode={mode}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
