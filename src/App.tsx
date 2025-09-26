@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import BookEdit from "./pages/BookEdit";
+import BookAdd from "./pages/BookAdd";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
@@ -65,6 +66,11 @@ function App() {
             <Route path="/books" element={
               <DashboardLayout>
                 <Books />
+              </DashboardLayout>
+            } />
+            <Route path="/books/add" element={
+              <DashboardLayout>
+                <BookAdd />
               </DashboardLayout>
             } />
             <Route path="/books/:id" element={
