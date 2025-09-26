@@ -19,7 +19,8 @@ import {
   Share2,
   Building2,
   Upload,
-  Mail
+  Mail,
+  MessageCircle
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -61,6 +62,7 @@ const bookItems = [
 
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
+  { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
   { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
@@ -180,6 +182,23 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* Support Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Support</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/support-tickets" className={getNavCls}>
+                    <MessageCircle className="h-4 w-4" />
+                    {!collapsed && <span>Support Tickets</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {isAdmin && (
           <>
