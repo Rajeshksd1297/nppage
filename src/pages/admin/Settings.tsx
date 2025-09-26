@@ -13,8 +13,11 @@ import {
   Globe,
   Shield,
   CreditCard,
-  Palette
+  Palette,
+  PlusCircle,
+  Trash2
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminSettings() {
@@ -41,17 +44,45 @@ export default function AdminSettings() {
     maintenanceMode: false
   });
 
-  // Payment Settings
-  const [paymentSettings, setPaymentSettings] = useState({
-    stripeEnabled: false,
-    stripePublishableKey: "",
-    paypalEnabled: false,
-    paypalClientId: "",
-    subscriptionPricing: {
-      basic: 9.99,
-      pro: 19.99,
-      enterprise: 49.99
-    }
+  // Package Management Settings
+  const [packageSettings, setPackageSettings] = useState({
+    packages: [
+      {
+        id: '1',
+        name: 'Free',
+        price_monthly: 0,
+        price_yearly: 0,
+        features: ['Up to 3 books', 'Basic profile', 'Standard themes'],
+        max_books: 3,
+        badge_text: '',
+        badge_color: '',
+        description: 'Perfect for getting started',
+        discount_percent: 0,
+        discount_from: '',
+        discount_to: '',
+        popular: false,
+        active: true
+      },
+      {
+        id: '2', 
+        name: 'Pro',
+        price_monthly: 9.99,
+        price_yearly: 99.99,
+        features: ['Unlimited books', 'Custom domain', 'Premium themes', 'Advanced analytics'],
+        max_books: null,
+        badge_text: 'Most Popular',
+        badge_color: 'primary',
+        description: 'Everything you need to grow',
+        discount_percent: 0,
+        discount_from: '',
+        discount_to: '',
+        popular: true,
+        active: true
+      }
+    ],
+    trial_days: 15,
+    allow_downgrades: true,
+    prorate_charges: true
   });
 
   const handleSaveEmailSettings = async () => {
@@ -90,6 +121,57 @@ export default function AdminSettings() {
     }, 1000);
   };
 
+  const handleSavePackageSettings = async () => {
+    setSaving(true);
+    // In a real app, save to database or API
+    setTimeout(() => {
+      setSaving(false);
+      toast({
+        title: "Success",
+        description: "Package settings saved successfully",
+      });
+    }, 1000);
+  };
+
+  const addNewPackage = () => {
+    const newPackage = {
+      id: Date.now().toString(),
+      name: 'New Package',
+      price_monthly: 0,
+      price_yearly: 0,
+      features: ['Feature 1', 'Feature 2'],
+      max_books: 10,
+      badge_text: '',
+      badge_color: '',
+      description: 'Description for new package',
+      discount_percent: 0,
+      discount_from: '',
+      discount_to: '',
+      popular: false,
+      active: true
+    };
+    setPackageSettings(prev => ({
+      ...prev,
+      packages: [...prev.packages, newPackage]
+    }));
+  };
+
+  const deletePackage = (packageId: string) => {
+    setPackageSettings(prev => ({
+      ...prev,
+      packages: prev.packages.filter(pkg => pkg.id !== packageId)
+    }));
+  };
+
+  const updatePackage = (packageId: string, updates: any) => {
+    setPackageSettings(prev => ({
+      ...prev,
+      packages: prev.packages.map(pkg => 
+        pkg.id === packageId ? { ...pkg, ...updates } : pkg
+      )
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -105,13 +187,13 @@ export default function AdminSettings() {
             <Globe className="h-4 w-4" />
             Site
           </TabsTrigger>
+          <TabsTrigger value="packages" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Packages
+          </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Email
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Payment
           </TabsTrigger>
           <TabsTrigger value="themes" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
@@ -269,115 +351,220 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="payment" className="space-y-6">
+        <TabsContent value="packages" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Integration</CardTitle>
-              <CardDescription>Configure payment gateways and subscription pricing</CardDescription>
+              <CardTitle>Package Management</CardTitle>
+              <CardDescription>Design and manage subscription packages</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="stripeEnabled"
-                    checked={paymentSettings.stripeEnabled}
-                    onCheckedChange={(checked) => setPaymentSettings(prev => ({ ...prev, stripeEnabled: checked }))}
-                  />
-                  <Label htmlFor="stripeEnabled">Enable Stripe payments</Label>
-                </div>
-
-                {paymentSettings.stripeEnabled && (
-                  <div>
-                    <Label htmlFor="stripePublishableKey">Stripe Publishable Key</Label>
-                    <Input
-                      id="stripePublishableKey"
-                      type="password"
-                      value={paymentSettings.stripePublishableKey}
-                      onChange={(e) => setPaymentSettings(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
-                      placeholder="pk_test_..."
-                    />
-                  </div>
-                )}
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="paypalEnabled"
-                    checked={paymentSettings.paypalEnabled}
-                    onCheckedChange={(checked) => setPaymentSettings(prev => ({ ...prev, paypalEnabled: checked }))}
-                  />
-                  <Label htmlFor="paypalEnabled">Enable PayPal payments</Label>
-                </div>
-
-                {paymentSettings.paypalEnabled && (
-                  <div>
-                    <Label htmlFor="paypalClientId">PayPal Client ID</Label>
-                    <Input
-                      id="paypalClientId"
-                      value={paymentSettings.paypalClientId}
-                      onChange={(e) => setPaymentSettings(prev => ({ ...prev, paypalClientId: e.target.value }))}
-                      placeholder="AZDxjQ..."
-                    />
-                  </div>
-                )}
-
+            <CardContent className="space-y-6">
+              {/* Global Package Settings */}
+              <div className="grid gap-4 md:grid-cols-3 p-4 bg-muted/50 rounded-lg">
                 <div>
-                  <Label>Subscription Pricing (USD)</Label>
-                  <div className="grid gap-4 md:grid-cols-3 mt-2">
-                    <div>
-                      <Label htmlFor="basicPrice">Basic Plan</Label>
-                      <Input
-                        id="basicPrice"
-                        type="number"
-                        step="0.01"
-                        value={paymentSettings.subscriptionPricing.basic}
-                        onChange={(e) => setPaymentSettings(prev => ({
-                          ...prev,
-                          subscriptionPricing: {
-                            ...prev.subscriptionPricing,
-                            basic: parseFloat(e.target.value) || 0
-                          }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="proPrice">Pro Plan</Label>
-                      <Input
-                        id="proPrice"
-                        type="number"
-                        step="0.01"
-                        value={paymentSettings.subscriptionPricing.pro}
-                        onChange={(e) => setPaymentSettings(prev => ({
-                          ...prev,
-                          subscriptionPricing: {
-                            ...prev.subscriptionPricing,
-                            pro: parseFloat(e.target.value) || 0
-                          }
-                        }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="enterprisePrice">Enterprise Plan</Label>
-                      <Input
-                        id="enterprisePrice"
-                        type="number"
-                        step="0.01"
-                        value={paymentSettings.subscriptionPricing.enterprise}
-                        onChange={(e) => setPaymentSettings(prev => ({
-                          ...prev,
-                          subscriptionPricing: {
-                            ...prev.subscriptionPricing,
-                            enterprise: parseFloat(e.target.value) || 0
-                          }
-                        }))}
-                      />
-                    </div>
-                  </div>
+                  <Label htmlFor="trialDays">Trial Days</Label>
+                  <Input
+                    id="trialDays"
+                    type="number"
+                    value={packageSettings.trial_days}
+                    onChange={(e) => setPackageSettings(prev => ({ ...prev, trial_days: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="allowDowngrades"
+                    checked={packageSettings.allow_downgrades}
+                    onCheckedChange={(checked) => setPackageSettings(prev => ({ ...prev, allow_downgrades: checked }))}
+                  />
+                  <Label htmlFor="allowDowngrades">Allow downgrades</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="prorateCharges"
+                    checked={packageSettings.prorate_charges}
+                    onCheckedChange={(checked) => setPackageSettings(prev => ({ ...prev, prorate_charges: checked }))}
+                  />
+                  <Label htmlFor="prorateCharges">Prorate charges</Label>
                 </div>
               </div>
 
-              <Button onClick={handleSavePaymentSettings} disabled={saving}>
+              {/* Package List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Packages</h3>
+                  <Button onClick={addNewPackage} size="sm">
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add Package
+                  </Button>
+                </div>
+
+                {packageSettings.packages.map((pkg) => (
+                  <Card key={pkg.id} className="border-2">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Input
+                            value={pkg.name}
+                            onChange={(e) => updatePackage(pkg.id, { name: e.target.value })}
+                            className="font-semibold text-lg w-32"
+                          />
+                          {pkg.popular && (
+                            <Badge variant="default">Most Popular</Badge>
+                          )}
+                        </div>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => deletePackage(pkg.id)}
+                          disabled={packageSettings.packages.length <= 1}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Pricing */}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <Label>Monthly Price ($)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={pkg.price_monthly}
+                            onChange={(e) => updatePackage(pkg.id, { price_monthly: parseFloat(e.target.value) || 0 })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Yearly Price ($)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={pkg.price_yearly}
+                            onChange={(e) => updatePackage(pkg.id, { price_yearly: parseFloat(e.target.value) || 0 })}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Package Settings */}
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div>
+                          <Label>Max Books</Label>
+                          <Input
+                            type="number"
+                            value={pkg.max_books || ''}
+                            placeholder="Unlimited"
+                            onChange={(e) => updatePackage(pkg.id, { max_books: e.target.value ? parseInt(e.target.value) : null })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Badge Text</Label>
+                          <Input
+                            value={pkg.badge_text}
+                            placeholder="e.g., Most Popular"
+                            onChange={(e) => updatePackage(pkg.id, { badge_text: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Badge Color</Label>
+                          <select
+                            value={pkg.badge_color}
+                            onChange={(e) => updatePackage(pkg.id, { badge_color: e.target.value })}
+                            className="w-full p-2 border rounded-md"
+                          >
+                            <option value="">Default</option>
+                            <option value="primary">Primary</option>
+                            <option value="secondary">Secondary</option>
+                            <option value="destructive">Red</option>
+                            <option value="outline">Outline</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <Label>Description</Label>
+                        <Textarea
+                          value={pkg.description}
+                          onChange={(e) => updatePackage(pkg.id, { description: e.target.value })}
+                          rows={2}
+                        />
+                      </div>
+
+                      {/* Discount Settings */}
+                      <div className="border-t pt-4">
+                        <Label className="text-sm font-medium mb-3 block">Discount Settings</Label>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div>
+                            <Label>Discount %</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={pkg.discount_percent}
+                              onChange={(e) => updatePackage(pkg.id, { discount_percent: parseInt(e.target.value) || 0 })}
+                            />
+                          </div>
+                          <div>
+                            <Label>From Date</Label>
+                            <Input
+                              type="date"
+                              value={pkg.discount_from}
+                              onChange={(e) => updatePackage(pkg.id, { discount_from: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <Label>To Date</Label>
+                            <Input
+                              type="date"
+                              value={pkg.discount_to}
+                              onChange={(e) => updatePackage(pkg.id, { discount_to: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Features */}
+                      <div>
+                        <Label>Features (one per line)</Label>
+                        <Textarea
+                          value={pkg.features.join('\n')}
+                          onChange={(e) => updatePackage(pkg.id, { features: e.target.value.split('\n').filter(f => f.trim()) })}
+                          rows={4}
+                          placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+                        />
+                      </div>
+
+                      {/* Package Status */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.popular}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { popular: checked })}
+                            />
+                            <Label>Mark as Popular</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.active}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { active: checked })}
+                            />
+                            <Label>Active</Label>
+                          </div>
+                        </div>
+                        {pkg.discount_percent > 0 && (
+                          <Badge variant="secondary">
+                            {pkg.discount_percent}% OFF
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Button onClick={handleSavePackageSettings} disabled={saving} className="w-full">
                 <Save className="h-4 w-4 mr-2" />
-                Save Payment Settings
+                Save All Package Settings
               </Button>
             </CardContent>
           </Card>
