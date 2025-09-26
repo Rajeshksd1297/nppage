@@ -303,6 +303,10 @@ export function DynamicBookForm({ form, mode }: DynamicBookFormProps) {
     }
   };
 
+  const handleStepClick = (stepIndex: number) => {
+    setCurrentStep(stepIndex);
+  };
+
   const renderStep = (stepIndex: number) => {
     const category = categories[stepIndex];
     const fields = getFieldsByCategory(category);
@@ -330,26 +334,34 @@ export function DynamicBookForm({ form, mode }: DynamicBookFormProps) {
         <div className="flex items-center space-x-4">
           {stepLabels.map((label, index) => (
             <div key={index} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                index === currentStep 
-                  ? 'border-primary bg-primary text-primary-foreground' 
-                  : index < currentStep 
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-muted-foreground bg-background text-muted-foreground'
-              }`}>
+              <button
+                type="button"
+                onClick={() => handleStepClick(index)}
+                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors hover:scale-105 ${
+                  index === currentStep 
+                    ? 'border-primary bg-primary text-primary-foreground' 
+                    : index < currentStep 
+                      ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/80'
+                      : 'border-muted-foreground bg-background text-muted-foreground hover:border-primary hover:text-primary'
+                }`}
+              >
                 {index < currentStep ? (
                   <Check className="h-4 w-4" />
                 ) : (
                   <span className="text-sm font-medium">{index + 1}</span>
                 )}
-              </div>
-              <span className={`ml-2 text-sm font-medium ${
-                index === currentStep ? 'text-foreground' : 'text-muted-foreground'
-              }`}>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStepClick(index)}
+                className={`ml-2 text-sm font-medium transition-colors hover:text-primary ${
+                  index === currentStep ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
                 {label}
-              </span>
+              </button>
               {index < stepLabels.length - 1 && (
-                <div className={`w-8 h-0.5 mx-4 ${
+                <div className={`w-8 h-0.5 mx-4 transition-colors ${
                   index < currentStep ? 'bg-primary' : 'bg-muted'
                 }`} />
               )}
