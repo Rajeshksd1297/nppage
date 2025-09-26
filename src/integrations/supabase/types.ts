@@ -398,11 +398,13 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          country_code: string | null
           created_at: string
           custom_domain_id: string | null
           email: string | null
           full_name: string | null
           id: string
+          mobile_number: string | null
           public_profile: boolean | null
           publisher_id: string | null
           seo_description: string | null
@@ -419,11 +421,13 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          country_code?: string | null
           created_at?: string
           custom_domain_id?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          mobile_number?: string | null
           public_profile?: boolean | null
           publisher_id?: string | null
           seo_description?: string | null
@@ -440,11 +444,13 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          country_code?: string | null
           created_at?: string
           custom_domain_id?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          mobile_number?: string | null
           public_profile?: boolean | null
           publisher_id?: string | null
           seo_description?: string | null

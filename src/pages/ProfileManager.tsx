@@ -28,6 +28,8 @@ interface Profile {
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string;
+  mobile_number?: string;
+  country_code?: string;
 }
 
 const steps = [
