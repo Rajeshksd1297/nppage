@@ -93,12 +93,12 @@ const proItems = [
 // Quick actions - always available
 const getQuickActions = (userSlug: string | null) => [
   { title: "Add New Book", url: "/books/new", icon: PlusCircle },
-  ...(userSlug ? [{ 
+  { 
     title: "My Profile Page", 
-    url: `/${userSlug}`, 
+    url: userSlug ? `/${userSlug}` : "/profile", 
     icon: Eye, 
-    external: true 
-  }] : []),
+    external: userSlug ? true : false 
+  },
   { title: "Social Connections", url: "/social-connections", icon: Share2 },
 ];
 
@@ -155,16 +155,27 @@ export function AppSidebar() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      console.log('Fetching profile for sidebar, user ID:', user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug')
+        .select('slug, full_name')
         .eq('id', user.id)
         .single();
 
+      console.log('Profile data for sidebar:', { data, error });
+
       if (error && error.code !== 'PGRST116') throw error;
-      setUserSlug(data?.slug || null);
+      
+      if (data?.slug) {
+        setUserSlug(data.slug);
+      } else {
+        console.log('No slug found for user');
+        setUserSlug(null);
+      }
     } catch (error) {
       console.error('Error getting user profile:', error);
+      setUserSlug(null);
     }
   };
 
