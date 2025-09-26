@@ -301,6 +301,15 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
                         ))}
                       </SelectContent>
                     </Select>
+                    <Input
+                      placeholder="Or enter custom platform name"
+                      value={formData.platform}
+                      onChange={(e) => setFormData({...formData, platform: e.target.value})}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Choose from popular platforms above or enter your own custom platform name
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -388,40 +397,14 @@ export function AvailableLinksManager({ links, onChange, isReadOnly, isbn, title
                   return (
                     <TableRow key={`${link.platform}-${index}`}>
                       <TableCell>
-                        {isEditing ? (
-                          <div className="space-y-2">
-                            <Select 
-                              value={editingData.platform} 
-                              onValueChange={(value) => setEditingData({...editingData, platform: value})}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select platform" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {popularPlatforms.map(platform => (
-                                  <SelectItem key={platform} value={platform}>
-                                    {platform}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Input
-                              placeholder="Or enter custom platform name"
-                              value={editingData.platform}
-                              onChange={(e) => setEditingData({...editingData, platform: e.target.value})}
-                              className="w-full text-sm"
-                            />
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-primary">
+                              {link.platform.charAt(0)}
+                            </span>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-medium text-primary">
-                                {link.platform.charAt(0)}
-                              </span>
-                            </div>
-                            <span className="font-medium">{link.platform}</span>
-                          </div>
-                        )}
+                          <span className="font-medium">{link.platform}</span>
+                        </div>
                       </TableCell>
                       
                       <TableCell>
