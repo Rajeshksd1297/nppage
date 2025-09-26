@@ -60,7 +60,7 @@ const bookItems = [
 
 const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
-  { title: "Manage Packages", url: "/subscription", icon: CreditCard },
+  { title: "Manage Packages", url: "/admin/settings?tab=packages", icon: CreditCard },
 ];
 
 export function AppSidebar() {

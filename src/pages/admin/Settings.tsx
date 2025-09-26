@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,20 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from "react-router-dom";
 
 export default function AdminSettings() {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'site');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Email Settings
   const [emailSettings, setEmailSettings] = useState({
@@ -181,7 +191,7 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      <Tabs defaultValue="site" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="site" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
