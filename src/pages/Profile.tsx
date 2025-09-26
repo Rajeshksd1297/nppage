@@ -81,13 +81,22 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      console.log('Current user:', user);
+      
+      if (!user) {
+        console.log('No authenticated user found');
+        setLoading(false);
+        return;
+      }
 
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+
+      console.log('Profile fetch result:', { data, error });
 
       if (error && error.code !== 'PGRST116') throw error;
       
@@ -97,6 +106,7 @@ export default function Profile() {
           social_links: typeof data.social_links === 'object' ? data.social_links : {}
         });
       } else {
+        console.log('No profile found, creating new one');
         // Create profile if it doesn't exist
         const newProfile = {
           id: user.id,
@@ -110,7 +120,23 @@ export default function Profile() {
           specializations: [],
           social_links: {}
         };
-        setProfile(newProfile);
+        
+        // Try to insert the profile
+        const { data: insertedProfile, error: insertError } = await supabase
+          .from('profiles')
+          .upsert(newProfile)
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          throw insertError;
+        }
+        
+        setProfile({
+          ...newProfile,
+          social_links: typeof newProfile.social_links === 'object' ? newProfile.social_links : {}
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -204,14 +230,14 @@ export default function Profile() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Author Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your public author information
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span>Manage your public author information</span>
             {subscription?.subscription_plans?.name && (
-              <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
+              <Badge variant={isPro() ? 'default' : 'secondary'}>
                 {subscription.subscription_plans.name}
               </Badge>
             )}
-          </p>
+          </div>
         </div>
         <div className="flex gap-2">
           {profile.slug && (
