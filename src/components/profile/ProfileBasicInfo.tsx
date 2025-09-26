@@ -484,7 +484,10 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
         <Label className="text-base font-medium">Profile Picture</Label>
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-muted overflow-hidden border-2 border-border">
+            <div 
+              className="w-24 h-24 rounded-full bg-muted overflow-hidden border-2 border-border cursor-pointer hover:border-primary transition-colors"
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+            >
               {profile.avatar_url ? (
                 <img 
                   src={profile.avatar_url} 
@@ -504,21 +507,26 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
             )}
           </div>
           <div>
-            <Label htmlFor="avatar-upload" className="cursor-pointer">
-              <Button type="button" variant="outline" size="sm" disabled={uploading}>
-                <Upload className="w-4 h-4 mr-2" />
-                {uploading ? 'Uploading...' : 'Upload Avatar'}
-              </Button>
-            </Label>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              disabled={uploading}
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {uploading ? 'Uploading...' : 'Upload Avatar'}
+            </Button>
             <input
               id="avatar-upload"
               type="file"
               accept="image/*"
               onChange={handleFileUpload}
-              className="hidden"
+              className="sr-only"
+              style={{ display: 'none' }}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              JPG, PNG, or GIF. Max 2MB.
+              JPG, PNG, or GIF. Max 2MB. Click the image or button to upload.
             </p>
           </div>
         </div>
