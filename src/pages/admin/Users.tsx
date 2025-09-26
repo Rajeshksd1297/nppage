@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
   Users as UsersIcon, 
@@ -30,13 +29,18 @@ import {
   Filter,
   Download,
   UserPlus,
-  Settings
+  Settings,
+  TrendingUp,
+  Clock,
+  AlertCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileDialog } from "@/components/admin/UserManagement/UserProfileDialog";
 import { UserEditDialog } from "@/components/admin/UserManagement/UserEditDialog";
 import { UserActions } from "@/components/admin/UserManagement/UserActions";
+import { SortableTable } from "@/components/admin/UserManagement/SortableTable";
+import { UserFilters } from "@/components/admin/UserManagement/UserFilters";
 
 interface User {
   id: string;
@@ -78,16 +82,22 @@ interface User {
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
+  const [publishers, setPublishers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
-  const [filterRole, setFilterRole] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [currentTab, setCurrentTab] = useState("overview");
+  const [currentTab, setCurrentTab] = useState("table");
   const { toast } = useToast();
+
+  const [filters, setFilters] = useState({
+    search: "",
+    role: "all",
+    status: "all",
+    subscription: "all",
+    publisher: "all"
+  });
 
   const [editForm, setEditForm] = useState({
     full_name: "",
@@ -100,7 +110,22 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers();
+    fetchPublishers();
   }, []);
+
+  const fetchPublishers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('publishers')
+        .select('id, name')
+        .eq('status', 'active');
+      
+      if (error) throw error;
+      setPublishers(data || []);
+    } catch (error) {
+      console.error('Error fetching publishers:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -315,17 +340,27 @@ export default function AdminUsers() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = filters.search === "" || 
+      user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+      user.full_name?.toLowerCase().includes(filters.search.toLowerCase());
     
-    const matchesRole = filterRole === "all" || user.role === filterRole;
-    const matchesStatus = filterStatus === "all" ||
-      (filterStatus === "active" && !user.blocked) ||
-      (filterStatus === "blocked" && user.blocked) ||
-      (filterStatus === "subscribed" && user.subscription?.status === "active") ||
-      (filterStatus === "trial" && user.subscription?.status === "trialing");
+    const matchesRole = filters.role === "all" || user.role === filters.role;
+    
+    const matchesStatus = filters.status === "all" ||
+      (filters.status === "active" && !user.blocked) ||
+      (filters.status === "blocked" && user.blocked);
 
-    return matchesSearch && matchesRole && matchesStatus;
+    const matchesSubscription = filters.subscription === "all" ||
+      (filters.subscription === "active" && user.subscription?.status === "active") ||
+      (filters.subscription === "trialing" && user.subscription?.status === "trialing") ||
+      (filters.subscription === "expired" && user.subscription?.status === "expired") ||
+      (filters.subscription === "none" && !user.subscription);
+
+    const matchesPublisher = filters.publisher === "all" ||
+      (filters.publisher === "none" && !user.publisher) ||
+      (user.publisher?.id === filters.publisher);
+
+    return matchesSearch && matchesRole && matchesStatus && matchesSubscription && matchesPublisher;
   });
 
   if (loading) {
@@ -356,42 +391,13 @@ export default function AdminUsers() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={filterRole} onValueChange={setFilterRole}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="moderator">Moderator</SelectItem>
-            <SelectItem value="user">User</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="blocked">Blocked</SelectItem>
-            <SelectItem value="subscribed">Subscribed</SelectItem>
-            <SelectItem value="trial">Trial</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <UserFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        publishers={publishers}
+        totalUsers={users.length}
+        filteredUsers={filteredUsers.length}
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -456,27 +462,92 @@ export default function AdminUsers() {
 
       {/* Main Content */}
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">All Users</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="table" className="flex items-center gap-2">
+            <UsersIcon className="h-4 w-4" />
+            User Table
+          </TabsTrigger>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Recent Activity
+          </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="table" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>All Users</span>
+                <Badge variant="secondary">{filteredUsers.length} users</Badge>
+              </CardTitle>
+              <CardDescription>
+                Comprehensive sortable and searchable user table
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SortableTable
+                users={filteredUsers}
+                onView={handleViewUser}
+                onEdit={handleEditUser}
+                onDelete={setDeleteUserId}
+                onToggleBlock={toggleUserBlock}
+                onUpdateRole={(userId, role) => updateUser(userId, { role })}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
-              <CardHeader>
-                <CardTitle>Recent Registrations</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button className="w-full justify-start" variant="outline">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add New User
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Users
+                </Button>
+                <Button className="w-full justify-start" variant="outline">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Bulk Actions
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Recent Registrations</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {users.slice(0, 5).map((user) => (
                     <div key={user.id} className="flex items-center justify-between text-sm">
-                      <div>
-                        <p className="font-medium">{user.full_name || 'Unnamed User'}</p>
-                        <p className="text-muted-foreground">{user.email}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-medium">
+                            {user.full_name?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium truncate max-w-24">
+                            {user.full_name || 'Unnamed'}
+                          </p>
+                        </div>
                       </div>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-xs">
                         {new Date(user.created_at).toLocaleDateString()}
                       </Badge>
                     </div>
@@ -486,26 +557,90 @@ export default function AdminUsers() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>User Distribution</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">User Distribution</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span>Regular Users</span>
-                    <span className="font-medium">{users.filter(u => u.role === 'user').length}</span>
+                    <span className="text-sm">Regular Users</span>
+                    <Badge>{users.filter(u => u.role === 'user').length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>Admins</span>
-                    <span className="font-medium">{users.filter(u => u.role === 'admin').length}</span>
+                    <span className="text-sm">Admins</span>
+                    <Badge>{users.filter(u => u.role === 'admin').length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>Moderators</span>
-                    <span className="font-medium">{users.filter(u => u.role === 'moderator').length}</span>
+                    <span className="text-sm">Moderators</span>
+                    <Badge>{users.filter(u => u.role === 'moderator').length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>Publisher Authors</span>
-                    <span className="font-medium">{users.filter(u => u.publisher).length}</span>
+                    <span className="text-sm">With Publishers</span>
+                    <Badge>{users.filter(u => u.publisher).length}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>Active Subscriptions</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default">
+                        {users.filter(u => u.subscription?.status === 'active').length}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {users.length > 0 ? Math.round((users.filter(u => u.subscription?.status === 'active').length / users.length) * 100) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Trial Users</span>
+                    <Badge variant="secondary">
+                      {users.filter(u => u.subscription?.status === 'trialing').length}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Free Users</span>
+                    <Badge variant="outline">
+                      {users.filter(u => !u.subscription).length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>System Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>Active Users</span>
+                    <Badge variant="default">
+                      {users.filter(u => !u.blocked).length}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Blocked Users</span>
+                    <Badge variant="destructive">
+                      {users.filter(u => u.blocked).length}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      Health Status
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </span>
+                    <Badge variant="default">Optimal</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -513,100 +648,112 @@ export default function AdminUsers() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>All Users</CardTitle>
-              <CardDescription>Comprehensive user management</CardDescription>
+              <CardTitle>Recent User Activity</CardTitle>
+              <CardDescription>Latest user registrations and status changes</CardDescription>
             </CardHeader>
             <CardContent>
-              {filteredUsers.length === 0 ? (
-                <div className="text-center py-8">
-                  <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No users found</h3>
-                  <p className="text-muted-foreground">
-                    {searchTerm ? "Try adjusting your search terms" : "No users registered yet"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                          {user.avatar_url ? (
-                            <img src={user.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full" />
-                          ) : (
-                            <UsersIcon className="h-6 w-6 text-primary" />
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{user.full_name || 'Unnamed User'}</h4>
-                            {user.blocked && <Badge variant="destructive">Blocked</Badge>}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              Joined {new Date(user.created_at).toLocaleDateString()}
-                            </span>
-                            {user.subscription && (
-                              <span className="flex items-center gap-1">
-                                <CreditCard className="h-3 w-3" />
-                                {user.subscription.plan.name}
-                              </span>
-                            )}
-                            {user.publisher && (
-                              <span className="flex items-center gap-1">
-                                <Building2 className="h-3 w-3" />
-                                {user.publisher.name}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+              <div className="space-y-4">
+                {users.slice(0, 10).map((user) => (
+                  <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium">
+                          {user.full_name?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant={user.role === 'admin' ? 'default' : user.role === 'moderator' ? 'secondary' : 'outline'}>
-                          {user.role}
-                        </Badge>
-                        
-                        {user.subscription && (
-                          <Badge variant={user.subscription.status === 'active' ? 'default' : 'secondary'}>
-                            {user.subscription.status}
-                          </Badge>
-                        )}
-                        
-                        <UserActions
-                          user={user}
-                          onView={() => handleViewUser(user)}
-                          onEdit={() => handleEditUser(user)}
-                          onDelete={() => setDeleteUserId(user.id)}
-                          onToggleBlock={() => toggleUserBlock(user.id, user.blocked || false)}
-                          onUpdateRole={(role) => updateUser(user.id, { role })}
-                        />
+                      <div>
+                        <p className="font-medium">{user.full_name || 'Unnamed User'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Registered on {new Date(user.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="flex items-center gap-2">
+                      <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>
+                        {user.role}
+                      </Badge>
+                      {user.subscription && (
+                        <Badge variant="secondary">
+                          {user.subscription.status}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Growth This Month</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                </div>
+                <p className="text-xs text-muted-foreground">New users</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.filter(u => u.subscription?.status === 'active').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {users.length > 0 ? Math.round((users.filter(u => u.subscription?.status === 'active').length / users.length) * 100) : 0}% conversion
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Publisher Authors</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.filter(u => u.publisher).length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Across {publishers.length} publishers
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.filter(u => u.role === 'admin').length}
+                </div>
+                <p className="text-xs text-muted-foreground">System access</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Growth Statistics</CardTitle>
+                <CardTitle>Registration Timeline</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span>This Month</span>
+                    <span>Today</span>
                     <span className="font-medium">
-                      +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                      +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -616,9 +763,15 @@ export default function AdminUsers() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Today</span>
+                    <span>This Month</span>
                     <span className="font-medium">
-                      +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}
+                      +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Last 3 Months</span>
+                    <span className="font-medium">
+                      +{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)).length}
                     </span>
                   </div>
                 </div>
@@ -627,24 +780,31 @@ export default function AdminUsers() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Subscription Analytics</CardTitle>
+                <CardTitle>User Engagement</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Active Subscriptions</span>
-                    <span className="font-medium">{users.filter(u => u.subscription?.status === 'active').length}</span>
+                  <div className="flex justify-between items-center">
+                    <span>Complete Profiles</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {users.filter(u => u.full_name && u.bio).length}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        ({users.length > 0 ? Math.round((users.filter(u => u.full_name && u.bio).length / users.length) * 100) : 0}%)
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Trial Users</span>
-                    <span className="font-medium">{users.filter(u => u.subscription?.status === 'trialing').length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Conversion Rate</span>
+                  <div className="flex justify-between items-center">
+                    <span>Public Profiles</span>
                     <span className="font-medium">
-                      {users.filter(u => u.subscription).length > 0 
-                        ? Math.round((users.filter(u => u.subscription?.status === 'active').length / users.filter(u => u.subscription).length) * 100)
-                        : 0}%
+                      {users.filter(u => u.public_profile).length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>With Website</span>
+                    <span className="font-medium">
+                      {users.filter(u => u.website_url).length}
                     </span>
                   </div>
                 </div>
