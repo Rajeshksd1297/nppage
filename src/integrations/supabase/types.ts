@@ -1157,6 +1157,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_slug_available: {
+        Args: { slug_text: string; user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"

@@ -72,6 +72,9 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [newSpecialization, setNewSpecialization] = useState("");
   const [selectedTheme, setSelectedTheme] = useState('minimal');
+  const [slugCheckLoading, setSlugCheckLoading] = useState(false);
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [tempSlug, setTempSlug] = useState("");
   const { hasFeature, subscription, isPro } = useSubscription();
 
   useEffect(() => {
@@ -101,13 +104,16 @@ export default function Profile() {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        setProfile({
+        const profileData = {
           ...data,
           social_links: typeof data.social_links === 'object' ? data.social_links : {}
-        });
+        };
+        setProfile(profileData);
+        setTempSlug(profileData.slug || '');
       } else {
         console.log('No profile found, creating new one');
         // Create profile if it doesn't exist
+        const emailBasedSlug = generateSlugFromEmail(user.email || '');
         const newProfile = {
           id: user.id,
           email: user.email,
@@ -115,7 +121,7 @@ export default function Profile() {
           bio: '',
           avatar_url: '',
           website_url: '',
-          slug: '',
+          slug: emailBasedSlug,
           public_profile: true,
           specializations: [],
           social_links: {}
@@ -132,11 +138,13 @@ export default function Profile() {
           console.error('Error creating profile:', insertError);
           throw insertError;
         }
+        console.log('Profile data for sidebar:', { data, error });
         
         setProfile({
           ...newProfile,
           social_links: typeof newProfile.social_links === 'object' ? newProfile.social_links : {}
         });
+        setTempSlug(newProfile.slug);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -150,6 +158,34 @@ export default function Profile() {
     }
   };
 
+  const checkSlugAvailability = async (slug: string) => {
+    if (!slug || slug === profile.slug) {
+      setSlugAvailable(null);
+      return;
+    }
+
+    setSlugCheckLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('is_slug_available', {
+        slug_text: slug,
+        user_id: profile.id
+      });
+
+      if (error) throw error;
+      setSlugAvailable(data);
+    } catch (error) {
+      console.error('Error checking slug availability:', error);
+      setSlugAvailable(false);
+    } finally {
+      setSlugCheckLoading(false);
+    }
+  };
+
+  const generateSlugFromEmail = (email: string) => {
+    const emailPrefix = email.split('@')[0];
+    return emailPrefix.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'user';
+  };
+
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -160,7 +196,7 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const slug = profile.slug || generateSlug(profile.full_name || '');
+      const slug = tempSlug || generateSlug(profile.full_name || '');
       const profileData = {
         ...profile,
         slug,
@@ -240,10 +276,10 @@ export default function Profile() {
           </div>
         </div>
         <div className="flex gap-2">
-          {profile.slug && (
-            <Button variant="outline" onClick={() => window.open(`/author/${profile.slug}`, '_blank')}>
+          {tempSlug && (
+            <Button variant="outline" onClick={() => window.open(`/${tempSlug}`, '_blank')}>
               <ExternalLink className="h-4 w-4 mr-2" />
-              Preview
+              Preview Profile
             </Button>
           )}
           <Button onClick={handleSave} disabled={saving}>
@@ -318,6 +354,51 @@ export default function Profile() {
                     onChange={(e) => setProfile(prev => ({ ...prev, website_url: e.target.value }))}
                     placeholder="https://your-website.com"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="slug">Profile URL Slug *</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">
+                        {window.location.origin}/
+                      </span>
+                      <Input
+                        id="slug"
+                        value={tempSlug}
+                        onChange={(e) => {
+                          const slug = e.target.value;
+                          setTempSlug(slug);
+                          if (slug) {
+                            checkSlugAvailability(slug);
+                          } else {
+                            setSlugAvailable(null);
+                          }
+                        }}
+                        placeholder="your-name"
+                        className={`${
+                          slugAvailable === false ? 'border-destructive' : 
+                          slugAvailable === true ? 'border-green-500' : ''
+                        }`}
+                      />
+                      {slugCheckLoading && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                      )}
+                    </div>
+                    {slugAvailable === false && (
+                      <p className="text-xs text-destructive">
+                        This slug is already taken. Please choose another.
+                      </p>
+                    )}
+                    {slugAvailable === true && (
+                      <p className="text-xs text-green-600">
+                        This slug is available!
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      This will be your public profile URL. Use letters, numbers, and hyphens only.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
