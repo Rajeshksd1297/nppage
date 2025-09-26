@@ -13,9 +13,15 @@ import BookEdit from "./pages/BookEdit";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
+import CustomDomains from "./pages/CustomDomains";
+import AdvancedAnalytics from "./pages/AdvancedAnalytics";
+import Themes from "./pages/Themes";
+import ContactForm from "./pages/ContactForm";
+import MediaKit from "./pages/MediaKit";
 import AdminUsers from "./pages/admin/Users";
 import AdminBooks from "./pages/admin/BooksAdmin";
 import AdminSettings from "./pages/admin/Settings";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -58,6 +64,36 @@ function App() {
             <Route path="/subscription" element={
               <DashboardLayout>
                 <Subscription />
+              </DashboardLayout>
+            } />
+            <Route path="/custom-domains" element={
+              <DashboardLayout>
+                <CustomDomains />
+              </DashboardLayout>
+            } />
+            <Route path="/advanced-analytics" element={
+              <DashboardLayout>
+                <AdvancedAnalytics />
+              </DashboardLayout>
+            } />
+            <Route path="/themes" element={
+              <DashboardLayout>
+                <Themes />
+              </DashboardLayout>
+            } />
+            <Route path="/contact-form" element={
+              <DashboardLayout>
+                <ContactForm />
+              </DashboardLayout>
+            } />
+            <Route path="/media-kit" element={
+              <DashboardLayout>
+                <MediaKit />
+              </DashboardLayout>
+            } />
+            <Route path="/admin" element={
+              <DashboardLayout>
+                <AdminDashboard />
               </DashboardLayout>
             } />
             <Route path="/admin/users" element={
