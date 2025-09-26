@@ -149,7 +149,7 @@ export default function Subscription() {
         {plans.map((plan) => {
           const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
           const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
-          const isPremium = plan.price_monthly > 0; // Any paid plan is considered premium
+          const isPremium = plan.price_monthly > 0; // Paid plan is premium
           const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
           const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
 
