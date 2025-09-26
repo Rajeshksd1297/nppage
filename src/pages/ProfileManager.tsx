@@ -145,30 +145,48 @@ export default function ProfileManager() {
       </div>
 
       {/* Progress Indicator */}
-      <div className="flex justify-center space-x-4 mb-6">
-        {steps.map((step, index) => {
-          const isCompleted = index < currentStepIndex;
-          const isCurrent = index === currentStepIndex;
-          const StepIcon = step.icon;
-          
-          return (
-            <div key={step.id} className="flex flex-col items-center space-y-2">
-              <div className={`
-                w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors
-                ${isCompleted ? 'bg-primary border-primary text-primary-foreground' : 
-                  isCurrent ? 'border-primary text-primary' : 
-                  'border-muted text-muted-foreground'}
-              `}>
-                <StepIcon className="w-5 h-5" />
+      <div className="relative flex justify-center items-center mb-8">
+        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 bg-muted"></div>
+        <div className="flex justify-between w-full max-w-2xl relative z-10">
+          {steps.map((step, index) => {
+            const isCompleted = index < currentStepIndex;
+            const isCurrent = index === currentStepIndex;
+            const StepIcon = step.icon;
+            
+            return (
+              <div 
+                key={step.id} 
+                className={`flex flex-col items-center space-y-2 cursor-pointer transition-all hover:scale-105 ${
+                  isCurrent ? 'transform scale-110' : ''
+                }`}
+                onClick={() => setActiveTab(step.id)}
+              >
+                <div className={`
+                  w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 bg-background
+                  ${isCompleted ? 'bg-primary border-primary text-primary-foreground shadow-lg' : 
+                    isCurrent ? 'border-primary text-primary border-4 shadow-lg bg-primary/5' : 
+                    'border-muted-foreground/30 text-muted-foreground hover:border-primary/50'}
+                `}>
+                  <StepIcon className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <p className={`text-sm font-medium transition-colors ${
+                    isCurrent ? 'text-primary font-semibold' : 
+                    isCompleted ? 'text-primary' :
+                    'text-muted-foreground'
+                  }`}>
+                    Step {index + 1}
+                  </p>
+                  <p className={`text-xs ${
+                    isCurrent ? 'text-primary' : 'text-muted-foreground'
+                  }`}>
+                    {step.label}
+                  </p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className={`text-sm font-medium ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {step.label}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <Card>
@@ -184,7 +202,7 @@ export default function ProfileManager() {
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="basic" className="space-y-4">
               <ProfileBasicInfo 
@@ -222,6 +240,38 @@ export default function ProfileManager() {
               />
             </TabsContent>
           </Tabs>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center pt-6 border-t">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={isFirstStep}
+              className={`flex items-center space-x-2 px-6 py-3 text-base font-medium transition-all ${
+                isFirstStep ? 'opacity-50 cursor-not-allowed' : 'hover:bg-secondary hover:scale-105'
+              }`}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Previous</span>
+            </Button>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Step {currentStepIndex + 1} of {steps.length}
+              </p>
+            </div>
+
+            <Button
+              onClick={handleNext}
+              disabled={isLastStep}
+              className={`flex items-center space-x-2 px-6 py-3 text-base font-medium transition-all ${
+                isLastStep ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 shadow-lg'
+              }`}
+            >
+              <span>{isLastStep ? 'Complete' : 'Next'}</span>
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
