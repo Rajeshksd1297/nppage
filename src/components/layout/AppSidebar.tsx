@@ -22,7 +22,8 @@ import {
   Mail,
   MessageCircle,
   Lock,
-  Badge as BadgeIcon
+  Badge as BadgeIcon,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -90,9 +91,14 @@ const proItems = [
 ];
 
 // Quick actions - always available
-const quickActions = [
+const getQuickActions = (userSlug: string | null) => [
   { title: "Add New Book", url: "/books/new", icon: PlusCircle },
-  { title: "Preview Profile", url: "/preview", icon: Eye },
+  ...(userSlug ? [{ 
+    title: "My Profile Page", 
+    url: `/${userSlug}`, 
+    icon: Eye, 
+    external: true 
+  }] : []),
   { title: "Social Connections", url: "/social-connections", icon: Share2 },
 ];
 
@@ -126,10 +132,12 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [userSlug, setUserSlug] = useState<string | null>(null);
   const { hasFeature, subscription, isPro, isFree, isOnTrial, trialDaysLeft } = useSubscription();
 
   useEffect(() => {
     getCurrentUserRole();
+    getUserProfile();
   }, []);
 
   const getCurrentUserRole = async () => {
@@ -142,11 +150,30 @@ export function AppSidebar() {
     }
   };
 
+  const getUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('slug')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setUserSlug(data?.slug || null);
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+    }
+  };
+
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
 
   const isAdmin = currentUserRole === 'admin';
+  const quickActions = getQuickActions(userSlug);
 
   return (
     <Sidebar collapsible="icon">
@@ -251,10 +278,27 @@ export function AppSidebar() {
                 {quickActions.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
+                      {item.external ? (
+                        <a 
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 hover:bg-sidebar-accent/50 rounded-md p-2"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && (
+                            <>
+                              <span>{item.title}</span>
+                              <ExternalLink className="h-3 w-3 ml-auto" />
+                            </>
+                          )}
+                        </a>
+                      ) : (
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
