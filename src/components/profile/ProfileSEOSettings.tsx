@@ -264,28 +264,6 @@ export function ProfileSEOSettings({ profile, onProfileUpdate, onPrevious, isPro
           </div>
         </CardContent>
       </Card>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious}
-          className="flex items-center space-x-2 transition-all hover:bg-secondary"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Previous</span>
-        </Button>
-        
-        <Button 
-          onClick={saveProfile}
-          disabled={saving}
-          className="flex items-center space-x-2 transition-all hover:shadow-lg"
-        >
-          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          <Save className="w-4 h-4 mr-2" />
-          <span>Complete Setup</span>
-        </Button>
-      </div>
     </div>
   );
 }

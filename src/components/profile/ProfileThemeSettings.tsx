@@ -169,26 +169,6 @@ export function ProfileThemeSettings({
           <div>• Book showcase layouts</div>
         </div>
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious}
-          className="flex items-center space-x-2 transition-all hover:bg-secondary"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Previous</span>
-        </Button>
-        
-        <Button 
-          onClick={onNext}
-          className="flex items-center space-x-2 transition-all hover:shadow-lg"
-        >
-          <span>Next Step</span>
-          <ArrowRight className="w-4 h-4" />
-        </Button>
-      </div>
     </div>
   );
 }

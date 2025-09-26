@@ -165,38 +165,6 @@ export function ProfileSocialLinks({ profile, onProfileUpdate, onNext, onPreviou
           <li>• Only add platforms where you're active and engaging with your audience</li>
         </ul>
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious}
-          className="flex items-center space-x-2 transition-all hover:bg-secondary"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Previous</span>
-        </Button>
-        
-        <div className="space-x-3">
-          <Button 
-            variant="outline"
-            onClick={saveProfile}
-            disabled={saving}
-          >
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
-          
-          <Button 
-            onClick={onNext}
-            className="flex items-center space-x-2 transition-all hover:shadow-lg"
-          >
-            <span>Next Step</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
