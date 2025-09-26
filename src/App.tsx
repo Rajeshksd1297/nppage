@@ -27,6 +27,7 @@ import ContactForm from "./pages/ContactForm";
 import MediaKit from "./pages/MediaKit";
 import AdminUsers from "./pages/admin/Users";
 import AdminBooks from "./pages/admin/BooksAdmin";
+import BooksManagement from "./pages/admin/BooksManagement";
 import AdminSettings from "./pages/admin/Settings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import SiteSettings from "./pages/admin/SiteSettings";
@@ -155,6 +156,11 @@ function App() {
             <Route path="/admin/books" element={
               <DashboardLayout>
                 <AdminBooks />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/books-management" element={
+              <DashboardLayout>
+                <BooksManagement />
               </DashboardLayout>
             } />
             <Route path="/admin/settings" element={
