@@ -183,30 +183,6 @@ function App() {
                 <BookAnalyticsPage />
               </DashboardLayout>
             } />
-            <Route path="/admin/book-catalog" element={
-              <DashboardLayout>
-                <BookCatalog />
-              </DashboardLayout>
-            } />
-            <Route path="/admin/isbn-lookup" element={
-              <DashboardLayout>
-                <ISBNLookupPage />
-              </DashboardLayout>
-            } />
-            <Route path="/admin/affiliate-settings" element={
-              <DashboardLayout>
-                <AffiliateSettingsPage />
-              </DashboardLayout>
-            } />
-            <Route path="/admin/field-settings" element={
-              <DashboardLayout>
-                <BookFieldSettingsPage />
-              </DashboardLayout>
-            } />
-            <Route path="/admin/book-analytics" element={
-              <DashboardLayout>
-                <BookAnalyticsPage />
-              </DashboardLayout>
             <Route path="/admin/books" element={
               <DashboardLayout>
                 <AdminBooks />
