@@ -39,6 +39,8 @@ import SiteSettings from "./pages/admin/SiteSettings";
 import EmailSettings from "./pages/admin/EmailSettings";
 import PackageManagement from "./pages/admin/PackageManagement";
 import DomainSettings from "./pages/admin/DomainSettings";
+import AdminHelpDesk from "./pages/admin/HelpDesk";
+import SupportTickets from "./pages/SupportTickets";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -216,6 +218,16 @@ function App() {
             <Route path="/admin/domain-settings" element={
               <DashboardLayout>
                 <DomainSettings />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/help-desk" element={
+              <DashboardLayout>
+                <AdminHelpDesk />
+              </DashboardLayout>
+            } />
+            <Route path="/support-tickets" element={
+              <DashboardLayout>
+                <SupportTickets />
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
