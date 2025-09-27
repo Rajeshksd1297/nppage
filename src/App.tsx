@@ -55,6 +55,15 @@ import EventsManagement from "./pages/admin/EventsManagement";
 import AwardsManagement from "./pages/admin/AwardsManagement";
 import FaqManagement from "./pages/admin/FaqManagement";
 import NewsletterManagement from "./pages/admin/NewsletterManagement";
+
+// User management imports
+import UserBlogManagement from "./pages/UserBlogManagement";
+import UserGalleryManagement from "./pages/UserGalleryManagement"; 
+import UserEventsManagement from "./pages/UserEventsManagement";
+import UserAwardsManagement from "./pages/UserAwardsManagement";
+import UserFaqManagement from "./pages/UserFaqManagement";
+import UserNewsletterManagement from "./pages/UserNewsletterManagement";
+
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -300,6 +309,39 @@ function App() {
                 <NewsletterManagement />
               </DashboardLayout>
             } />
+            
+            {/* User Content Management Routes */}
+            <Route path="/user-blog-management" element={
+              <DashboardLayout>
+                <UserBlogManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-gallery-management" element={
+              <DashboardLayout>
+                <UserGalleryManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-events-management" element={
+              <DashboardLayout>
+                <UserEventsManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-awards-management" element={
+              <DashboardLayout>
+                <UserAwardsManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-faq-management" element={
+              <DashboardLayout>
+                <UserFaqManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-newsletter-management" element={
+              <DashboardLayout>
+                <UserNewsletterManagement />
+              </DashboardLayout>
+            } />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             {/* Public author profile route - must be last before catch-all */}
             <Route path="/:slug" element={<AuthorProfile />} />
