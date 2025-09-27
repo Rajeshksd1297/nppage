@@ -82,9 +82,9 @@ export default function AuthorProfile() {
       
       console.log('Loading profile for slug:', slug);
       
-      // Get profile by slug - exclude sensitive fields for public access
+      // Get public profile by slug using the secure view that excludes sensitive data
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select(`
           id,
           full_name,
@@ -97,7 +97,6 @@ export default function AuthorProfile() {
           seo_title,
           seo_description,
           seo_keywords,
-          public_profile,
           theme_id,
           active_theme_customization_id,
           created_at,
@@ -120,11 +119,7 @@ export default function AuthorProfile() {
         return;
       }
 
-      if (!profileData.public_profile) {
-        console.log('Profile is not public:', slug);
-        setError('Profile is not public');
-        return;
-      }
+      // No need to check public_profile since the view already filters for public profiles
 
       setProfile({
         ...profileData,
