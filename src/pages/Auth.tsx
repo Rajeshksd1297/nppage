@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, KeyRound } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import { emailSchema, passwordSchema, validateFormData } from "@/utils/inputValidation";
 import { z } from 'zod';
 
@@ -35,7 +35,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [currentTab, setCurrentTab] = useState("signin");
+  const [activeTab, setActiveTab] = useState("signin");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -150,7 +150,7 @@ export default function Auth() {
         if (error.message.includes('User already registered')) {
           setMessage({
             type: 'error',
-            text: 'This email is already registered. Please sign in instead.'
+            text: 'This email is already registered. Please sign in instead or use the forgot password option.'
           });
         } else {
           setMessage({
@@ -161,7 +161,7 @@ export default function Auth() {
       } else {
         setMessage({
           type: 'success',
-          text: 'Account created successfully! Please check your email for a confirmation link to complete your registration. Don\'t forget to check your spam folder.'
+          text: 'Account created successfully! Please check your email for a confirmation link to complete your registration. You may need to check your spam folder.'
         });
         // Clear form
         setEmail("");
@@ -185,7 +185,7 @@ export default function Auth() {
     setFormErrors({});
     setMessage(null);
 
-    // Validate form data
+    // Validate email
     const validation = validateFormData({ email }, forgotPasswordSchema);
     if (!validation.success) {
       const validationErrors = validation as { success: false; errors: Record<string, string> };
@@ -195,10 +195,8 @@ export default function Auth() {
     }
 
     try {
-      const redirectUrl = `${window.location.origin}/auth`;
-      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
       });
 
       if (error) {
@@ -209,13 +207,13 @@ export default function Auth() {
       } else {
         setMessage({
           type: 'success',
-          text: 'Please check your email for password reset instructions. If you don\'t see it, check your spam folder.'
+          text: 'Password reset instructions have been sent to your email. Please check your inbox and spam folder.'
         });
-        // Clear form
+        // Clear email
         setEmail("");
       }
     } catch (error) {
-      console.error('Forgot password error:', error);
+      console.error('Password reset error:', error);
       setMessage({
         type: 'error',
         text: 'An unexpected error occurred. Please try again.'
@@ -251,11 +249,10 @@ export default function Auth() {
               </Alert>
             )}
 
-            <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                <TabsTrigger value="forgot">Forgot Password</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin" className="space-y-4">
@@ -314,12 +311,8 @@ export default function Auth() {
                     <Button
                       type="button"
                       variant="link"
-                      className="text-sm text-muted-foreground hover:text-primary"
-                      onClick={() => {
-                        setCurrentTab("forgot");
-                        setMessage(null);
-                        setFormErrors({});
-                      }}
+                      className="text-sm text-muted-foreground"
+                      onClick={() => setActiveTab("forgot")}
                     >
                       Forgot your password?
                     </Button>
@@ -401,15 +394,23 @@ export default function Auth() {
               </TabsContent>
 
               <TabsContent value="forgot" className="space-y-4">
+                <div className="text-center mb-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setActiveTab("signin")}
+                    className="mb-2"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sign In
+                  </Button>
+                  <h3 className="text-lg font-semibold">Reset Password</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enter your email address and we'll send you a password reset link.
+                  </p>
+                </div>
+                
                 <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="text-center mb-4">
-                    <KeyRound className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <h3 className="text-lg font-semibold">Reset your password</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Enter your email and we'll send you a link to reset your password.
-                    </p>
-                  </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="forgot-email">Email</Label>
                     <Input
@@ -428,28 +429,17 @@ export default function Auth() {
                   
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {loading ? "Sending reset link..." : "Send reset link"}
+                    {loading ? "Sending reset email..." : "Send Reset Link"}
                   </Button>
-                  
-                  <div className="text-center">
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="text-sm text-muted-foreground hover:text-primary"
-                      onClick={() => {
-                        setCurrentTab("signin");
-                        setMessage(null);
-                        setFormErrors({});
-                      }}
-                    >
-                      Back to sign in
-                    </Button>
-                  </div>
                 </form>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
+
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Professional author profiles made simple</p>
+        </div>
       </div>
     </div>
   );
