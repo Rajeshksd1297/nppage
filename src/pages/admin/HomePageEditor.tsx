@@ -128,80 +128,98 @@ function SortableItem({ section, onEdit, onDelete, onToggle, onMoveUp, onMoveDow
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="mb-4">
-      <Card className={`${isDragging ? 'shadow-lg border-primary' : ''} transition-all duration-200 hover:shadow-md`}>
-        <CardContent className="p-4">
+    <div ref={setNodeRef} style={style} className="mb-6">
+      <Card className={`${isDragging ? 'shadow-xl border-primary border-2' : 'shadow-sm'} transition-all duration-200 hover:shadow-md min-h-[80px]`}>
+        <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 flex-1">
+            <div className="flex items-center space-x-4 flex-1">
               <div
                 {...attributes}
                 {...listeners}
-                className="cursor-grab hover:cursor-grabbing p-1 hover:bg-muted rounded transition-colors"
+                className="cursor-grab hover:cursor-grabbing p-3 hover:bg-muted rounded-lg transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
+                title="Drag to reorder"
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                <GripVertical className="h-5 w-5 text-muted-foreground" />
               </div>
-              <div className="flex items-center space-x-2 flex-1">
-                {getSectionIcon(section.type)}
-                <span className="font-medium">{section.title}</span>
-                <Badge variant={section.enabled ? 'default' : 'secondary'} className="text-xs">
-                  {section.enabled ? 'Live' : 'Hidden'}
-                </Badge>
-                {section.config.animation && (
-                  <Badge variant="outline" className="text-xs">
-                    <Zap className="h-3 w-3 mr-1" />
-                    {section.config.animation}
-                  </Badge>
-                )}
+              <div className="flex items-center space-x-3 flex-1">
+                <div className="p-2 bg-muted/50 rounded-lg">
+                  {getSectionIcon(section.type)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-base">{section.title}</span>
+                    <Badge variant={section.enabled ? 'default' : 'secondary'} className="text-xs">
+                      {section.enabled ? 'Live' : 'Hidden'}
+                    </Badge>
+                  </div>
+                  {section.config.subtitle && (
+                    <p className="text-sm text-muted-foreground mt-1">{section.config.subtitle}</p>
+                  )}
+                  {section.config.animation && (
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        <Zap className="h-3 w-3 mr-1" />
+                        {section.config.animation}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onMoveUp(section.id)}
-                disabled={isFirst}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onMoveDown(section.id)}
-                disabled={isLast}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onToggle(section.id)}
-                className="h-8 w-8 p-0"
-              >
-                {section.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(section)}
-                className="h-8 w-8 p-0"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(section.id)}
-                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center space-x-2">
+              <div className="flex flex-col space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onMoveUp(section.id)}
+                  disabled={isFirst}
+                  className="h-9 w-9 p-0"
+                  title="Move up"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onMoveDown(section.id)}
+                  disabled={isLast}
+                  className="h-9 w-9 p-0"
+                  title="Move down"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onToggle(section.id)}
+                  className="h-9 w-9 p-0"
+                  title={section.enabled ? "Hide section" : "Show section"}
+                >
+                  {section.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(section)}
+                  className="h-9 w-9 p-0"
+                  title="Edit section"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(section.id)}
+                  className="h-9 w-9 p-0 text-destructive hover:text-destructive"
+                  title="Delete section"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-          {section.config.subtitle && (
-            <p className="text-sm text-muted-foreground mt-2 ml-7">{section.config.subtitle}</p>
-          )}
         </CardContent>
       </Card>
     </div>
@@ -1057,10 +1075,10 @@ const HomePageEditor = () => {
         </div>
       </div>
 
-      <div className="container mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sections Panel */}
-          <div className="lg:col-span-1 space-y-6">
+      <div className="container mx-auto p-6 max-w-[1400px]">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          {/* Sections Panel - Increased width */}
+          <div className="xl:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -1071,20 +1089,23 @@ const HomePageEditor = () => {
                   Drag to reorder, click to edit
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
+              <CardContent className="p-6">
+                <div className="mb-6">
+                  <div className="text-sm text-muted-foreground mb-3">
+                    💡 Drag sections using the grip handle to reorder them
+                  </div>
                   <Select onValueChange={(type) => handleAddSection(type as HomeSection['type'])}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Add Section" />
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="+ Add New Section" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hero">Hero Section</SelectItem>
-                      <SelectItem value="stats">Statistics</SelectItem>
-                      <SelectItem value="features">Features</SelectItem>
-                      <SelectItem value="pricing">Pricing</SelectItem>
-                      <SelectItem value="slider">Image Slider</SelectItem>
-                      <SelectItem value="testimonials">Testimonials</SelectItem>
-                      <SelectItem value="newsletter">Newsletter</SelectItem>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="hero">🌟 Hero Section</SelectItem>
+                      <SelectItem value="stats">📊 Statistics</SelectItem>
+                      <SelectItem value="features">⚡ Features</SelectItem>
+                      <SelectItem value="pricing">💰 Pricing</SelectItem>
+                      <SelectItem value="slider">🖼️ Image Slider</SelectItem>
+                      <SelectItem value="testimonials">💬 Testimonials</SelectItem>
+                      <SelectItem value="newsletter">📧 Newsletter</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1112,11 +1133,11 @@ const HomePageEditor = () => {
                 </DndContext>
                 
                 {sections.length === 0 && (
-                  <div className="text-center py-8">
-                    <Layout className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No sections yet</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Add your first section to start building your home page
+                  <div className="text-center py-12 border-2 border-dashed border-muted-foreground/20 rounded-lg">
+                    <Layout className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No sections yet</h3>
+                    <p className="text-muted-foreground">
+                      Add your first section using the dropdown above to start building your home page
                     </p>
                   </div>
                 )}
@@ -1140,8 +1161,8 @@ const HomePageEditor = () => {
           </div>
 
           {/* Live Preview Panel */}
-          <div className="lg:col-span-2">
-            <Card className="h-fit">
+          <div className="xl:col-span-3">
+            <Card className="h-fit sticky top-24">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
