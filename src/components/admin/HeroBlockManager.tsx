@@ -352,62 +352,331 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Hero Elements</CardTitle>
-                <CardDescription>
-                  Drag and drop elements to build your hero section
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" onClick={() => addHeroElement('text')}>
-                      <Type className="h-4 w-4 mr-1" />
-                      Text
-                    </Button>
-                    <Button size="sm" onClick={() => addHeroElement('image')}>
-                      <Image className="h-4 w-4 mr-1" />
-                      Image
-                    </Button>
-                    <Button size="sm" onClick={() => addHeroElement('button')}>
-                      <Blocks className="h-4 w-4 mr-1" />
-                      Button
-                    </Button>
-                    <Button size="sm" onClick={() => addHeroElement('video')}>
-                      <Video className="h-4 w-4 mr-1" />
-                      Video
-                    </Button>
-                    <Button size="sm" onClick={() => addHeroElement('spacer')}>
-                      <Layout className="h-4 w-4 mr-1" />
-                      Spacer
-                    </Button>
-                  </div>
-                  
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={heroElements.map(e => e.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-3">
-                        {heroElements.map((element) => (
-                          <SortableHeroElement
-                            key={element.id}
-                            element={element}
-                            onUpdate={updateHeroElement}
-                            onRemove={removeHeroElement}
-                          />
-                        ))}
+            <Tabs defaultValue="elements" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="elements">Elements</TabsTrigger>
+                <TabsTrigger value="design">Design</TabsTrigger>
+                <TabsTrigger value="animation">Animation</TabsTrigger>
+                <TabsTrigger value="background">Background</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="elements" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hero Elements</CardTitle>
+                    <CardDescription>
+                      Drag and drop elements to build your hero section
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex gap-2 flex-wrap">
+                        <Button size="sm" onClick={() => addHeroElement('text')}>
+                          <Type className="h-4 w-4 mr-1" />
+                          Text
+                        </Button>
+                        <Button size="sm" onClick={() => addHeroElement('image')}>
+                          <Image className="h-4 w-4 mr-1" />
+                          Image
+                        </Button>
+                        <Button size="sm" onClick={() => addHeroElement('button')}>
+                          <Blocks className="h-4 w-4 mr-1" />
+                          Button
+                        </Button>
+                        <Button size="sm" onClick={() => addHeroElement('video')}>
+                          <Video className="h-4 w-4 mr-1" />
+                          Video
+                        </Button>
+                        <Button size="sm" onClick={() => addHeroElement('spacer')}>
+                          <Layout className="h-4 w-4 mr-1" />
+                          Spacer
+                        </Button>
                       </div>
-                    </SortableContext>
-                  </DndContext>
-                </div>
-              </CardContent>
-            </Card>
+                      
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={heroElements.map(e => e.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-3">
+                            {heroElements.map((element) => (
+                              <SortableHeroElement
+                                key={element.id}
+                                element={element}
+                                onUpdate={updateHeroElement}
+                                onRemove={removeHeroElement}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="design" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Typography & Colors</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Font Family</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Inter</option>
+                          <option>Playfair Display</option>
+                          <option>Roboto</option>
+                          <option>Georgia</option>
+                          <option>Times New Roman</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Text Size</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Small</option>
+                          <option>Medium</option>
+                          <option>Large</option>
+                          <option>Extra Large</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Primary Color</Label>
+                        <input type="color" className="w-full h-10 border rounded" defaultValue="#3b82f6" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Secondary Color</Label>
+                        <input type="color" className="w-full h-10 border rounded" defaultValue="#64748b" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Accent Color</Label>
+                        <input type="color" className="w-full h-10 border rounded" defaultValue="#f59e0b" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Text Shadow</Label>
+                      <div className="flex items-center space-x-2">
+                        <Switch />
+                        <span className="text-sm">Enable text shadow</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Layout Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Text Alignment</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Left</option>
+                          <option>Center</option>
+                          <option>Right</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Vertical Alignment</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Top</option>
+                          <option>Center</option>
+                          <option>Bottom</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Padding</Label>
+                        <input type="range" min="0" max="100" defaultValue="50" className="w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Margin</Label>
+                        <input type="range" min="0" max="100" defaultValue="25" className="w-full" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="animation" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Entrance Animations</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Animation Type</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Fade In</option>
+                          <option>Slide In Left</option>
+                          <option>Slide In Right</option>
+                          <option>Slide In Up</option>
+                          <option>Slide In Down</option>
+                          <option>Scale In</option>
+                          <option>Bounce In</option>
+                          <option>Rotate In</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Animation Duration</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>0.3s (Fast)</option>
+                          <option>0.6s (Normal)</option>
+                          <option>1s (Slow)</option>
+                          <option>1.5s (Very Slow)</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Animation Delay</Label>
+                      <input type="range" min="0" max="2" step="0.1" defaultValue="0" className="w-full" />
+                      <div className="text-sm text-muted-foreground">0s delay</div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch />
+                        <Label>Stagger child animations</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch />
+                        <Label>Repeat animation on scroll</Label>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hover Effects</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Hover Animation</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>None</option>
+                          <option>Scale</option>
+                          <option>Tilt</option>
+                          <option>Glow</option>
+                          <option>Bounce</option>
+                          <option>Pulse</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Transition Speed</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>0.2s (Fast)</option>
+                          <option>0.3s (Normal)</option>
+                          <option>0.5s (Slow)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="background" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Background Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Background Type</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Solid Color</option>
+                          <option>Gradient</option>
+                          <option>Image</option>
+                          <option>Video</option>
+                          <option>Pattern</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Background Color 1</Label>
+                          <input type="color" className="w-full h-10 border rounded" defaultValue="#3b82f6" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Background Color 2</Label>
+                          <input type="color" className="w-full h-10 border rounded" defaultValue="#8b5cf6" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Gradient Direction</Label>
+                        <select className="w-full p-2 border rounded">
+                          <option>Left to Right</option>
+                          <option>Top to Bottom</option>
+                          <option>Diagonal (↘)</option>
+                          <option>Diagonal (↙)</option>
+                          <option>Radial</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Background Image URL</Label>
+                        <Input placeholder="https://example.com/image.jpg" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Image Position</Label>
+                          <select className="w-full p-2 border rounded">
+                            <option>Center</option>
+                            <option>Top</option>
+                            <option>Bottom</option>
+                            <option>Left</option>
+                            <option>Right</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Image Size</Label>
+                          <select className="w-full p-2 border rounded">
+                            <option>Cover</option>
+                            <option>Contain</option>
+                            <option>Auto</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Switch />
+                          <Label>Parallax Effect</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch />
+                          <Label>Overlay</Label>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Overlay Opacity</Label>
+                        <input type="range" min="0" max="100" defaultValue="30" className="w-full" />
+                        <div className="text-sm text-muted-foreground">30% opacity</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Preview Panel */}
