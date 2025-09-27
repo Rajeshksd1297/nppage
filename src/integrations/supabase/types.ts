@@ -76,6 +76,54 @@ export type Database = {
           },
         ]
       }
+      awards: {
+        Row: {
+          award_date: string | null
+          award_image_url: string | null
+          category: string | null
+          certificate_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          organization: string | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          award_date?: string | null
+          award_image_url?: string | null
+          category?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          organization?: string | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          award_date?: string | null
+          award_image_url?: string | null
+          category?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          organization?: string | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       billing_transactions: {
         Row: {
           amount: number
@@ -132,6 +180,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      blog_posts: {
+        Row: {
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       books: {
         Row: {
@@ -241,6 +340,144 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          current_attendees: number | null
+          description: string | null
+          end_date: string | null
+          event_date: string
+          event_type: string | null
+          featured_image_url: string | null
+          id: string
+          is_virtual: boolean | null
+          location: string | null
+          max_attendees: number | null
+          meeting_link: string | null
+          registration_required: boolean | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          event_type?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_virtual?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          meeting_link?: string | null
+          registration_required?: boolean | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          event_type?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_virtual?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          meeting_link?: string | null
+          registration_required?: boolean | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      faqs: {
+        Row: {
+          answer: string
+          category: string | null
+          created_at: string
+          id: string
+          is_published: boolean | null
+          question: string
+          sort_order: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          question: string
+          sort_order?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          question?: string
+          sort_order?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      gallery_items: {
+        Row: {
+          alt_text: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_featured: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alt_text?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_featured?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alt_text?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_featured?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       helpdesk_settings: {
         Row: {
           auto_assign_tickets: boolean
@@ -280,6 +517,45 @@ export type Database = {
           ticket_number_prefix?: string
           ticket_statuses?: Json
           updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          source: string | null
+          status: string | null
+          subscribed_at: string
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          source?: string | null
+          status?: string | null
+          subscribed_at?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          source?: string | null
+          status?: string | null
+          subscribed_at?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
