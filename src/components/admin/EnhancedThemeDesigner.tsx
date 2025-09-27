@@ -134,34 +134,57 @@ function SortableItem({ section, onUpdate, onRemove }: {
 
 export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedThemeDesignerProps) {
   const { toast } = useToast();
-  const [currentTheme, setCurrentTheme] = useState<Theme>({
-    id: theme?.id || Date.now().toString(),
-    name: theme?.name || 'New Theme',
-    description: theme?.description || 'Custom theme description',
-    premium: theme?.premium || false,
-    config: theme?.config || {
-      colors: {
-        primary: '#3b82f6',
-        secondary: '#64748b',
-        accent: '#f59e0b',
-        background: '#ffffff',
-        surface: '#f8fafc',
-        text: '#1f2937',
-        border: '#e5e7eb'
-      },
-      typography: {
-        headingFont: 'Inter',
-        bodyFont: 'Inter',
-        headingSize: '2xl',
-        bodySize: 'base'
-      },
-      layout: {
-        containerWidth: 'max-w-6xl',
-        spacing: 'normal',
-        borderRadius: 'rounded-lg'
-      },
-      sections: []
-    }
+  
+  // Helper function to ensure config has all required properties
+  const getDefaultConfig = () => ({
+    colors: {
+      primary: '#3b82f6',
+      secondary: '#64748b',
+      accent: '#f59e0b',
+      background: '#ffffff',
+      surface: '#f8fafc',
+      text: '#1f2937',
+      border: '#e5e7eb'
+    },
+    typography: {
+      headingFont: 'Inter',
+      bodyFont: 'Inter',
+      headingSize: '2xl',
+      bodySize: 'base'
+    },
+    layout: {
+      containerWidth: 'max-w-6xl',
+      spacing: 'normal',
+      borderRadius: 'rounded-lg'
+    },
+    sections: []
+  });
+
+  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
+    const defaultConfig = getDefaultConfig();
+    const themeConfig = theme?.config || {};
+    
+    return {
+      id: theme?.id || Date.now().toString(),
+      name: theme?.name || 'New Theme',
+      description: theme?.description || 'Custom theme description',
+      premium: theme?.premium || false,
+      config: {
+        colors: {
+          ...defaultConfig.colors,
+          ...(themeConfig.colors || {})
+        },
+        typography: {
+          ...defaultConfig.typography,
+          ...(themeConfig.typography || {})
+        },
+        layout: {
+          ...defaultConfig.layout,
+          ...(themeConfig.layout || {})
+        },
+        sections: themeConfig.sections || defaultConfig.sections
+      }
+    };
   });
 
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -265,7 +288,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
       ...prev,
       config: {
         ...prev.config,
-        [section]: { ...prev.config[section], ...updates }
+        [section]: { ...(prev.config?.[section] || {}), ...updates }
       }
     }));
   };
@@ -521,12 +544,12 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                       <div className="flex gap-2">
                         <Input
                           type="color"
-                          value={currentTheme.config.colors.primary}
+                          value={currentTheme.config?.colors?.primary || '#3b82f6'}
                           onChange={(e) => updateConfig('colors', { primary: e.target.value })}
                           className="w-12 h-10 p-1"
                         />
                         <Input
-                          value={currentTheme.config.colors.primary}
+                          value={currentTheme.config?.colors?.primary || '#3b82f6'}
                           onChange={(e) => updateConfig('colors', { primary: e.target.value })}
                         />
                       </div>
@@ -536,12 +559,12 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                       <div className="flex gap-2">
                         <Input
                           type="color"
-                          value={currentTheme.config.colors.secondary}
+                          value={currentTheme.config?.colors?.secondary || '#64748b'}
                           onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
                           className="w-12 h-10 p-1"
                         />
                         <Input
-                          value={currentTheme.config.colors.secondary}
+                          value={currentTheme.config?.colors?.secondary || '#64748b'}
                           onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
                         />
                       </div>
@@ -562,7 +585,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                     <div>
                       <Label>Heading Font</Label>
                       <select
-                        value={currentTheme.config.typography.headingFont}
+                        value={currentTheme.config?.typography?.headingFont || 'Inter'}
                         onChange={(e) => updateConfig('typography', { headingFont: e.target.value })}
                         className="w-full p-2 border rounded-md"
                       >
@@ -576,7 +599,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                     <div>
                       <Label>Body Font</Label>
                       <select
-                        value={currentTheme.config.typography.bodyFont}
+                        value={currentTheme.config?.typography?.bodyFont || 'Inter'}
                         onChange={(e) => updateConfig('typography', { bodyFont: e.target.value })}
                         className="w-full p-2 border rounded-md"
                       >
@@ -700,15 +723,15 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                 <div className="flex gap-1">
                   <div
                     className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: currentTheme.config.colors.primary }}
+                    style={{ backgroundColor: currentTheme.config?.colors?.primary || '#3b82f6' }}
                   />
                   <div
                     className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: currentTheme.config.colors.secondary }}
+                    style={{ backgroundColor: currentTheme.config?.colors?.secondary || '#64748b' }}
                   />
                   <div
                     className="w-4 h-4 rounded border"
-                    style={{ backgroundColor: currentTheme.config.colors.accent }}
+                    style={{ backgroundColor: currentTheme.config?.colors?.accent || '#f59e0b' }}
                   />
                 </div>
               </div>
