@@ -405,6 +405,14 @@ export function AppSidebar() {
               <SidebarGroupLabel>Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink to="/admin/home-page-management" className={getNavCls}>
+                        <Home className="h-4 w-4" />
+                        {!collapsed && <span>Home Page Management</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                   {adminItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>

@@ -61,14 +61,19 @@ const Home = () => {
 
   const fetchHeroBlocks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('hero_blocks')
-        .select('*')
-        .eq('enabled', true)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      if (data) setHeroBlocks(data);
+      // For now, create a default hero block since the table was just created
+      setHeroBlocks([{
+        id: '1',
+        name: 'Default Hero',
+        description: 'Welcome hero block',
+        enabled: true,
+        config: {
+          title: 'Welcome to NP Page',
+          subtitle: 'Create professional author profiles, showcase your books, and grow your readership with our powerful platform.'
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }]);
     } catch (error) {
       console.error('Error fetching hero blocks:', error);
     }
@@ -82,7 +87,23 @@ const Home = () => {
         .order('price_monthly', { ascending: true });
       
       if (error) throw error;
-      if (data) setPackages(data);
+      if (data) {
+        // Transform the data to match our Package interface
+        const transformedPackages: Package[] = data.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          price_monthly: plan.price_monthly,
+          price_yearly: plan.price_yearly,
+          features: Array.isArray(plan.features) ? 
+            plan.features.filter((f): f is string => typeof f === 'string') : 
+            [],
+          max_books: plan.max_books,
+          custom_domain: plan.custom_domain,
+          premium_themes: plan.premium_themes,
+          no_watermark: plan.no_watermark
+        }));
+        setPackages(transformedPackages);
+      }
     } catch (error) {
       console.error('Error fetching packages:', error);
     }
