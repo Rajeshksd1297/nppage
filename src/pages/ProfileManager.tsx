@@ -241,13 +241,56 @@ export default function ProfileManager() {
             </TabsContent>
 
             <TabsContent value="theme" className="space-y-4">
-              <ProfileThemeSettings 
-                selectedTheme={selectedTheme}
-                onThemeChange={setSelectedTheme}
-                onNext={handleNext}
-                onPrevious={handlePrevious}
-                isPro={isPro()}
-              />
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">Choose Your Theme Design Approach</h3>
+                  <p className="text-muted-foreground">Select how you want to customize your profile appearance</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-6 border rounded-lg hover:border-primary transition-colors cursor-pointer group">
+                    <div className="text-center space-y-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto group-hover:bg-primary/20 transition-colors">
+                        <span className="text-2xl">🎨</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Drag & Drop Designer</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Build your profile layout with our intuitive drag and drop interface
+                        </p>
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        onClick={() => window.open('/theme-designer', '_blank')}
+                      >
+                        Open Designer
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 border rounded-lg hover:border-primary transition-colors cursor-pointer group">
+                    <div className="text-center space-y-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto group-hover:bg-primary/20 transition-colors">
+                        <span className="text-2xl">⚡</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Quick Theme Selection</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Choose from our pre-designed professional themes
+                        </p>
+                      </div>
+                      <ProfileThemeSettings 
+                        selectedTheme={selectedTheme}
+                        onThemeChange={setSelectedTheme}
+                        onNext={handleNext}
+                        onPrevious={handlePrevious}
+                        isPro={isPro()}
+                        compact={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="seo" className="space-y-4">
