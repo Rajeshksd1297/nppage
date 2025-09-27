@@ -13,6 +13,10 @@ import {
   Calendar, CreditCard, Shield, Check, Clock, Target, Award
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEOHead } from '@/components/SEOHead';
+import heroAuthorsImage from '@/assets/hero-authors-workspace.jpg';
+import profileShowcaseImage from '@/assets/profile-showcase.jpg';
+import freePlanSuccessImage from '@/assets/free-plan-success.jpg';
 
 interface HomeSection {
   id: string;
@@ -56,6 +60,7 @@ const Home = () => {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [selectedDemo, setSelectedDemo] = useState('profile-builder');
   const [openFaqCategories, setOpenFaqCategories] = useState<Set<string>>(new Set());
+  const [faqs, setFaqs] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,6 +68,7 @@ const Home = () => {
     fetchSections();
     fetchPackages();
     fetchStats();
+    fetchFaqs();
   }, []);
 
   const fetchSections = async () => {
@@ -74,15 +80,36 @@ const Home = () => {
         .order('order_index', { ascending: true });
       
       if (error) throw error;
-      if (data) {
+      if (data && data.length > 0) {
         const transformedData = data.map(section => ({
           ...section,
           config: typeof section.config === 'object' ? section.config : {}
         }));
         setSections(transformedData as HomeSection[]);
+      } else {
+        // Set default sections if none exist
+        setSections(getDefaultSections());
       }
     } catch (error) {
       console.error('Error fetching sections:', error);
+      setSections(getDefaultSections());
+    }
+  };
+
+  const fetchFaqs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_published', true)
+        .order('sort_order', { ascending: true });
+      
+      if (error) throw error;
+      if (data) {
+        setFaqs(data);
+      }
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
     }
   };
 
@@ -212,12 +239,90 @@ const Home = () => {
     setOpenFaqCategories(newOpenCategories);
   };
 
+  const getDefaultSections = (): HomeSection[] => [
+    {
+      id: 'hero',
+      type: 'interactive_hero',
+      title: 'Interactive Hero',
+      enabled: true,
+      order_index: 0,
+      config: {
+        title: 'Create Your Professional Author Profile',
+        subtitle: 'Join thousands of authors who showcase their books and grow their audience with beautiful, professional profiles.',
+        backgroundColor: 'gradient-to-br from-primary/5 via-background to-accent/5',
+        premiumImage: heroAuthorsImage,
+        trustSignals: ['No Setup Fee', 'Free Forever Plan', '30-Day Pro Trial'],
+        features: [
+          { icon: 'check', title: 'Free Forever', description: 'Get started completely free' },
+          { icon: 'crown', title: 'Pro Features', description: '30-day trial included' },
+          { icon: 'globe', title: 'Universal Links', description: 'Professional URLs' }
+        ],
+        buttons: [
+          { text: 'Start Free', variant: 'primary', url: '/auth', effect: 'glow' },
+          { text: 'Try Pro Free', variant: 'secondary', url: '/auth', effect: 'hover-lift' }
+        ]
+      }
+    },
+    {
+      id: 'free-vs-pro',
+      type: 'free_vs_pro',
+      title: 'Free vs Pro Comparison',
+      enabled: true,
+      order_index: 1,
+      config: {
+        title: 'Choose Your Author Journey',
+        subtitle: 'Start free or unlock premium features with our 30-day Pro trial.',
+        backgroundColor: 'gradient-to-br from-background via-muted/10 to-background',
+        plans: [
+          {
+            name: 'Free Plan',
+            price: 0,
+            period: 'forever',
+            description: 'Perfect for getting started',
+            image: freePlanSuccessImage,
+            highlight: 'No Credit Card Required',
+            popular: false,
+            features: [
+              'Professional author profile',
+              'Showcase up to 3 books',
+              'Basic analytics',
+              'Universal profile link',
+              'Contact form'
+            ],
+            ctaText: 'Start Free',
+            ctaUrl: '/auth'
+          },
+          {
+            name: 'Pro Plan',
+            price: 19,
+            period: 'month',
+            description: 'For serious authors',
+            image: profileShowcaseImage,
+            highlight: '30-Day Free Trial',
+            popular: true,
+            features: [
+              'Everything in Free',
+              'Unlimited books',
+              'Premium themes',
+              'Advanced analytics',
+              'Custom domain',
+              'No watermarks',
+              'Priority support'
+            ],
+            ctaText: 'Try Pro Free',
+            ctaUrl: '/auth'
+          }
+        ]
+      }
+    }
+  ];
+
   const renderInteractiveHero = (section: HomeSection) => (
     <section className={`py-32 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)} relative overflow-hidden`}>
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
-          src={section.config.premiumImage} 
+          src={section.config.premiumImage || heroAuthorsImage} 
           alt="Authors collaborating"
           className="w-full h-full object-cover opacity-30"
         />
@@ -276,7 +381,7 @@ const Home = () => {
               >
                 {button.variant === 'primary' && <Check className="mr-3 h-6 w-6" />}
                 {button.variant === 'secondary' && <Crown className="mr-3 h-6 w-6" />}
-                {button.text}
+                {button.text === 'Start Free Trial' ? 'Start Free' : button.text}
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
             ))}
@@ -437,54 +542,105 @@ const Home = () => {
     </section>
   );
 
-  const renderFAQ = (section: HomeSection) => (
-    <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-6">{section.config.title}</h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">{section.config.subtitle}</p>
-        </div>
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
-            {section.config.categories?.map((category: any, categoryIndex: number) => (
-              <div key={categoryIndex} className="space-y-4">
-                <h3 className="text-2xl font-bold text-center mb-6 pb-3 border-b border-primary/20">
-                  {category.name}
-                </h3>
-                
-                <div className="space-y-4">
-                  {category.questions?.map((qa: any, qaIndex: number) => {
-                    const faqId = `${category.name}-${qaIndex}`;
-                    const isOpen = openFaqCategories.has(faqId);
+  const renderFAQ = (section: HomeSection) => {
+    // Group FAQs by category
+    const faqsByCategory = faqs.reduce((acc: any, faq) => {
+      const category = faq.category || 'General';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(faq);
+      return acc;
+    }, {});
+
+    return (
+      <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6">{section.config.title || 'Frequently Asked Questions'}</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">{section.config.subtitle || 'Find answers to common questions about our platform.'}</p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            {Object.entries(faqsByCategory).length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-8">
+                {Object.entries(faqsByCategory).map(([categoryName, categoryFaqs]: [string, any]) => (
+                  <div key={categoryName} className="space-y-4">
+                    <h3 className="text-2xl font-bold text-center mb-6 pb-3 border-b border-primary/20">
+                      {categoryName}
+                    </h3>
                     
-                    return (
-                      <Collapsible key={qaIndex} open={isOpen} onOpenChange={() => toggleFaqCategory(faqId)}>
-                        <CollapsibleTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            className="w-full text-left p-4 h-auto justify-between bg-card/50 hover:bg-card border border-border/50 rounded-lg"
-                          >
-                            <span className="font-semibold text-sm leading-relaxed pr-4">{qa.question}</span>
-                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="px-4 pb-4">
-                          <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                            {qa.answer}
-                          </p>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  })}
-                </div>
+                    <div className="space-y-4">
+                      {categoryFaqs.map((faq: any, faqIndex: number) => {
+                        const faqId = `${categoryName}-${faqIndex}`;
+                        const isOpen = openFaqCategories.has(faqId);
+                        
+                        return (
+                          <Collapsible key={faqIndex} open={isOpen} onOpenChange={() => toggleFaqCategory(faqId)}>
+                            <CollapsibleTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                className="w-full text-left p-4 h-auto justify-between bg-card/50 hover:bg-card border border-border/50 rounded-lg"
+                              >
+                                <span className="font-semibold text-sm leading-relaxed pr-4">{faq.question}</span>
+                                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="px-4 pb-4">
+                              <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                                {faq.answer}
+                              </p>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              // Fallback to section config if no FAQs in database
+              <div className="grid md:grid-cols-2 gap-8">
+                {section.config.categories?.map((category: any, categoryIndex: number) => (
+                  <div key={categoryIndex} className="space-y-4">
+                    <h3 className="text-2xl font-bold text-center mb-6 pb-3 border-b border-primary/20">
+                      {category.name}
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {category.questions?.map((qa: any, qaIndex: number) => {
+                        const faqId = `${category.name}-${qaIndex}`;
+                        const isOpen = openFaqCategories.has(faqId);
+                        
+                        return (
+                          <Collapsible key={qaIndex} open={isOpen} onOpenChange={() => toggleFaqCategory(faqId)}>
+                            <CollapsibleTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                className="w-full text-left p-4 h-auto justify-between bg-card/50 hover:bg-card border border-border/50 rounded-lg"
+                              >
+                                <span className="font-semibold text-sm leading-relaxed pr-4">{qa.question}</span>
+                                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="px-4 pb-4">
+                              <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                                {qa.answer}
+                              </p>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   const renderTrialCTA = (section: HomeSection) => (
     <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
@@ -839,6 +995,14 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="AuthorPage - Professional Author Profiles & Book Showcases"
+        description="Create professional author profiles, showcase your books, and grow your audience with beautiful universal links. Start free today!"
+        keywords="author profile, book showcase, author website, book marketing, author platform, book promotion, author portfolio"
+        image={heroAuthorsImage}
+        url="https://authorpage.io"
+        type="website"
+      />
       {/* Premium Header */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 z-50 shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -856,9 +1020,9 @@ const Home = () => {
               <Button variant="ghost" onClick={() => navigate('/auth')} className="hover:bg-primary/5">
                 Sign In
               </Button>
-              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
-                <Crown className="mr-2 h-4 w-4" />
-                Start 30-Day Trial
+              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+                <Check className="mr-2 h-4 w-4" />
+                Start Free
               </Button>
             </div>
           </div>
@@ -883,7 +1047,7 @@ const Home = () => {
             
             <h2 className="text-3xl font-bold mb-6">Join 15,000+ Successful Authors Today</h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Start your FREE 30-day Pro trial and experience the difference a professional author platform makes.
+              Start completely FREE and experience the difference a professional author platform makes.
             </p>
             
             <form onSubmit={handleNewsletterSignup} className="flex gap-4 max-w-md mx-auto mb-8">
@@ -895,15 +1059,15 @@ const Home = () => {
                 required
                 className="flex-1"
               />
-              <Button type="submit" disabled={loading} className="px-8 bg-gradient-to-r from-primary to-accent">
-                {loading ? 'Starting...' : 'Start Trial'}
+              <Button type="submit" disabled={loading} className="px-8 bg-gradient-to-r from-green-500 to-green-600">
+                {loading ? 'Starting...' : 'Start Free'}
               </Button>
             </form>
             
             <div className="flex gap-4 justify-center">
-              <Button size="lg" onClick={() => navigate('/auth')} className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
-                <Crown className="mr-2 h-5 w-5" />
-                Start FREE 30-Day Pro Trial
+              <Button size="lg" onClick={() => navigate('/auth')} className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+                <Check className="mr-2 h-5 w-5" />
+                Start Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
