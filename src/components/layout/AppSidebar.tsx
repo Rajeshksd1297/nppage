@@ -219,35 +219,60 @@ export function AppSidebar() {
           </div>
         )}
 
-        {/* Free Tier Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            <div className="flex items-center gap-2">
-              Core Features
-              {isFree() && !collapsed && (
-                <Badge variant="outline" className="text-xs">Free</Badge>
-              )}
-            </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {freeItems
-                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "Profile Settings"))
-                .map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Main Features */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <div className="flex items-center gap-2">
+                Main Features
+              </div>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {freeItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+                {/* Quick Actions in Main Features */}
+                {quickActions.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      {item.external ? (
+                        <a 
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 hover:bg-sidebar-accent/50 rounded-md p-2"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && (
+                            <>
+                              <span>{item.title}</span>
+                              <ExternalLink className="h-3 w-3 ml-auto" />
+                            </>
+                          )}
+                        </a>
+                      ) : (
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
-        {/* Pro Features Section */}
+        {/* Pro Features */}
         {!isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>
@@ -289,50 +314,13 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Quick Actions */}
+        {/* Tools Features */}
         {!isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+            <SidebarGroupLabel>Tools Features</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {quickActions.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      {item.external ? (
-                        <a 
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 hover:bg-sidebar-accent/50 rounded-md p-2"
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && (
-                            <>
-                              <span>{item.title}</span>
-                              <ExternalLink className="h-3 w-3 ml-auto" />
-                            </>
-                          )}
-                        </a>
-                      ) : (
-                        <NavLink to={item.url} className={getNavCls}>
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* My Content */}
-        {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>My Content</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
+                {/* My Content Tools */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/user-blog-management" className={getNavCls}>
@@ -381,17 +369,8 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Content & Tools */}
-        {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Content & Tools</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
+                
+                {/* Other Tools */}
                 {supportItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
