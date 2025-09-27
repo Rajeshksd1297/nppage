@@ -46,8 +46,7 @@ import {
 // Free tier navigation items
 const freeItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Profile Setup", url: "/profile", icon: User },
-  { title: "Profile Settings", url: "/profile-settings", icon: Settings },
+  { title: "Profile Settings", url: "/profile", icon: Settings },
   { title: "My Books", url: "/books", icon: BookOpen },
   { title: "Basic Analytics", url: "/analytics", icon: BarChart3 },
 ];
@@ -226,7 +225,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {freeItems
-                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "Profile Setup" || item.title === "Profile Settings"))
+                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "Profile Settings"))
                 .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>

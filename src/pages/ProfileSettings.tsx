@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRealtimeThemes } from '@/hooks/useRealtimeThemes';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,23 +47,62 @@ interface Theme {
   name: string;
   description: string;
   premium: boolean;
-  preview_image_url: string;
   config: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function ProfileSettings() {
   const { toast } = useToast();
   const { hasFeature, isPro, getCurrentPlanName } = useSubscription();
   const { profileTheme, syncThemeToProfile, getProfileLandingPageUrl } = useProfileThemeSync();
+  const { themes: realtimeThemes, loading: themesLoading } = useRealtimeThemes();
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [themes, setThemes] = useState<Theme[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [loading, setLoading] = useState(true);
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  // Set up real-time profile updates
+  useEffect(() => {
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          const updatedProfile = payload.new as Profile;
+          const socialLinks = typeof updatedProfile.social_links === 'object' && updatedProfile.social_links !== null
+            ? updatedProfile.social_links as Record<string, string>
+            : {};
+          
+          setProfile({
+            ...updatedProfile,
+            social_links: socialLinks
+          });
+        }
+      )
+      .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupRealtimeSubscription();
   }, []);
 
   const fetchData = async () => {
@@ -90,14 +130,7 @@ export default function ProfileSettings() {
         });
       }
 
-      // Fetch themes
-      const { data: themesData, error: themesError } = await supabase
-        .from('themes')
-        .select('*')
-        .order('premium', { ascending: true });
-
-      if (themesError) throw themesError;
-      setThemes(themesData || []);
+      // Themes are handled by useRealtimeThemes hook
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -268,7 +301,7 @@ export default function ProfileSettings() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {themes.map((theme) => {
+                {realtimeThemes.map((theme) => {
                   const canUse = !theme.premium || hasFeature('premium_themes');
                   const isActive = profileTheme?.themeId === theme.id;
 
@@ -296,17 +329,9 @@ export default function ProfileSettings() {
                       )}
 
                       <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-t-lg">
-                        {theme.preview_image_url ? (
-                          <img
-                            src={theme.preview_image_url}
-                            alt={`${theme.name} preview`}
-                            className="w-full h-full object-cover rounded-t-lg"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full">
-                            <Palette className="w-12 h-12 text-muted-foreground" />
-                          </div>
-                        )}
+                        <div className="flex items-center justify-center h-full">
+                          <Palette className="w-12 h-12 text-muted-foreground" />
+                        </div>
                       </div>
                       
                       <div className="p-4">
