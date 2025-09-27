@@ -200,7 +200,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     {
       id: '2',
-      name: 'About Section',
+      name: 'About Me',
       type: 'about',
       enabled: true,
       config: {},
@@ -208,19 +208,115 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     {
       id: '3',
-      name: 'Books Grid',
-      type: 'books',
+      name: 'Featured Books',
+      type: 'featured-books',
       enabled: true,
       config: {},
       order: 2
     },
     {
       id: '4',
-      name: 'Contact Form',
-      type: 'contact',
-      enabled: false,
+      name: 'Book Library',
+      type: 'book-library',
+      enabled: true,
       config: {},
       order: 3
+    },
+    {
+      id: '5',
+      name: 'Author Bio',
+      type: 'author-bio',
+      enabled: false,
+      config: {},
+      order: 4
+    },
+    {
+      id: '6',
+      name: 'Testimonials',
+      type: 'testimonials',
+      enabled: false,
+      config: {},
+      order: 5
+    },
+    {
+      id: '7',
+      name: 'Social Media Links',
+      type: 'social-links',
+      enabled: true,
+      config: {},
+      order: 6
+    },
+    {
+      id: '8',
+      name: 'Contact Form',
+      type: 'contact-form',
+      enabled: false,
+      config: {},
+      order: 7
+    },
+    {
+      id: '9',
+      name: 'Newsletter Signup',
+      type: 'newsletter',
+      enabled: false,
+      config: {},
+      order: 8
+    },
+    {
+      id: '10',
+      name: 'Media Gallery',
+      type: 'media-gallery',
+      enabled: false,
+      config: {},
+      order: 9
+    },
+    {
+      id: '11',
+      name: 'Awards & Recognition',
+      type: 'awards',
+      enabled: false,
+      config: {},
+      order: 10
+    },
+    {
+      id: '12',
+      name: 'Blog/Articles',
+      type: 'blog',
+      enabled: false,
+      config: {},
+      order: 11
+    },
+    {
+      id: '13',
+      name: 'Events & Appearances',
+      type: 'events',
+      enabled: false,
+      config: {},
+      order: 12
+    },
+    {
+      id: '14',
+      name: 'Press & Media Kit',
+      type: 'press-kit',
+      enabled: false,
+      config: {},
+      order: 13
+    },
+    {
+      id: '15',
+      name: 'FAQ Section',
+      type: 'faq',
+      enabled: false,
+      config: {},
+      order: 14
+    },
+    {
+      id: '16',
+      name: 'Footer',
+      type: 'footer',
+      enabled: true,
+      config: {},
+      order: 15
     }
   ]);
 
@@ -463,18 +559,46 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Available Sections</h4>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button size="sm" onClick={() => addLayoutSection('hero')}>
                           <Plus className="h-4 w-4 mr-1" />
                           Hero
                         </Button>
-                        <Button size="sm" onClick={() => addLayoutSection('gallery')}>
+                        <Button size="sm" onClick={() => addLayoutSection('featured-books')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Featured Books
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('testimonials')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Testimonials
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('social-links')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Social Links
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('newsletter')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Newsletter
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('media-gallery')}>
                           <Plus className="h-4 w-4 mr-1" />
                           Gallery
                         </Button>
-                        <Button size="sm" onClick={() => addLayoutSection('testimonial')}>
+                        <Button size="sm" onClick={() => addLayoutSection('blog')}>
                           <Plus className="h-4 w-4 mr-1" />
-                          Testimonial
+                          Blog
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('events')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Events
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('awards')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Awards
+                        </Button>
+                        <Button size="sm" onClick={() => addLayoutSection('faq')}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          FAQ
                         </Button>
                       </div>
                     </div>
