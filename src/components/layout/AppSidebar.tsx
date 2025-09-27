@@ -360,25 +360,9 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/social-connections" className={getNavCls}>
-                      <Share2 className="h-4 w-4" />
-                      {!collapsed && <span>Social Connections</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
                     <NavLink to="/articles" className={getNavCls}>
                       <FileText className="h-4 w-4" />
                       {!collapsed && <span>Articles</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/seo-dashboard" className={getNavCls}>
-                      <Search className="h-4 w-4" />
-                      {!collapsed && <span>SEO Dashboard</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
