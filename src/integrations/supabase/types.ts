@@ -553,6 +553,39 @@ export type Database = {
         }
         Relationships: []
       }
+      home_page_sections: {
+        Row: {
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          order_index: number
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          order_index?: number
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          order_index?: number
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string

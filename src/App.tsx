@@ -56,6 +56,7 @@ import AwardsManagement from "./pages/admin/AwardsManagement";
 import FaqManagement from "./pages/admin/FaqManagement";
 import NewsletterManagement from "./pages/admin/NewsletterManagement";
 import HomePageManagement from "./pages/admin/HomePageManagement";
+import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
 
 // User management imports
@@ -315,6 +316,11 @@ function App() {
             <Route path="/admin/home-page-management" element={
               <DashboardLayout>
                 <HomePageManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/home-page-editor" element={
+              <DashboardLayout>
+                <HomePageEditor />
               </DashboardLayout>
             } />
             

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +29,7 @@ interface HomePageStats {
 }
 
 const HomePageManagement = () => {
-  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'editor' | 'settings'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'settings'>('overview');
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [stats, setStats] = useState<HomePageStats>({
     totalVisitors: 0,
@@ -37,6 +38,7 @@ const HomePageManagement = () => {
     conversionRate: 0
   });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,7 +101,7 @@ const HomePageManagement = () => {
   };
 
   const handleEditHomePage = () => {
-    setCurrentView('editor');
+    navigate('/admin/home-page-editor');
   };
 
   const handleEditHeroBlock = (blockId: string) => {
@@ -173,18 +175,6 @@ const HomePageManagement = () => {
     );
   }
 
-  if (currentView === 'editor') {
-    return (
-      <HomePageEditor
-        onBack={() => setCurrentView('overview')}
-        onSave={(sections) => {
-          console.log('Saving sections:', sections);
-          setCurrentView('overview');
-        }}
-      />
-    );
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -213,7 +203,6 @@ const HomePageManagement = () => {
       <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="editor">Page Editor</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 

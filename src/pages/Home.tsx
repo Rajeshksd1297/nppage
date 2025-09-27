@@ -6,18 +6,30 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Users, TrendingUp, Globe, Star, ArrowRight, CheckCircle, CreditCard } from 'lucide-react';
+import { BookOpen, Users, TrendingUp, Globe, Star, ArrowRight, CheckCircle, CreditCard, Eye, Activity, Book, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface HeroBlock {
+interface HomeSection {
   id: string;
-  name: string;
-  description: string;
-  preview_image_url?: string;
+  type: string;
+  title: string;
   enabled: boolean;
-  config: any;
-  created_at: string;
-  updated_at: string;
+  order_index: number;
+  config: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    image?: string;
+    animation?: string;
+    buttons?: Array<{ text: string; url: string; variant: 'primary' | 'secondary' }>;
+    items?: Array<any>;
+    autoPlay?: boolean;
+    interval?: number;
+    showDots?: boolean;
+    showArrows?: boolean;
+  };
 }
 
 interface Package {
@@ -40,7 +52,7 @@ interface Stats {
 }
 
 const Home = () => {
-  const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
+  const [sections, setSections] = useState<HomeSection[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
@@ -54,28 +66,29 @@ const Home = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchHeroBlocks();
+    fetchSections();
     fetchPackages();
     fetchStats();
   }, []);
 
-  const fetchHeroBlocks = async () => {
+  const fetchSections = async () => {
     try {
-      // For now, create a default hero block since the table was just created
-      setHeroBlocks([{
-        id: '1',
-        name: 'Default Hero',
-        description: 'Welcome hero block',
-        enabled: true,
-        config: {
-          title: 'Welcome to NP Page',
-          subtitle: 'Create professional author profiles, showcase your books, and grow your readership with our powerful platform.'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }]);
+      const { data, error } = await supabase
+        .from('home_page_sections')
+        .select('*')
+        .eq('enabled', true)
+        .order('order_index', { ascending: true });
+      
+      if (error) throw error;
+      if (data) {
+        const transformedData = data.map(section => ({
+          ...section,
+          config: typeof section.config === 'object' ? section.config : {}
+        }));
+        setSections(transformedData as HomeSection[]);
+      }
     } catch (error) {
-      console.error('Error fetching hero blocks:', error);
+      console.error('Error fetching sections:', error);
     }
   };
 
@@ -144,6 +157,153 @@ const Home = () => {
     }
   };
 
+  const renderSection = (section: HomeSection) => {
+    const getAnimationClass = (animation: string) => {
+      switch (animation) {
+        case 'fade-in': return 'animate-fade-in';
+        case 'slide-in-right': return 'animate-slide-in-right';
+        case 'scale-in': return 'animate-scale-in';
+        default: return '';
+      }
+    };
+
+    const getBgClass = (bg: string) => {
+      switch (bg) {
+        case 'muted/50': return 'bg-muted/50';
+        case 'gradient-to-br from-primary/5 to-primary/10': return 'bg-gradient-to-br from-primary/5 to-primary/10';
+        case 'gradient-to-r from-blue-50 to-indigo-50': return 'bg-gradient-to-r from-blue-50 to-indigo-50';
+        case 'gradient-to-br from-purple-50 to-pink-50': return 'bg-gradient-to-br from-purple-50 to-pink-50';
+        case 'dark': return 'bg-dark text-white';
+        default: return 'bg-background';
+      }
+    };
+
+    const getIcon = (iconName: string) => {
+      switch (iconName) {
+        case 'users': return <Users className="h-6 w-6 text-primary" />;
+        case 'book': return <Book className="h-6 w-6 text-primary" />;
+        case 'eye': return <Eye className="h-6 w-6 text-primary" />;
+        case 'activity': return <Activity className="h-6 w-6 text-primary" />;
+        case 'user': return <Users className="h-8 w-8 text-primary" />;
+        case 'chart': return <BarChart3 className="h-8 w-8 text-primary" />;
+        default: return <BookOpen className="h-6 w-6 text-primary" />;
+      }
+    };
+
+    const sectionClasses = `py-16 ${getBgClass(section.config.backgroundColor || 'background')} ${getAnimationClass(section.config.animation || '')}`;
+
+    switch (section.type) {
+      case 'hero':
+        return (
+          <section key={section.id} className={sectionClasses}>
+            <div className="container mx-auto px-6">
+              <div className="text-center space-y-6">
+                <h1 className="text-5xl font-bold tracking-tight">
+                  {section.config.title || 'Welcome to NP Page'}
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                  {section.config.subtitle || 'Create professional author profiles, showcase your books, and grow your readership.'}
+                </p>
+                <div className="flex gap-4 justify-center">
+                  {section.config.buttons?.map((button: any, index: number) => (
+                    <Button 
+                      key={index}
+                      size="lg" 
+                      variant={button.variant === 'primary' ? 'default' : 'outline'}
+                      onClick={() => navigate(button.url)}
+                    >
+                      {button.text}
+                      {button.variant === 'primary' && <ArrowRight className="ml-2 h-4 w-4" />}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+
+      case 'stats':
+        return (
+          <section key={section.id} className={sectionClasses}>
+            <div className="container mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">{section.config.title}</h2>
+                {section.config.subtitle && (
+                  <p className="text-muted-foreground">{section.config.subtitle}</p>
+                )}
+              </div>
+              <div className="grid md:grid-cols-4 gap-8">
+                {section.config.items?.map((item: any, index: number) => (
+                  <div key={index} className="text-center">
+                    {item.icon && (
+                      <div className="flex justify-center mb-4">
+                        {getIcon(item.icon)}
+                      </div>
+                    )}
+                    <div className="text-4xl font-bold text-primary mb-2">{item.value}</div>
+                    <div className="text-muted-foreground">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+
+      case 'features':
+        return (
+          <section key={section.id} className={sectionClasses}>
+            <div className="container mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">{section.config.title}</h2>
+                {section.config.subtitle && (
+                  <p className="text-muted-foreground">{section.config.subtitle}</p>
+                )}
+              </div>
+              <div className="grid md:grid-cols-3 gap-8">
+                {section.config.items?.map((item: any, index: number) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      {getIcon(item.icon)}
+                      <CardTitle>{item.title}</CardTitle>
+                      <CardDescription>{item.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+
+      case 'slider':
+        return (
+          <section key={section.id} className={sectionClasses}>
+            <div className="container mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">{section.config.title}</h2>
+                {section.config.subtitle && (
+                  <p className="text-muted-foreground">{section.config.subtitle}</p>
+                )}
+              </div>
+              <div className="max-w-4xl mx-auto">
+                {section.config.items?.map((item: any, index: number) => (
+                  <div key={index} className="text-center p-8 border rounded-lg mb-4">
+                    {item.image && (
+                      <img src={item.image} alt={item.title} className="w-full h-64 object-cover rounded-lg mb-4" />
+                    )}
+                    <h3 className="text-2xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-muted-foreground">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   const handleNewsletterSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -198,97 +358,63 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Hero Blocks */}
-      {heroBlocks.map((block) => (
-        <section key={block.id} className="py-16 bg-gradient-to-br from-primary/5 to-primary/10">
-          <div className="container mx-auto px-6">
-            <div className="text-center space-y-6">
-              <h1 className="text-5xl font-bold tracking-tight">
-                {block.config?.title || 'Welcome to NP Page'}
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                {block.config?.subtitle || 'Create professional author profiles, showcase your books, and grow your readership with our powerful platform.'}
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Button size="lg" onClick={() => navigate('/auth')}>
-                  Start Your Journey
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="lg">
-                  Learn More
-                </Button>
+      {/* Dynamic Sections */}
+      {sections.map(section => renderSection(section))}
+
+      
+      {/* Fallback sections if no dynamic sections */}
+      {sections.length === 0 && (
+        <>
+          {/* Default Hero */}
+          <section className="py-16 bg-gradient-to-br from-primary/5 to-primary/10 animate-fade-in">
+            <div className="container mx-auto px-6">
+              <div className="text-center space-y-6">
+                <h1 className="text-5xl font-bold tracking-tight">Welcome to NP Page</h1>
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                  Create professional author profiles, showcase your books, and grow your readership with our powerful platform.
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button size="lg" onClick={() => navigate('/auth')}>
+                    Start Your Journey
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="lg">
+                    Learn More
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      ))}
+          </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Trusted by Authors Worldwide</h2>
-            <p className="text-muted-foreground">Join thousands of authors who have chosen NP Page</p>
-          </div>
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{stats.totalUsers.toLocaleString()}</div>
-              <div className="text-muted-foreground">Authors</div>
+          {/* Default Stats */}
+          <section className="py-16 bg-muted/50 animate-slide-in-right">
+            <div className="container mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">Trusted by Authors Worldwide</h2>
+                <p className="text-muted-foreground">Join thousands of authors who have chosen NP Page</p>
+              </div>
+              <div className="grid md:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">{stats.totalUsers.toLocaleString()}</div>
+                  <div className="text-muted-foreground">Authors</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">{stats.totalBooks.toLocaleString()}</div>
+                  <div className="text-muted-foreground">Books Published</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">{stats.totalViews.toLocaleString()}</div>
+                  <div className="text-muted-foreground">Page Views</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">{stats.activeUsers.toLocaleString()}</div>
+                  <div className="text-muted-foreground">Active This Week</div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{stats.totalBooks.toLocaleString()}</div>
-              <div className="text-muted-foreground">Books Published</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{stats.totalViews.toLocaleString()}</div>
-              <div className="text-muted-foreground">Page Views</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{stats.activeUsers.toLocaleString()}</div>
-              <div className="text-muted-foreground">Active This Week</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Everything You Need to Succeed</h2>
-            <p className="text-muted-foreground">Powerful features to help you build your author brand</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <Users className="h-8 w-8 text-primary mb-4" />
-                <CardTitle>Professional Profiles</CardTitle>
-                <CardDescription>
-                  Create stunning author profiles with bio, photos, and social links
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <BookOpen className="h-8 w-8 text-primary mb-4" />
-                <CardTitle>Book Showcase</CardTitle>
-                <CardDescription>
-                  Display your books with covers, descriptions, and purchase links
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <TrendingUp className="h-8 w-8 text-primary mb-4" />
-                <CardTitle>Analytics & Insights</CardTitle>
-                <CardDescription>
-                  Track your audience engagement and grow your readership
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
+          </section>
+        </>
+      )}
 
       {/* Pricing Section */}
       <section className="py-16 bg-muted/50">
