@@ -2,25 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BookOpen, 
-  TrendingUp, 
-  Users, 
-  Eye,
-  PlusCircle,
-  Calendar,
-  Settings,
-  Shield,
-  BarChart3,
-  Building2,
-  MessageCircle,
-  Crown,
-  Globe,
-  Palette,
-  FileText,
-  CreditCard,
-  AlertCircle
-} from "lucide-react";
+import { BookOpen, TrendingUp, Users, Eye, PlusCircle, Calendar, Settings, Shield, BarChart3, Building2, MessageCircle, Crown, Globe, Palette, FileText, CreditCard, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TrialBanner } from "@/components/TrialBanner";
@@ -28,14 +10,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { DashboardWelcome } from "@/components/DashboardWelcome";
 import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 import { DashboardFeatures } from "@/components/DashboardFeatures";
-
 interface DashboardStats {
   totalBooks: number;
   publishedBooks: number;
   totalViews: number;
   thisMonthViews: number;
 }
-
 interface AdminStats {
   totalUsers: number;
   totalBooksGlobal: number;
@@ -44,14 +24,12 @@ interface AdminStats {
   openTickets: number;
   pendingTickets: number;
 }
-
 interface PublisherStats {
   totalAuthors: number;
   totalBooksManaged: number;
   totalRevenue: number;
   thisMonthRevenue: number;
 }
-
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalBooks: 0,
@@ -79,82 +57,75 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
-  const { subscription, hasFeature, getLimit, isOnTrial, trialDaysLeft, isPro, isFree } = useSubscription();
-
+  const {
+    subscription,
+    hasFeature,
+    getLimit,
+    isOnTrial,
+    trialDaysLeft,
+    isPro,
+    isFree
+  } = useSubscription();
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
   const fetchDashboardData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Get user role and profile
-      const [roleResult, profileResult] = await Promise.all([
-        supabase.rpc('get_current_user_role'),
-        supabase.from('profiles').select('*').eq('id', user.id).single()
-      ]);
-
+      const [roleResult, profileResult] = await Promise.all([supabase.rpc('get_current_user_role'), supabase.from('profiles').select('*').eq('id', user.id).single()]);
       const currentUserRole = roleResult.data;
       const profile = profileResult.data;
-      
       setUserRole(currentUserRole);
       setUserProfile(profile);
 
       // Fetch user's books
-      const { data: books } = await supabase
-        .from('books')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const {
+        data: books
+      } = await supabase.from('books').select('*').eq('user_id', user.id).order('created_at', {
+        ascending: false
+      });
 
       // Fetch user's tickets
-      const { data: tickets } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('created_by', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
+      const {
+        data: tickets
+      } = await supabase.from('tickets').select('*').eq('created_by', user.id).order('created_at', {
+        ascending: false
+      }).limit(5);
       setRecentTickets(tickets || []);
 
       // Calculate user stats
       await calculateUserStats(user.id, books || []);
-
       if (currentUserRole === 'admin') {
         await calculateAdminStats();
       } else if (profile?.publisher_id) {
         await calculatePublisherStats(profile.publisher_id);
       }
-
       setRecentBooks(books?.slice(0, 3) || []);
-
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
-
   const calculateUserStats = async (userId: string, books: any[]) => {
     try {
       // Fetch analytics
-      const { data: analytics } = await supabase
-        .from('page_analytics')
-        .select('*')
-        .or(`page_type.eq.profile,and(page_type.eq.book,page_id.in.(${books?.map(b => b.slug).join(',') || 'none'}))`);
-
+      const {
+        data: analytics
+      } = await supabase.from('page_analytics').select('*').or(`page_type.eq.profile,and(page_type.eq.book,page_id.in.(${books?.map(b => b.slug).join(',') || 'none'}))`);
       const totalBooks = books?.length || 0;
       const publishedBooks = books?.filter(b => b.status === 'published').length || 0;
       const totalViews = analytics?.length || 0;
-      
       const thisMonthStart = new Date();
       thisMonthStart.setDate(1);
-      const thisMonthViews = analytics?.filter(a => 
-        new Date(a.created_at) >= thisMonthStart
-      ).length || 0;
-
+      const thisMonthViews = analytics?.filter(a => new Date(a.created_at) >= thisMonthStart).length || 0;
       setStats({
         totalBooks,
         publishedBooks,
@@ -165,28 +136,26 @@ export default function Dashboard() {
       console.error('Error calculating user stats:', error);
     }
   };
-
   const calculateAdminStats = async () => {
     try {
       const thisMonthStart = new Date();
       thisMonthStart.setDate(1);
-
-      const [
-        { count: totalUsers },
-        { data: allBooks },
-        { data: activeSubscriptions },
-        { data: recentProfiles },
-        { data: openTickets },
-        { data: pendingTickets }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('books').select('id'),
-        supabase.from('user_subscriptions').select('id').eq('status', 'active'),
-        supabase.from('profiles').select('created_at').gte('created_at', thisMonthStart.toISOString()),
-        supabase.from('tickets').select('id').eq('status', 'open'),
-        supabase.from('tickets').select('id').eq('status', 'pending')
-      ]);
-
+      const [{
+        count: totalUsers
+      }, {
+        data: allBooks
+      }, {
+        data: activeSubscriptions
+      }, {
+        data: recentProfiles
+      }, {
+        data: openTickets
+      }, {
+        data: pendingTickets
+      }] = await Promise.all([supabase.from('profiles').select('*', {
+        count: 'exact',
+        head: true
+      }), supabase.from('books').select('id'), supabase.from('user_subscriptions').select('id').eq('status', 'active'), supabase.from('profiles').select('created_at').gte('created_at', thisMonthStart.toISOString()), supabase.from('tickets').select('id').eq('status', 'open'), supabase.from('tickets').select('id').eq('status', 'pending')]);
       setAdminStats({
         totalUsers: totalUsers || 0,
         totalBooksGlobal: allBooks?.length || 0,
@@ -199,30 +168,19 @@ export default function Dashboard() {
       console.error('Error calculating admin stats:', error);
     }
   };
-
   const calculatePublisherStats = async (publisherId: string) => {
     try {
-      const [
-        { data: authors },
-        { data: managedBooks },
-        { data: transactions }
-      ] = await Promise.all([
-        supabase.from('publisher_authors').select('*').eq('publisher_id', publisherId),
-        supabase.from('books').select('*').in('user_id', 
-          await supabase.from('publisher_authors').select('user_id').eq('publisher_id', publisherId)
-            .then(result => result.data?.map(a => a.user_id) || [])
-        ),
-        supabase.from('billing_transactions').select('*').eq('publisher_id', publisherId)
-      ]);
-
+      const [{
+        data: authors
+      }, {
+        data: managedBooks
+      }, {
+        data: transactions
+      }] = await Promise.all([supabase.from('publisher_authors').select('*').eq('publisher_id', publisherId), supabase.from('books').select('*').in('user_id', await supabase.from('publisher_authors').select('user_id').eq('publisher_id', publisherId).then(result => result.data?.map(a => a.user_id) || [])), supabase.from('billing_transactions').select('*').eq('publisher_id', publisherId)]);
       const thisMonthStart = new Date();
       thisMonthStart.setDate(1);
-
       const totalRevenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-      const thisMonthRevenue = transactions?.filter(t => 
-        new Date(t.created_at) >= thisMonthStart
-      ).reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-
+      const thisMonthRevenue = transactions?.filter(t => new Date(t.created_at) >= thisMonthStart).reduce((sum, t) => sum + Number(t.amount), 0) || 0;
       setPublisherStats({
         totalAuthors: authors?.length || 0,
         totalBooksManaged: managedBooks?.length || 0,
@@ -233,18 +191,12 @@ export default function Dashboard() {
       console.error('Error calculating publisher stats:', error);
     }
   };
-
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
+    return <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  const renderAdminDashboard = () => (
-    <div className="space-y-6">
+  const renderAdminDashboard = () => <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <Shield className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">Admin Overview</h2>
@@ -312,11 +264,8 @@ export default function Dashboard() {
           Package Management
         </Button>
       </div>
-    </div>
-  );
-
-  const renderPublisherDashboard = () => (
-    <div className="space-y-6">
+    </div>;
+  const renderPublisherDashboard = () => <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <Building2 className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">Publisher Overview</h2>
@@ -383,18 +332,9 @@ export default function Dashboard() {
           Analytics
         </Button>
       </div>
-    </div>
-  );
-
-  const renderUserDashboard = () => (
-    <div className="space-y-6">
-      <DashboardWelcome
-        userName={userProfile?.full_name}
-        subscriptionPlan={subscription?.subscription_plans?.name || 'Free'}
-        isPro={isPro()}
-        isOnTrial={isOnTrial()}
-        trialDaysLeft={trialDaysLeft}
-      />
+    </div>;
+  const renderUserDashboard = () => <div className="space-y-6">
+      <DashboardWelcome userName={userProfile?.full_name} subscriptionPlan={subscription?.subscription_plans?.name || 'Free'} isPro={isPro()} isOnTrial={isOnTrial()} trialDaysLeft={trialDaysLeft} />
       
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Your Author Stats</h2>
@@ -456,12 +396,10 @@ export default function Dashboard() {
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             Subscription Overview
-            {subscription?.subscription_plans?.name && (
-              <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
+            {subscription?.subscription_plans?.name && <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
                 {subscription.subscription_plans.name}
                 {isPro() && <Crown className="h-3 w-3 ml-1" />}
-              </Badge>
-            )}
+              </Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -471,9 +409,7 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground">
                 Books ({getLimit('books') === Infinity ? 'Unlimited' : `${getLimit('books')} max`})
               </p>
-              {getLimit('books') !== Infinity && stats.totalBooks >= getLimit('books') && (
-                <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>
-              )}
+              {getLimit('books') !== Infinity && stats.totalBooks >= getLimit('books') && <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>}
             </div>
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{stats.publishedBooks}</p>
@@ -488,92 +424,21 @@ export default function Dashboard() {
       </Card>
 
       {/* Premium Features Quick Access */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className={`border-dashed ${hasFeature('custom_domain') ? 'border-green-200 bg-green-50/50' : 'border-amber-200 bg-amber-50/50'}`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Custom Domain</p>
-                <p className="text-xs text-muted-foreground">
-                  {hasFeature('custom_domain') ? 'Available' : 'Pro Feature'}
-                </p>
-              </div>
-              <Globe className={`h-6 w-6 ${hasFeature('custom_domain') ? 'text-green-600' : 'text-amber-600'}`} />
-            </div>
-            <Button 
-              size="sm" 
-              className="w-full mt-3"
-              variant={hasFeature('custom_domain') ? 'default' : 'outline'}
-              onClick={() => hasFeature('custom_domain') ? navigate('/custom-domains') : navigate('/subscription')}
-            >
-              {hasFeature('custom_domain') ? 'Manage' : 'Upgrade'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className={`border-dashed ${hasFeature('premium_themes') ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Premium Themes</p>
-                <p className="text-xs text-muted-foreground">
-                  {hasFeature('premium_themes') ? 'Available' : 'Pro Feature'}
-                </p>
-              </div>
-              <Palette className={`h-6 w-6 ${hasFeature('premium_themes') ? 'text-green-600' : 'text-amber-600'}`} />
-            </div>
-            <Button 
-              size="sm" 
-              className="w-full mt-3"
-              variant={hasFeature('premium_themes') ? 'default' : 'outline'}
-              onClick={() => hasFeature('premium_themes') ? navigate('/themes') : navigate('/subscription')}
-            >
-              {hasFeature('premium_themes') ? 'Browse' : 'Upgrade'}
-            </Button>
-          </CardContent>
-        </Card>
-
-
-        <Card className="border-dashed border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Support</p>
-                <p className="text-xs text-muted-foreground">Get Help</p>
-              </div>
-              <MessageCircle className="h-6 w-6 text-blue-600" />
-            </div>
-            <Button 
-              size="sm" 
-              className="w-full mt-3"
-              variant="outline"
-              onClick={() => navigate('/support-tickets')}
-            >
-              Contact Support
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      
 
       <DashboardAnalytics />
       
       <DashboardFeatures hasFeature={hasFeature} isPro={isPro()} />
-    </div>
-  );
-
-  const renderRecentBooks = () => (
-    <div className="space-y-4">
+    </div>;
+  const renderRecentBooks = () => <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Recent Books</h3>
-        {recentBooks.length > 0 && (
-          <Button variant="outline" size="sm" onClick={() => navigate('/books')}>
+        {recentBooks.length > 0 && <Button variant="outline" size="sm" onClick={() => navigate('/books')}>
             View All
-          </Button>
-        )}
+          </Button>}
       </div>
       
-      {recentBooks.length === 0 ? (
-        <Card>
+      {recentBooks.length === 0 ? <Card>
           <CardContent className="text-center py-8">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h4 className="text-lg font-medium mb-2">No books yet</h4>
@@ -583,11 +448,8 @@ export default function Dashboard() {
               Add Your First Book
             </Button>
           </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {recentBooks.map((book) => (
-            <Card key={book.id}>
+        </Card> : <div className="space-y-3">
+          {recentBooks.map(book => <Card key={book.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -596,9 +458,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h4 className="font-medium">{book.title}</h4>
-                      {book.subtitle && (
-                        <p className="text-sm text-muted-foreground">{book.subtitle}</p>
-                      )}
+                      {book.subtitle && <p className="text-sm text-muted-foreground">{book.subtitle}</p>}
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={book.status === 'published' ? 'default' : 'secondary'}>
                           {book.status}
@@ -610,24 +470,15 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate(`/books/${book.id}`)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/books/${book.id}`)}>
                     Edit
                   </Button>
                 </div>
               </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderRecentTickets = () => (
-    <div className="space-y-4">
+            </Card>)}
+        </div>}
+    </div>;
+  const renderRecentTickets = () => <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Recent Support Tickets</h3>
         <Button variant="outline" size="sm" onClick={() => navigate('/support-tickets')}>
@@ -635,63 +486,37 @@ export default function Dashboard() {
         </Button>
       </div>
       
-      {recentTickets.length === 0 ? (
-        <Card>
+      {recentTickets.length === 0 ? <Card>
           <CardContent className="text-center py-6">
             <MessageCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No support tickets</p>
           </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {recentTickets.slice(0, 3).map((ticket) => (
-            <Card key={ticket.id} className="p-3">
+        </Card> : <div className="space-y-2">
+          {recentTickets.slice(0, 3).map(ticket => <Card key={ticket.id} className="p-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">{ticket.title}</p>
                   <p className="text-xs text-muted-foreground">{ticket.ticket_number}</p>
                 </div>
-                <Badge variant={
-                  ticket.status === 'open' ? 'destructive' :
-                  ticket.status === 'resolved' ? 'outline' : 'default'
-                } className="text-xs">
+                <Badge variant={ticket.status === 'open' ? 'destructive' : ticket.status === 'resolved' ? 'outline' : 'default'} className="text-xs">
                   {ticket.status}
                 </Badge>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
+            </Card>)}
+        </div>}
+    </div>;
+  return <div className="space-y-6">
       <TrialBanner />
       
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            {userRole === 'admin' ? "Welcome to the admin dashboard." : 
-             userProfile?.publisher_id ? "Welcome to your publisher dashboard." :
-             "Welcome back! Here's your author overview."}
-          </p>
-        </div>
-      </div>
+      
 
       {/* Role-based Dashboard Content */}
-      {userRole === 'admin' ? renderAdminDashboard() : 
-       userProfile?.publisher_id ? renderPublisherDashboard() : 
-       renderUserDashboard()}
+      {userRole === 'admin' ? renderAdminDashboard() : userProfile?.publisher_id ? renderPublisherDashboard() : renderUserDashboard()}
 
       {/* Recent Content - Only for non-admin users */}
-      {userRole !== 'admin' && (
-        <div className="grid gap-6 md:grid-cols-2">
+      {userRole !== 'admin' && <div className="grid gap-6 md:grid-cols-2">
           <div>{renderRecentBooks()}</div>
           <div>{renderRecentTickets()}</div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 }
