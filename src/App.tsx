@@ -47,6 +47,7 @@ import AdminHelpDesk from "./pages/admin/HelpDesk";
 import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
 import TicketDetails from "./pages/admin/TicketDetails";
 import SupportTickets from "./pages/SupportTickets";
+import ThemeManagement from "./pages/admin/ThemeManagement";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -260,6 +261,11 @@ function App() {
             <Route path="/support-tickets" element={
               <DashboardLayout>
                 <SupportTickets />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/theme-management" element={
+              <DashboardLayout>
+                <ThemeManagement />
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
