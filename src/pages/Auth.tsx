@@ -4,10 +4,24 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { emailSchema, passwordSchema, validateFormData } from "@/utils/inputValidation";
+import { z } from 'zod';
+
+const signUpSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  full_name: z.string().min(2, "Full name must be at least 2 characters").max(100, "Full name must be less than 100 characters")
+});
+
+const signInSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, "Password is required")
+});
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -15,6 +29,8 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,6 +60,17 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormErrors({});
+    setMessage(null);
+
+    // Validate form data
+    const validation = validateFormData({ email, password }, signInSchema);
+    if (!validation.success) {
+      const validationErrors = validation as { success: false; errors: Record<string, string> };
+      setFormErrors(validationErrors.errors);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -52,11 +79,22 @@ export default function Auth() {
       });
 
       if (error) {
-        toast({
-          title: "Sign in failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error.message.includes('Invalid login credentials')) {
+          setMessage({
+            type: 'error',
+            text: 'Invalid email or password. Please check your credentials and try again.'
+          });
+        } else if (error.message.includes('Email not confirmed')) {
+          setMessage({
+            type: 'error',
+            text: 'Please check your email and confirm your account before signing in.'
+          });
+        } else {
+          setMessage({
+            type: 'error',
+            text: error.message
+          });
+        }
       } else {
         toast({
           title: "Welcome back!",
@@ -65,10 +103,9 @@ export default function Auth() {
       }
     } catch (error) {
       console.error('Sign in error:', error);
-      toast({
-        title: "An error occurred",
-        description: "Please try again later.",
-        variant: "destructive",
+      setMessage({
+        type: 'error',
+        text: 'An unexpected error occurred. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -78,9 +115,20 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormErrors({});
+    setMessage(null);
+
+    // Validate form data
+    const validation = validateFormData({ email, password, full_name: fullName }, signUpSchema);
+    if (!validation.success) {
+      const validationErrors = validation as { success: false; errors: Record<string, string> };
+      setFormErrors(validationErrors.errors);
+      setLoading(false);
+      return;
+    }
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -94,23 +142,32 @@ export default function Auth() {
       });
 
       if (error) {
-        toast({
-          title: "Sign up failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error.message.includes('User already registered')) {
+          setMessage({
+            type: 'error',
+            text: 'This email is already registered. Please sign in instead.'
+          });
+        } else {
+          setMessage({
+            type: 'error',
+            text: error.message
+          });
+        }
       } else {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
+        setMessage({
+          type: 'success',
+          text: 'Please check your email for a confirmation link to complete your registration.'
         });
+        // Clear form
+        setEmail("");
+        setPassword("");
+        setFullName("");
       }
     } catch (error) {
       console.error('Sign up error:', error);
-      toast({
-        title: "An error occurred",
-        description: "Please try again later.",
-        variant: "destructive",
+      setMessage({
+        type: 'error',
+        text: 'An unexpected error occurred. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -136,6 +193,13 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {message && (
+              <Alert className={`mb-4 ${message.type === 'error' ? 'border-destructive/50 text-destructive' : 'border-green-500/50 text-green-700'}`}>
+                {message.type === 'error' ? <AlertCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                <AlertDescription>{message.text}</AlertDescription>
+              </Alert>
+            )}
+
             <Tabs defaultValue="signin">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -152,8 +216,12 @@ export default function Auth() {
                       placeholder="author@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className={formErrors.email ? 'border-destructive' : ''}
                       required
                     />
+                    {formErrors.email && (
+                      <p className="text-sm text-destructive">{formErrors.email}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
@@ -164,6 +232,7 @@ export default function Auth() {
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className={formErrors.password ? 'border-destructive' : ''}
                         required
                       />
                       <Button
@@ -180,8 +249,12 @@ export default function Auth() {
                         )}
                       </Button>
                     </div>
+                    {formErrors.password && (
+                      <p className="text-sm text-destructive">{formErrors.password}</p>
+                    )}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {loading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
@@ -197,8 +270,12 @@ export default function Auth() {
                       placeholder="Your full name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
+                      className={formErrors.full_name ? 'border-destructive' : ''}
                       required
                     />
+                    {formErrors.full_name && (
+                      <p className="text-sm text-destructive">{formErrors.full_name}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -208,8 +285,12 @@ export default function Auth() {
                       placeholder="author@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className={formErrors.email ? 'border-destructive' : ''}
                       required
                     />
+                    {formErrors.email && (
+                      <p className="text-sm text-destructive">{formErrors.email}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
@@ -220,8 +301,9 @@ export default function Auth() {
                         placeholder="Create a strong password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className={formErrors.password ? 'border-destructive' : ''}
                         required
-                        minLength={6}
+                        minLength={8}
                       />
                       <Button
                         type="button"
@@ -237,8 +319,15 @@ export default function Auth() {
                         )}
                       </Button>
                     </div>
+                    {formErrors.password && (
+                      <p className="text-sm text-destructive">{formErrors.password}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Password must be at least 8 characters long
+                    </p>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {loading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>

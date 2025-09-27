@@ -125,6 +125,32 @@ export default function AdminUsers() {
     fetchPublishers();
   }, []);
 
+  // Set up real-time subscriptions for user management
+  useEffect(() => {
+    const profilesChannel = supabase
+      .channel('profiles-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'profiles' }, 
+        (payload) => {
+          console.log('Profile change detected:', payload);
+          fetchUsers();
+        }
+      )
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'user_roles' }, 
+        (payload) => {
+          console.log('User role change detected:', payload);
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscriptions');
+      supabase.removeChannel(profilesChannel);
+    };
+  }, []);
+
   const fetchPublishers = async () => {
     try {
       const { data, error } = await supabase
