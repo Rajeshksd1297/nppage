@@ -309,18 +309,8 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   );
                 })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Tools Features */}
-        {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Tools Features</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {/* My Content Tools */}
+                
+                {/* Content Management Tools */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/user-blog-management" className={getNavCls}>
@@ -369,18 +359,57 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                
-                {/* Other Tools */}
-                {supportItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/social-connections" className={getNavCls}>
+                      <Share2 className="h-4 w-4" />
+                      {!collapsed && <span>Social Connections</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/articles" className={getNavCls}>
+                      <FileText className="h-4 w-4" />
+                      {!collapsed && <span>Articles</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/seo-dashboard" className={getNavCls}>
+                      <Search className="h-4 w-4" />
+                      {!collapsed && <span>SEO Dashboard</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Tools Features */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Tools Features</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/subscription" className={getNavCls}>
+                      <CreditCard className="h-4 w-4" />
+                      {!collapsed && <span>Subscription</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/support-tickets" className={getNavCls}>
+                      <MessageCircle className="h-4 w-4" />
+                      {!collapsed && <span>Support Tickets</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
