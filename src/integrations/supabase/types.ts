@@ -124,6 +124,60 @@ export type Database = {
         }
         Relationships: []
       }
+      awards_settings: {
+        Row: {
+          allow_user_submissions: boolean | null
+          allowed_image_types: string[] | null
+          auto_generate_certificates: boolean | null
+          categories: string[] | null
+          created_at: string
+          enable_public_display: boolean | null
+          id: string
+          max_awards_per_user: number | null
+          max_description_length: number | null
+          max_image_size_mb: number | null
+          max_title_length: number | null
+          require_approval: boolean | null
+          require_verification: boolean | null
+          sort_by_date: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          allow_user_submissions?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_certificates?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_public_display?: boolean | null
+          id?: string
+          max_awards_per_user?: number | null
+          max_description_length?: number | null
+          max_image_size_mb?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          require_verification?: boolean | null
+          sort_by_date?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          allow_user_submissions?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_certificates?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_public_display?: boolean | null
+          id?: string
+          max_awards_per_user?: number | null
+          max_description_length?: number | null
+          max_image_size_mb?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          require_verification?: boolean | null
+          sort_by_date?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       billing_transactions: {
         Row: {
           amount: number

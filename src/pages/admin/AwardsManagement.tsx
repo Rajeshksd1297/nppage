@@ -15,10 +15,15 @@ import {
   Calendar,
   Building,
   Image as ImageIcon,
-  FileText
+  FileText,
+  Settings,
+  Filter,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +41,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 
 interface AwardItem {
@@ -58,14 +81,28 @@ interface AwardItem {
   };
 }
 
+interface AwardsSettings {
+  categories: string[];
+  max_title_length: number;
+  max_description_length: number;
+  max_image_size_mb: number;
+  allowed_image_types: string[];
+  require_approval: boolean;
+  allow_user_submissions: boolean;
+  max_awards_per_user: number;
+}
+
 export default function AwardsManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [awards, setAwards] = useState<AwardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedAward, setSelectedAward] = useState<AwardItem | null>(null);
+  const [awardsSettings, setAwardsSettings] = useState<AwardsSettings | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -81,6 +118,7 @@ export default function AwardsManagement() {
 
   useEffect(() => {
     fetchAwards();
+    fetchAwardsSettings();
     
     // Set up real-time subscription
     const channel = supabase
@@ -102,6 +140,24 @@ export default function AwardsManagement() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const fetchAwardsSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('awards_settings' as any)
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setAwardsSettings(data as any);
+    } catch (error) {
+      console.error('Error fetching awards settings:', error);
+    }
+  };
 
   const fetchAwards = async () => {
     try {
@@ -126,8 +182,34 @@ export default function AwardsManagement() {
     }
   };
 
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!formData.title.trim()) {
+      errors.push('Title is required');
+    } else if (awardsSettings?.max_title_length && formData.title.length > awardsSettings.max_title_length) {
+      errors.push(`Title must be ${awardsSettings.max_title_length} characters or less`);
+    }
+
+    if (awardsSettings?.max_description_length && formData.description.length > awardsSettings.max_description_length) {
+      errors.push(`Description must be ${awardsSettings.max_description_length} characters or less`);
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async () => {
     try {
+      const validationErrors = validateForm();
+      if (validationErrors.length > 0) {
+        toast({
+          title: "Validation Error",
+          description: validationErrors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
       const awardData = {
         ...formData,
         award_date: formData.award_date ? new Date(formData.award_date).toISOString().split('T')[0] : null,
@@ -178,8 +260,6 @@ export default function AwardsManagement() {
   };
 
   const handleDelete = async (awardId: string) => {
-    if (!window.confirm('Are you sure you want to delete this award?')) return;
-
     try {
       const { error } = await supabase
         .from('awards')
@@ -238,8 +318,11 @@ export default function AwardsManagement() {
     const matchesSearch = award.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (award.organization && award.organization.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (award.description && award.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesSearch;
+    const matchesCategory = categoryFilter === 'all' || award.category === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
+
+  const categories = Array.from(new Set(awards.map(award => award.category).filter(Boolean)));
 
   const AwardForm = () => (
     <div className="space-y-4">
@@ -378,42 +461,69 @@ export default function AwardsManagement() {
           </h1>
           <p className="text-muted-foreground">Manage awards and achievements</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Award
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add Award</DialogTitle>
-              <DialogDescription>
-                Add a new award or achievement with details and documentation.
-              </DialogDescription>
-            </DialogHeader>
-            <AwardForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/awards-settings')}
+            className="gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Award
               </Button>
-              <Button onClick={handleSubmit}>Add Award</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add Award</DialogTitle>
+                <DialogDescription>
+                  Add a new award or achievement with details and documentation.
+                </DialogDescription>
+              </DialogHeader>
+              <AwardForm />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit}>Add Award</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Search */}
+      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search awards..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-4 items-center flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search awards..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category!}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -510,13 +620,30 @@ export default function AwardsManagement() {
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(award.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Award</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{award.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(award.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                         {award.certificate_url && (
                           <Button
                             variant="ghost"
