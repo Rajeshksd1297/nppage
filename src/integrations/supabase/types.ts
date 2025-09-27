@@ -2009,6 +2009,7 @@ export type Database = {
           custom_domain_id: string | null
           full_name: string | null
           id: string | null
+          public_profile: boolean | null
           publisher_id: string | null
           seo_description: string | null
           seo_keywords: string | null
@@ -2029,6 +2030,7 @@ export type Database = {
           custom_domain_id?: string | null
           full_name?: string | null
           id?: string | null
+          public_profile?: boolean | null
           publisher_id?: string | null
           seo_description?: string | null
           seo_keywords?: string | null
@@ -2049,6 +2051,7 @@ export type Database = {
           custom_domain_id?: string | null
           full_name?: string | null
           id?: string | null
+          public_profile?: boolean | null
           publisher_id?: string | null
           seo_description?: string | null
           seo_keywords?: string | null
