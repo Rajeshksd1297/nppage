@@ -514,9 +514,6 @@ export default function Dashboard() {
       {userRole === 'admin' ? renderAdminDashboard() : userProfile?.publisher_id ? renderPublisherDashboard() : renderUserDashboard()}
 
       {/* Recent Content - Only for non-admin users */}
-      {userRole !== 'admin' && <div className="grid gap-6 md:grid-cols-2">
-          <div>{renderRecentBooks()}</div>
-          <div>{renderRecentTickets()}</div>
-        </div>}
+      {userRole !== 'admin'}
     </div>;
 }
