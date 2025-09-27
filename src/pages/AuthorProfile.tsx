@@ -82,19 +82,25 @@ export default function AuthorProfile() {
         .from('profiles')
         .select('*')
         .eq('slug', slug)
-        .eq('public_profile', true)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid error on no match
 
       console.log('Profile query result:', { profileData, profileError });
 
       if (profileError) {
-        if (profileError.code === 'PGRST116') {
-          console.log('Profile not found or not public');
-          setError('Profile not found or not public');
-        } else {
-          console.error('Profile error:', profileError);
-          throw profileError;
-        }
+        console.error('Profile error:', profileError);
+        setError(`Error loading profile: ${profileError.message}`);
+        return;
+      }
+
+      if (!profileData) {
+        console.log('No profile found for slug:', slug);
+        setError('Profile not found');
+        return;
+      }
+
+      if (!profileData.public_profile) {
+        console.log('Profile is not public:', slug);
+        setError('Profile is not public');
         return;
       }
 

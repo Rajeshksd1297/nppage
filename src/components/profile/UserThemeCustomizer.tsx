@@ -129,13 +129,17 @@ export function UserThemeCustomizer({ selectedTheme, onSave, onCancel }: UserThe
         ...selectedTheme.config
       }));
     }
+  }, [selectedTheme?.id]); // Only depend on theme ID
 
-    // Track theme viewing
-    trackThemeUsage(selectedTheme.id, 'viewed', {
-      timestamp: new Date().toISOString(),
-      context: 'customizer'
-    });
-  }, [selectedTheme, trackThemeUsage]);
+  useEffect(() => {
+    if (selectedTheme?.id) {
+      // Track theme viewing
+      trackThemeUsage(selectedTheme.id, 'viewed', {
+        timestamp: new Date().toISOString(),
+        context: 'customizer'
+      });
+    }
+  }, [selectedTheme?.id, trackThemeUsage]);
 
   const updateConfig = (section: string, key: string, value: any) => {
     setCustomConfig(prev => ({
