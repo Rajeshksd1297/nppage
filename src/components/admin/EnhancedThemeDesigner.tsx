@@ -1106,23 +1106,162 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                   <CardTitle>Visual Effects</CardTitle>
                   <CardDescription>Add animations and visual enhancements</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Smooth Animations</Label>
-                      <Switch defaultChecked />
+                <CardContent className="space-y-6">
+                  {/* Animation Controls */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Animation Effects</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Smooth Animations</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Page Transitions</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Scroll Animations</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Parallax Effects</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Fade In Elements</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Slide Animations</Label>
+                        <Switch />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label>Hover Effects</Label>
-                      <Switch defaultChecked />
+                  </div>
+
+                  {/* Interaction Effects */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Interaction Effects</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Hover Effects</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Click Ripples</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Scale on Hover</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Pulse Effects</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Glow Effects</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Tilt on Hover</Label>
+                        <Switch />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label>Gradient Backgrounds</Label>
-                      <Switch />
+                  </div>
+
+                  {/* Visual Enhancements */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Visual Enhancements</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Gradient Backgrounds</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Shadow Effects</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Blur Effects</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Glass Morphism</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Backdrop Blur</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Border Animations</Label>
+                        <Switch />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Label>Shadow Effects</Label>
-                      <Switch defaultChecked />
+                  </div>
+
+                  {/* Text Effects */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Text Effects</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Typewriter Effect</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Text Gradients</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Text Shadows</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Highlight Effects</Label>
+                        <Switch />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Loading Effects */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Loading & States</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Skeleton Loading</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Progress Indicators</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Shimmer Effects</Label>
+                        <Switch />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Bounce Animations</Label>
+                        <Switch />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Settings */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Performance</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Reduce Motion (Accessibility)</Label>
+                        <Switch />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Animation Speed</Label>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="text-xs">Slow</Button>
+                          <Button variant="default" size="sm" className="text-xs">Normal</Button>
+                          <Button variant="outline" size="sm" className="text-xs">Fast</Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
