@@ -204,6 +204,7 @@ export default function ProfileSettings() {
   };
 
   const profileUrl = getProfileLandingPageUrl();
+  console.log('Profile URL debug:', { profileUrl, profileSlug: profile?.slug });
 
   if (loading) {
     return (

@@ -75,6 +75,8 @@ export default function AuthorProfile() {
     try {
       setLoading(true);
       
+      console.log('Loading profile for slug:', slug);
+      
       // Get profile by slug
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -83,10 +85,14 @@ export default function AuthorProfile() {
         .eq('public_profile', true)
         .single();
 
+      console.log('Profile query result:', { profileData, profileError });
+
       if (profileError) {
         if (profileError.code === 'PGRST116') {
+          console.log('Profile not found or not public');
           setError('Profile not found or not public');
         } else {
+          console.error('Profile error:', profileError);
           throw profileError;
         }
         return;
