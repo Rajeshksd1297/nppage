@@ -406,6 +406,51 @@ export type Database = {
         }
         Relationships: []
       }
+      event_settings: {
+        Row: {
+          allow_user_events: boolean | null
+          allowed_image_types: string[] | null
+          categories: string[] | null
+          created_at: string
+          default_event_duration: number | null
+          id: string
+          max_attendees_default: number | null
+          max_content_length: number | null
+          max_image_size: number | null
+          max_title_length: number | null
+          require_approval: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          allow_user_events?: boolean | null
+          allowed_image_types?: string[] | null
+          categories?: string[] | null
+          created_at?: string
+          default_event_duration?: number | null
+          id?: string
+          max_attendees_default?: number | null
+          max_content_length?: number | null
+          max_image_size?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          allow_user_events?: boolean | null
+          allowed_image_types?: string[] | null
+          categories?: string[] | null
+          created_at?: string
+          default_event_duration?: number | null
+          id?: string
+          max_attendees_default?: number | null
+          max_content_length?: number | null
+          max_image_size?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
