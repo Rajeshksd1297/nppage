@@ -27,7 +27,6 @@ import PublisherManagement from './pages/admin/PublisherManagement';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
-import ThemeDesigner from "./pages/ThemeDesigner";
 import ContactForm from "./pages/ContactForm";
 import MediaKit from "./pages/MediaKit";
 import BookCatalog from "./pages/admin/BookCatalog";
@@ -161,11 +160,6 @@ function App() {
             <Route path="/themes" element={
               <DashboardLayout>
                 <Themes />
-              </DashboardLayout>
-            } />
-            <Route path="/theme-designer" element={
-              <DashboardLayout>
-                <ThemeDesigner />
               </DashboardLayout>
             } />
             <Route path="/contact-form" element={

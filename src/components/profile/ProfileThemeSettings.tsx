@@ -16,7 +16,6 @@ interface ProfileThemeSettingsProps {
   onNext: () => void;
   onPrevious: () => void;
   isPro: boolean;
-  compact?: boolean;
 }
 
 const themes = [
@@ -69,8 +68,7 @@ export function ProfileThemeSettings({
   onThemeChange, 
   onNext, 
   onPrevious, 
-  isPro,
-  compact = false
+  isPro 
 }: ProfileThemeSettingsProps) {
   
   const handleThemeSelect = (themeId: string) => {
@@ -84,14 +82,12 @@ export function ProfileThemeSettings({
 
   return (
     <div className="space-y-6">
-      {!compact && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Choose Your Theme</h3>
-          <p className="text-muted-foreground">
-            Select a theme that best represents your author brand and style.
-          </p>
-        </div>
-      )}
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Choose Your Theme</h3>
+        <p className="text-muted-foreground">
+          Select a theme that best represents your author brand and style.
+        </p>
+      </div>
 
       <div className="grid gap-4">
         {themes.map((theme) => {
