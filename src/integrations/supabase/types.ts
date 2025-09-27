@@ -183,52 +183,118 @@ export type Database = {
       }
       blog_posts: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
+          category: string | null
           content: string
           created_at: string
           excerpt: string | null
+          featured: boolean | null
           featured_image_url: string | null
           id: string
           meta_description: string | null
           meta_title: string | null
           published_at: string | null
+          reading_time: number | null
           slug: string
           status: string | null
           tags: string[] | null
           title: string
           updated_at: string
           user_id: string
+          word_count: number | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
           content: string
           created_at?: string
           excerpt?: string | null
+          featured?: boolean | null
           featured_image_url?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          reading_time?: number | null
           slug: string
           status?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
+          word_count?: number | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
+          featured?: boolean | null
           featured_image_url?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          reading_time?: number | null
           slug?: string
           status?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
+          word_count?: number | null
+        }
+        Relationships: []
+      }
+      blog_settings: {
+        Row: {
+          allow_html: boolean
+          allowed_image_size_mb: number
+          allowed_image_types: string[]
+          auto_generate_slug: boolean
+          categories: Json
+          created_at: string
+          default_status: string
+          id: string
+          max_content_length: number
+          max_excerpt_length: number
+          max_title_length: number
+          require_approval: boolean
+          updated_at: string
+        }
+        Insert: {
+          allow_html?: boolean
+          allowed_image_size_mb?: number
+          allowed_image_types?: string[]
+          auto_generate_slug?: boolean
+          categories?: Json
+          created_at?: string
+          default_status?: string
+          id?: string
+          max_content_length?: number
+          max_excerpt_length?: number
+          max_title_length?: number
+          require_approval?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allow_html?: boolean
+          allowed_image_size_mb?: number
+          allowed_image_types?: string[]
+          auto_generate_slug?: boolean
+          categories?: Json
+          created_at?: string
+          default_status?: string
+          id?: string
+          max_content_length?: number
+          max_excerpt_length?: number
+          max_title_length?: number
+          require_approval?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
