@@ -7,49 +7,53 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children
+}: DashboardLayoutProps) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate('/auth');
         return;
       }
       setUser(session.user);
     };
-
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!session) {
-          navigate('/auth');
-          return;
-        }
-        setUser(session.user);
+    const {
+      data: {
+        subscription
       }
-    );
-
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+      setUser(session.user);
+    });
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       toast({
         title: "Signed out successfully",
-        description: "You have been logged out.",
+        description: "You have been logged out."
       });
       navigate('/');
     } catch (error) {
@@ -57,17 +61,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       toast({
         title: "Error signing out",
         description: "There was a problem signing you out.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (!user) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         
@@ -92,11 +93,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-6 bg-muted/30">
+          <main className="flex-1 p-6 bg-muted/30 rounded-sm">
             {children}
           </main>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }
