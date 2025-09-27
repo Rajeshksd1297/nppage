@@ -392,9 +392,17 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <NavLink to="/admin/settings" className={getNavCls}>
+                      <NavLink to="/admin/theme-management" className={getNavCls}>
                         <Palette className="h-4 w-4" />
                         {!collapsed && <span>Theme Management</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink to="/admin/settings" className={getNavCls}>
+                        <Settings className="h-4 w-4" />
+                        {!collapsed && <span>General Settings</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
