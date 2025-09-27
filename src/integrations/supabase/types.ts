@@ -794,10 +794,15 @@ export type Database = {
         Row: {
           advanced_analytics: boolean
           available_themes: Json | null
+          awards: boolean | null
+          blog: boolean | null
           contact_form: boolean
           created_at: string
           custom_domain: boolean
+          events: boolean | null
+          faq: boolean | null
           features: Json
+          gallery: boolean | null
           id: string
           max_books: number | null
           max_publications: number | null
@@ -813,10 +818,15 @@ export type Database = {
         Insert: {
           advanced_analytics?: boolean
           available_themes?: Json | null
+          awards?: boolean | null
+          blog?: boolean | null
           contact_form?: boolean
           created_at?: string
           custom_domain?: boolean
+          events?: boolean | null
+          faq?: boolean | null
           features?: Json
+          gallery?: boolean | null
           id?: string
           max_books?: number | null
           max_publications?: number | null
@@ -832,10 +842,15 @@ export type Database = {
         Update: {
           advanced_analytics?: boolean
           available_themes?: Json | null
+          awards?: boolean | null
+          blog?: boolean | null
           contact_form?: boolean
           created_at?: string
           custom_domain?: boolean
+          events?: boolean | null
+          faq?: boolean | null
           features?: Json
+          gallery?: boolean | null
           id?: string
           max_books?: number | null
           max_publications?: number | null

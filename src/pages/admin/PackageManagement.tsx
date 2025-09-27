@@ -17,7 +17,12 @@ import {
   BookOpen,
   Palette,
   CheckCircle2,
-  X
+  X,
+  Newspaper,
+  Camera,
+  Calendar,
+  Award,
+  HelpCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,6 +46,11 @@ interface Package {
   media_kit: boolean;
   newsletter_integration: boolean;
   no_watermark: boolean;
+  blog: boolean;
+  gallery: boolean;
+  events: boolean;
+  awards: boolean;
+  faq: boolean;
   badge_text: string;
   badge_color: string;
   description: string;
@@ -77,6 +87,11 @@ export default function PackageManagement() {
         media_kit: false,
         newsletter_integration: false,
         no_watermark: false,
+        blog: false,
+        gallery: false,
+        events: false,
+        awards: false,
+        faq: false,
         badge_text: '',
         badge_color: '',
         description: 'Perfect for getting started with your author journey',
@@ -104,6 +119,11 @@ export default function PackageManagement() {
         media_kit: true,
         newsletter_integration: true,
         no_watermark: true,
+        blog: true,
+        gallery: true,
+        events: true,
+        awards: true,
+        faq: true,
         badge_text: 'Most Popular',
         badge_color: 'primary',
         description: 'Everything you need to grow your author brand',
@@ -131,6 +151,11 @@ export default function PackageManagement() {
         media_kit: true,
         newsletter_integration: true,
         no_watermark: true,
+        blog: true,
+        gallery: true,
+        events: true,
+        awards: true,
+        faq: true,
         badge_text: 'For Publishers',
         badge_color: 'secondary',
         description: 'Designed for publishers managing multiple authors',
@@ -182,6 +207,11 @@ export default function PackageManagement() {
           media_kit: plan.media_kit,
           newsletter_integration: plan.newsletter_integration,
           no_watermark: plan.no_watermark,
+          blog: plan.blog || false,
+          gallery: plan.gallery || false,
+          events: plan.events || false,
+          awards: plan.awards || false,
+          faq: plan.faq || false,
           badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
           badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
           description: `${plan.name} plan features`,
@@ -232,6 +262,11 @@ export default function PackageManagement() {
           media_kit: pkg.media_kit,
           newsletter_integration: pkg.newsletter_integration,
           no_watermark: pkg.no_watermark,
+          blog: pkg.blog,
+          gallery: pkg.gallery,
+          events: pkg.events,
+          awards: pkg.awards,
+          faq: pkg.faq,
           available_themes: pkg.available_themes || []
         };
 
@@ -289,6 +324,11 @@ export default function PackageManagement() {
       media_kit: false,
       newsletter_integration: false,
       no_watermark: false,
+      blog: false,
+      gallery: false,
+      events: false,
+      awards: false,
+      faq: false,
       badge_text: '',
       badge_color: '',
       description: 'Description for new package',
@@ -546,6 +586,66 @@ export default function PackageManagement() {
                         </div>
                       </div>
                       
+                      {/* Content Features */}
+                      <div className="mt-6">
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Newspaper className="h-4 w-4" />
+                          Content Features
+                        </h4>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.blog}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { blog: checked })}
+                            />
+                            <Label className="flex items-center gap-2">
+                              <Newspaper className="h-3 w-3" />
+                              Blog
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.gallery}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { gallery: checked })}
+                            />
+                            <Label className="flex items-center gap-2">
+                              <Camera className="h-3 w-3" />
+                              Gallery
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.events}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { events: checked })}
+                            />
+                            <Label className="flex items-center gap-2">
+                              <Calendar className="h-3 w-3" />
+                              Events
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.awards}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { awards: checked })}
+                            />
+                            <Label className="flex items-center gap-2">
+                              <Award className="h-3 w-3" />
+                              Awards
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={pkg.faq}
+                              onCheckedChange={(checked) => updatePackage(pkg.id, { faq: checked })}
+                            />
+                            <Label className="flex items-center gap-2">
+                              <HelpCircle className="h-3 w-3" />
+                              FAQ
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Feature Summary */}
                       <div className="mt-4 p-3 bg-muted rounded-lg">
                         <p className="text-sm font-medium mb-2">Enabled Features:</p>
@@ -557,6 +657,11 @@ export default function PackageManagement() {
                           {pkg.media_kit && <Badge variant="outline" className="text-xs">Media Kit</Badge>}
                           {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
+                          {pkg.blog && <Badge variant="outline" className="text-xs">Blog</Badge>}
+                          {pkg.gallery && <Badge variant="outline" className="text-xs">Gallery</Badge>}
+                          {pkg.events && <Badge variant="outline" className="text-xs">Events</Badge>}
+                          {pkg.awards && <Badge variant="outline" className="text-xs">Awards</Badge>}
+                          {pkg.faq && <Badge variant="outline" className="text-xs">FAQ</Badge>}
                           {pkg.is_publisher_plan && <Badge variant="outline" className="text-xs bg-purple-100">Publisher Plan</Badge>}
                         </div>
                       </div>
