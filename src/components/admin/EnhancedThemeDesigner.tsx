@@ -330,6 +330,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
   const colorPalettes = [
     { 
       name: 'Ocean Blue', 
+      category: 'Professional',
       colors: { 
         primary: '#0ea5e9', 
         secondary: '#64748b', 
@@ -342,6 +343,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     { 
       name: 'Purple Magic', 
+      category: 'Creative',
       colors: { 
         primary: '#8b5cf6', 
         secondary: '#64748b', 
@@ -354,6 +356,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     { 
       name: 'Forest Green', 
+      category: 'Nature',
       colors: { 
         primary: '#10b981', 
         secondary: '#64748b', 
@@ -362,6 +365,210 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
         surface: '#f8fafc',
         text: '#1f2937',
         border: '#e5e7eb'
+      }
+    },
+    { 
+      name: 'Sunset Rose', 
+      category: 'Warm',
+      colors: { 
+        primary: '#f43f5e', 
+        secondary: '#64748b', 
+        accent: '#fb7185',
+        background: '#ffffff',
+        surface: '#f8fafc',
+        text: '#1f2937',
+        border: '#e5e7eb'
+      }
+    },
+    { 
+      name: 'Golden Hour', 
+      category: 'Warm',
+      colors: { 
+        primary: '#f59e0b', 
+        secondary: '#92400e', 
+        accent: '#fbbf24',
+        background: '#fffbeb',
+        surface: '#fef3c7',
+        text: '#92400e',
+        border: '#fcd34d'
+      }
+    },
+    { 
+      name: 'Midnight Dark', 
+      category: 'Dark',
+      colors: { 
+        primary: '#3b82f6', 
+        secondary: '#1f2937', 
+        accent: '#60a5fa',
+        background: '#111827',
+        surface: '#1f2937',
+        text: '#f9fafb',
+        border: '#374151'
+      }
+    },
+    { 
+      name: 'Coral Reef', 
+      category: 'Vibrant',
+      colors: { 
+        primary: '#ff7849', 
+        secondary: '#64748b', 
+        accent: '#ffa94d',
+        background: '#ffffff',
+        surface: '#fff7ed',
+        text: '#1f2937',
+        border: '#fed7aa'
+      }
+    },
+    { 
+      name: 'Arctic Mint', 
+      category: 'Cool',
+      colors: { 
+        primary: '#14b8a6', 
+        secondary: '#64748b', 
+        accent: '#5eead4',
+        background: '#f0fdfa',
+        surface: '#ccfbf1',
+        text: '#134e4a',
+        border: '#99f6e4'
+      }
+    },
+    { 
+      name: 'Royal Purple', 
+      category: 'Elegant',
+      colors: { 
+        primary: '#7c3aed', 
+        secondary: '#64748b', 
+        accent: '#a78bfa',
+        background: '#faf7ff',
+        surface: '#ede9fe',
+        text: '#581c87',
+        border: '#c4b5fd'
+      }
+    },
+    { 
+      name: 'Emerald Dream', 
+      category: 'Nature',
+      colors: { 
+        primary: '#059669', 
+        secondary: '#64748b', 
+        accent: '#34d399',
+        background: '#f0fdf4',
+        surface: '#dcfce7',
+        text: '#064e3b',
+        border: '#bbf7d0'
+      }
+    },
+    { 
+      name: 'Cherry Blossom', 
+      category: 'Soft',
+      colors: { 
+        primary: '#ec4899', 
+        secondary: '#64748b', 
+        accent: '#f472b6',
+        background: '#fdf2f8',
+        surface: '#fce7f3',
+        text: '#831843',
+        border: '#f9a8d4'
+      }
+    },
+    { 
+      name: 'Monochrome', 
+      category: 'Minimal',
+      colors: { 
+        primary: '#000000', 
+        secondary: '#64748b', 
+        accent: '#374151',
+        background: '#ffffff',
+        surface: '#f9fafb',
+        text: '#111827',
+        border: '#e5e7eb'
+      }
+    }
+  ];
+
+  const gradientPalettes = [
+    {
+      name: 'Ocean Sunset',
+      category: 'Nature',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      colors: {
+        primary: '#667eea',
+        secondary: '#764ba2',
+        accent: '#9b59b6',
+        background: '#ffffff',
+        surface: '#f8fafc',
+        text: '#1f2937',
+        border: '#e5e7eb'
+      }
+    },
+    {
+      name: 'Fire Blaze',
+      category: 'Warm',
+      gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+      colors: {
+        primary: '#ff9a9e',
+        secondary: '#fecfef',
+        accent: '#ff6b9d',
+        background: '#ffffff',
+        surface: '#fef7f7',
+        text: '#1f2937',
+        border: '#fecaca'
+      }
+    },
+    {
+      name: 'Aurora Borealis',
+      category: 'Cool',
+      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      colors: {
+        primary: '#a8edea',
+        secondary: '#fed6e3',
+        accent: '#81e6d9',
+        background: '#ffffff',
+        surface: '#f0fdfa',
+        text: '#1f2937',
+        border: '#b2f5ea'
+      }
+    },
+    {
+      name: 'Purple Rain',
+      category: 'Creative',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      colors: {
+        primary: '#667eea',
+        secondary: '#764ba2',
+        accent: '#8b5cf6',
+        background: '#ffffff',
+        surface: '#faf5ff',
+        text: '#1f2937',
+        border: '#e9d5ff'
+      }
+    },
+    {
+      name: 'Golden Sunrise',
+      category: 'Warm',
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      colors: {
+        primary: '#f093fb',
+        secondary: '#f5576c',
+        accent: '#ff6b9d',
+        background: '#ffffff',
+        surface: '#fef7f7',
+        text: '#1f2937',
+        border: '#fed7d7'
+      }
+    },
+    {
+      name: 'Forest Mist',
+      category: 'Nature',
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      colors: {
+        primary: '#4facfe',
+        secondary: '#00f2fe',
+        accent: '#06b6d4',
+        background: '#ffffff',
+        surface: '#f0f9ff',
+        text: '#1f2937',
+        border: '#bae6fd'
       }
     }
   ];
@@ -452,6 +659,9 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
 
   const applyColorPalette = (palette: any) => {
     updateConfig('colors', palette.colors);
+    if (palette.gradient) {
+      updateConfig('effects', { gradient: palette.gradient });
+    }
   };
 
   return (
@@ -637,24 +847,30 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label className="text-sm font-medium mb-3 block">Quick Palettes</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <Label className="text-sm font-medium mb-3 block">Color Palettes</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                       {colorPalettes.map((palette) => (
                         <div
                           key={palette.name}
-                          className="p-3 border rounded-lg cursor-pointer hover:border-primary transition-colors"
+                          className="p-3 border rounded-lg cursor-pointer hover:border-primary transition-colors group"
                           onClick={() => applyColorPalette(palette)}
                         >
-                          <p className="font-medium text-sm mb-2">{palette.name}</p>
-                          <div className="flex gap-1">
-                            {Object.values(palette.colors).slice(0, 4).map((color, index) => (
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium text-sm">{palette.name}</p>
+                            <Badge variant="outline" className="text-xs">{palette.category}</Badge>
+                          </div>
+                          <div className="flex gap-1 mb-2">
+                            {Object.values(palette.colors).slice(0, 5).map((color, index) => (
                               <div
                                 key={index}
-                                className="w-6 h-6 rounded"
+                                className="w-6 h-6 rounded border shadow-sm"
                                 style={{ backgroundColor: color }}
                               />
                             ))}
                           </div>
+                          <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                            Click to apply
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -662,36 +878,181 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
 
                   <Separator />
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <Label htmlFor="primary">Primary Color</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="color"
-                          value={currentTheme.config?.colors?.primary || '#3b82f6'}
-                          onChange={(e) => updateConfig('colors', { primary: e.target.value })}
-                          className="w-12 h-10 p-1"
-                        />
-                        <Input
-                          value={currentTheme.config?.colors?.primary || '#3b82f6'}
-                          onChange={(e) => updateConfig('colors', { primary: e.target.value })}
-                        />
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Gradient Palettes</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                      {gradientPalettes.map((palette) => (
+                        <div
+                          key={palette.name}
+                          className="p-3 border rounded-lg cursor-pointer hover:border-primary transition-colors group"
+                          onClick={() => applyColorPalette(palette)}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium text-sm">{palette.name}</p>
+                            <Badge variant="secondary" className="text-xs">{palette.category}</Badge>
+                          </div>
+                          <div 
+                            className="w-full h-8 rounded mb-2 border shadow-sm"
+                            style={{ background: palette.gradient }}
+                          />
+                          <div className="flex gap-1 mb-2">
+                            {Object.values(palette.colors).slice(0, 3).map((color, index) => (
+                              <div
+                                key={index}
+                                className="w-4 h-4 rounded border shadow-sm"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                            Gradient theme
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Custom Colors</Label>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="primary">Primary Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={currentTheme.config?.colors?.primary || '#3b82f6'}
+                            onChange={(e) => updateConfig('colors', { primary: e.target.value })}
+                            className="w-12 h-10 p-1"
+                          />
+                          <Input
+                            value={currentTheme.config?.colors?.primary || '#3b82f6'}
+                            onChange={(e) => updateConfig('colors', { primary: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="secondary">Secondary Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={currentTheme.config?.colors?.secondary || '#64748b'}
+                            onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
+                            className="w-12 h-10 p-1"
+                          />
+                          <Input
+                            value={currentTheme.config?.colors?.secondary || '#64748b'}
+                            onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="accent">Accent Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={currentTheme.config?.colors?.accent || '#f59e0b'}
+                            onChange={(e) => updateConfig('colors', { accent: e.target.value })}
+                            className="w-12 h-10 p-1"
+                          />
+                          <Input
+                            value={currentTheme.config?.colors?.accent || '#f59e0b'}
+                            onChange={(e) => updateConfig('colors', { accent: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="background">Background Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={currentTheme.config?.colors?.background || '#ffffff'}
+                            onChange={(e) => updateConfig('colors', { background: e.target.value })}
+                            className="w-12 h-10 p-1"
+                          />
+                          <Input
+                            value={currentTheme.config?.colors?.background || '#ffffff'}
+                            onChange={(e) => updateConfig('colors', { background: e.target.value })}
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="secondary">Secondary Color</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="color"
-                          value={currentTheme.config?.colors?.secondary || '#64748b'}
-                          onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
-                          className="w-12 h-10 p-1"
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Gradient Settings</Label>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={currentTheme.config?.gradient?.enabled || false}
+                          onCheckedChange={(checked) => updateConfig('gradient', { enabled: checked })}
                         />
-                        <Input
-                          value={currentTheme.config?.colors?.secondary || '#64748b'}
-                          onChange={(e) => updateConfig('colors', { secondary: e.target.value })}
-                        />
+                        <Label>Enable Gradients</Label>
                       </div>
+                      
+                      {currentTheme.config?.gradient?.enabled && (
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <Label>Gradient Start Color</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                type="color"
+                                value={currentTheme.config?.gradient?.from || '#3b82f6'}
+                                onChange={(e) => updateConfig('gradient', { from: e.target.value })}
+                                className="w-12 h-10 p-1"
+                              />
+                              <Input
+                                value={currentTheme.config?.gradient?.from || '#3b82f6'}
+                                onChange={(e) => updateConfig('gradient', { from: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Gradient End Color</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                type="color"
+                                value={currentTheme.config?.gradient?.to || '#8b5cf6'}
+                                onChange={(e) => updateConfig('gradient', { to: e.target.value })}
+                                className="w-12 h-10 p-1"
+                              />
+                              <Input
+                                value={currentTheme.config?.gradient?.to || '#8b5cf6'}
+                                onChange={(e) => updateConfig('gradient', { to: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Gradient Direction</Label>
+                            <select
+                              value={currentTheme.config?.gradient?.direction || 'to-r'}
+                              onChange={(e) => updateConfig('gradient', { direction: e.target.value })}
+                              className="w-full p-2 border rounded-md"
+                            >
+                              <option value="to-r">Left to Right</option>
+                              <option value="to-l">Right to Left</option>
+                              <option value="to-t">Bottom to Top</option>
+                              <option value="to-b">Top to Bottom</option>
+                              <option value="to-br">Top Left to Bottom Right</option>
+                              <option value="to-bl">Top Right to Bottom Left</option>
+                              <option value="to-tr">Bottom Left to Top Right</option>
+                              <option value="to-tl">Bottom Right to Top Left</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Label>Preview</Label>
+                            <div 
+                              className="w-full h-10 rounded border"
+                              style={{
+                                background: `linear-gradient(${currentTheme.config?.gradient?.direction || 'to-r'}, ${currentTheme.config?.gradient?.from || '#3b82f6'}, ${currentTheme.config?.gradient?.to || '#8b5cf6'})`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
