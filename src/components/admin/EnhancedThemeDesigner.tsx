@@ -293,7 +293,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     {
       id: '12',
-      name: 'Blog/Articles',
+      name: 'Blog Posts',
       type: 'blog',
       enabled: false,
       config: {},

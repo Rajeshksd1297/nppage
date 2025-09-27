@@ -101,7 +101,6 @@ const getQuickActions = (userSlug: string | null, isAdmin: boolean) => [
 // Support & Account - always available
 const supportItems = [
   { title: "Social Connections", url: "/social-connections", icon: Share2 },
-  { title: "Articles", url: "/articles", icon: FileText },
   { title: "SEO Dashboard", url: "/seo-dashboard", icon: Search },
   { title: "Support Tickets", url: "/support-tickets", icon: MessageCircle },
   { title: "Subscription", url: "/subscription", icon: CreditCard },
@@ -371,14 +370,6 @@ export function AppSidebar() {
                     <NavLink to="/user-newsletter-management" className={getNavCls}>
                       <Mail className="h-4 w-4" />
                       {!collapsed && <span>My Newsletter</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/articles" className={getNavCls}>
-                      <FileText className="h-4 w-4" />
-                      {!collapsed && <span>Articles</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -106,8 +106,8 @@ export function UserThemeCustomizer({ selectedTheme, onSave, onCancel }: UserThe
     },
     {
       id: '4',
-      name: 'Recent Articles',
-      type: 'articles',
+      name: 'Recent Blog Posts',
+      type: 'blog',
       enabled: false,
       order: 3,
       config: { limit: 2 }

@@ -327,7 +327,7 @@ export default function SEOSettings() {
                   <li>Homepage and main pages</li>
                   <li>All published author profiles</li>
                   <li>All published book pages</li>
-                  <li>Blog posts and articles</li>
+                  <li>Blog posts</li>
                 </ul>
               </div>
             </CardContent>

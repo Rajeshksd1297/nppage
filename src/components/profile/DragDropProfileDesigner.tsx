@@ -212,7 +212,7 @@ export function DragDropProfileDesigner({
             <div className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Latest Articles
+                Latest Blog Posts
               </h3>
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (

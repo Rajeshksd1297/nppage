@@ -21,8 +21,6 @@ import Subscription from "./pages/Subscription";
 import CustomDomains from "./pages/CustomDomains";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import SEODashboard from './pages/SEODashboard';
-import Articles from './pages/Articles';
-import ArticleEditor from './pages/ArticleEditor';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
 import SocialConnections from './pages/SocialConnections';
@@ -147,21 +145,6 @@ function App() {
             <Route path="/seo-dashboard" element={
               <DashboardLayout>
                 <SEODashboard />
-              </DashboardLayout>
-            } />
-            <Route path="/articles" element={
-              <DashboardLayout>
-                <Articles />
-              </DashboardLayout>
-            } />
-            <Route path="/article-editor" element={
-              <DashboardLayout>
-                <ArticleEditor />
-              </DashboardLayout>
-            } />
-            <Route path="/article-editor/:id" element={
-              <DashboardLayout>
-                <ArticleEditor />
               </DashboardLayout>
             } />
             <Route path="/admin/seo-settings" element={

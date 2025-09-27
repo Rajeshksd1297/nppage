@@ -43,7 +43,7 @@ const platformConfig = {
     name: 'Twitter',
     icon: Twitter,
     color: 'text-blue-500',
-    description: 'Share books and articles to your Twitter feed'
+    description: 'Share books and blog posts to your Twitter feed'
   },
   linkedin: {
     name: 'LinkedIn',
@@ -194,7 +194,7 @@ export default function SocialConnections() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Social Media Connections</h1>
         <p className="text-muted-foreground">
-          Connect your social accounts to automatically share your books and articles
+          Connect your social accounts to automatically share your books and blog posts
         </p>
       </div>
 
