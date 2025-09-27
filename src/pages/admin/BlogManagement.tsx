@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { sanitizeHTML, validateAndSanitizeInput } from '@/utils/sanitization';
 import { 
   Plus, 
   Edit3, 
@@ -196,31 +197,51 @@ export default function BlogManagement() {
   const validateForm = () => {
     if (!settings) return false;
 
-    if (formData.title.length > settings.max_title_length) {
+    // Validate and sanitize title
+    const titleValidation = validateAndSanitizeInput(formData.title, {
+      maxLength: settings.max_title_length,
+      allowHTML: false,
+      required: true
+    });
+    if (!titleValidation.isValid) {
       toast({
         title: "Validation Error",
-        description: `Title exceeds maximum length of ${settings.max_title_length} characters`,
+        description: titleValidation.error,
         variant: "destructive",
       });
       return false;
     }
 
-    if (formData.content.length > settings.max_content_length) {
+    // Validate and sanitize content
+    const contentValidation = validateAndSanitizeInput(formData.content, {
+      maxLength: settings.max_content_length,
+      allowHTML: settings.allow_html,
+      required: true
+    });
+    if (!contentValidation.isValid) {
       toast({
         title: "Validation Error",
-        description: `Content exceeds maximum length of ${settings.max_content_length} characters`,
+        description: contentValidation.error,
         variant: "destructive",
       });
       return false;
     }
 
-    if (formData.excerpt && formData.excerpt.length > settings.max_excerpt_length) {
-      toast({
-        title: "Validation Error",
-        description: `Excerpt exceeds maximum length of ${settings.max_excerpt_length} characters`,
-        variant: "destructive",
+    // Validate and sanitize excerpt if provided
+    if (formData.excerpt) {
+      const excerptValidation = validateAndSanitizeInput(formData.excerpt, {
+        maxLength: settings.max_excerpt_length,
+        allowHTML: false,
+        required: false
       });
-      return false;
+      if (!excerptValidation.isValid) {
+        toast({
+          title: "Validation Error",
+          description: excerptValidation.error,
+          variant: "destructive",
+        });
+        return false;
+      }
     }
 
     return true;
@@ -300,8 +321,20 @@ export default function BlogManagement() {
 
       const slug = settings?.auto_generate_slug ? generateSlug(formData.title) : formData.slug;
 
+      // Sanitize all user inputs before saving
+      const sanitizedTitle = validateAndSanitizeInput(formData.title, { allowHTML: false }).sanitized;
+      const sanitizedContent = validateAndSanitizeInput(formData.content, { allowHTML: settings?.allow_html }).sanitized;
+      const sanitizedExcerpt = formData.excerpt ? validateAndSanitizeInput(formData.excerpt, { allowHTML: false }).sanitized : '';
+      const sanitizedMetaTitle = formData.meta_title ? validateAndSanitizeInput(formData.meta_title, { allowHTML: false }).sanitized : '';
+      const sanitizedMetaDescription = formData.meta_description ? validateAndSanitizeInput(formData.meta_description, { allowHTML: false }).sanitized : '';
+
       const postData = {
         ...formData,
+        title: sanitizedTitle,
+        content: sanitizedContent,
+        excerpt: sanitizedExcerpt,
+        meta_title: sanitizedMetaTitle,
+        meta_description: sanitizedMetaDescription,
         featured_image_url: imageUrl,
         slug,
         tags: formData.tags,
