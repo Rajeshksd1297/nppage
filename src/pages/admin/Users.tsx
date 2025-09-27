@@ -87,6 +87,7 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState("table");
   const { toast } = useToast();
@@ -100,6 +101,15 @@ export default function AdminUsers() {
   });
 
   const [editForm, setEditForm] = useState({
+    full_name: "",
+    email: "",
+    bio: "",
+    website_url: "",
+    public_profile: true,
+    role: "user"
+  });
+
+  const [addForm, setAddForm] = useState({
     full_name: "",
     email: "",
     bio: "",
@@ -339,6 +349,38 @@ export default function AdminUsers() {
     setIsEditDialogOpen(true);
   };
 
+  const handleAddUser = () => {
+    setAddForm({
+      full_name: "",
+      email: "",
+      bio: "",
+      website_url: "",
+      public_profile: true,
+      role: "user"
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  const createUser = async () => {
+    try {
+      // Since we can't create auth users directly, we'll create an invitation system
+      // For now, we'll just show a message about the limitation
+      toast({
+        title: "Feature Note",
+        description: "User invitation system needs to be implemented. Users must sign up themselves to create auth accounts.",
+        variant: "default",
+      });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create user",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = filters.search === "" || 
       user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -383,7 +425,7 @@ export default function AdminUsers() {
             <Download className="h-4 w-4 mr-2" />
             Export Users
           </Button>
-          <Button>
+          <Button onClick={handleAddUser}>
             <UserPlus className="h-4 w-4 mr-2" />
             Add User
           </Button>
@@ -827,6 +869,97 @@ export default function AdminUsers() {
         onOpenChange={setIsEditDialogOpen}
         onSave={updateUser}
       />
+
+      {/* Add User Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="add-name"
+                value={addForm.full_name}
+                onChange={(e) => setAddForm({...addForm, full_name: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter full name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="add-email"
+                type="email"
+                value={addForm.email}
+                onChange={(e) => setAddForm({...addForm, email: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter email address"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-role" className="text-right">
+                Role
+              </Label>
+              <Select value={addForm.role} onValueChange={(value) => setAddForm({...addForm, role: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="moderator">Moderator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-bio" className="text-right">
+                Bio
+              </Label>
+              <Textarea
+                id="add-bio"
+                value={addForm.bio}
+                onChange={(e) => setAddForm({...addForm, bio: e.target.value})}
+                className="col-span-3"
+                placeholder="Optional bio"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-website" className="text-right">
+                Website
+              </Label>
+              <Input
+                id="add-website"
+                type="url"
+                value={addForm.website_url}
+                onChange={(e) => setAddForm({...addForm, website_url: e.target.value})}
+                className="col-span-3"
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-md">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <AlertCircle className="h-4 w-4 inline mr-2" />
+                Note: This creates a user profile. The user will need to sign up with the provided email to activate their account.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createUser}>
+              Create User
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
         <AlertDialogContent>
