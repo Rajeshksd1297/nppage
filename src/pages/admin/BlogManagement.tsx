@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,13 +104,14 @@ interface BlogSettings {
 
 export default function BlogManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [settings, setSettings] = useState<BlogSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -417,7 +419,6 @@ export default function BlogManagement() {
         title: "Success",
         description: "Blog settings updated successfully",
       });
-      setIsSettingsOpen(false);
     } catch (error: any) {
       console.error('Error saving settings:', error);
       toast({
@@ -498,14 +499,10 @@ export default function BlogManagement() {
           <p className="text-muted-foreground">Manage blog posts and settings</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-            </DialogTrigger>
-          </Dialog>
+          <Button variant="outline" onClick={() => navigate('/admin/blog-settings')}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -945,129 +942,6 @@ export default function BlogManagement() {
                 Edit Post
               </Button>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Settings Dialog */}
-      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Blog Settings</DialogTitle>
-            <DialogDescription>
-              Configure blog management settings and restrictions
-            </DialogDescription>
-          </DialogHeader>
-          {settings && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="max-title">Max Title Length</Label>
-                  <Input
-                    id="max-title"
-                    type="number"
-                    value={settings.max_title_length}
-                    onChange={(e) => setSettings(prev => prev ? { ...prev, max_title_length: parseInt(e.target.value) } : null)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="max-content">Max Content Length</Label>
-                  <Input
-                    id="max-content"
-                    type="number"
-                    value={settings.max_content_length}
-                    onChange={(e) => setSettings(prev => prev ? { ...prev, max_content_length: parseInt(e.target.value) } : null)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="max-excerpt">Max Excerpt Length</Label>
-                  <Input
-                    id="max-excerpt"
-                    type="number"
-                    value={settings.max_excerpt_length}
-                    onChange={(e) => setSettings(prev => prev ? { ...prev, max_excerpt_length: parseInt(e.target.value) } : null)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="max-image-size">Max Image Size (MB)</Label>
-                  <Input
-                    id="max-image-size"
-                    type="number"
-                    value={settings.allowed_image_size_mb}
-                    onChange={(e) => setSettings(prev => prev ? { ...prev, allowed_image_size_mb: parseInt(e.target.value) } : null)}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="require-approval"
-                    checked={settings.require_approval}
-                    onCheckedChange={(checked) => setSettings(prev => prev ? { ...prev, require_approval: checked } : null)}
-                  />
-                  <Label htmlFor="require-approval">Require Admin Approval</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="allow-html"
-                    checked={settings.allow_html}
-                    onCheckedChange={(checked) => setSettings(prev => prev ? { ...prev, allow_html: checked } : null)}
-                  />
-                  <Label htmlFor="allow-html">Allow HTML in Content</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="auto-slug"
-                    checked={settings.auto_generate_slug}
-                    onCheckedChange={(checked) => setSettings(prev => prev ? { ...prev, auto_generate_slug: checked } : null)}
-                  />
-                  <Label htmlFor="auto-slug">Auto-generate Slugs</Label>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label htmlFor="categories">Categories (one per line)</Label>
-                <Textarea
-                  id="categories"
-                  value={settings.categories.join('\n')}
-                  onChange={(e) => setSettings(prev => prev ? { 
-                    ...prev, 
-                    categories: e.target.value.split('\n').map(cat => cat.trim()).filter(Boolean)
-                  } : null)}
-                  rows={6}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="default-status">Default Status</Label>
-                <Select 
-                  value={settings.default_status} 
-                  onValueChange={(value) => setSettings(prev => prev ? { ...prev, default_status: value } : null)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={saveSettings}>
-              <Save className="h-4 w-4 mr-2" />
-              Save Settings
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

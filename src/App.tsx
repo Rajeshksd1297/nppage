@@ -50,6 +50,7 @@ import TicketDetails from "./pages/admin/TicketDetails";
 import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
 import BlogManagement from "./pages/admin/BlogManagement";
+import BlogSettings from "./pages/admin/BlogSettings";
 import GalleryManagement from "./pages/admin/GalleryManagement";
 import EventsManagement from "./pages/admin/EventsManagement";
 import AwardsManagement from "./pages/admin/AwardsManagement";
@@ -291,6 +292,11 @@ function App() {
             <Route path="/admin/blog-management" element={
               <DashboardLayout>
                 <BlogManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/blog-settings" element={
+              <DashboardLayout>
+                <BlogSettings />
               </DashboardLayout>
             } />
             <Route path="/admin/gallery-management" element={
