@@ -62,6 +62,9 @@ export default function AuthorProfile() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('AuthorProfile component rendered with slug:', slug);
+    console.log('Current window location:', window.location.pathname);
+    
     if (!slug) {
       setError('Profile not found');
       setLoading(false);
