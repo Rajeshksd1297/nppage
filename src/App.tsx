@@ -73,6 +73,7 @@ import UserNewsletterManagement from "./pages/UserNewsletterManagement";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { AdminAccessGuard } from "./components/AdminAccessGuard";
+import { TestEmailSender } from "./components/TestEmailSender";
 
 const queryClient = new QueryClient();
 
@@ -229,6 +230,15 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <EmailSettings />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/test-emails" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <div className="container mx-auto py-6 flex justify-center">
+                    <TestEmailSender />
+                  </div>
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
