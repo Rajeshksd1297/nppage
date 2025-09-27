@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout } from 'lucide-react';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
+import HomePageEditor from '@/components/admin/HomePageEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +28,7 @@ interface HomePageStats {
 }
 
 const HomePageManagement = () => {
-  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'settings'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'editor' | 'settings'>('overview');
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [stats, setStats] = useState<HomePageStats>({
     totalVisitors: 0,
@@ -95,6 +96,10 @@ const HomePageManagement = () => {
 
   const handleCreateHeroBlock = () => {
     setCurrentView('hero-blocks');
+  };
+
+  const handleEditHomePage = () => {
+    setCurrentView('editor');
   };
 
   const handleEditHeroBlock = (blockId: string) => {
@@ -168,6 +173,18 @@ const HomePageManagement = () => {
     );
   }
 
+  if (currentView === 'editor') {
+    return (
+      <HomePageEditor
+        onBack={() => setCurrentView('overview')}
+        onSave={(sections) => {
+          console.log('Saving sections:', sections);
+          setCurrentView('overview');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -182,6 +199,10 @@ const HomePageManagement = () => {
             <Eye className="h-4 w-4 mr-2" />
             Preview Home Page
           </Button>
+          <Button onClick={handleEditHomePage}>
+            <Layout className="h-4 w-4 mr-2" />
+            Edit Home Page
+          </Button>
           <Button onClick={handleCreateHeroBlock}>
             <Plus className="h-4 w-4 mr-2" />
             Create Hero Block
@@ -192,6 +213,7 @@ const HomePageManagement = () => {
       <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="editor">Page Editor</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -349,6 +371,30 @@ const HomePageManagement = () => {
                   <li>Analytics tracking settings</li>
                   <li>Performance optimization options</li>
                 </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="editor" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Page Editor</CardTitle>
+              <CardDescription>
+                Use the advanced editor to manage sections, sliders, and content
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Layout className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Advanced Page Editor</h3>
+                <p className="text-muted-foreground mb-4">
+                  Click "Edit Home Page" above to access the full editor with drag-and-drop sections, sliders, and more
+                </p>
+                <Button onClick={handleEditHomePage}>
+                  <Layout className="h-4 w-4 mr-2" />
+                  Open Page Editor
+                </Button>
               </div>
             </CardContent>
           </Card>
