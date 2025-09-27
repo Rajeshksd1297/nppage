@@ -111,6 +111,7 @@ const adminItems = [
   { title: "Manage Access", url: "/admin/users", icon: Users },
   { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
   { title: "Publishers", url: "/admin/publishers", icon: Building2 },
+  { title: "SEO Settings", url: "/admin/seo-settings", icon: Search },
   { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },

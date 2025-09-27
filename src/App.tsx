@@ -268,6 +268,11 @@ function App() {
                 <HelpDeskSettings />
               </DashboardLayout>
             } />
+            <Route path="/admin/seo-settings" element={
+              <DashboardLayout>
+                <SEOSettings />
+              </DashboardLayout>
+            } />
             <Route path="/admin/ticket/:id" element={
               <DashboardLayout>
                 <TicketDetails />

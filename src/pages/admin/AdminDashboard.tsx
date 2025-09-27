@@ -5,6 +5,51 @@ import { Badge } from '@/components/ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { DollarSign, Users, TrendingUp, Crown, Globe, BookOpen } from 'lucide-react';
 
+function RecentSubscriptions() {
+  const [recentSubs, setRecentSubs] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchRecentSubscriptions();
+  }, []);
+
+  const fetchRecentSubscriptions = async () => {
+    try {
+      const { data } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          created_at,
+          profiles(full_name, email),
+          subscription_plans(name)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      setRecentSubs(data || []);
+    } catch (error) {
+      console.error('Error fetching recent subscriptions:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {recentSubs.length > 0 ? recentSubs.map((sub, index) => (
+        <div key={index} className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">{sub.profiles?.full_name || sub.profiles?.email || 'Anonymous User'}</p>
+            <p className="text-sm text-muted-foreground">
+              Upgraded to {sub.subscription_plans?.name || 'Pro'}
+            </p>
+          </div>
+          <Badge variant="default">{sub.subscription_plans?.name || 'Pro'}</Badge>
+        </div>
+      )) : (
+        <p className="text-sm text-muted-foreground">No recent subscriptions</p>
+      )}
+    </div>
+  );
+}
+
 interface AdminStats {
   total_users: number;
   active_subscriptions: number;
@@ -89,17 +134,71 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchChartData = () => {
-    // Mock chart data - in real app, this would come from analytics
-    const mockData: ChartData[] = [
-      { month: 'Jan', revenue: 4500, users: 120, subscriptions: 15 },
-      { month: 'Feb', revenue: 5200, users: 145, subscriptions: 22 },
-      { month: 'Mar', revenue: 6100, users: 170, subscriptions: 28 },
-      { month: 'Apr', revenue: 7300, users: 195, subscriptions: 35 },
-      { month: 'May', revenue: 8900, users: 225, subscriptions: 42 },
-      { month: 'Jun', revenue: 10200, users: 260, subscriptions: 48 },
-    ];
-    setChartData(mockData);
+  const fetchChartData = async () => {
+    try {
+      // Get real analytics data from last 6 months
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 6);
+      
+      const { data: analytics } = await supabase
+        .from('page_analytics')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString());
+
+      // Get subscription data
+      const { data: subscriptions } = await supabase
+        .from('user_subscriptions')
+        .select('created_at, subscription_plans(price_monthly)')
+        .gte('created_at', startDate.toISOString());
+
+      // Get user signup data
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString());
+
+      // Group by month
+      const monthlyData = new Map();
+      
+      // Process analytics for traffic
+      analytics?.forEach(item => {
+        const month = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short' });
+        if (!monthlyData.has(month)) {
+          monthlyData.set(month, { month, revenue: 0, users: 0, subscriptions: 0 });
+        }
+      });
+
+      // Process users
+      profiles?.forEach(item => {
+        const month = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short' });
+        if (monthlyData.has(month)) {
+          monthlyData.get(month).users++;
+        }
+      });
+
+      // Process subscriptions and revenue
+      subscriptions?.forEach(item => {
+        const month = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short' });
+        if (monthlyData.has(month)) {
+          const data = monthlyData.get(month);
+          data.subscriptions++;
+          data.revenue += item.subscription_plans?.price_monthly || 0;
+        }
+      });
+
+      const realData = Array.from(monthlyData.values()).slice(-6);
+      setChartData(realData.length > 0 ? realData : [
+        { month: 'Jan', revenue: 0, users: 0, subscriptions: 0 },
+        { month: 'Feb', revenue: 0, users: 0, subscriptions: 0 },
+        { month: 'Mar', revenue: 0, users: 0, subscriptions: 0 },
+        { month: 'Apr', revenue: 0, users: 0, subscriptions: 0 },
+        { month: 'May', revenue: 0, users: 0, subscriptions: 0 },
+        { month: 'Jun', revenue: 0, users: 0, subscriptions: 0 },
+      ]);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      setChartData([]);
+    }
   };
 
   if (loading) {
@@ -238,17 +337,7 @@ export default function AdminDashboard() {
             <CardDescription>Latest Pro plan upgrades</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">User {item}</p>
-                    <p className="text-sm text-muted-foreground">Upgraded to Pro</p>
-                  </div>
-                  <Badge variant="default">Pro</Badge>
-                </div>
-              ))}
-            </div>
+            <RecentSubscriptions />
           </CardContent>
         </Card>
 

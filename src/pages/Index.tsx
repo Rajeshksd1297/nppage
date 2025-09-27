@@ -2,12 +2,40 @@ import { DemoSetup } from '@/components/DemoSetup';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Users, BarChart3, Globe } from 'lucide-react';
+import { SEOHead } from '@/components/SEOHead';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [seoSettings, setSeoSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetchSeoSettings();
+  }, []);
+
+  const fetchSeoSettings = async () => {
+    try {
+      const { data } = await supabase
+        .from('seo_settings')
+        .select('*')
+        .single();
+      setSeoSettings(data);
+    } catch (error) {
+      console.error('Error fetching SEO settings:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={seoSettings?.site_title || "AuthorPage - Professional Author Profiles & Book Showcases"}
+        description={seoSettings?.site_description || "Create stunning author profiles, showcase your books, and grow your readership with our professional author platform. Start free today!"}
+        keywords="author profiles, book marketing, author website, book showcase, professional author pages, author platform, book promotion, writer portfolio"
+        url="https://authorpage.com"
+        type="website"
+        image={seoSettings?.default_og_image || "/hero-authors-workspace.jpg"}
+      />
       {/* Hero Section */}
       <div className="container mx-auto px-6 py-16">
         <div className="text-center space-y-6 mb-16">
