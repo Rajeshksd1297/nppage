@@ -138,7 +138,7 @@ export default function EventsManagement() {
         .from('events')
         .select(`
           *,
-          profiles (
+          profiles!user_id (
             full_name,
             email
           )
