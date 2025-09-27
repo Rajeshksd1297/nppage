@@ -13,10 +13,12 @@ import {
   HelpCircle,
   Eye,
   EyeOff,
-  ArrowUpDown
+  ArrowUpDown,
+  Settings
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -59,9 +61,20 @@ interface FaqItem {
   };
 }
 
+interface FaqSettings {
+  max_question_length: number;
+  max_answer_length: number;
+  categories: string[];
+  allow_user_submissions: boolean;
+  require_approval: boolean;
+  enable_public_display: boolean;
+}
+
 export default function FaqManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [settings, setSettings] = useState<FaqSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -79,6 +92,7 @@ export default function FaqManagement() {
 
   useEffect(() => {
     fetchFaqs();
+    fetchSettings();
     
     // Set up real-time subscription
     const channel = supabase
@@ -124,7 +138,42 @@ export default function FaqManagement() {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("faq_settings")
+        .select("max_question_length, max_answer_length, categories, allow_user_submissions, require_approval, enable_public_display")
+        .single();
+
+      if (error) throw error;
+      setSettings(data);
+    } catch (error) {
+      console.error("Error fetching FAQ settings:", error);
+    }
+  };
+
   const handleSubmit = async () => {
+    // Validate against settings
+    if (settings) {
+      if (formData.question.length > settings.max_question_length) {
+        toast({
+          title: "Validation Error",
+          description: `Question must be ${settings.max_question_length} characters or less`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.answer.length > settings.max_answer_length) {
+        toast({
+          title: "Validation Error",
+          description: `Answer must be ${settings.max_answer_length} characters or less`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       if (selectedFaq) {
         // Update existing FAQ
@@ -250,7 +299,7 @@ export default function FaqManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(faqs.map(faq => faq.category)));
+  const categories = settings?.categories || Array.from(new Set(faqs.map(faq => faq.category)));
 
   const FaqForm = () => (
     <div className="space-y-4">
@@ -261,7 +310,13 @@ export default function FaqManagement() {
           value={formData.question}
           onChange={(e) => setFormData({ ...formData, question: e.target.value })}
           placeholder="Enter the frequently asked question"
+          maxLength={settings?.max_question_length || 200}
         />
+        {settings && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.question.length}/{settings.max_question_length} characters
+          </p>
+        )}
       </div>
 
       <div>
@@ -272,18 +327,30 @@ export default function FaqManagement() {
           onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
           placeholder="Provide a detailed answer to the question"
           rows={5}
+          maxLength={settings?.max_answer_length || 2000}
         />
+        {settings && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.answer.length}/{settings.max_answer_length} characters
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            placeholder="e.g., general, books, events, etc."
-          />
+          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label htmlFor="sort_order">Sort Order</Label>
@@ -319,29 +386,35 @@ export default function FaqManagement() {
           </h1>
           <p className="text-muted-foreground">Manage frequently asked questions</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add FAQ
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add FAQ</DialogTitle>
-              <DialogDescription>
-                Add a new frequently asked question with answer and categorization.
-              </DialogDescription>
-            </DialogHeader>
-            <FaqForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/faq-settings')}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add FAQ
               </Button>
-              <Button onClick={handleSubmit}>Add FAQ</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add FAQ</DialogTitle>
+                <DialogDescription>
+                  Add a new frequently asked question with answer and categorization.
+                </DialogDescription>
+              </DialogHeader>
+              <FaqForm />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit}>Add FAQ</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
@@ -367,7 +440,7 @@ export default function FaqManagement() {
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>

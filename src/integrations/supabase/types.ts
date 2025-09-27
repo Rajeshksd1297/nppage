@@ -565,6 +565,63 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_settings: {
+        Row: {
+          allow_images: boolean | null
+          allow_user_submissions: boolean | null
+          allowed_image_types: string[] | null
+          auto_publish: boolean | null
+          categories: string[] | null
+          created_at: string
+          enable_public_display: boolean | null
+          id: string
+          max_answer_length: number | null
+          max_faqs_per_user: number | null
+          max_image_size_mb: number | null
+          max_question_length: number | null
+          require_approval: boolean | null
+          require_category: boolean | null
+          sort_by_order: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          allow_images?: boolean | null
+          allow_user_submissions?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_publish?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_public_display?: boolean | null
+          id?: string
+          max_answer_length?: number | null
+          max_faqs_per_user?: number | null
+          max_image_size_mb?: number | null
+          max_question_length?: number | null
+          require_approval?: boolean | null
+          require_category?: boolean | null
+          sort_by_order?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          allow_images?: boolean | null
+          allow_user_submissions?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_publish?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_public_display?: boolean | null
+          id?: string
+          max_answer_length?: number | null
+          max_faqs_per_user?: number | null
+          max_image_size_mb?: number | null
+          max_question_length?: number | null
+          require_approval?: boolean | null
+          require_category?: boolean | null
+          sort_by_order?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string
