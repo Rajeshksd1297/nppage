@@ -49,6 +49,12 @@ import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
 import TicketDetails from "./pages/admin/TicketDetails";
 import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
+import BlogManagement from "./pages/admin/BlogManagement";
+import GalleryManagement from "./pages/admin/GalleryManagement";
+import EventsManagement from "./pages/admin/EventsManagement";
+import AwardsManagement from "./pages/admin/AwardsManagement";
+import FaqManagement from "./pages/admin/FaqManagement";
+import NewsletterManagement from "./pages/admin/NewsletterManagement";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -262,6 +268,36 @@ function App() {
             <Route path="/admin/theme-management" element={
               <DashboardLayout>
                 <ThemeManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/blog-management" element={
+              <DashboardLayout>
+                <BlogManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/gallery-management" element={
+              <DashboardLayout>
+                <GalleryManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/events-management" element={
+              <DashboardLayout>
+                <EventsManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/awards-management" element={
+              <DashboardLayout>
+                <AwardsManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/faq-management" element={
+              <DashboardLayout>
+                <FaqManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/newsletter-management" element={
+              <DashboardLayout>
+                <NewsletterManagement />
               </DashboardLayout>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
