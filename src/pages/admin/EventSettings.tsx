@@ -78,7 +78,7 @@ export default function EventSettings() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('event_settings')
+        .from('event_settings' as any)
         .select('*')
         .limit(1)
         .maybeSingle();
@@ -88,11 +88,12 @@ export default function EventSettings() {
       }
 
       if (data) {
+        const eventData = data as any;
         setSettings({
           ...defaultSettings,
-          ...data,
-          categories: data.categories || defaultSettings.categories,
-          allowed_image_types: data.allowed_image_types || defaultSettings.allowed_image_types,
+          ...eventData,
+          categories: eventData.categories || defaultSettings.categories,
+          allowed_image_types: eventData.allowed_image_types || defaultSettings.allowed_image_types,
         });
       }
     } catch (error) {

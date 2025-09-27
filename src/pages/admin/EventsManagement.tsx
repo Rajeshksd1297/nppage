@@ -162,7 +162,7 @@ export default function EventsManagement() {
   const fetchEventSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from('event_settings')
+        .from('event_settings' as any)
         .select('*')
         .limit(1)
         .maybeSingle();
@@ -171,7 +171,7 @@ export default function EventsManagement() {
         throw error;
       }
 
-      setEventSettings(data);
+      setEventSettings(data as any);
     } catch (error) {
       console.error('Error fetching event settings:', error);
     }
