@@ -15,10 +15,13 @@ import {
   Upload,
   Eye,
   Grid,
-  List
+  List,
+  Settings,
+  ExternalLink
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +38,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 
 interface GalleryItem {
@@ -55,8 +69,19 @@ interface GalleryItem {
   };
 }
 
+interface GallerySettings {
+  categories: string[];
+  max_title_length: number;
+  max_description_length: number;
+  max_image_size_mb: number;
+  allowed_image_types: string[];
+  require_approval: boolean;
+  allow_user_uploads: boolean;
+}
+
 export default function GalleryManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +90,7 @@ export default function GalleryManagement() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [gallerySettings, setGallerySettings] = useState<GallerySettings | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -78,6 +104,7 @@ export default function GalleryManagement() {
 
   useEffect(() => {
     fetchItems();
+    fetchGallerySettings();
     
     // Set up real-time subscription
     const channel = supabase
@@ -99,6 +126,24 @@ export default function GalleryManagement() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const fetchGallerySettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_settings' as any)
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setGallerySettings(data as any);
+    } catch (error) {
+      console.error('Error fetching gallery settings:', error);
+    }
+  };
 
   const fetchItems = async () => {
     try {
@@ -123,8 +168,38 @@ export default function GalleryManagement() {
     }
   };
 
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!formData.title.trim()) {
+      errors.push('Title is required');
+    } else if (gallerySettings?.max_title_length && formData.title.length > gallerySettings.max_title_length) {
+      errors.push(`Title must be ${gallerySettings.max_title_length} characters or less`);
+    }
+
+    if (gallerySettings?.max_description_length && formData.description.length > gallerySettings.max_description_length) {
+      errors.push(`Description must be ${gallerySettings.max_description_length} characters or less`);
+    }
+
+    if (!formData.image_url.trim()) {
+      errors.push('Image URL is required');
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async () => {
     try {
+      const validationErrors = validateForm();
+      if (validationErrors.length > 0) {
+        toast({
+          title: "Validation Error",
+          description: validationErrors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (selectedItem) {
         // Update existing item
         const { error } = await supabase
@@ -170,8 +245,6 @@ export default function GalleryManagement() {
   };
 
   const handleDelete = async (itemId: string) => {
-    if (!window.confirm('Are you sure you want to delete this gallery item?')) return;
-
     try {
       const { error } = await supabase
         .from('gallery_items')
@@ -331,29 +404,39 @@ export default function GalleryManagement() {
           </h1>
           <p className="text-muted-foreground">Manage gallery images and media</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Image
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add Gallery Item</DialogTitle>
-              <DialogDescription>
-                Add a new image to the gallery with details and categorization.
-              </DialogDescription>
-            </DialogHeader>
-            <ItemForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/gallery-settings')}
+            className="gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Image
               </Button>
-              <Button onClick={handleSubmit}>Add Item</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add Gallery Item</DialogTitle>
+                <DialogDescription>
+                  Add a new image to the gallery with details and categorization.
+                </DialogDescription>
+              </DialogHeader>
+              <ItemForm />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit}>Add Item</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters and View Toggle */}
@@ -451,13 +534,30 @@ export default function GalleryManagement() {
                       >
                         <Edit3 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Gallery Item</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{item.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(item.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardContent>
                 </Card>
@@ -501,13 +601,30 @@ export default function GalleryManagement() {
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Gallery Item</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{item.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(item.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardContent>

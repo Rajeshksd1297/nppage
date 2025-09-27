@@ -589,6 +589,57 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_settings: {
+        Row: {
+          allow_user_uploads: boolean | null
+          allowed_image_types: string[] | null
+          auto_generate_thumbnails: boolean | null
+          categories: string[] | null
+          created_at: string
+          enable_watermark: boolean | null
+          id: string
+          image_compression_quality: number | null
+          max_description_length: number | null
+          max_image_size_mb: number | null
+          max_images_per_user: number | null
+          max_title_length: number | null
+          require_approval: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          allow_user_uploads?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_thumbnails?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_watermark?: boolean | null
+          id?: string
+          image_compression_quality?: number | null
+          max_description_length?: number | null
+          max_image_size_mb?: number | null
+          max_images_per_user?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          allow_user_uploads?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_thumbnails?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          enable_watermark?: boolean | null
+          id?: string
+          image_compression_quality?: number | null
+          max_description_length?: number | null
+          max_image_size_mb?: number | null
+          max_images_per_user?: number | null
+          max_title_length?: number | null
+          require_approval?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       helpdesk_settings: {
         Row: {
           auto_assign_tickets: boolean

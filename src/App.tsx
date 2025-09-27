@@ -57,6 +57,7 @@ import AwardsManagement from "./pages/admin/AwardsManagement";
 import FaqManagement from "./pages/admin/FaqManagement";
 import NewsletterManagement from "./pages/admin/NewsletterManagement";
 import EventSettings from "./pages/admin/EventSettings";
+import GallerySettings from "./pages/admin/GallerySettings";
 import HomePageManagement from "./pages/admin/HomePageManagement";
 import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
@@ -303,6 +304,11 @@ function App() {
             <Route path="/admin/gallery-management" element={
               <DashboardLayout>
                 <GalleryManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/gallery-settings" element={
+              <DashboardLayout>
+                <GallerySettings />
               </DashboardLayout>
             } />
             <Route path="/admin/events-management" element={
