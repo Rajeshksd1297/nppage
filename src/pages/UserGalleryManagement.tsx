@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -346,7 +347,8 @@ export default function UserGalleryManagement() {
   );
 
   return (
-    <div className="space-y-6">
+    <FeatureAccessGuard feature="gallery">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -518,6 +520,7 @@ export default function UserGalleryManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </FeatureAccessGuard>
   );
 }

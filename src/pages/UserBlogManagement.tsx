@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
 import {
   Dialog,
   DialogContent,
@@ -406,7 +407,8 @@ export default function UserBlogManagement() {
   );
 
   return (
-    <div className="space-y-6">
+    <FeatureAccessGuard feature="blog">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -569,6 +571,7 @@ export default function UserBlogManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </FeatureAccessGuard>
   );
 }
