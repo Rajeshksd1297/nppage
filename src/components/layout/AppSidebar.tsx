@@ -89,13 +89,13 @@ const proItems = [
 ];
 
 // Quick actions - always available
-const getQuickActions = (userSlug: string | null) => [
+const getQuickActions = (userSlug: string | null, isAdmin: boolean) => [
   { title: "Add New Book", url: "/books/new", icon: PlusCircle },
   { 
     title: "View Profile Page", 
-    url: userSlug ? `/${userSlug}` : "/profile", 
+    url: isAdmin ? "/profile" : (userSlug ? `/${userSlug}` : "/profile"), 
     icon: Eye, 
-    external: userSlug ? true : false 
+    external: isAdmin ? false : (userSlug ? true : false)
   },
 ];
 
@@ -193,7 +193,7 @@ export function AppSidebar() {
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
 
   const isAdmin = currentUserRole === 'admin';
-  const quickActions = getQuickActions(userSlug);
+  const quickActions = getQuickActions(userSlug, isAdmin);
 
   return (
     <Sidebar collapsible="icon">

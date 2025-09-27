@@ -68,6 +68,7 @@ export default function AuthorProfile() {
       return;
     }
     
+    console.log('Loading profile for slug:', slug);
     loadProfile();
   }, [slug]);
 
