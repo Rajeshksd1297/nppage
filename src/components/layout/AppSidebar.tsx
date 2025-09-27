@@ -90,7 +90,6 @@ const proItems = [
 
 // Quick actions - always available
 const getQuickActions = (userSlug: string | null, isAdmin: boolean) => [
-  { title: "Add New Book", url: "/books/new", icon: PlusCircle },
   { 
     title: "View Profile Page", 
     url: isAdmin ? "/profile" : (userSlug ? `/${userSlug}` : "/profile"), 
