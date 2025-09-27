@@ -558,13 +558,6 @@ export default function PackageManagement() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
-                            checked={pkg.newsletter_integration}
-                            onCheckedChange={(checked) => updatePackage(pkg.id, { newsletter_integration: checked })}
-                          />
-                          <Label>Newsletter Integration</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
                             checked={pkg.no_watermark}
                             onCheckedChange={(checked) => updatePackage(pkg.id, { no_watermark: checked })}
                           />
@@ -577,65 +570,57 @@ export default function PackageManagement() {
                           />
                           <Label>Publisher Plan</Label>
                         </div>
-                      </div>
-                      
-                      {/* Content Features */}
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-3 flex items-center gap-2">
-                          <Newspaper className="h-4 w-4" />
-                          Content Features
-                        </h4>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={pkg.blog}
-                              onCheckedChange={(checked) => updatePackage(pkg.id, { blog: checked })}
-                            />
-                            <Label className="flex items-center gap-2">
-                              <Newspaper className="h-3 w-3" />
-                              Blog
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={pkg.gallery}
-                              onCheckedChange={(checked) => updatePackage(pkg.id, { gallery: checked })}
-                            />
-                            <Label className="flex items-center gap-2">
-                              <Camera className="h-3 w-3" />
-                              Gallery
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={pkg.events}
-                              onCheckedChange={(checked) => updatePackage(pkg.id, { events: checked })}
-                            />
-                            <Label className="flex items-center gap-2">
-                              <Calendar className="h-3 w-3" />
-                              Events
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={pkg.awards}
-                              onCheckedChange={(checked) => updatePackage(pkg.id, { awards: checked })}
-                            />
-                            <Label className="flex items-center gap-2">
-                              <Award className="h-3 w-3" />
-                              Awards
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={pkg.faq}
-                              onCheckedChange={(checked) => updatePackage(pkg.id, { faq: checked })}
-                            />
-                            <Label className="flex items-center gap-2">
-                              <HelpCircle className="h-3 w-3" />
-                              FAQ
-                            </Label>
-                          </div>
+                        
+                        {/* Content Features integrated into Premium Features */}
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.blog}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { blog: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <Newspaper className="h-3 w-3" />
+                            Blog
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.gallery}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { gallery: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <Camera className="h-3 w-3" />
+                            Gallery
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.events}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { events: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            Events
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.awards}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { awards: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <Award className="h-3 w-3" />
+                            Awards
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={pkg.faq}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { faq: checked })}
+                          />
+                          <Label className="flex items-center gap-2">
+                            <HelpCircle className="h-3 w-3" />
+                            FAQ
+                          </Label>
                         </div>
                       </div>
                       
@@ -647,7 +632,6 @@ export default function PackageManagement() {
                           {pkg.premium_themes && <Badge variant="outline" className="text-xs">Premium Themes</Badge>}
                           {pkg.advanced_analytics && <Badge variant="outline" className="text-xs">Advanced Analytics</Badge>}
                           {pkg.contact_form && <Badge variant="outline" className="text-xs">Contact Form</Badge>}
-                          {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
                           {pkg.blog && <Badge variant="outline" className="text-xs">Blog</Badge>}
