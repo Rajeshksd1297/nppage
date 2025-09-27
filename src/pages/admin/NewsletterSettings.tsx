@@ -49,6 +49,7 @@ interface NewsletterSettings {
 
 export default function NewsletterSettings() {
   const { toast } = useToast();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [settings, setSettings] = useState<NewsletterSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,8 +57,49 @@ export default function NewsletterSettings() {
   const [newImageType, setNewImageType] = useState('');
 
   useEffect(() => {
-    fetchSettings();
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Access Denied",
+          description: "Please log in to access this page",
+          variant: "destructive",
+        });
+        window.location.href = '/auth';
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (roleData?.role === 'admin') {
+        setIsAdmin(true);
+        fetchSettings();
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "Admin access required",
+          variant: "destructive",
+        });
+        window.location.href = '/dashboard';
+      }
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify access permissions",
+        variant: "destructive",
+      });
+      window.location.href = '/dashboard';
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -205,7 +247,7 @@ export default function NewsletterSettings() {
     }
   };
 
-  if (loading) {
+  if (loading || !isAdmin) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

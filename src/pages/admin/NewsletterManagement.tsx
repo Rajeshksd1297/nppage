@@ -278,7 +278,7 @@ export default function NewsletterManagement() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={() => window.open('/admin/newsletter-settings', '_blank')}
+            onClick={() => window.location.href = '/admin/newsletter-settings'}
           >
             <Settings className="h-4 w-4 mr-2" />
             Settings
