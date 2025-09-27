@@ -14,7 +14,6 @@ interface SubscriptionPlan {
   no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
-  media_kit: boolean;
   features: any; // Using any to handle Json type from database
 }
 

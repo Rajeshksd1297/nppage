@@ -28,7 +28,7 @@ import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
-import MediaKit from "./pages/MediaKit";
+
 import BookCatalog from "./pages/admin/BookCatalog";
 import ISBNLookupPage from "./pages/admin/ISBNLookup";
 import AffiliateSettingsPage from "./pages/admin/AffiliateSettings";
@@ -166,11 +166,6 @@ function App() {
             <Route path="/contact-form" element={
               <DashboardLayout>
                 <ContactForm />
-              </DashboardLayout>
-            } />
-            <Route path="/media-kit" element={
-              <DashboardLayout>
-                <MediaKit />
               </DashboardLayout>
             } />
             <Route path="/admin" element={

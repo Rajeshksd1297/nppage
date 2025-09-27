@@ -43,7 +43,6 @@ interface Package {
   custom_domain: boolean;
   premium_themes: boolean;
   contact_form: boolean;
-  media_kit: boolean;
   newsletter_integration: boolean;
   no_watermark: boolean;
   blog: boolean;
@@ -84,7 +83,6 @@ export default function PackageManagement() {
         custom_domain: false,
         premium_themes: false,
         contact_form: false,
-        media_kit: false,
         newsletter_integration: false,
         no_watermark: false,
         blog: false,
@@ -108,7 +106,7 @@ export default function PackageManagement() {
         name: 'Pro',
         price_monthly: 9.99,
         price_yearly: 99.99,
-        features: ['Unlimited books', 'Custom domain', 'Premium themes', 'Advanced analytics', 'Priority support', 'Media kit', 'Contact forms'],
+        features: ['Unlimited books', 'Custom domain', 'Premium themes', 'Advanced analytics', 'Priority support', 'Contact forms'],
         max_books: null,
         max_publications: null,
         max_authors: null,
@@ -116,7 +114,6 @@ export default function PackageManagement() {
         custom_domain: true,
         premium_themes: true,
         contact_form: true,
-        media_kit: true,
         newsletter_integration: true,
         no_watermark: true,
         blog: true,
@@ -148,7 +145,6 @@ export default function PackageManagement() {
         custom_domain: true,
         premium_themes: true,
         contact_form: true,
-        media_kit: true,
         newsletter_integration: true,
         no_watermark: true,
         blog: true,
@@ -204,7 +200,6 @@ export default function PackageManagement() {
           custom_domain: plan.custom_domain,
           premium_themes: plan.premium_themes,
           contact_form: plan.contact_form,
-          media_kit: plan.media_kit,
           newsletter_integration: plan.newsletter_integration,
           no_watermark: plan.no_watermark,
           blog: plan.blog || false,
@@ -259,7 +254,6 @@ export default function PackageManagement() {
           custom_domain: pkg.custom_domain,
           premium_themes: pkg.premium_themes,
           contact_form: pkg.contact_form,
-          media_kit: pkg.media_kit,
           newsletter_integration: pkg.newsletter_integration,
           no_watermark: pkg.no_watermark,
           blog: pkg.blog,
@@ -321,7 +315,6 @@ export default function PackageManagement() {
       custom_domain: false,
       premium_themes: false,
       contact_form: false,
-      media_kit: false,
       newsletter_integration: false,
       no_watermark: false,
       blog: false,
@@ -558,10 +551,10 @@ export default function PackageManagement() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
-                            checked={pkg.media_kit}
-                            onCheckedChange={(checked) => updatePackage(pkg.id, { media_kit: checked })}
+                            checked={pkg.newsletter_integration}
+                            onCheckedChange={(checked) => updatePackage(pkg.id, { newsletter_integration: checked })}
                           />
-                          <Label>Media Kit</Label>
+                          <Label>Newsletter Integration</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -654,7 +647,7 @@ export default function PackageManagement() {
                           {pkg.premium_themes && <Badge variant="outline" className="text-xs">Premium Themes</Badge>}
                           {pkg.advanced_analytics && <Badge variant="outline" className="text-xs">Advanced Analytics</Badge>}
                           {pkg.contact_form && <Badge variant="outline" className="text-xs">Contact Form</Badge>}
-                          {pkg.media_kit && <Badge variant="outline" className="text-xs">Media Kit</Badge>}
+                          {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
                           {pkg.blog && <Badge variant="outline" className="text-xs">Blog</Badge>}
@@ -1116,7 +1109,7 @@ export default function PackageManagement() {
                       <h4 className="font-medium text-blue-800 mb-2">Business Features</h4>
                       <ul className="text-sm text-blue-700 space-y-1">
                         <li>• Contact Form - Direct reader communication</li>
-                        <li>• Media Kit - Professional press materials</li>
+                        
                         <li>• Newsletter Integration - Email list building</li>
                         <li>• Priority Support - Faster response times</li>
                       </ul>

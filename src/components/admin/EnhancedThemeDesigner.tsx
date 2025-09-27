@@ -309,7 +309,7 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
     },
     {
       id: '14',
-      name: 'Press & Media Kit',
+      name: 'Press & Resources',
       type: 'press-kit',
       enabled: false,
       config: {},

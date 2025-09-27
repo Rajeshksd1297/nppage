@@ -81,13 +81,6 @@ const proItems = [
     feature: "contact_form",
     description: "Reader contact form"
   },
-  { 
-    title: "Media Kit", 
-    url: "/media-kit", 
-    icon: FileText, 
-    feature: "media_kit",
-    description: "Professional media kit"
-  },
 ];
 
 // Quick actions - always available

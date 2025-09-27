@@ -529,27 +529,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className={`border-dashed ${hasFeature('media_kit') ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Media Kit</p>
-                <p className="text-xs text-muted-foreground">
-                  {hasFeature('media_kit') ? 'Available' : 'Pro Feature'}
-                </p>
-              </div>
-              <FileText className={`h-6 w-6 ${hasFeature('media_kit') ? 'text-green-600' : 'text-amber-600'}`} />
-            </div>
-            <Button 
-              size="sm" 
-              className="w-full mt-3"
-              variant={hasFeature('media_kit') ? 'default' : 'outline'}
-              onClick={() => hasFeature('media_kit') ? navigate('/media-kit') : navigate('/subscription')}
-            >
-              {hasFeature('media_kit') ? 'Create' : 'Upgrade'}
-            </Button>
-          </CardContent>
-        </Card>
 
         <Card className="border-dashed border-blue-200 bg-blue-50">
           <CardContent className="pt-6">

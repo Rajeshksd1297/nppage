@@ -292,7 +292,7 @@ export function DragDropProfileDesigner({
             <div className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Press & Media Kit
+                Press & Resources
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" size="sm">High-Res Photos</Button>

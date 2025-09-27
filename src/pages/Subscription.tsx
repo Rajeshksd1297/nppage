@@ -21,7 +21,6 @@ interface SubscriptionPlan {
   no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
-  media_kit: boolean;
 }
 
 interface UserSubscription {

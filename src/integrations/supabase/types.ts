@@ -806,7 +806,6 @@ export type Database = {
           id: string
           max_books: number | null
           max_publications: number | null
-          media_kit: boolean
           name: string
           newsletter_integration: boolean
           no_watermark: boolean
@@ -830,7 +829,6 @@ export type Database = {
           id?: string
           max_books?: number | null
           max_publications?: number | null
-          media_kit?: boolean
           name: string
           newsletter_integration?: boolean
           no_watermark?: boolean
@@ -854,7 +852,6 @@ export type Database = {
           id?: string
           max_books?: number | null
           max_publications?: number | null
-          media_kit?: boolean
           name?: string
           newsletter_integration?: boolean
           no_watermark?: boolean
