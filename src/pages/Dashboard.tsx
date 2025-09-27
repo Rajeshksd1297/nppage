@@ -78,17 +78,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [analyticsData, setAnalyticsData] = useState({
-    monthlyViews: [],
-    deviceData: [],
-    topPages: [],
-    stats: {
-      totalViews: 0,
-      monthlyGrowth: 0,
-      avgSessionTime: "0m 0s",
-      bounceRate: 0
-    }
-  });
   const navigate = useNavigate();
   const { subscription, hasFeature, getLimit, isOnTrial, trialDaysLeft, isPro, isFree } = useSubscription();
 
@@ -132,9 +121,6 @@ export default function Dashboard() {
 
       // Calculate user stats
       await calculateUserStats(user.id, books || []);
-      
-      // Generate analytics data
-      await generateAnalyticsData(user.id, books || []);
 
       if (currentUserRole === 'admin') {
         await calculateAdminStats();
@@ -248,51 +234,6 @@ export default function Dashboard() {
     }
   };
 
-  const generateAnalyticsData = async (userId: string, books: any[]) => {
-    try {
-      // Generate sample monthly data
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-      const monthlyViews = months.map(month => ({
-        month,
-        views: Math.floor(Math.random() * 1000) + 100,
-        users: Math.floor(Math.random() * 500) + 50
-      }));
-
-      // Generate device data
-      const deviceData = [
-        { name: 'Desktop', value: 45, color: 'hsl(var(--primary))' },
-        { name: 'Mobile', value: 35, color: 'hsl(var(--accent))' },
-        { name: 'Tablet', value: 20, color: 'hsl(var(--secondary))' }
-      ];
-
-      // Generate top pages data
-      const topPages = [
-        { page: 'Profile Home', views: Math.floor(Math.random() * 500) + 200 },
-        { page: 'Book Collection', views: Math.floor(Math.random() * 400) + 150 },
-        { page: 'About Page', views: Math.floor(Math.random() * 300) + 100 },
-        { page: 'Contact', views: Math.floor(Math.random() * 200) + 50 }
-      ];
-
-      // Calculate stats
-      const totalViews = monthlyViews.reduce((sum, month) => sum + month.views, 0);
-      const previousTotal = totalViews * 0.8; // Simulate previous period
-      const monthlyGrowth = Math.round(((totalViews - previousTotal) / previousTotal) * 100);
-
-      setAnalyticsData({
-        monthlyViews,
-        deviceData,
-        topPages,
-        stats: {
-          totalViews,
-          monthlyGrowth,
-          avgSessionTime: `${Math.floor(Math.random() * 5) + 2}m ${Math.floor(Math.random() * 60)}s`,
-          bounceRate: Math.floor(Math.random() * 30) + 20
-        }
-      });
-    } catch (error) {
-      console.error('Error generating analytics data:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -614,7 +555,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <DashboardAnalytics {...analyticsData} />
+      <DashboardAnalytics />
       
       <DashboardFeatures hasFeature={hasFeature} isPro={isPro()} />
     </div>
