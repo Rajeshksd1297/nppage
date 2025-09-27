@@ -49,6 +49,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedThemeDesigner } from '@/components/admin/EnhancedThemeDesigner';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
+import { RealtimeThemeManager } from '@/components/admin/RealtimeThemeManager';
 
 interface Theme {
   id: string;
@@ -89,7 +90,7 @@ export default function ThemeManagement() {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [themeAnalytics, setThemeAnalytics] = useState<ThemeAnalytics[]>([]);
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
-  const [currentView, setCurrentView] = useState<'overview' | 'themes' | 'designer' | 'hero-blocks' | 'analytics'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'themes' | 'designer' | 'hero-blocks' | 'analytics' | 'realtime'>('overview');
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'free' | 'premium'>('all');
@@ -398,11 +399,12 @@ export default function ThemeManagement() {
 
       {/* Navigation Tabs */}
       <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="themes">Themes</TabsTrigger>
           <TabsTrigger value="hero-blocks">Hero Blocks</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="realtime">Real-time</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -871,6 +873,15 @@ export default function ThemeManagement() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="realtime" className="space-y-6">
+          <RealtimeThemeManager 
+            onThemeSelect={(theme) => {
+              setSelectedTheme(theme);
+              setCurrentView('designer');
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

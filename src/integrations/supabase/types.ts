@@ -396,6 +396,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_theme_customization_id: string | null
           avatar_url: string | null
           bio: string | null
           country_code: string | null
@@ -419,6 +420,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          active_theme_customization_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           country_code?: string | null
@@ -442,6 +444,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          active_theme_customization_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           country_code?: string | null
@@ -465,6 +468,13 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_active_theme_customization_id_fkey"
+            columns: ["active_theme_customization_id"]
+            isOneToOne: false
+            referencedRelation: "user_theme_customizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_custom_domain_id_fkey"
             columns: ["custom_domain_id"]
@@ -837,6 +847,41 @@ export type Database = {
         }
         Relationships: []
       }
+      theme_usage_analytics: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          theme_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          theme_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          theme_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theme_usage_analytics_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       themes: {
         Row: {
           config: Json
@@ -1147,11 +1192,53 @@ export type Database = {
           },
         ]
       }
+      user_theme_customizations: {
+        Row: {
+          created_at: string
+          custom_config: Json
+          id: string
+          is_active: boolean
+          theme_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_config?: Json
+          id?: string
+          is_active?: boolean
+          theme_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_config?: Json
+          id?: string
+          is_active?: boolean
+          theme_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_theme_customizations_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      apply_user_theme: {
+        Args: { p_custom_config?: Json; p_theme_id: string }
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
