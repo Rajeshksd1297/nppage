@@ -167,6 +167,10 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
+      // First fetch all auth users to ensure we show everyone
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) throw authError;
+
       // Fetch profiles with related data
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -228,14 +232,35 @@ export default function AdminUsers() {
         publisherMap.set(pa.user_id, pa);
       });
 
-      // Process users with all related data
-      const processedUsers = profiles?.map(profile => {
-        const subscription = subscriptionMap.get(profile.id);
-        const publisherAuthor = publisherMap.get(profile.id);
+      // Create profile map for efficient lookup
+      const profileMap = new Map();
+      profiles?.forEach(profile => {
+        profileMap.set(profile.id, profile);
+      });
+
+      // Process ALL auth users to ensure everyone is shown
+      const processedUsers = authUsers.users?.map(authUser => {
+        const profile = profileMap.get(authUser.id);
+        const subscription = subscriptionMap.get(authUser.id);
+        const publisherAuthor = publisherMap.get(authUser.id);
         
         return {
-          ...profile,
-          role: roleMap.get(profile.id) || 'user',
+          id: authUser.id,
+          email: authUser.email || profile?.email || '',
+          full_name: profile?.full_name || authUser.user_metadata?.full_name || '',
+          created_at: profile?.created_at || authUser.created_at,
+          updated_at: profile?.updated_at || authUser.updated_at,
+          avatar_url: profile?.avatar_url,
+          bio: profile?.bio,
+          website_url: profile?.website_url,
+          social_links: profile?.social_links,
+          public_profile: profile?.public_profile ?? true,
+          specializations: profile?.specializations,
+          slug: profile?.slug,
+          seo_title: profile?.seo_title,
+          seo_description: profile?.seo_description,
+          seo_keywords: profile?.seo_keywords,
+          role: roleMap.get(authUser.id) || 'user',
           subscription: subscription ? {
             id: subscription.id,
             status: subscription.status,
@@ -250,8 +275,8 @@ export default function AdminUsers() {
             role: publisherAuthor.role,
             revenue_share_percentage: publisherAuthor.revenue_share_percentage
           } : null,
-          blocked: false, // Add blocked status logic here if needed
-          last_sign_in: null // Add last sign in logic if available
+          blocked: false,
+          last_sign_in: authUser.last_sign_in_at
         };
       }) || [];
 
