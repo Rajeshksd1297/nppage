@@ -327,6 +327,65 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
+        {/* My Content */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>My Content</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-blog-management" className={getNavCls}>
+                      <Newspaper className="h-4 w-4" />
+                      {!collapsed && <span>My Blog</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-gallery-management" className={getNavCls}>
+                      <Image className="h-4 w-4" />
+                      {!collapsed && <span>My Gallery</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-events-management" className={getNavCls}>
+                      <Calendar className="h-4 w-4" />
+                      {!collapsed && <span>My Events</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-awards-management" className={getNavCls}>
+                      <Award className="h-4 w-4" />
+                      {!collapsed && <span>My Awards</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-faq-management" className={getNavCls}>
+                      <HelpCircle className="h-4 w-4" />
+                      {!collapsed && <span>My FAQ</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/user-newsletter-management" className={getNavCls}>
+                      <Mail className="h-4 w-4" />
+                      {!collapsed && <span>My Newsletter</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {/* Content & Tools */}
         {!isAdmin && (
           <SidebarGroup>
