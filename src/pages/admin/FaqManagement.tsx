@@ -108,7 +108,7 @@ export default function FaqManagement() {
         .from('faqs')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             full_name,
             email
           )

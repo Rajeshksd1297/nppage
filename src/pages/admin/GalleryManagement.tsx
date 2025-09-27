@@ -107,7 +107,7 @@ export default function GalleryManagement() {
         .from('gallery_items')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             full_name,
             email
           )

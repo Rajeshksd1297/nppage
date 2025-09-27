@@ -110,7 +110,7 @@ export default function AwardsManagement() {
         .from('awards')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             full_name,
             email
           )

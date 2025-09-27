@@ -120,7 +120,7 @@ export default function BlogManagement() {
         .from('blog_posts')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             full_name,
             email
           )

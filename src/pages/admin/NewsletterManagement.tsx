@@ -112,7 +112,7 @@ export default function NewsletterManagement() {
         .from('newsletter_subscribers')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             full_name,
             email
           )
