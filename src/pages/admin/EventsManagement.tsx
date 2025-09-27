@@ -136,13 +136,7 @@ export default function EventsManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('events')
-        .select(`
-          *,
-          profiles!user_id (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('event_date', { ascending: true });
 
       if (error) throw error;
