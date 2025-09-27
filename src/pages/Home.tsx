@@ -249,7 +249,7 @@ const Home = () => {
               <div key={index} className="text-center group">
                 <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
                   <div className="text-white">
-                    {getIcon(feature.icon)}
+                    {feature.icon === 'check' ? <Check className="h-8 w-8" /> : getIcon(feature.icon)}
                   </div>
                 </div>
                 <h3 className="font-bold text-white text-lg">{feature.title}</h3>
@@ -269,16 +269,94 @@ const Home = () => {
                   text-xl px-12 py-6 h-16 font-bold
                   ${button.effect === 'glow' ? 'shadow-2xl shadow-primary/40 hover:shadow-3xl hover:shadow-primary/60' : ''}
                   ${button.effect === 'hover-lift' ? 'hover:scale-105' : ''}
-                  ${button.variant === 'primary' ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' : ''}
+                  ${button.variant === 'primary' ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : ''}
+                  ${button.variant === 'secondary' ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' : ''}
                   transition-all duration-300
                 `}
               >
-                {button.variant === 'primary' && <Crown className="mr-3 h-6 w-6" />}
+                {button.variant === 'primary' && <Check className="mr-3 h-6 w-6" />}
+                {button.variant === 'secondary' && <Crown className="mr-3 h-6 w-6" />}
                 {button.text}
-                {button.variant === 'primary' && <ArrowRight className="ml-3 h-6 w-6" />}
+                <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
             ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderFreeVsPro = (section: HomeSection) => (
+    <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold mb-6">{section.config.title}</h2>
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">{section.config.subtitle}</p>
+        </div>
+        
+        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {section.config.plans?.map((plan: any, index: number) => (
+            <Card key={index} className={`relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
+              plan.popular ? 'border-primary/50 shadow-xl bg-gradient-to-br from-primary/5 to-primary/10' : 'bg-card/50 backdrop-blur-sm border-green-200'
+            }`}>
+              {plan.popular && (
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-accent text-white text-center py-3 text-sm font-medium">
+                  <Crown className="inline h-4 w-4 mr-2" />
+                  Most Popular Choice
+                </div>
+              )}
+              
+              {!plan.popular && (
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-3 text-sm font-medium">
+                  <Check className="inline h-4 w-4 mr-2" />
+                  {plan.highlight}
+                </div>
+              )}
+              
+              <CardHeader className="pt-16">
+                <div className="text-center">
+                  <img 
+                    src={plan.image} 
+                    alt={plan.name}
+                    className="w-20 h-20 rounded-full object-cover mx-auto mb-6"
+                  />
+                  <CardTitle className="text-3xl font-bold">{plan.name}</CardTitle>
+                  <div className="text-5xl font-bold my-4">
+                    {plan.price === 0 ? 'FREE' : `$${plan.price}`}
+                    <span className="text-lg font-normal text-muted-foreground">/{plan.period}</span>
+                  </div>
+                  <p className="text-muted-foreground">{plan.description}</p>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                <ul className="space-y-3">
+                  {plan.features?.map((feature: string, fIndex: number) => (
+                    <li key={fIndex} className="flex items-center">
+                      <CheckCircle className={`h-5 w-5 mr-3 flex-shrink-0 ${plan.popular ? 'text-primary' : 'text-green-500'}`} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  className="w-full text-lg py-6" 
+                  variant={plan.popular ? 'default' : 'default'}
+                  onClick={() => navigate(plan.ctaUrl)}
+                  size="lg"
+                >
+                  {plan.popular ? <Crown className="mr-2 h-4 w-4" /> : <Check className="mr-2 h-4 w-4" />}
+                  {plan.ctaText}
+                </Button>
+                
+                {plan.highlight && plan.popular && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    {plan.highlight}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </section>
@@ -288,10 +366,6 @@ const Home = () => {
     <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-6 py-3 mb-6">
-            <Crown className="h-5 w-5 text-primary mr-2" />
-            <span className="text-sm font-semibold text-primary">Included in Your 30-Day Trial</span>
-          </div>
           <h2 className="text-5xl font-bold mb-6">{section.config.title}</h2>
           <p className="text-xl text-muted-foreground max-w-4xl mx-auto">{section.config.subtitle}</p>
         </div>
@@ -306,22 +380,25 @@ const Home = () => {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute top-4 right-4">
-                  <Badge className="bg-gradient-to-r from-primary to-accent text-white">
-                    <Crown className="h-3 w-3 mr-1" />
-                    Pro Feature
-                  </Badge>
-                </div>
-                <div className="absolute top-4 left-4">
-                  <Badge variant="secondary" className="bg-green-500/90 text-white">
-                    <Clock className="h-3 w-3 mr-1" />
-                    30-Day Trial
-                  </Badge>
+                  {item.premium ? (
+                    <Badge className="bg-gradient-to-r from-primary to-accent text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Pro Feature
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                      <Check className="h-3 w-3 mr-1" />
+                      Free Feature
+                    </Badge>
+                  )}
                 </div>
               </div>
               
               <CardHeader className="space-y-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <div className="text-primary">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
+                  item.premium ? 'bg-gradient-to-br from-primary/20 to-accent/20' : 'bg-gradient-to-br from-green-500/20 to-green-600/20'
+                }`}>
+                  <div className={item.premium ? 'text-primary' : 'text-green-600'}>
                     {getIcon(item.icon)}
                   </div>
                 </div>
@@ -331,15 +408,26 @@ const Home = () => {
                 <div className="space-y-2">
                   {item.features?.map((feature: string, fIndex: number) => (
                     <div key={fIndex} className="flex items-center text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                      <CheckCircle className={`h-4 w-4 mr-2 flex-shrink-0 ${item.premium ? 'text-primary' : 'text-green-500'}`} />
                       <span>{feature}</span>
                     </div>
                   ))}
                 </div>
                 
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Crown className="mr-2 h-4 w-4" />
-                  Included in Trial
+                <Button variant="outline" className={`w-full transition-colors ${
+                  item.premium ? 'group-hover:bg-primary group-hover:text-white' : 'group-hover:bg-green-500 group-hover:text-white'
+                }`}>
+                  {item.premium ? (
+                    <>
+                      <Crown className="mr-2 h-4 w-4" />
+                      Pro Feature
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Free Feature
+                    </>
+                  )}
                 </Button>
               </CardHeader>
             </Card>
@@ -585,19 +673,66 @@ const Home = () => {
     );
   };
 
+  const renderFreeSuccess = (section: HomeSection) => (
+    <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center bg-green-500/10 rounded-full px-6 py-3 mb-6">
+            <Check className="h-5 w-5 text-green-500 mr-2" />
+            <span className="text-sm font-semibold text-green-600">100% Free Success Stories</span>
+          </div>
+          <h2 className="text-4xl font-bold mb-6">{section.config.title}</h2>
+          <p className="text-xl text-muted-foreground">{section.config.subtitle}</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8">
+          {section.config.stories?.map((story: any, index: number) => (
+            <Card key={index} className="text-center p-6 bg-gradient-to-br from-green-50/50 to-card/50 border border-green-200/50 hover:shadow-lg transition-shadow">
+              <img 
+                src={story.image} 
+                alt={story.name}
+                className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
+              />
+              <h3 className="text-xl font-bold mb-2">{story.name}</h3>
+              <p className="text-green-600 font-semibold mb-2">{story.genre}</p>
+              <Badge className="bg-green-500 text-white mb-4">
+                {story.achievement}
+              </Badge>
+              <blockquote className="text-sm text-muted-foreground italic mb-4 leading-relaxed">
+                "{story.quote}"
+              </blockquote>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div><strong>Plan:</strong> {story.plan}</div>
+                <div><strong>Timeline:</strong> {story.timeline}</div>
+                <div><strong>Result:</strong> {story.result}</div>
+              </div>
+            </Card>
+          ))}
+        </div>
+        
+        <div className="text-center mt-12">
+          <Button onClick={() => navigate('/auth')} className="bg-green-500 hover:bg-green-600 text-white">
+            <Check className="mr-2 h-4 w-4" />
+            Start Your Free Success Story
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+
   const renderFinalCTA = (section: HomeSection) => (
     <section className={`py-24 ${getBgClass(section.config.backgroundColor)} ${getAnimationClass(section.config.animation)}`}>
       <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Social Proof Numbers */}
           <div className="grid grid-cols-3 gap-8 mb-12">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">{section.config.socialProof.authorCount}</div>
-              <div className="text-muted-foreground">Authors Trust Us</div>
+              <div className="text-muted-foreground">Total Authors</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{section.config.socialProof.booksPublished}</div>
-              <div className="text-muted-foreground">Books Showcased</div>
+              <div className="text-4xl font-bold text-green-500 mb-2">{section.config.socialProof.freeUsers}</div>
+              <div className="text-muted-foreground">Started Free</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">{section.config.socialProof.successRate}</div>
@@ -620,23 +755,26 @@ const Home = () => {
             ))}
           </div>
           
-          <div className="flex gap-4 justify-center">
+          {/* Dual CTA */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {section.config.buttons?.map((button: any, index: number) => (
-              <Button 
-                key={index}
-                size="lg" 
-                variant={button.variant === 'primary' ? 'default' : 'outline'}
-                onClick={() => navigate(button.url)}
-                className={
-                  button.variant === 'primary' 
-                    ? 'text-xl px-12 py-6 h-16 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-xl' 
-                    : ''
-                }
-              >
-                {button.variant === 'primary' && <Crown className="mr-3 h-6 w-6" />}
-                {button.text}
-                {button.variant === 'primary' && <ArrowRight className="ml-3 h-6 w-6" />}
-              </Button>
+              <Card key={index} className="p-6 text-center hover:shadow-xl transition-shadow">
+                <Button 
+                  size="lg" 
+                  onClick={() => navigate(button.url)}
+                  className={`w-full text-lg py-6 h-16 mb-4 ${
+                    button.variant === 'primary' 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' 
+                      : 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90'
+                  }`}
+                >
+                  {button.variant === 'primary' && <Check className="mr-3 h-6 w-6" />}
+                  {button.variant === 'secondary' && <Crown className="mr-3 h-6 w-6" />}
+                  {button.text}
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </Button>
+                <p className="text-sm text-muted-foreground">{button.description}</p>
+              </Card>
             ))}
           </div>
         </div>
@@ -648,8 +786,12 @@ const Home = () => {
     switch (section.type) {
       case 'interactive_hero':
         return renderInteractiveHero(section);
+      case 'free_vs_pro':
+        return renderFreeVsPro(section);
       case 'premium_showcase':
         return renderPremiumShowcase(section);
+      case 'free_success':
+        return renderFreeSuccess(section);
       case 'faq':
         return renderFAQ(section);
       case 'trial_cta':
