@@ -793,6 +793,7 @@ export type Database = {
       subscription_plans: {
         Row: {
           advanced_analytics: boolean
+          available_themes: Json | null
           contact_form: boolean
           created_at: string
           custom_domain: boolean
@@ -811,6 +812,7 @@ export type Database = {
         }
         Insert: {
           advanced_analytics?: boolean
+          available_themes?: Json | null
           contact_form?: boolean
           created_at?: string
           custom_domain?: boolean
@@ -829,6 +831,7 @@ export type Database = {
         }
         Update: {
           advanced_analytics?: boolean
+          available_themes?: Json | null
           contact_form?: boolean
           created_at?: string
           custom_domain?: boolean

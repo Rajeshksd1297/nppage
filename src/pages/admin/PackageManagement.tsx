@@ -14,11 +14,16 @@ import {
   Crown,
   Settings as SettingsIcon,
   Users,
-  BookOpen
+  BookOpen,
+  Palette,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { useRealtimeThemes } from '@/hooks/useRealtimeThemes';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Package {
   id: string;
@@ -45,12 +50,14 @@ interface Package {
   popular: boolean;
   active: boolean;
   is_publisher_plan: boolean;
+  available_themes: string[]; // Theme IDs available for this package
 }
 
 export default function PackageManagement() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { themes, loading: themesLoading } = useRealtimeThemes();
   
   const [packageSettings, setPackageSettings] = useState({
     packages: [
@@ -78,7 +85,8 @@ export default function PackageManagement() {
         discount_to: '',
         popular: false,
         active: true,
-        is_publisher_plan: false
+        is_publisher_plan: false,
+        available_themes: []
       },
       {
         id: '2', 
@@ -104,7 +112,8 @@ export default function PackageManagement() {
         discount_to: '2024-12-31',
         popular: true,
         active: true,
-        is_publisher_plan: false
+        is_publisher_plan: false,
+        available_themes: []
       },
       {
         id: '3',
@@ -130,7 +139,8 @@ export default function PackageManagement() {
         discount_to: '',
         popular: false,
         active: true,
-        is_publisher_plan: true
+        is_publisher_plan: true,
+        available_themes: []
       }
     ],
     trial_days: 15,
@@ -180,7 +190,8 @@ export default function PackageManagement() {
           discount_percent: 0,
           discount_from: '',
           discount_to: '',
-          is_publisher_plan: plan.name === 'Publisher'
+          is_publisher_plan: plan.name === 'Publisher',
+          available_themes: Array.isArray(plan.available_themes) ? plan.available_themes : []
         }));
 
         setPackageSettings(prev => ({
@@ -220,7 +231,8 @@ export default function PackageManagement() {
           contact_form: pkg.contact_form,
           media_kit: pkg.media_kit,
           newsletter_integration: pkg.newsletter_integration,
-          no_watermark: pkg.no_watermark
+          no_watermark: pkg.no_watermark,
+          available_themes: pkg.available_themes || []
         };
 
         // Check if package exists by name
@@ -285,7 +297,8 @@ export default function PackageManagement() {
       discount_to: '',
       popular: false,
       active: true,
-      is_publisher_plan: false
+      is_publisher_plan: false,
+      available_themes: []
     };
     setPackageSettings(prev => ({
       ...prev,
@@ -547,6 +560,161 @@ export default function PackageManagement() {
                           {pkg.is_publisher_plan && <Badge variant="outline" className="text-xs bg-purple-100">Publisher Plan</Badge>}
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Available Themes */}
+                  <Card className="border-dashed border-blue-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Available Themes
+                        <Badge variant="secondary" className="ml-2">
+                          {pkg.available_themes?.length || 0} themes
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        Select which themes are available for this package. Users with this package can access these themes.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {themesLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          <span className="text-sm text-muted-foreground">Loading themes...</span>
+                        </div>
+                      ) : themes.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Palette className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>No themes available</p>
+                          <p className="text-xs">Create themes in Theme Management first</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                            {themes.map((theme) => {
+                              const isSelected = pkg.available_themes?.includes(theme.id) || false;
+                              return (
+                                <div 
+                                  key={theme.id} 
+                                  className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                                    isSelected 
+                                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                  onClick={() => {
+                                    const currentThemes = pkg.available_themes || [];
+                                    const newThemes = isSelected 
+                                      ? currentThemes.filter(id => id !== theme.id)
+                                      : [...currentThemes, theme.id];
+                                    updatePackage(pkg.id, { available_themes: newThemes });
+                                  }}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Checkbox 
+                                        checked={isSelected}
+                                        onChange={() => {}} // Handled by parent onClick
+                                        className="pointer-events-none"
+                                      />
+                                      <div>
+                                        <p className="font-medium text-sm">{theme.name}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          {theme.premium && (
+                                            <Badge variant="outline" className="text-xs bg-amber-100">
+                                              <Crown className="h-2 w-2 mr-1" />
+                                              Premium
+                                            </Badge>
+                                          )}
+                                          {!theme.premium && (
+                                            <Badge variant="outline" className="text-xs">
+                                              Free
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {isSelected && (
+                                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                    )}
+                                  </div>
+                                  {theme.description && (
+                                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                      {theme.description}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          {/* Quick Actions */}
+                          <div className="flex gap-2 mt-4 pt-3 border-t">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const allThemeIds = themes.map(t => t.id);
+                                updatePackage(pkg.id, { available_themes: allThemeIds });
+                              }}
+                            >
+                              Select All
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const freeThemeIds = themes.filter(t => !t.premium).map(t => t.id);
+                                updatePackage(pkg.id, { available_themes: freeThemeIds });
+                              }}
+                            >
+                              Free Only
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const premiumThemeIds = themes.filter(t => t.premium).map(t => t.id);
+                                updatePackage(pkg.id, { available_themes: premiumThemeIds });
+                              }}
+                            >
+                              Premium Only
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updatePackage(pkg.id, { available_themes: [] })}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Clear All
+                            </Button>
+                          </div>
+
+                          {/* Available Themes Summary */}
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                            <p className="text-sm font-medium mb-2 text-blue-900">Available Themes Summary:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {pkg.available_themes?.length === 0 ? (
+                                <span className="text-sm text-blue-700">No themes selected</span>
+                              ) : (
+                                pkg.available_themes?.map(themeId => {
+                                  const theme = themes.find(t => t.id === themeId);
+                                  return theme ? (
+                                    <Badge 
+                                      key={themeId} 
+                                      variant="outline" 
+                                      className="text-xs bg-white border-blue-200"
+                                    >
+                                      {theme.name}
+                                      {theme.premium && <Crown className="h-2 w-2 ml-1" />}
+                                    </Badge>
+                                  ) : null;
+                                })
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
