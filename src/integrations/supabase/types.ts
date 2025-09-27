@@ -859,6 +859,102 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_settings: {
+        Row: {
+          allow_html_content: boolean | null
+          allow_images: boolean | null
+          allow_user_newsletters: boolean | null
+          allowed_image_types: string[] | null
+          auto_generate_thumbnails: boolean | null
+          auto_schedule_enabled: boolean | null
+          categories: string[] | null
+          created_at: string
+          default_send_time: string | null
+          default_template: string | null
+          enable_a_b_testing: boolean | null
+          enable_tracking: boolean | null
+          enable_unsubscribe_link: boolean | null
+          from_email: string | null
+          from_name: string | null
+          id: string
+          image_compression_quality: number | null
+          max_content_length: number | null
+          max_image_size_mb: number | null
+          max_newsletters_per_user: number | null
+          max_recipients_per_campaign: number | null
+          max_subject_length: number | null
+          reply_to_email: string | null
+          require_category: boolean | null
+          require_content_approval: boolean | null
+          require_email_verification: boolean | null
+          send_rate_limit_per_hour: number | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          allow_html_content?: boolean | null
+          allow_images?: boolean | null
+          allow_user_newsletters?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_thumbnails?: boolean | null
+          auto_schedule_enabled?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          default_send_time?: string | null
+          default_template?: string | null
+          enable_a_b_testing?: boolean | null
+          enable_tracking?: boolean | null
+          enable_unsubscribe_link?: boolean | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          image_compression_quality?: number | null
+          max_content_length?: number | null
+          max_image_size_mb?: number | null
+          max_newsletters_per_user?: number | null
+          max_recipients_per_campaign?: number | null
+          max_subject_length?: number | null
+          reply_to_email?: string | null
+          require_category?: boolean | null
+          require_content_approval?: boolean | null
+          require_email_verification?: boolean | null
+          send_rate_limit_per_hour?: number | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allow_html_content?: boolean | null
+          allow_images?: boolean | null
+          allow_user_newsletters?: boolean | null
+          allowed_image_types?: string[] | null
+          auto_generate_thumbnails?: boolean | null
+          auto_schedule_enabled?: boolean | null
+          categories?: string[] | null
+          created_at?: string
+          default_send_time?: string | null
+          default_template?: string | null
+          enable_a_b_testing?: boolean | null
+          enable_tracking?: boolean | null
+          enable_unsubscribe_link?: boolean | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          image_compression_quality?: number | null
+          max_content_length?: number | null
+          max_image_size_mb?: number | null
+          max_newsletters_per_user?: number | null
+          max_recipients_per_campaign?: number | null
+          max_subject_length?: number | null
+          reply_to_email?: string | null
+          require_category?: boolean | null
+          require_content_approval?: boolean | null
+          require_email_verification?: boolean | null
+          send_rate_limit_per_hour?: number | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string

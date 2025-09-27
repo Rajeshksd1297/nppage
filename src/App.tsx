@@ -72,6 +72,7 @@ import UserFaqManagement from "./pages/UserFaqManagement";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { AdminAccessGuard } from "./components/AdminAccessGuard";
 
 const queryClient = new QueryClient();
 
@@ -147,204 +148,242 @@ function App() {
                 <SEODashboard />
               </DashboardLayout>
             } />
-            <Route path="/admin/seo-settings" element={
-              <DashboardLayout>
-                <SEOSettings />
-              </DashboardLayout>
-            } />
-            <Route path="/admin/publishers" element={
-              <DashboardLayout>
-                <PublisherManagement />
-              </DashboardLayout>
-            } />
-            <Route path="/social-connections" element={
-              <DashboardLayout>
-                <SocialConnections />
-              </DashboardLayout>
-            } />
-            <Route path="/onix-manager" element={
-              <DashboardLayout>
-                <ONIXManager />
-              </DashboardLayout>
-            } />
-            <Route path="/themes" element={
-              <DashboardLayout>
-                <Themes />
-              </DashboardLayout>
-            } />
-            <Route path="/contact-form" element={
-              <DashboardLayout>
-                <ContactForm />
-              </DashboardLayout>
-            } />
             <Route path="/admin" element={
               <DashboardLayout>
-                <AdminDashboard />
+                <AdminAccessGuard>
+                  <AdminDashboard />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/users" element={
               <DashboardLayout>
-                <AdminUsers />
+                <AdminAccessGuard>
+                  <AdminUsers />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/book-catalog" element={
               <DashboardLayout>
-                <BookCatalog />
+                <AdminAccessGuard>
+                  <BookCatalog />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/isbn-lookup" element={
               <DashboardLayout>
-                <ISBNLookupPage />
+                <AdminAccessGuard>
+                  <ISBNLookupPage />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/affiliate-settings" element={
               <DashboardLayout>
-                <AffiliateSettingsPage />
+                <AdminAccessGuard>
+                  <AffiliateSettingsPage />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/field-settings" element={
               <DashboardLayout>
-                <BookFieldSettingsPage />
+                <AdminAccessGuard>
+                  <BookFieldSettingsPage />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/book-analytics" element={
               <DashboardLayout>
-                <BookAnalyticsPage />
+                <AdminAccessGuard>
+                  <BookAnalyticsPage />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/books" element={
               <DashboardLayout>
-                <AdminBooks />
+                <AdminAccessGuard>
+                  <AdminBooks />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/books-management" element={
               <DashboardLayout>
-                <BooksManagement />
+                <AdminAccessGuard>
+                  <BooksManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/settings" element={
               <DashboardLayout>
-                <AdminSettings />
+                <AdminAccessGuard>
+                  <AdminSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/site-settings" element={
               <DashboardLayout>
-                <SiteSettings />
+                <AdminAccessGuard>
+                  <SiteSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/email-settings" element={
               <DashboardLayout>
-                <EmailSettings />
+                <AdminAccessGuard>
+                  <EmailSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/package-management" element={
               <DashboardLayout>
-                <PackageManagement />
+                <AdminAccessGuard>
+                  <PackageManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/domain-settings" element={
               <DashboardLayout>
-                <DomainSettings />
+                <AdminAccessGuard>
+                  <DomainSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/help-desk" element={
               <DashboardLayout>
-                <AdminHelpDesk />
+                <AdminAccessGuard>
+                  <AdminHelpDesk />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/help-desk-settings" element={
               <DashboardLayout>
-                <HelpDeskSettings />
+                <AdminAccessGuard>
+                  <HelpDeskSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/seo-settings" element={
               <DashboardLayout>
-                <SEOSettings />
+                <AdminAccessGuard>
+                  <SEOSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/ticket/:id" element={
               <DashboardLayout>
-                <TicketDetails />
-              </DashboardLayout>
-            } />
-            <Route path="/support-tickets" element={
-              <DashboardLayout>
-                <SupportTickets />
+                <AdminAccessGuard>
+                  <TicketDetails />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/theme-management" element={
               <DashboardLayout>
-                <ThemeManagement />
+                <AdminAccessGuard>
+                  <ThemeManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/blog-management" element={
               <DashboardLayout>
-                <BlogManagement />
+                <AdminAccessGuard>
+                  <BlogManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/blog-settings" element={
               <DashboardLayout>
-                <BlogSettings />
+                <AdminAccessGuard>
+                  <BlogSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/gallery-management" element={
               <DashboardLayout>
-                <GalleryManagement />
+                <AdminAccessGuard>
+                  <GalleryManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/gallery-settings" element={
               <DashboardLayout>
-                <GallerySettings />
+                <AdminAccessGuard>
+                  <GallerySettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/events-management" element={
               <DashboardLayout>
-                <EventsManagement />
+                <AdminAccessGuard>
+                  <EventsManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/event-settings" element={
               <DashboardLayout>
-                <EventSettings />
+                <AdminAccessGuard>
+                  <EventSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/awards-management" element={
               <DashboardLayout>
-                <AwardsManagement />
+                <AdminAccessGuard>
+                  <AwardsManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/awards-settings" element={
               <DashboardLayout>
-                <AwardsSettings />
+                <AdminAccessGuard>
+                  <AwardsSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/faq-management" element={
               <DashboardLayout>
-                <FaqManagement />
+                <AdminAccessGuard>
+                  <FaqManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/faq-settings" element={
               <DashboardLayout>
-                <FaqSettings />
+                <AdminAccessGuard>
+                  <FaqSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/newsletter-management" element={
               <DashboardLayout>
-                <NewsletterManagement />
+                <AdminAccessGuard>
+                  <NewsletterManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/newsletter-settings" element={
               <DashboardLayout>
-                <NewsletterSettings />
+                <AdminAccessGuard>
+                  <NewsletterSettings />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/home-page-management" element={
               <DashboardLayout>
-                <HomePageManagement />
+                <AdminAccessGuard>
+                  <HomePageManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             <Route path="/admin/home-page-editor" element={
               <DashboardLayout>
-                <HomePageEditor />
+                <AdminAccessGuard>
+                  <HomePageEditor />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publishers" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <PublisherManagement />
+                </AdminAccessGuard>
               </DashboardLayout>
             } />
             

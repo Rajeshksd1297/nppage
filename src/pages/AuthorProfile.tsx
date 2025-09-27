@@ -82,10 +82,27 @@ export default function AuthorProfile() {
       
       console.log('Loading profile for slug:', slug);
       
-      // Get profile by slug
+      // Get profile by slug - exclude sensitive fields for public access
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          id,
+          full_name,
+          bio,
+          avatar_url,
+          website_url,
+          slug,
+          specializations,
+          social_links,
+          seo_title,
+          seo_description,
+          seo_keywords,
+          public_profile,
+          theme_id,
+          active_theme_customization_id,
+          created_at,
+          updated_at
+        `)
         .eq('slug', slug)
         .maybeSingle(); // Use maybeSingle instead of single to avoid error on no match
 
