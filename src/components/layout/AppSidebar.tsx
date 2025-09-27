@@ -23,7 +23,12 @@ import {
   MessageCircle,
   Lock,
   Badge as BadgeIcon,
-  ExternalLink
+  ExternalLink,
+  Newspaper,
+  Image,
+  Calendar,
+  Award,
+  HelpCircle
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -119,6 +124,15 @@ const bookManagementItems = [
   { title: "Affiliate Settings", url: "/admin/affiliate-settings", icon: Globe },
   { title: "Field Settings", url: "/admin/field-settings", icon: Settings },
   { title: "Book Analytics", url: "/admin/book-analytics", icon: BarChart3 },
+];
+
+const contentManagementItems = [
+  { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
+  { title: "Gallery Management", url: "/admin/gallery-management", icon: Image },
+  { title: "Events Management", url: "/admin/events-management", icon: Calendar },
+  { title: "Awards Management", url: "/admin/awards-management", icon: Award },
+  { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
+  { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
 ];
 
 export function AppSidebar() {
@@ -360,6 +374,24 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {bookManagementItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Content Management</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {contentManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
                         <NavLink to={item.url} className={getNavCls}>
