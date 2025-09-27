@@ -107,32 +107,47 @@ const supportItems = [
   { title: "Subscription", url: "/subscription", icon: CreditCard },
 ];
 
-const adminItems = [
-  { title: "Manage Access", url: "/admin/users", icon: Users },
+// Core Admin Features
+const coreAdminItems = [
+  { title: "Admin Dashboard", url: "/admin", icon: BarChart3 },
+  { title: "Manage Users", url: "/admin/users", icon: Users },
   { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
-  { title: "Publishers", url: "/admin/publishers", icon: Building2 },
-  { title: "SEO Settings", url: "/admin/seo-settings", icon: Search },
-  { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
-  { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
-  { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
-  { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
 ];
 
+// Site Management
+const siteManagementItems = [
+  { title: "Home Page Editor", url: "/admin/home-page-management", icon: Home },
+  { title: "Site Settings", url: "/admin/site-settings", icon: Globe },
+  { title: "SEO Settings", url: "/admin/seo-settings", icon: Search },
+  { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
+  { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
+  { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
+];
+
+// Book Management
 const bookManagementItems = [
   { title: "Book Catalog", url: "/admin/book-catalog", icon: BookOpen },
-  { title: "ISBN Lookup", url: "/admin/isbn-lookup", icon: Search },
-  { title: "Affiliate Settings", url: "/admin/affiliate-settings", icon: Globe },
-  { title: "Field Settings", url: "/admin/field-settings", icon: Settings },
   { title: "Book Analytics", url: "/admin/book-analytics", icon: BarChart3 },
+  { title: "ISBN Lookup", url: "/admin/isbn-lookup", icon: Search },
+  { title: "Field Settings", url: "/admin/field-settings", icon: Settings },
+  { title: "Affiliate Settings", url: "/admin/affiliate-settings", icon: Globe },
 ];
 
+// Content Management
 const contentManagementItems = [
   { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
-  { title: "Gallery Management", url: "/admin/gallery-management", icon: Image },
   { title: "Events Management", url: "/admin/events-management", icon: Calendar },
+  { title: "Gallery Management", url: "/admin/gallery-management", icon: Image },
   { title: "Awards Management", url: "/admin/awards-management", icon: Award },
   { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
   { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
+];
+
+// Business Management
+const businessManagementItems = [
+  { title: "Publishers", url: "/admin/publishers", icon: Building2 },
+  { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
+  { title: "Help Desk Settings", url: "/admin/help-desk-settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -403,18 +418,28 @@ export function AppSidebar() {
         {isAdmin && (
           <>
             <SidebarGroup>
-              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupLabel>Core Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/admin/home-page-management" className={getNavCls}>
-                        <Home className="h-4 w-4" />
-                        {!collapsed && <span>Home Page Management</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  {adminItems.map((item) => (
+                  {coreAdminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Site Management</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {siteManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
                         <NavLink to={item.url} className={getNavCls}>
@@ -465,25 +490,19 @@ export function AppSidebar() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Support & Settings</SidebarGroupLabel>
+              <SidebarGroupLabel>Business Management</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/admin/help-desk-settings" className={getNavCls}>
-                        <Settings className="h-4 w-4" />
-                        {!collapsed && <span>Help Desk Settings</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/admin/theme-management" className={getNavCls}>
-                        <Palette className="h-4 w-4" />
-                        {!collapsed && <span>Theme Management</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {businessManagementItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
