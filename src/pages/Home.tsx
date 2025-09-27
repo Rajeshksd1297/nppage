@@ -185,7 +185,10 @@ const Home = () => {
         case 'eye': return <Eye className="h-6 w-6 text-primary" />;
         case 'activity': return <Activity className="h-6 w-6 text-primary" />;
         case 'user': return <Users className="h-8 w-8 text-primary" />;
-        case 'chart': return <BarChart3 className="h-8 w-8 text-primary" />;
+        case 'chart': 
+        case 'barchart3': 
+        case 'Chart3': // Fallback for potential data inconsistency
+          return <BarChart3 className="h-8 w-8 text-primary" />;
         default: return <BookOpen className="h-6 w-6 text-primary" />;
       }
     };
