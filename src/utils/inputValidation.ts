@@ -100,42 +100,6 @@ export const phoneSchema = z
     'Phone number must contain 7-15 digits'
   );
 
-// Generic text input validation
-export const createTextSchema = (options: {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  allowHTML?: boolean;
-  fieldName?: string;
-}) => {
-  const { required = false, minLength = 0, maxLength = 1000, allowHTML = false, fieldName = 'Field' } = options;
-  
-  let schema = z.string().trim();
-  
-  if (required) {
-    schema = schema.min(1, `${fieldName} is required`);
-  }
-  
-  if (minLength > 0) {
-    schema = schema.min(minLength, `${fieldName} must be at least ${minLength} characters`);
-  }
-  
-  schema = schema.max(maxLength, `${fieldName} must be less than ${maxLength} characters`);
-  
-  if (!allowHTML) {
-    schema = schema.refine(
-      (text) => !/[<>]/.test(text),
-      `${fieldName} cannot contain HTML tags`
-    );
-  }
-  
-  // Always check for potentially dangerous content
-  return schema.refine(
-    (text) => !/(<script|javascript:|data:|vbscript:|onload|onerror)/i.test(text),
-    `${fieldName} contains potentially unsafe content`
-  );
-};
-
 /**
  * Validates and sanitizes form data
  * @param data - Form data to validate
