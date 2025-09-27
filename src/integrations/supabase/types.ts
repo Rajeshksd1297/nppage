@@ -873,6 +873,39 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_audit_log: {
+        Row: {
+          affected_email: string
+          id: string
+          ip_address: unknown | null
+          operation: string
+          performed_at: string
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          affected_email: string
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          performed_at?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          affected_email?: string
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          performed_at?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       newsletter_settings: {
         Row: {
           allow_html_content: boolean | null
