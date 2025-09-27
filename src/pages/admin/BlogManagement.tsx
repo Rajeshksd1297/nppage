@@ -103,6 +103,7 @@ interface BlogSettings {
 }
 
 export default function BlogManagement() {
+  console.log('BlogManagement component loading...');
   const { toast } = useToast();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
