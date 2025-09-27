@@ -275,9 +275,18 @@ export default function AdminUsers() {
 
       // Update role if changed
       if (updates.role) {
+        // First delete existing roles for this user
+        const { error: deleteError } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId);
+
+        if (deleteError) throw deleteError;
+
+        // Then insert the new role
         const { error: roleError } = await supabase
           .from('user_roles')
-          .upsert({
+          .insert({
             user_id: userId,
             role: updates.role
           });
