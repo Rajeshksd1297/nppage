@@ -23,6 +23,13 @@ interface HomeSection {
     textColor?: string;
     image?: string;
     animation?: string;
+    size?: 'small' | 'medium' | 'large';
+    alignment?: 'left' | 'center' | 'right';
+    padding?: 'small' | 'standard' | 'extra';
+    textSize?: 'small' | 'medium' | 'large';
+    borderRadius?: string;
+    shadow?: string;
+    customClasses?: string;
     buttons?: Array<{ text: string; url: string; variant: 'primary' | 'secondary' }>;
     items?: Array<any>;
     autoPlay?: boolean;
@@ -124,12 +131,13 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
-      // Get total users
+      // Get total users with profiles
       const { count: usersCount } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('public_profile', true);
 
-      // Get total books
+      // Get total published books
       const { count: booksCount } = await supabase
         .from('books')
         .select('*', { count: 'exact', head: true })
@@ -140,11 +148,11 @@ const Home = () => {
         .from('page_analytics')
         .select('*', { count: 'exact', head: true });
 
-      // Get active users (users with recent activity)
+      // Get active users this month (last 30 days)
       const { count: activeCount } = await supabase
         .from('page_analytics')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        .select('visitor_id', { count: 'exact', head: true })
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       setStats({
         totalUsers: usersCount || 0,
@@ -170,7 +178,11 @@ const Home = () => {
     const getBgClass = (bg: string) => {
       switch (bg) {
         case 'muted/50': return 'bg-muted/50';
+        case 'muted/30': return 'bg-muted/30';
+        case 'primary/5': return 'bg-primary/5';
         case 'gradient-to-br from-primary/5 to-primary/10': return 'bg-gradient-to-br from-primary/5 to-primary/10';
+        case 'gradient-to-br from-primary/10 via-primary/5 to-accent/10': return 'bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10';
+        case 'gradient-to-br from-background via-muted/20 to-background': return 'bg-gradient-to-br from-background via-muted/20 to-background';
         case 'gradient-to-r from-blue-50 to-indigo-50': return 'bg-gradient-to-r from-blue-50 to-indigo-50';
         case 'gradient-to-br from-purple-50 to-pink-50': return 'bg-gradient-to-br from-purple-50 to-pink-50';
         case 'dark': return 'bg-dark text-white';
@@ -185,9 +197,12 @@ const Home = () => {
         case 'eye': return <Eye className="h-6 w-6 text-primary" />;
         case 'activity': return <Activity className="h-6 w-6 text-primary" />;
         case 'user': return <Users className="h-8 w-8 text-primary" />;
+        case 'globe': return <Globe className="h-8 w-8 text-primary" />;
+        case 'palette': return <Star className="h-8 w-8 text-primary" />;
+        case 'rocket': return <TrendingUp className="h-8 w-8 text-primary" />;
         case 'chart': 
         case 'barchart3': 
-        case 'Chart3': // Fallback for potential data inconsistency
+        case 'Chart3':
           return <BarChart3 className="h-8 w-8 text-primary" />;
         default: return <BookOpen className="h-6 w-6 text-primary" />;
       }
@@ -197,23 +212,28 @@ const Home = () => {
 
     switch (section.type) {
       case 'hero':
+        const sizeClass = section.config.size === 'large' ? 'py-24' : section.config.size === 'medium' ? 'py-16' : 'py-12';
+        const paddingClass = section.config.padding === 'extra' ? 'px-8' : section.config.padding === 'standard' ? 'px-6' : 'px-4';
+        const textSizeClass = section.config.textSize === 'large' ? 'text-6xl' : section.config.textSize === 'medium' ? 'text-4xl' : 'text-5xl';
+        
         return (
-          <section key={section.id} className={sectionClasses}>
-            <div className="container mx-auto px-6">
-              <div className="text-center space-y-6">
-                <h1 className="text-5xl font-bold tracking-tight">
+          <section key={section.id} className={`${sizeClass} ${getBgClass(section.config.backgroundColor || 'background')} ${getAnimationClass(section.config.animation || '')}`}>
+            <div className={`container mx-auto ${paddingClass}`}>
+              <div className={`text-center space-y-6 ${section.config.customClasses || ''}`}>
+                <h1 className={`${textSizeClass} font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent`}>
                   {section.config.title || 'Welcome to NP Page'}
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
                   {section.config.subtitle || 'Create professional author profiles, showcase your books, and grow your readership.'}
                 </p>
-                <div className="flex gap-4 justify-center">
+                <div className="flex gap-4 justify-center flex-wrap">
                   {section.config.buttons?.map((button: any, index: number) => (
                     <Button 
                       key={index}
                       size="lg" 
                       variant={button.variant === 'primary' ? 'default' : 'outline'}
                       onClick={() => navigate(button.url)}
+                      className="hover-scale"
                     >
                       {button.text}
                       {button.variant === 'primary' && <ArrowRight className="ml-2 h-4 w-4" />}
@@ -236,17 +256,26 @@ const Home = () => {
                 )}
               </div>
               <div className="grid md:grid-cols-4 gap-8">
-                {section.config.items?.map((item: any, index: number) => (
-                  <div key={index} className="text-center">
-                    {item.icon && (
-                      <div className="flex justify-center mb-4">
-                        {getIcon(item.icon)}
-                      </div>
-                    )}
-                    <div className="text-4xl font-bold text-primary mb-2">{item.value}</div>
-                    <div className="text-muted-foreground">{item.label}</div>
-                  </div>
-                ))}
+                {section.config.items?.map((item: any, index: number) => {
+                  // Handle dynamic values that sync with portal data
+                  let displayValue = item.value;
+                  if (item.value === 'dynamic_users') displayValue = stats.totalUsers.toLocaleString();
+                  else if (item.value === 'dynamic_books') displayValue = stats.totalBooks.toLocaleString();
+                  else if (item.value === 'dynamic_views') displayValue = stats.totalViews.toLocaleString();
+                  else if (item.value === 'dynamic_active') displayValue = stats.activeUsers.toLocaleString();
+                  
+                  return (
+                    <div key={index} className="text-center">
+                      {item.icon && (
+                        <div className="flex justify-center mb-4">
+                          {getIcon(item.icon)}
+                        </div>
+                      )}
+                      <div className="text-4xl font-bold text-primary mb-2">{displayValue}</div>
+                      <div className="text-muted-foreground">{item.label}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -264,11 +293,13 @@ const Home = () => {
               </div>
               <div className="grid md:grid-cols-3 gap-8">
                 {section.config.items?.map((item: any, index: number) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      {getIcon(item.icon)}
-                      <CardTitle>{item.title}</CardTitle>
-                      <CardDescription>{item.description}</CardDescription>
+                  <Card key={index} className="hover-scale transition-all duration-300 hover:shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+                    <CardHeader className="text-center space-y-4">
+                      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                        {getIcon(item.icon)}
+                      </div>
+                      <CardTitle className="text-xl">{item.title}</CardTitle>
+                      <CardDescription className="text-base leading-relaxed">{item.description}</CardDescription>
                     </CardHeader>
                   </Card>
                 ))}
