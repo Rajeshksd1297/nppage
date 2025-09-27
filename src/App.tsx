@@ -56,6 +56,7 @@ import EventsManagement from "./pages/admin/EventsManagement";
 import AwardsManagement from "./pages/admin/AwardsManagement";
 import FaqManagement from "./pages/admin/FaqManagement";
 import NewsletterManagement from "./pages/admin/NewsletterManagement";
+import NewsletterSettings from "./pages/admin/NewsletterSettings";
 import EventSettings from "./pages/admin/EventSettings";
 import GallerySettings from "./pages/admin/GallerySettings";
 import AwardsSettings from "./pages/admin/AwardsSettings";
@@ -346,6 +347,11 @@ function App() {
             <Route path="/admin/newsletter-management" element={
               <DashboardLayout>
                 <NewsletterManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/admin/newsletter-settings" element={
+              <DashboardLayout>
+                <NewsletterSettings />
               </DashboardLayout>
             } />
             <Route path="/admin/home-page-management" element={

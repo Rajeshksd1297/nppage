@@ -13,7 +13,8 @@ import {
   Download,
   Upload,
   Filter,
-  UserPlus
+  UserPlus,
+  Settings
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -275,6 +276,13 @@ export default function NewsletterManagement() {
           <p className="text-muted-foreground">Manage newsletter subscribers and campaigns</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => window.open('/admin/newsletter-settings', '_blank')}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
           <Button variant="outline" onClick={exportSubscribers}>
             <Download className="h-4 w-4 mr-2" />
             Export
