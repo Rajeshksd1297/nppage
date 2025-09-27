@@ -65,7 +65,7 @@ export default function NewsletterSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Access Denied",
+          title: "Access Denied", 
           description: "Please log in to access this page",
           variant: "destructive",
         });
@@ -73,22 +73,26 @@ export default function NewsletterSettings() {
         return;
       }
 
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
+      // Use RPC function to check admin role to bypass RLS issues
+      const { data: hasAdminRole, error: roleError } = await supabase
+        .rpc('has_role', { 
+          _user_id: user.id, 
+          _role: 'admin' 
+        });
 
-      if (roleData?.role === 'admin') {
+      console.log('Admin role check:', { hasAdminRole, roleError, userId: user.id });
+
+      if (hasAdminRole) {
         setIsAdmin(true);
         fetchSettings();
       } else {
         toast({
           title: "Access Denied",
-          description: "Admin access required",
+          description: "Admin access required. Contact support if you believe this is an error.",
           variant: "destructive",
         });
-        window.location.href = '/dashboard';
+        // Don't redirect, just show access denied
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error checking admin access:', error);
@@ -97,7 +101,7 @@ export default function NewsletterSettings() {
         description: "Failed to verify access permissions",
         variant: "destructive",
       });
-      window.location.href = '/dashboard';
+      setLoading(false);
     }
   };
 
