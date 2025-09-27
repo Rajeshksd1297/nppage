@@ -74,6 +74,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "articles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       awards: {
@@ -231,6 +238,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1064,6 +1078,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "onix_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       page_analytics: {
@@ -1256,6 +1277,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "publisher_authors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       publishers: {
@@ -1432,6 +1460,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "social_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       social_posts: {
@@ -1497,6 +1532,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1958,7 +2000,105 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          active_theme_customization_id: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          custom_domain_id: string | null
+          full_name: string | null
+          id: string | null
+          publisher_id: string | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
+          slug: string | null
+          social_links: Json | null
+          specializations: string[] | null
+          subscription_plan_id: string | null
+          theme_id: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          active_theme_customization_id?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          custom_domain_id?: string | null
+          full_name?: string | null
+          id?: string | null
+          publisher_id?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
+          subscription_plan_id?: string | null
+          theme_id?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          active_theme_customization_id?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          custom_domain_id?: string | null
+          full_name?: string | null
+          id?: string | null
+          publisher_id?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
+          subscription_plan_id?: string | null
+          theme_id?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_theme_customization_id_fkey"
+            columns: ["active_theme_customization_id"]
+            isOneToOne: false
+            referencedRelation: "user_theme_customizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_custom_domain_id_fkey"
+            columns: ["custom_domain_id"]
+            isOneToOne: false
+            referencedRelation: "custom_domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_publisher_id_fkey"
+            columns: ["publisher_id"]
+            isOneToOne: false
+            referencedRelation: "publishers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       apply_user_theme: {
