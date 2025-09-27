@@ -47,6 +47,7 @@ import {
 const freeItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Profile Setup", url: "/profile", icon: User },
+  { title: "Profile Settings", url: "/profile-settings", icon: Settings },
   { title: "My Books", url: "/books", icon: BookOpen },
   { title: "Basic Analytics", url: "/analytics", icon: BarChart3 },
 ];
@@ -94,16 +95,18 @@ const proItems = [
 const getQuickActions = (userSlug: string | null) => [
   { title: "Add New Book", url: "/books/new", icon: PlusCircle },
   { 
-    title: "My Profile Page", 
+    title: "View Profile Page", 
     url: userSlug ? `/${userSlug}` : "/profile", 
     icon: Eye, 
     external: userSlug ? true : false 
   },
-  { title: "Social Connections", url: "/social-connections", icon: Share2 },
 ];
 
 // Support & Account - always available
 const supportItems = [
+  { title: "Social Connections", url: "/social-connections", icon: Share2 },
+  { title: "Articles", url: "/articles", icon: FileText },
+  { title: "SEO Dashboard", url: "/seo-dashboard", icon: Search },
   { title: "Support Tickets", url: "/support-tickets", icon: MessageCircle },
   { title: "Subscription", url: "/subscription", icon: CreditCard },
 ];
@@ -223,7 +226,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {freeItems
-                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "Profile Setup"))
+                .filter(item => !isAdmin || (item.title === "Dashboard" || item.title === "Profile Setup" || item.title === "Profile Settings"))
                 .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -318,10 +321,10 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Support & Account */}
+        {/* Content & Tools */}
         {!isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Account</SidebarGroupLabel>
+            <SidebarGroupLabel>Content & Tools</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {supportItems.map((item) => (
