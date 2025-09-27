@@ -67,6 +67,7 @@ interface HomeSection {
     backgroundColor?: string;
     textColor?: string;
     image?: string;
+    backgroundImage?: string;
     animation?: string;
     buttons?: Array<{ text: string; url: string; variant: 'primary' | 'secondary' }>;
     items?: Array<any>;
@@ -74,6 +75,17 @@ interface HomeSection {
     interval?: number;
     showDots?: boolean;
     showArrows?: boolean;
+    // Hero-specific options
+    heroSize?: 'small' | 'medium' | 'large' | 'full';
+    heroAlignment?: 'left' | 'center' | 'right';
+    heroLayout?: 'text-only' | 'text-image' | 'background-image';
+    padding?: 'small' | 'medium' | 'large' | 'extra-large';
+    overlay?: boolean;
+    overlayOpacity?: number;
+    customCss?: string;
+    textSize?: 'small' | 'medium' | 'large' | 'extra-large';
+    borderRadius?: 'none' | 'small' | 'medium' | 'large';
+    shadow?: 'none' | 'small' | 'medium' | 'large';
   };
 }
 
@@ -310,6 +322,15 @@ const HomePageEditor = () => {
           subtitle: 'Configure this section',
           backgroundColor: 'background',
           animation: 'fade-in',
+          ...(type === 'hero' && {
+            heroSize: 'large',
+            heroAlignment: 'center',
+            heroLayout: 'text-only',
+            padding: 'large',
+            textSize: 'large',
+            borderRadius: 'medium',
+            shadow: 'none'
+          }),
           ...(type === 'slider' && {
             autoPlay: true,
             interval: 5000,
@@ -510,6 +531,253 @@ const HomePageEditor = () => {
             />
           </div>
 
+          <div>
+            <Label htmlFor="content-description">Description</Label>
+            <Textarea
+              id="content-description"
+              value={editingSection.config.description || ''}
+              onChange={(e) => handleUpdateSection({
+                ...editingSection,
+                config: { ...editingSection.config, description: e.target.value }
+              })}
+            />
+          </div>
+
+          {/* Hero-specific controls */}
+          {editingSection.type === 'hero' && (
+            <>
+              <Separator />
+              <h4 className="font-medium flex items-center">
+                <Star className="h-4 w-4 mr-2" />
+                Hero Section Settings
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="hero-size">Section Size</Label>
+                  <Select
+                    value={editingSection.config.heroSize || 'large'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, heroSize: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small (400px)</SelectItem>
+                      <SelectItem value="medium">Medium (500px)</SelectItem>
+                      <SelectItem value="large">Large (600px)</SelectItem>
+                      <SelectItem value="full">Full Screen</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="hero-alignment">Text Alignment</Label>
+                  <Select
+                    value={editingSection.config.heroAlignment || 'center'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, heroAlignment: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="left">Left</SelectItem>
+                      <SelectItem value="center">Center</SelectItem>
+                      <SelectItem value="right">Right</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="hero-layout">Layout Style</Label>
+                  <Select
+                    value={editingSection.config.heroLayout || 'text-only'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, heroLayout: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text-only">Text Only</SelectItem>
+                      <SelectItem value="text-image">Text + Image</SelectItem>
+                      <SelectItem value="background-image">Background Image</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="padding">Padding</Label>
+                  <Select
+                    value={editingSection.config.padding || 'large'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, padding: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                      <SelectItem value="extra-large">Extra Large</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="text-size">Text Size</Label>
+                  <Select
+                    value={editingSection.config.textSize || 'large'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, textSize: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                      <SelectItem value="extra-large">Extra Large</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="border-radius">Border Radius</Label>
+                  <Select
+                    value={editingSection.config.borderRadius || 'medium'}
+                    onValueChange={(value) => handleUpdateSection({
+                      ...editingSection,
+                      config: { ...editingSection.config, borderRadius: value as any }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {(editingSection.config.heroLayout === 'text-image' || editingSection.config.heroLayout === 'background-image') && (
+                <div>
+                  <Label htmlFor="hero-image">Image URL</Label>
+                  <Input
+                    id="hero-image"
+                    placeholder="https://example.com/image.jpg"
+                    value={editingSection.config.backgroundImage || editingSection.config.image || ''}
+                    onChange={(e) => handleUpdateSection({
+                      ...editingSection,
+                      config: { 
+                        ...editingSection.config, 
+                        ...(editingSection.config.heroLayout === 'background-image' 
+                          ? { backgroundImage: e.target.value }
+                          : { image: e.target.value }
+                        )
+                      }
+                    })}
+                  />
+                </div>
+              )}
+
+              {editingSection.config.heroLayout === 'background-image' && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={editingSection.config.overlay || false}
+                      onCheckedChange={(checked) => handleUpdateSection({
+                        ...editingSection,
+                        config: { ...editingSection.config, overlay: checked }
+                      })}
+                    />
+                    <Label>Enable Overlay</Label>
+                  </div>
+                  
+                  {editingSection.config.overlay && (
+                    <div>
+                      <Label htmlFor="overlay-opacity">Overlay Opacity</Label>
+                      <Input
+                        id="overlay-opacity"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={editingSection.config.overlayOpacity || 50}
+                        onChange={(e) => handleUpdateSection({
+                          ...editingSection,
+                          config: { ...editingSection.config, overlayOpacity: parseInt(e.target.value) }
+                        })}
+                        className="w-full"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {editingSection.config.overlayOpacity || 50}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="shadow">Shadow Effect</Label>
+                <Select
+                  value={editingSection.config.shadow || 'none'}
+                  onValueChange={(value) => handleUpdateSection({
+                    ...editingSection,
+                    config: { ...editingSection.config, shadow: value as any }
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="custom-css">Custom CSS Classes</Label>
+                <Input
+                  id="custom-css"
+                  placeholder="additional-class another-class"
+                  value={editingSection.config.customCss || ''}
+                  onChange={(e) => handleUpdateSection({
+                    ...editingSection,
+                    config: { ...editingSection.config, customCss: e.target.value }
+                  })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Add custom Tailwind CSS classes for advanced styling
+                </p>
+              </div>
+            </>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="background">Background Style</Label>
@@ -526,9 +794,12 @@ const HomePageEditor = () => {
                 <SelectContent>
                   <SelectItem value="background">Default</SelectItem>
                   <SelectItem value="muted/50">Light Gray</SelectItem>
+                  <SelectItem value="primary/5">Primary Light</SelectItem>
+                  <SelectItem value="secondary/5">Secondary Light</SelectItem>
                   <SelectItem value="gradient-to-br from-primary/5 to-primary/10">Primary Gradient</SelectItem>
                   <SelectItem value="gradient-to-r from-blue-50 to-indigo-50">Blue Gradient</SelectItem>
                   <SelectItem value="gradient-to-br from-purple-50 to-pink-50">Purple Gradient</SelectItem>
+                  <SelectItem value="gradient-to-r from-green-50 to-emerald-50">Green Gradient</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
                 </SelectContent>
               </Select>
