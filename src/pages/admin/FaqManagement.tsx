@@ -106,13 +106,7 @@ export default function FaqManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('faqs')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 

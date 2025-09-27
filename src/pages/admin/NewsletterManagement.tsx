@@ -53,10 +53,6 @@ interface NewsletterSubscriber {
   source: string;
   created_at: string;
   updated_at: string;
-  profiles?: {
-    full_name: string;
-    email: string;
-  };
 }
 
 export default function NewsletterManagement() {
@@ -110,13 +106,7 @@ export default function NewsletterManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('newsletter_subscribers')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('subscribed_at', { ascending: false });
 
       if (error) throw error;

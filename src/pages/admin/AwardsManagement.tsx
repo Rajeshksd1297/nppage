@@ -108,13 +108,7 @@ export default function AwardsManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('awards')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('sort_order', { ascending: true })
         .order('award_date', { ascending: false });
 

@@ -105,13 +105,7 @@ export default function GalleryManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('gallery_items')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 

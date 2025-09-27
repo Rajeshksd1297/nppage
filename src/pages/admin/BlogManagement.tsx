@@ -118,13 +118,7 @@ export default function BlogManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -478,7 +472,7 @@ export default function BlogManagement() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        <span>{post.profiles?.full_name || post.profiles?.email || 'Unknown'}</span>
+                        <span>Admin</span>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(post.status)}</TableCell>
