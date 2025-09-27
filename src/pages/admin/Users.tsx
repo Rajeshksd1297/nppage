@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { emailSchema, validateFormData } from "@/utils/inputValidation";
+import { z } from 'zod';
 import { 
   Users as UsersIcon, 
   Search,
@@ -242,11 +244,26 @@ export default function AdminUsers() {
 
   const updateUser = async (userId: string, updates: any) => {
     try {
+      // Validate email if it's being updated
+      if (updates.email) {
+        const emailValidation = validateFormData({ email: updates.email }, z.object({ email: emailSchema }));
+        if (!emailValidation.success) {
+          const validationErrors = emailValidation as { success: false; errors: Record<string, string> };
+          toast({
+            title: "Validation Error",
+            description: validationErrors.errors.email || "Invalid email format",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: updates.full_name,
+          email: updates.email, // Add email to the update
           bio: updates.bio,
           website_url: updates.website_url,
           public_profile: updates.public_profile,
