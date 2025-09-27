@@ -198,10 +198,8 @@ export function useProfileThemeSync() {
   };
 
   const getProfileLandingPageUrl = () => {
-    if (!profileTheme) return null;
-    
-    // In a real app, this would be the actual profile URL
-    return `/profile/${profileTheme.profileId}`;
+    // Return null to use the fallback URL in ProfileSettings (which uses the slug)
+    return null;
   };
 
   const previewProfileWithTheme = (themeId: string, customConfig?: any) => {
