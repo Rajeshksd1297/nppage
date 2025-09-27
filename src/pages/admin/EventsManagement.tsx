@@ -988,19 +988,6 @@ export default function EventsManagement() {
     </div>
   );
 }
-            </DialogHeader>
-            <EventForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Create Event</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4 items-center flex-wrap">
