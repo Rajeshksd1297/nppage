@@ -78,6 +78,7 @@ function SortableItem({ section, onUpdate, onRemove }: {
   onUpdate: (id: string, updates: Partial<LayoutSection>) => void;
   onRemove: (id: string) => void;
 }) {
+  const { toast } = useToast();
   const {
     attributes,
     listeners,
@@ -123,7 +124,19 @@ function SortableItem({ section, onUpdate, onRemove }: {
         Configure how this section appears on author profiles
       </p>
       <div className="space-y-2">
-        <Button variant="outline" size="sm" className="w-full">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full"
+          onClick={() => {
+            // Open section configuration dialog
+            toast({
+              title: "Section Configuration",
+              description: `Configure ${section.name} section settings`,
+            });
+            // TODO: Implement section configuration dialog
+          }}
+        >
           <Settings className="h-4 w-4 mr-2" />
           Configure Section
         </Button>
