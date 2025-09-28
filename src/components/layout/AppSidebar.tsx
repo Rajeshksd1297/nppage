@@ -321,10 +321,12 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {/* Content Management Tools - Only show if enabled in current plan */}
+                {/* Content Management Tools - Always show, but lock if not available */}
                 {(() => {
-                  if (!subscription?.subscription_plans?.id) return null;
-                  const currentPlanFeatures = getPlanFeatures(subscription.subscription_plans.id);
+                  const currentPlanFeatures = subscription?.subscription_plans?.id 
+                    ? getPlanFeatures(subscription.subscription_plans.id) 
+                    : [];
+                  
                   const contentFeatures = [
                     {
                       feature: 'contact_forms',
@@ -367,19 +369,27 @@ export function AppSidebar() {
                   return contentFeatures.map((item) => {
                     const isFeatureEnabled = currentPlanFeatures.some(f => f.id === item.feature && f.enabled);
                     
-                    if (!isFeatureEnabled) return null;
-
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
+                          <NavLink 
+                            to={isFeatureEnabled ? item.url : '/subscription'} 
+                            className={`${getNavCls} ${!isFeatureEnabled ? 'opacity-60' : ''}`}
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && (
+                                <div className="flex items-center justify-between flex-1">
+                                  <span>{item.title}</span>
+                                  {!isFeatureEnabled && <Lock className="w-3 h-3 text-muted-foreground" />}
+                                </div>
+                              )}
+                            </div>
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
-                  }).filter(Boolean);
+                  });
                 })()}
               </SidebarMenu>
             </SidebarGroupContent>
