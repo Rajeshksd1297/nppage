@@ -79,6 +79,13 @@ const proItems = [
     feature: "premium_themes",
     description: "Customize your theme"
   },
+  { 
+    title: "Contact Form", 
+    url: "/contact-form", 
+    icon: MessageSquare, 
+    feature: "contact_form",
+    description: "Reader contact form"
+  },
 ];
 
 // Quick actions - always available

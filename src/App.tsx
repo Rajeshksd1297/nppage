@@ -26,7 +26,7 @@ import PublisherManagement from './pages/admin/PublisherManagement';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
-
+import ContactForm from "./pages/ContactForm";
 import UserContactManagement from "./pages/UserContactManagement";
 import ContactFormSettings from "./pages/ContactFormSettings";
 
@@ -439,6 +439,11 @@ function App() {
             <Route path="/social-connections" element={
               <DashboardLayout>
                 <SocialConnections />
+              </DashboardLayout>
+            } />
+            <Route path="/contact-form" element={
+              <DashboardLayout>
+                <ContactForm />
               </DashboardLayout>
             } />
             <Route path="/contact-management" element={

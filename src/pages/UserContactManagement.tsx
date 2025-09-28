@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Mail, MessageSquare, Reply, Search, Filter, ArrowUpDown, Settings, Eye, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ContactFormWidget } from '@/components/ContactFormWidget';
 import ContactFormSettings from '@/pages/ContactFormSettings';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -255,10 +256,14 @@ export default function UserContactManagement() {
       </div>
 
       <Tabs defaultValue="messages" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="messages" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             Messages
+          </TabsTrigger>
+          <TabsTrigger value="form-preview" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Form Preview
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -461,6 +466,31 @@ export default function UserContactManagement() {
             </Table>}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="form-preview" className="mt-6">
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            
+
+            {/* Form Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Form Preview</CardTitle>
+                <CardDescription>
+                  This is how your contact form appears to visitors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContactFormWidget userId={currentUserId} onSubmissionSuccess={() => {
+                toast({
+                  title: "Test Submission",
+                  description: "Form test completed successfully"
+                });
+              }} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
