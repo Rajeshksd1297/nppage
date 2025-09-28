@@ -163,9 +163,16 @@ export default function UserBlogCreate() {
         : formData.status;
         
       const postData = {
-        ...formData,
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
         slug,
         status: finalStatus,
+        featured_image_url: formData.featured_image_url,
+        meta_title: formData.meta_title,
+        meta_description: formData.meta_description,
+        tags: formData.tags,
+        category: formData.category,
         published_at: finalStatus === 'published' ? new Date().toISOString() : null,
         user_id: user.id,
       };
