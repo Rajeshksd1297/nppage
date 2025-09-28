@@ -253,14 +253,10 @@ export default function ProfileSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             Profile
-          </TabsTrigger>
-          <TabsTrigger value="theme" className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Theme
           </TabsTrigger>
           <TabsTrigger value="social" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
@@ -285,75 +281,13 @@ export default function ProfileSettings() {
                 <ProfileBasicInfo 
                   profile={profile}
                   onProfileUpdate={handleProfileUpdate}
-                  onNext={() => setActiveTab('theme')}
+                  onNext={() => setActiveTab('social')}
                 />
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="theme" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                Choose Your Theme
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {realtimeThemes.map((theme) => {
-                  const canUse = !theme.premium || hasFeature('premium_themes');
-                  const isActive = profileTheme?.themeId === theme.id;
-
-                  return (
-                    <Card 
-                      key={theme.id}
-                      className={`relative cursor-pointer transition-all hover:shadow-lg ${
-                        isActive ? 'ring-2 ring-primary' : ''
-                      } ${!canUse ? 'opacity-60' : ''}`}
-                      onClick={() => canUse && handleThemeSelect(theme)}
-                    >
-                      {theme.premium && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
-                            <Crown className="w-3 h-3 mr-1" />
-                            Premium
-                          </Badge>
-                        </div>
-                      )}
-                      
-                      {isActive && (
-                        <div className="absolute top-2 right-2 z-10">
-                          <Badge variant="default">Active</Badge>
-                        </div>
-                      )}
-
-                      <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-t-lg">
-                        <div className="flex items-center justify-center h-full">
-                          <Palette className="w-12 h-12 text-muted-foreground" />
-                        </div>
-                      </div>
-                      
-                      <div className="p-4">
-                        <h3 className="font-semibold">{theme.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {theme.description}
-                        </p>
-                        
-                        {!canUse && theme.premium && (
-                          <FeatureGate feature="premium_themes" inline>
-                            <span></span>
-                          </FeatureGate>
-                        )}
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="social" className="space-y-6">
           {profile && (

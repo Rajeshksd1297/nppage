@@ -73,11 +73,11 @@ const proItems = [
     description: "Your own domain"
   },
   { 
-    title: "Premium Themes", 
+    title: "Themes", 
     url: "/themes", 
     icon: Palette, 
     feature: "premium_themes",
-    description: "Beautiful designs"
+    description: "Customize your theme"
   },
   { 
     title: "Contact Form", 
