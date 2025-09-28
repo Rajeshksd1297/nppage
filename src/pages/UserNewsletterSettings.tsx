@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Settings,
   Mail,
@@ -34,6 +35,8 @@ const settingsSchema = z.object({
   maxNewslettersPerMonth: z.number().min(1, 'Must be at least 1').max(100, 'Cannot exceed 100'),
   enableAutoUnsubscribe: z.boolean(),
   signature: z.string().max(500, 'Signature must be less than 500 characters').optional(),
+  emailProvider: z.enum(['system', 'resend']),
+  resendApiKey: z.string().optional(),
 });
 
 type SettingsFormData = z.infer<typeof settingsSchema>;
@@ -65,6 +68,8 @@ export default function UserNewsletterSettings() {
       maxNewslettersPerMonth: 10,
       enableAutoUnsubscribe: true,
       signature: '',
+      emailProvider: 'system' as const,
+      resendApiKey: '',
     },
   });
 
@@ -161,15 +166,108 @@ export default function UserNewsletterSettings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              Email Configuration
+              Email Provider Configuration
             </CardTitle>
             <CardDescription>
-              Set up how your newsletters will be sent to your subscribers
+              Choose your email provider and configure sending preferences
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="emailProvider"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Provider</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose email provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="system">System Default (Limited)</SelectItem>
+                          <SelectItem value="resend">Resend (Recommended)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        System default has sending limits. Resend provides better deliverability and higher limits.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("emailProvider") === "resend" && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">Setup Resend Account</h4>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <p>To use Resend for professional email delivery:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>
+                            Create account at{" "}
+                            <a 
+                              href="https://resend.com" 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-primary hover:underline font-medium"
+                            >
+                              resend.com
+                            </a>
+                          </li>
+                          <li>
+                            Verify your domain at{" "}
+                            <a 
+                              href="https://resend.com/domains" 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-primary hover:underline font-medium"
+                            >
+                              resend.com/domains
+                            </a>
+                          </li>
+                          <li>
+                            Generate API key at{" "}
+                            <a 
+                              href="https://resend.com/api-keys" 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-primary hover:underline font-medium"
+                            >
+                              resend.com/api-keys
+                            </a>
+                          </li>
+                          <li>Enter your API key below</li>
+                        </ol>
+                      </div>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="resendApiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Resend API Key</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="re_xxxxxxxxxxxxxxxx"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Your API key is stored securely and encrypted. Required to send emails via Resend.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
@@ -200,12 +298,15 @@ export default function UserNewsletterSettings() {
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="your@email.com"
+                            placeholder="your@domain.com"
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          Must be the email address associated with your account
+                          {form.watch("emailProvider") === "resend" 
+                            ? "Must match your verified domain in Resend" 
+                            : "Must be your account email address"
+                          }
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
