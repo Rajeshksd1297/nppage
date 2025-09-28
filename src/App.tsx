@@ -67,6 +67,7 @@ import Home from "./pages/Home";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
+import UserBlogCreate from "./pages/UserBlogCreate";
 import UserEventsManagement from "./pages/UserEventsManagement";
 import UserAwardsManagement from "./pages/UserAwardsManagement";
 import UserFaqManagement from "./pages/UserFaqManagement";
@@ -409,6 +410,11 @@ function App() {
             <Route path="/user-blog-management" element={
               <DashboardLayout>
                 <UserBlogManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-blog-management/create" element={
+              <DashboardLayout>
+                <UserBlogCreate />
               </DashboardLayout>
             } />
             <Route path="/user-events-management" element={

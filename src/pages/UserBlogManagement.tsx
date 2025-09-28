@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -61,11 +62,11 @@ interface BlogPost {
 
 export default function UserBlogManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
 
@@ -179,7 +180,6 @@ export default function UserBlogManagement() {
           title: "Success",
           description: "Blog post created successfully",
         });
-        setIsCreateOpen(false);
       }
 
       resetForm();
@@ -418,29 +418,10 @@ export default function UserBlogManagement() {
           </h1>
           <p className="text-muted-foreground">Create and manage your blog content</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Post
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create Blog Post</DialogTitle>
-              <DialogDescription>
-                Create a new blog post to share with your audience.
-              </DialogDescription>
-            </DialogHeader>
-            <BlogPostForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Create Post</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => navigate('/user-blog-management/create')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Post
+        </Button>
       </div>
 
       {/* Filters */}
