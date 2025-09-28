@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,8 @@ import {
   Settings,
   Mail,
   Save,
-  User
+  User,
+  ArrowLeft
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,6 +57,7 @@ interface UserNewsletterSettings {
 }
 
 export default function UserNewsletterSettings() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -153,12 +156,22 @@ export default function UserNewsletterSettings() {
     <FeatureAccessGuard feature="newsletter">
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Settings className="h-8 w-8" />
-            Newsletter Settings
-          </h1>
-          <p className="text-muted-foreground">Configure your newsletter sending preferences</p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/user-newsletter-management')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Settings className="h-8 w-8" />
+              Newsletter Settings
+            </h1>
+            <p className="text-muted-foreground">Configure your newsletter sending preferences</p>
+          </div>
         </div>
 
         {/* Settings Form */}
