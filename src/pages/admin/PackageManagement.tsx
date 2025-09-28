@@ -201,45 +201,57 @@ export default function PackageManagement() {
   const loadExistingPackages = async () => {
     try {
       setLoading(true);
+      console.log('Loading packages from database...');
+      
       const { data: plans, error } = await supabase
         .from('subscription_plans')
         .select('*')
         .order('price_monthly');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading packages:', error);
+        throw error;
+      }
 
       if (plans && plans.length > 0) {
-        const packages: Package[] = plans.map((plan: any) => ({
-          id: plan.id,
-          name: plan.name,
-          price_monthly: plan.price_monthly,
-          price_yearly: plan.price_yearly,
-          features: Array.isArray(plan.features) ? plan.features : [],
-          max_books: plan.max_books === -1 ? null : plan.max_books,
-          max_publications: plan.max_publications === -1 ? null : plan.max_publications,
-          max_authors: null,
-          advanced_analytics: plan.advanced_analytics,
-          custom_domain: plan.custom_domain,
-          premium_themes: plan.premium_themes,
-          contact_form: plan.contact_form,
-          newsletter_integration: plan.newsletter_integration,
-          no_watermark: plan.no_watermark,
-          blog: plan.blog || false,
-          gallery: plan.gallery || false,
-          events: plan.events || false,
-          awards: plan.awards || false,
-          faq: plan.faq || false,
-          badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
-          badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
-          description: `${plan.name} plan features`,
-          active: true,
-          popular: plan.name === 'Pro',
-          discount_percent: 0,
-          discount_from: '',
-          discount_to: '',
-          is_publisher_plan: plan.name === 'Publisher',
-          available_themes: Array.isArray(plan.available_themes) ? plan.available_themes : []
-        }));
+        console.log('Raw plans from database:', plans);
+        
+        const packages: Package[] = plans.map((plan: any) => {
+          console.log('Processing plan:', plan.id, 'Type:', typeof plan.id);
+          return {
+            id: String(plan.id), // Ensure it's a string
+            name: plan.name,
+            price_monthly: plan.price_monthly,
+            price_yearly: plan.price_yearly,
+            features: Array.isArray(plan.features) ? plan.features : [],
+            max_books: plan.max_books === -1 ? null : plan.max_books,
+            max_publications: plan.max_publications === -1 ? null : plan.max_publications,
+            max_authors: null,
+            advanced_analytics: plan.advanced_analytics,
+            custom_domain: plan.custom_domain,
+            premium_themes: plan.premium_themes,
+            contact_form: plan.contact_form,
+            newsletter_integration: plan.newsletter_integration,
+            no_watermark: plan.no_watermark,
+            blog: plan.blog || false,
+            gallery: plan.gallery || false,
+            events: plan.events || false,
+            awards: plan.awards || false,
+            faq: plan.faq || false,
+            badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
+            badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
+            description: `${plan.name} plan features`,
+            active: true,
+            popular: plan.name === 'Pro',
+            discount_percent: 0,
+            discount_from: '',
+            discount_to: '',
+            is_publisher_plan: plan.name === 'Publisher',
+            available_themes: Array.isArray(plan.available_themes) ? plan.available_themes : []
+          };
+        });
+
+        console.log('Processed packages:', packages.map(p => ({ id: p.id, name: p.name, idType: typeof p.id })));
 
         setPackageSettings(prev => ({
           ...prev,
@@ -367,10 +379,39 @@ export default function PackageManagement() {
   };
 
   const deletePackage = async (packageId: string) => {
+    console.log('Attempting to delete package with ID:', packageId, 'Type:', typeof packageId);
+
     if (packageSettings.packages.length <= 1) {
       toast({
         title: "Cannot Delete",
         description: "You must have at least one package",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if this is a temporary package (not in database yet)
+    if (typeof packageId === 'string' && packageId.startsWith('temp_')) {
+      console.log('Deleting temporary package:', packageId);
+      // Just remove from local state
+      setPackageSettings(prev => ({
+        ...prev,
+        packages: prev.packages.filter(pkg => pkg.id !== packageId)
+      }));
+      
+      toast({
+        title: "Package Removed",
+        description: "Temporary package has been removed",
+      });
+      return;
+    }
+
+    // Validate that packageId is a proper UUID string
+    if (typeof packageId !== 'string' || !packageId) {
+      console.error('Invalid package ID:', packageId);
+      toast({
+        title: "Error",
+        description: "Invalid package ID provided",
         variant: "destructive",
       });
       return;
@@ -383,7 +424,10 @@ export default function PackageManagement() {
         .select('id, profiles(full_name, email)')
         .eq('plan_id', packageId);
 
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.error('Error checking user subscriptions:', checkError);
+        throw checkError;
+      }
 
       if (userSubscriptions && userSubscriptions.length > 0) {
         toast({
@@ -395,12 +439,16 @@ export default function PackageManagement() {
       }
 
       // Delete package from database
+      console.log('Deleting package from database:', packageId);
       const { error: deleteError } = await supabase
         .from('subscription_plans')
         .delete()
         .eq('id', packageId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Database deletion error:', deleteError);
+        throw deleteError;
+      }
 
       // Update local state
       setPackageSettings(prev => ({
@@ -420,7 +468,7 @@ export default function PackageManagement() {
       console.error('Error deleting package:', error);
       toast({
         title: "Error",
-        description: "Failed to delete package from database",
+        description: `Failed to delete package: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -505,7 +553,19 @@ export default function PackageManagement() {
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => deletePackage(pkg.id)}
+                      onClick={() => {
+                        console.log('Delete button clicked for package:', pkg.id, 'Type:', typeof pkg.id);
+                        if (pkg.id && typeof pkg.id === 'string') {
+                          deletePackage(pkg.id);
+                        } else {
+                          console.error('Invalid package ID on delete button click:', pkg.id);
+                          toast({
+                            title: "Error",
+                            description: "Invalid package ID - cannot delete",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
                       disabled={packageSettings.packages.length <= 1}
                     >
                       <Trash2 className="h-4 w-4" />
