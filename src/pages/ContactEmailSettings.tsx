@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Key, ExternalLink, ArrowLeft, Save, Send } from 'lucide-react';
@@ -18,6 +19,11 @@ interface EmailSettings {
   resend_from_name: string;
   enabled: boolean;
   test_email_sent: boolean;
+  // Contact form email settings
+  notification_email: string | null;
+  auto_reply_enabled: boolean;
+  auto_reply_subject: string;
+  auto_reply_message: string;
 }
 
 export default function ContactEmailSettings() {
@@ -27,6 +33,10 @@ export default function ContactEmailSettings() {
     resend_from_name: '',
     enabled: false,
     test_email_sent: false,
+    notification_email: null,
+    auto_reply_enabled: true,
+    auto_reply_subject: 'Thank you for your message',
+    auto_reply_message: 'Thank you for contacting me. I have received your message and will get back to you as soon as possible.',
   });
   const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -38,6 +48,7 @@ export default function ContactEmailSettings() {
 
   useEffect(() => {
     loadSettings();
+    loadContactFormSettings();
     loadUserEmail();
   }, []);
 
@@ -75,14 +86,15 @@ export default function ContactEmailSettings() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setSettings({
+        setSettings(prev => ({
+          ...prev,
           id: (data as any).id,
           resend_api_key: (data as any).resend_api_key,
           resend_from_email: (data as any).resend_from_email || '',
           resend_from_name: (data as any).resend_from_name || '',
           enabled: (data as any).enabled ?? false,
           test_email_sent: (data as any).test_email_sent ?? false,
-        });
+        }));
       }
     } catch (error) {
       console.error('Error loading email settings:', error);
@@ -96,13 +108,41 @@ export default function ContactEmailSettings() {
     }
   };
 
+  const loadContactFormSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_contact_form_settings' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data) {
+        setSettings(prev => ({
+          ...prev,
+          notification_email: (data as any).notification_email,
+          auto_reply_enabled: (data as any).auto_reply_enabled ?? true,
+          auto_reply_subject: (data as any).auto_reply_subject || 'Thank you for your message',
+          auto_reply_message: (data as any).auto_reply_message || 'Thank you for contacting me. I have received your message and will get back to you as soon as possible.',
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading contact form settings:', error);
+    }
+  };
+
   const saveSettings = async () => {
     try {
       setSaving(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const settingsData = {
+      // Save email settings
+      const emailSettingsData = {
         user_id: user.id,
         resend_api_key: settings.resend_api_key,
         resend_from_email: settings.resend_from_email,
@@ -111,11 +151,26 @@ export default function ContactEmailSettings() {
         test_email_sent: settings.test_email_sent,
       };
 
-      const { error } = await supabase
+      const { error: emailError } = await supabase
         .from('user_email_settings' as any)
-        .upsert(settingsData, { onConflict: 'user_id' });
+        .upsert(emailSettingsData, { onConflict: 'user_id' });
 
-      if (error) throw error;
+      if (emailError) throw emailError;
+
+      // Save contact form settings
+      const contactFormData = {
+        user_id: user.id,
+        notification_email: settings.notification_email || null,
+        auto_reply_enabled: settings.auto_reply_enabled,
+        auto_reply_subject: settings.auto_reply_subject,
+        auto_reply_message: settings.auto_reply_message,
+      };
+
+      const { error: contactError } = await supabase
+        .from('user_contact_form_settings' as any)
+        .upsert(contactFormData, { onConflict: 'user_id' });
+
+      if (contactError) throw contactError;
 
       toast({
         title: "Settings Saved",
@@ -123,6 +178,7 @@ export default function ContactEmailSettings() {
       });
 
       await loadSettings();
+      await loadContactFormSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
@@ -184,7 +240,7 @@ export default function ContactEmailSettings() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Email Settings</h1>
           <p className="text-muted-foreground">
-            Configure Resend API for sending contact form emails
+            Configure all email settings for contact forms, notifications, and auto-replies
           </p>
         </div>
       </div>
@@ -363,6 +419,68 @@ export default function ContactEmailSettings() {
                 </Alert>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Notification and Auto-Reply Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Notification & Auto-Reply Settings
+            </CardTitle>
+            <CardDescription>
+              Configure how you receive notifications and auto-reply to contacts
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="notification_email">Notification Email</Label>
+              <Input
+                id="notification_email"
+                type="email"
+                value={settings.notification_email || userEmail}
+                onChange={(e) => setSettings({ ...settings, notification_email: e.target.value })}
+                placeholder={userEmail}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to use your account email ({userEmail})
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="auto_reply_enabled"
+                checked={settings.auto_reply_enabled}
+                onCheckedChange={(checked) => setSettings({ ...settings, auto_reply_enabled: checked })}
+              />
+              <Label htmlFor="auto_reply_enabled">Enable Auto-Reply</Label>
+            </div>
+
+            {settings.auto_reply_enabled && (
+              <div className="space-y-4 pl-6 border-l-2 border-muted">
+                <div className="space-y-2">
+                  <Label htmlFor="auto_reply_subject">Auto-Reply Subject</Label>
+                  <Input
+                    id="auto_reply_subject"
+                    value={settings.auto_reply_subject}
+                    onChange={(e) => setSettings({ ...settings, auto_reply_subject: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="auto_reply_message">Auto-Reply Message</Label>
+                  <Textarea
+                    id="auto_reply_message"
+                    value={settings.auto_reply_message}
+                    onChange={(e) => setSettings({ ...settings, auto_reply_message: e.target.value })}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

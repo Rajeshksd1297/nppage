@@ -14,10 +14,6 @@ interface ContactFormSettings {
   id?: string;
   form_title: string;
   form_description: string;
-  auto_reply_enabled: boolean;
-  auto_reply_subject: string;
-  auto_reply_message: string;
-  notification_email: string | null;
   collect_phone: boolean;
   collect_company: boolean;
   require_subject: boolean;
@@ -36,10 +32,6 @@ export default function ContactFormSettings() {
   const [settings, setSettings] = useState<ContactFormSettings>({
     form_title: 'Contact Me',
     form_description: 'Send me a message and I\'ll get back to you soon!',
-    auto_reply_enabled: true,
-    auto_reply_subject: 'Thank you for your message',
-    auto_reply_message: 'Thank you for contacting me. I have received your message and will get back to you as soon as possible.',
-    notification_email: null,
     collect_phone: false,
     collect_company: false,
     require_subject: false,
@@ -88,10 +80,6 @@ export default function ContactFormSettings() {
           id: data.id,
           form_title: data.form_title || 'Contact Me',
           form_description: data.form_description || 'Send me a message and I\'ll get back to you soon!',
-          auto_reply_enabled: data.auto_reply_enabled ?? true,
-          auto_reply_subject: data.auto_reply_subject || 'Thank you for your message',
-          auto_reply_message: data.auto_reply_message || 'Thank you for contacting me. I have received your message and will get back to you as soon as possible.',
-          notification_email: data.notification_email,
           collect_phone: data.collect_phone ?? false,
           collect_company: data.collect_company ?? false,
           require_subject: data.require_subject ?? false,
@@ -155,10 +143,6 @@ export default function ContactFormSettings() {
         user_id: user.id,
         form_title: settings.form_title,
         form_description: settings.form_description,
-        auto_reply_enabled: settings.auto_reply_enabled,
-        auto_reply_subject: settings.auto_reply_subject,
-        auto_reply_message: settings.auto_reply_message,
-        notification_email: settings.notification_email || null,
         collect_phone: settings.collect_phone,
         collect_company: settings.collect_company,
         require_subject: settings.require_subject,
@@ -196,10 +180,6 @@ export default function ContactFormSettings() {
     setSettings({
       form_title: 'Contact Me',
       form_description: 'Send me a message and I\'ll get back to you soon!',
-      auto_reply_enabled: true,
-      auto_reply_subject: 'Thank you for your message',
-      auto_reply_message: 'Thank you for contacting me. I have received your message and will get back to you as soon as possible.',
-      notification_email: null,
       collect_phone: false,
       collect_company: false,
       require_subject: false,
@@ -322,68 +302,6 @@ export default function ContactFormSettings() {
                 </p>
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Email Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5" />
-              Email Settings
-            </CardTitle>
-            <CardDescription>
-              Configure email notifications and auto-replies
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="notification_email">Notification Email</Label>
-              <Input
-                id="notification_email"
-                type="email"
-                value={settings.notification_email || userEmail}
-                onChange={(e) => setSettings({ ...settings, notification_email: e.target.value })}
-                placeholder={userEmail}
-              />
-              <p className="text-xs text-muted-foreground">
-                Leave empty to use your account email ({userEmail})
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="auto_reply_enabled"
-                checked={settings.auto_reply_enabled}
-                onCheckedChange={(checked) => setSettings({ ...settings, auto_reply_enabled: checked })}
-              />
-              <Label htmlFor="auto_reply_enabled">Enable Auto-Reply</Label>
-            </div>
-
-            {settings.auto_reply_enabled && (
-              <div className="space-y-4 pl-6 border-l-2 border-muted">
-                <div className="space-y-2">
-                  <Label htmlFor="auto_reply_subject">Auto-Reply Subject</Label>
-                  <Input
-                    id="auto_reply_subject"
-                    value={settings.auto_reply_subject}
-                    onChange={(e) => setSettings({ ...settings, auto_reply_subject: e.target.value })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="auto_reply_message">Auto-Reply Message</Label>
-                  <Textarea
-                    id="auto_reply_message"
-                    value={settings.auto_reply_message}
-                    onChange={(e) => setSettings({ ...settings, auto_reply_message: e.target.value })}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
