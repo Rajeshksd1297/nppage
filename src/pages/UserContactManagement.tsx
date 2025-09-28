@@ -6,8 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, MessageSquare, Reply, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Mail, MessageSquare, Reply, Search, Filter, ArrowUpDown, Settings, Eye, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ContactFormWidget } from '@/components/ContactFormWidget';
+import ContactFormSettings from '@/pages/ContactFormSettings';
 import {
   Table,
   TableBody,
@@ -63,12 +66,37 @@ export default function UserContactManagement() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'priority'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [userSlug, setUserSlug] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
+    getCurrentUser();
     fetchSubmissions();
     setupRealtimeSubscription();
   }, []);
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        
+        // Get user profile to find slug
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('slug')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.slug) {
+          setUserSlug(profile.slug);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting current user:', error);
+    }
+  };
 
   const setupRealtimeSubscription = () => {
     const channel = supabase
@@ -265,20 +293,39 @@ export default function UserContactManagement() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Contact Messages</h1>
+        <h1 className="text-3xl font-bold mb-2">Contact Management</h1>
         <p className="text-muted-foreground">
-          Manage contact form submissions from your readers
+          Manage your contact form, messages, and settings
         </p>
       </div>
 
-      {/* Filters and Search */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
+      <Tabs defaultValue="messages" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="messages" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Messages
+          </TabsTrigger>
+          <TabsTrigger value="form-preview" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Form Preview
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Form Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="messages" className="mt-6">
+          {/* Messages Tab Content */}
+
+          {/* Filters and Search */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filters & Search
+              </CardTitle>
+            </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
@@ -324,16 +371,16 @@ export default function UserContactManagement() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+          </Card>
 
-      {/* Submissions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" />
-            Contact Submissions ({submissions.length})
-          </CardTitle>
-        </CardHeader>
+          {/* Submissions Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Contact Submissions ({submissions.length})
+              </CardTitle>
+            </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center p-8">Loading...</div>
@@ -503,8 +550,73 @@ export default function UserContactManagement() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="form-preview" className="mt-6">
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Form Preview & Actions</CardTitle>
+                <CardDescription>
+                  Test your contact form and access it on your profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4 mb-4">
+                  {userSlug ? (
+                    <a 
+                      href={`/${userSlug}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex"
+                    >
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4" />
+                        View Live Form
+                      </Button>
+                    </a>
+                  ) : (
+                    <Button variant="outline" disabled>
+                      Set Profile Slug First
+                    </Button>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {userSlug ? `Your form is available at /${userSlug}` : 'Set up your profile slug to make your form accessible'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Form Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Form Preview</CardTitle>
+                <CardDescription>
+                  This is how your contact form appears to visitors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContactFormWidget 
+                  userId={currentUserId} 
+                  onSubmissionSuccess={() => {
+                    toast({
+                      title: "Test Submission",
+                      description: "Form test completed successfully",
+                    });
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-6">
+          <ContactFormSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

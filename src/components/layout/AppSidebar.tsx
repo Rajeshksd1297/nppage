@@ -337,14 +337,6 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/contact-form-settings" className={getNavCls}>
-                      <Settings className="h-4 w-4" />
-                      {!collapsed && <span>Contact Form Settings</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
                     <NavLink to="/user-blog-management" className={getNavCls}>
                       <Newspaper className="h-4 w-4" />
                       {!collapsed && <span>My Blog</span>}
