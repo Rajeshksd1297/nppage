@@ -81,8 +81,19 @@ export default function AuthorProfile() {
       setLoading(true);
       
       console.log('Loading profile for slug:', slug);
+      console.log('Current session:', await supabase.auth.getSession());
       
-      // Get public profile by slug from profiles table directly
+      // First try to get the profile without filtering by public_profile
+      // to see if we can access it at all
+      const { data: allProfileData, error: allProfileError } = await supabase
+        .from('profiles')
+        .select('id, slug, full_name, public_profile')
+        .eq('slug', slug)
+        .maybeSingle();
+      
+      console.log('All profile query result:', { allProfileData, allProfileError });
+      
+      // Now try to get public profile by slug from profiles table directly
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
@@ -105,9 +116,9 @@ export default function AuthorProfile() {
         `)
         .eq('slug', slug)
         .eq('public_profile', true)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid error on no match
+        .maybeSingle();
 
-      console.log('Profile query result:', { profileData, profileError });
+      console.log('Public profile query result:', { profileData, profileError });
 
       if (profileError) {
         console.error('Profile error:', profileError);
@@ -117,7 +128,7 @@ export default function AuthorProfile() {
 
       if (!profileData) {
         console.log('No profile found for slug:', slug);
-        setError('Profile not found');
+        setError('Profile not found or not public');
         return;
       }
 
