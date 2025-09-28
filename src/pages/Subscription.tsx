@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, Crown, Zap, Clock, Star, ArrowRight, Sparkles, Shield, TrendingUp, Globe, Palette, BarChart3, MessageCircle, FileText, Award, Calendar, HelpCircle, Newspaper, Eye, Users, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -390,308 +391,338 @@ export default function Subscription() {
           <Shield className="w-4 h-4" />
           <span>30-day free trial • No credit card required • Cancel anytime</span>
         </div>
-        
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-6 mb-8 p-2 bg-muted/50 rounded-full w-fit mx-auto">
-          <Button
-            variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setBillingCycle('monthly')}
-            className="rounded-full px-8 transition-all duration-200"
-          >
-            Monthly
-          </Button>
-          <Button
-            variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setBillingCycle('yearly')}
-            className="rounded-full px-8 relative transition-all duration-200"
-          >
-            Yearly
-            <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              Save 17%
-            </Badge>
-          </Button>
-        </div>
       </div>
 
-      {/* Enhanced Plans Grid */}
-      <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
-        {plans.map((plan, index) => {
-          const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
-          const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
-          const isPremium = plan.price_monthly > 0;
-          const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
-          const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
-          const isPopular = plan.name === 'Pro';
-          const features = getDetailedFeatureList(plan); // Get plan features
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="current" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="current" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Current Subscription
+          </TabsTrigger>
+          <TabsTrigger value="packages" className="flex items-center gap-2">
+            <Crown className="w-4 h-4" />
+            Subscription Packages
+          </TabsTrigger>
+          <TabsTrigger value="compare" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Compare All Features
+          </TabsTrigger>
+        </TabsList>
 
-          return (
-            <Card 
-              key={plan.id} 
-              className={`relative transition-all duration-300 hover:shadow-xl ${
-                isPremium ? 'border-primary shadow-lg scale-105' : 'hover:scale-102'
-              } ${isCurrentPlan || isOnTrialForPlan ? 'ring-2 ring-primary' : ''}`}
-            >
-              {isPopular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge className="bg-gradient-to-r from-primary to-purple-600 text-white px-4 py-1 text-sm">
-                    <Crown className="w-3 h-3 mr-1" />
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-              
-              <CardHeader className="text-center pb-6 pt-8">
-                <div className="mb-4">
-                  {isPremium ? (
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Zap className="w-8 h-8 text-white" />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                
-                <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                <CardDescription className="text-base mb-6">
-                  {getPackageDescription(plan)}
+        {/* Current Subscription Tab */}
+        <TabsContent value="current" className="space-y-6">
+          {subscription ? (
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-purple-600/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Crown className="w-6 h-6 text-primary" />
+                  Your Current Plan
+                </CardTitle>
+                <CardDescription>
+                  {subscription.status === 'trialing' ? 'You are currently on a free trial' : 'Your active subscription details'}
                 </CardDescription>
-                
-                <div className="mb-6">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold">${price}</span>
-                    <span className="text-lg text-muted-foreground">{priceLabel}</span>
-                  </div>
-                  {billingCycle === 'yearly' && plan.price_monthly > 0 && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      ${(plan.price_monthly * 12).toFixed(0)} billed annually
-                    </p>
-                  )}
-                  {isOnTrialForPlan && (
-                    <Badge variant="outline" className="mt-3 bg-amber-50 text-amber-700 border-amber-200">
-                      <Clock className="w-3 h-3 mr-1" />
-                      On Trial - {trialDaysLeft} days left
-                    </Badge>
-                  )}
-                </div>
               </CardHeader>
-
-              <CardContent className="pt-0">
-                {/* Feature Categories */}
-                <div className="space-y-6 mb-8">
-                  {['Core', 'Content', 'Design', 'Analytics', 'Communication', 'Marketing', 'Branding', 'Support'].map(category => {
-                    const categoryFeatures = features.filter(f => f.category === category);
-                    if (categoryFeatures.length === 0) return null;
-                    
-                    return (
-                      <div key={category}>
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                          {category}
-                        </h4>
-                        <div className="space-y-3">
-                          {categoryFeatures.map((feature, idx) => {
-                            const IconComponent = getFeatureIcon(feature.icon);
-                            return (
-                              <div key={idx} className="flex items-start gap-3">
-                                <div className="p-1 bg-primary/10 rounded">
-                                  <IconComponent className="w-4 h-4 text-primary" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-medium text-sm">{feature.name}</p>
-                                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Plan</p>
+                      <p className="text-2xl font-bold text-primary">{subscription.subscription_plans.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge variant={subscription.status === 'active' ? 'default' : subscription.status === 'trialing' ? 'secondary' : 'destructive'}>
+                        {subscription.status}
+                      </Badge>
+                    </div>
+                    {subscription.trial_ends_at && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Trial ends</p>
+                        <p className="font-semibold">
+                          {new Date(subscription.trial_ends_at).toLocaleDateString()}
+                        </p>
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-muted-foreground">Book Usage</p>
+                        <p className="text-sm font-medium">
+                          {userStats.totalBooks}{subscription.subscription_plans.max_books !== -1 ? `/${subscription.subscription_plans.max_books}` : ''}
+                        </p>
+                      </div>
+                      <Progress 
+                        value={getPlanUsagePercentage()} 
+                        className="h-2"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-2xl font-bold text-primary">{userStats.totalBooks}</p>
+                        <p className="text-xs text-muted-foreground">Total Books</p>
+                      </div>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-2xl font-bold text-primary">{userStats.publishedBooks}</p>
+                        <p className="text-xs text-muted-foreground">Published</p>
+                      </div>
+                    </div>
+                    
+                    {subscription.subscription_plans.max_books && 
+                     userStats.totalBooks >= subscription.subscription_plans.max_books && (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-800 font-medium mb-1">
+                          📚 Book limit reached
+                        </p>
+                        <p className="text-sm text-amber-700">
+                          Upgrade to add more books to your profile
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <Button 
-                  className={`w-full h-12 ${isPremium ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90' : ''}`}
-                  variant={isPremium ? "default" : "outline"}
-                  disabled={isCurrentPlan || isOnTrialForPlan}
-                  onClick={() => handleUpgrade(plan.id)}
-                >
-                  {isCurrentPlan ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Current Plan
-                    </>
-                  ) : isOnTrialForPlan ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2" />
-                      On Trial
-                    </>
-                  ) : plan.price_monthly === 0 ? (
-                    'Downgrade to Free'
-                  ) : (
-                    <>
-                      Upgrade to {plan.name}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-
-                {(isCurrentPlan || isOnTrialForPlan) && (
-                  <p className="text-center text-sm text-muted-foreground mt-3">
-                    {isOnTrialForPlan ? 'Enjoying your trial period' : 'Your active subscription plan'}
-                  </p>
-                )}
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No Active Subscription</h3>
+                <p className="text-muted-foreground mb-4">You don't have an active subscription yet. Choose a plan to get started!</p>
+                <Button onClick={() => (document.querySelector('[value="packages"]') as HTMLElement)?.click()}>
+                  View Packages
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-      {/* Current Subscription Status */}
-      {subscription && (
-        <Card className="max-w-4xl mx-auto mb-16">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="w-5 h-5" />
-              Current Subscription Details
-            </CardTitle>
-            <CardDescription>
-              Manage your subscription and track your usage
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Plan</p>
-                  <p className="font-semibold text-lg">{subscription.subscription_plans.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={subscription.status === 'active' ? 'default' : 
-                                subscription.status === 'trialing' ? 'secondary' : 'secondary'}>
-                    {subscription.status === 'trialing' ? 'Trial Active' : subscription.status}
-                  </Badge>
-                </div>
-                {subscription.trial_ends_at && subscription.status === 'trialing' && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Trial ends</p>
-                    <p className="font-semibold">
-                      {new Date(subscription.trial_ends_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm text-muted-foreground">Book Usage</p>
-                    <p className="text-sm font-medium">
-                      {userStats.totalBooks}{subscription.subscription_plans.max_books !== -1 ? `/${subscription.subscription_plans.max_books}` : ''}
-                    </p>
-                  </div>
-                  <Progress 
-                    value={getPlanUsagePercentage()} 
-                    className="h-2"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{userStats.totalBooks}</p>
-                    <p className="text-xs text-muted-foreground">Total Books</p>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-primary">{userStats.publishedBooks}</p>
-                    <p className="text-xs text-muted-foreground">Published</p>
-                  </div>
-                </div>
-                
-                {subscription.subscription_plans.max_books && 
-                 userStats.totalBooks >= subscription.subscription_plans.max_books && (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-800 font-medium mb-1">
-                      📚 Book limit reached
-                    </p>
-                    <p className="text-sm text-amber-700">
-                      Upgrade to Pro for unlimited books and advanced features.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Feature Comparison */}
-      <Card className="max-w-6xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            Compare All Features
-          </CardTitle>
-          <CardDescription className="text-center">
-            See exactly what's included with each plan
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-semibold">Features</th>
-                  {plans.map(plan => (
-                    <th key={plan.id} className="text-center p-4">
-                      <div className="font-semibold">{plan.name}</div>
-                      <div className="text-sm text-muted-foreground font-normal">
-                        ${plan.price_monthly}/month
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: 'Books Allowed', key: 'max_books' },
-                  { name: 'Premium Themes', key: 'premium_themes' },
-                  { name: 'Custom Domain', key: 'custom_domain' },
-                  { name: 'Advanced Analytics', key: 'advanced_analytics' },
-                  { name: 'Contact Forms', key: 'contact_form' },
-                  { name: 'Newsletter Integration', key: 'newsletter_integration' },
-                  { name: 'Blog Features', key: 'blog' },
-                  { name: 'Events Management', key: 'events' },
-                  { name: 'Awards Showcase', key: 'awards' },
-                  { name: 'FAQ Section', key: 'faq' },
-                  { name: 'No Watermark', key: 'no_watermark' }
-                ].map((feature, idx) => (
-                  <tr key={idx} className="border-b hover:bg-muted/50">
-                    <td className="p-4 font-medium">{feature.name}</td>
-                    {plans.map(plan => (
-                      <td key={plan.id} className="text-center p-4">
-                        {feature.key === 'max_books' ? (
-                          <span className="font-medium">
-                            {plan.max_books === -1 ? '∞ Unlimited' : plan.max_books || '3'}
-                          </span>
-                        ) : (
-                          plan[feature.key as keyof SubscriptionPlan] ? (
-                            <Check className="w-5 h-5 text-green-500 mx-auto" />
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Subscription Packages Tab */}
+        <TabsContent value="packages" className="space-y-6">
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-6 mb-8 p-2 bg-muted/50 rounded-full w-fit mx-auto">
+            <Button
+              variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setBillingCycle('monthly')}
+              className="rounded-full px-8 transition-all duration-200"
+            >
+              Monthly
+            </Button>
+            <Button
+              variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setBillingCycle('yearly')}
+              className="rounded-full px-8 relative transition-all duration-200"
+            >
+              Yearly
+              <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Save 17%
+              </Badge>
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Enhanced Plans Grid */}
+          <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {plans.map((plan, index) => {
+              const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
+              const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
+              const isPremium = plan.price_monthly > 0;
+              const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
+              const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
+              const isPopular = plan.name === 'Pro';
+              const features = getDetailedFeatureList(plan); // Get plan features
+
+              return (
+                <Card 
+                  key={plan.id} 
+                  className={`relative transition-all duration-300 hover:shadow-xl ${
+                    isPremium ? 'border-primary shadow-lg scale-105' : 'hover:scale-102'
+                  } ${isCurrentPlan || isOnTrialForPlan ? 'ring-2 ring-primary' : ''}`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <Badge className="bg-gradient-to-r from-primary to-purple-600 text-white px-4 py-1 text-sm">
+                        <Crown className="w-3 h-3 mr-1" />
+                        Most Popular
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <CardHeader className="text-center pb-6 pt-8">
+                    <div className="mb-4">
+                      {isPremium ? (
+                        <div className="w-16 h-16 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <Zap className="w-8 h-8 text-white" />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <BookOpen className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
+                    <CardDescription className="text-base mb-6">
+                      {getPackageDescription(plan)}
+                    </CardDescription>
+                    
+                    <div className="mb-6">
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-4xl font-bold">${price}</span>
+                        <span className="text-lg text-muted-foreground">{priceLabel}</span>
+                      </div>
+                      {billingCycle === 'yearly' && plan.price_monthly > 0 && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          ${(plan.price_monthly * 12).toFixed(0)} billed annually
+                        </p>
+                      )}
+                      {isOnTrialForPlan && (
+                        <Badge variant="outline" className="mt-3 bg-amber-50 text-amber-700 border-amber-200">
+                          <Clock className="w-3 h-3 mr-1" />
+                          On Trial - {trialDaysLeft} days left
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    {/* Feature Categories */}
+                    <div className="space-y-6 mb-8">
+                      {['Core', 'Content', 'Design', 'Analytics', 'Communication', 'Marketing', 'Branding', 'Support'].map(category => {
+                        const categoryFeatures = features.filter(f => f.category === category);
+                        if (categoryFeatures.length === 0) return null;
+                        
+                        return (
+                          <div key={category}>
+                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                              {category}
+                            </h4>
+                            <div className="space-y-3">
+                              {categoryFeatures.map((feature, idx) => {
+                                const IconComponent = getFeatureIcon(feature.icon);
+                                return (
+                                  <div key={idx} className="flex items-start gap-3">
+                                    <div className="p-1 bg-primary/10 rounded">
+                                      <IconComponent className="w-4 h-4 text-primary" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-medium text-sm">{feature.name}</p>
+                                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <Button 
+                      className={`w-full h-12 ${isPremium ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90' : ''}`}
+                      variant={isPremium ? "default" : "outline"}
+                      disabled={isCurrentPlan || isOnTrialForPlan}
+                      onClick={() => handleUpgrade(plan.id)}
+                    >
+                      {isCurrentPlan ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Current Plan
+                        </>
+                      ) : isOnTrialForPlan ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2" />
+                          On Trial
+                        </>
+                      ) : (
+                        <>
+                          {isPremium ? 'Upgrade Now' : 'Get Started'}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* Compare All Features Tab */}
+        <TabsContent value="compare" className="space-y-6">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <BarChart3 className="w-6 h-6" />
+                Feature Comparison
+              </CardTitle>
+              <CardDescription>
+                Compare all features across our subscription plans
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-semibold">Features</th>
+                      {plans.map(plan => (
+                        <th key={plan.id} className="text-center p-4">
+                          <div className="font-semibold">{plan.name}</div>
+                          <div className="text-sm text-muted-foreground font-normal">
+                            ${plan.price_monthly}/month
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Books Allowed', key: 'max_books' },
+                      { name: 'Premium Themes', key: 'premium_themes' },
+                      { name: 'Custom Domain', key: 'custom_domain' },
+                      { name: 'Advanced Analytics', key: 'advanced_analytics' },
+                      { name: 'Contact Forms', key: 'contact_form' },
+                      { name: 'Newsletter Integration', key: 'newsletter_integration' },
+                      { name: 'Blog Features', key: 'blog' },
+                      { name: 'Events Management', key: 'events' },
+                      { name: 'Awards Showcase', key: 'awards' },
+                      { name: 'FAQ Section', key: 'faq' },
+                      { name: 'No Watermark', key: 'no_watermark' }
+                    ].map((feature, idx) => (
+                      <tr key={idx} className="border-b hover:bg-muted/50">
+                        <td className="p-4 font-medium">{feature.name}</td>
+                        {plans.map(plan => (
+                          <td key={plan.id} className="text-center p-4">
+                            {feature.key === 'max_books' ? (
+                              <span className="font-medium">
+                                {plan.max_books === -1 ? '∞ Unlimited' : plan.max_books || '3'}
+                              </span>
+                            ) : (
+                              plan[feature.key as keyof SubscriptionPlan] ? (
+                                <Check className="w-5 h-5 text-green-500 mx-auto" />
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
