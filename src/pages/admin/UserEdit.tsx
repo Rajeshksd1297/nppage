@@ -85,7 +85,10 @@ export default function UserEdit() {
 
   const [packageForm, setPackageForm] = useState({
     plan_id: "",
-    status: "active"
+    status: "active",
+    trial_ends_at: "",
+    current_period_end: "",
+    auto_convert_to_free: true
   });
 
   useEffect(() => {
@@ -180,7 +183,10 @@ export default function UserEdit() {
 
       setPackageForm({
         plan_id: userData.subscription?.plan_id || "",
-        status: userData.subscription?.status || "active"
+        status: userData.subscription?.status || "active",
+        trial_ends_at: userData.subscription?.trial_ends_at ? new Date(userData.subscription.trial_ends_at).toISOString().slice(0, 16) : "",
+        current_period_end: userData.subscription?.current_period_end ? new Date(userData.subscription.current_period_end).toISOString().slice(0, 16) : "",
+        auto_convert_to_free: true
       });
 
     } catch (error) {
@@ -289,6 +295,31 @@ export default function UserEdit() {
         return;
       }
 
+      // Validate dates
+      const now = new Date();
+      let currentPeriodEnd = new Date();
+      let trialEndsAt = null;
+
+      if (packageForm.status === 'trialing') {
+        if (!packageForm.trial_ends_at) {
+          toast({
+            title: "Error",
+            description: "Trial end date is required for trialing status",
+            variant: "destructive",
+          });
+          return;
+        }
+        trialEndsAt = new Date(packageForm.trial_ends_at);
+        currentPeriodEnd = trialEndsAt;
+      } else if (packageForm.status === 'active') {
+        if (!packageForm.current_period_end) {
+          // Default to 30 days from now if not specified
+          currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        } else {
+          currentPeriodEnd = new Date(packageForm.current_period_end);
+        }
+      }
+
       // Check if user has existing subscription
       if (user?.subscription?.id) {
         // Update existing subscription
@@ -297,8 +328,10 @@ export default function UserEdit() {
           .update({
             plan_id: packageForm.plan_id,
             status: packageForm.status,
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            current_period_start: now.toISOString(),
+            current_period_end: currentPeriodEnd.toISOString(),
+            trial_ends_at: trialEndsAt?.toISOString() || null,
+            updated_at: now.toISOString()
           })
           .eq('user_id', userId);
 
@@ -311,8 +344,9 @@ export default function UserEdit() {
             user_id: userId,
             plan_id: packageForm.plan_id,
             status: packageForm.status,
-            current_period_start: new Date().toISOString(),
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            current_period_start: now.toISOString(),
+            current_period_end: currentPeriodEnd.toISOString(),
+            trial_ends_at: trialEndsAt?.toISOString() || null
           });
 
         if (error) throw error;
@@ -323,7 +357,7 @@ export default function UserEdit() {
 
       toast({
         title: "Success",
-        description: "User package updated successfully",
+        description: `User subscription updated successfully. ${packageForm.status === 'active' && packageForm.auto_convert_to_free ? 'Will auto-convert to free after end date.' : ''}`,
       });
 
       // Refetch user data to show updated subscription
@@ -665,6 +699,89 @@ export default function UserEdit() {
                   </Select>
                 </div>
               </div>
+
+              {/* Date Management */}
+              <div className="grid gap-4 md:grid-cols-2">
+                {packageForm.status === 'trialing' && (
+                  <div>
+                    <Label htmlFor="trial_ends_at">Trial End Date</Label>
+                    <Input
+                      id="trial_ends_at"
+                      type="datetime-local"
+                      value={packageForm.trial_ends_at}
+                      onChange={(e) => setPackageForm(prev => ({ ...prev, trial_ends_at: e.target.value }))}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When the trial period ends
+                    </p>
+                  </div>
+                )}
+
+                {(packageForm.status === 'active' || packageForm.status === 'trialing') && (
+                  <div>
+                    <Label htmlFor="current_period_end">
+                      {packageForm.status === 'trialing' ? 'Period End (after trial)' : 'Active Period End'}
+                    </Label>
+                    <Input
+                      id="current_period_end"
+                      type="datetime-local"
+                      value={packageForm.current_period_end}
+                      onChange={(e) => setPackageForm(prev => ({ ...prev, current_period_end: e.target.value }))}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {packageForm.status === 'trialing' 
+                        ? 'When the subscription will end if not upgraded' 
+                        : 'When the active subscription expires'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Auto-conversion setting */}
+              {packageForm.status === 'active' && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="auto_convert_to_free"
+                    checked={packageForm.auto_convert_to_free}
+                    onChange={(e) => setPackageForm(prev => ({ ...prev, auto_convert_to_free: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <Label htmlFor="auto_convert_to_free" className="text-sm">
+                    Auto-convert to Free plan after expiration
+                  </Label>
+                </div>
+              )}
+
+              {/* Current subscription info */}
+              {user?.subscription && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">Current Subscription Info</h4>
+                  <div className="grid gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Plan:</span>
+                      <span>{user.subscription.plan?.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      {getStatusBadge(user.subscription.status)}
+                    </div>
+                    {user.subscription.trial_ends_at && (
+                      <div className="flex justify-between">
+                        <span>Trial Ends:</span>
+                        <span>{new Date(user.subscription.trial_ends_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Period Ends:</span>
+                      <span>{new Date(user.subscription.current_period_end).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end">
                 <Button onClick={updatePackage} disabled={saving}>
