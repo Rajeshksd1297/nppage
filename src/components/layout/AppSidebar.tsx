@@ -141,6 +141,7 @@ const contentManagementItems = [
   { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
   { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
   { title: "Contact Management", url: "/admin/contact-management", icon: MessageSquare },
+  { title: "Contact Form Settings", url: "/admin/contact-form-settings", icon: Settings },
 ];
 
 // Business Management
@@ -331,6 +332,14 @@ export function AppSidebar() {
                     <NavLink to="/contact-management" className={getNavCls}>
                       <MessageSquare className="h-4 w-4" />
                       {!collapsed && <span>Contact Messages</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/contact-form-settings" className={getNavCls}>
+                      <Settings className="h-4 w-4" />
+                      {!collapsed && <span>Contact Form Settings</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

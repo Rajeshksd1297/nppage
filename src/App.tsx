@@ -28,6 +28,7 @@ import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
 import UserContactManagement from "./pages/UserContactManagement";
+import ContactFormSettings from "./pages/ContactFormSettings";
 
 import BookCatalog from "./pages/admin/BookCatalog";
 import ISBNLookupPage from "./pages/admin/ISBNLookup";
@@ -46,6 +47,7 @@ import DomainSettings from "./pages/admin/DomainSettings";
 import AdminHelpDesk from "./pages/admin/HelpDesk";
 import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
 import ContactManagement from "./pages/admin/ContactManagement";
+import AdminContactFormSettings from "./pages/admin/ContactFormSettings";
 import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
 import BlogManagement from "./pages/admin/BlogManagement";
@@ -303,6 +305,13 @@ function App() {
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
+            <Route path="/admin/contact-form-settings" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <AdminContactFormSettings />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
             <Route path="/admin/blog-settings" element={
               <DashboardLayout>
                 <AdminAccessGuard>
@@ -432,6 +441,11 @@ function App() {
             <Route path="/contact-management" element={
               <DashboardLayout>
                 <UserContactManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/contact-form-settings" element={
+              <DashboardLayout>
+                <ContactFormSettings />
               </DashboardLayout>
             } />
             <Route path="/onix-manager" element={

@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_contact_form_settings: {
+        Row: {
+          allow_attachments: boolean | null
+          auto_moderation: boolean | null
+          blocked_domains: Json | null
+          created_at: string
+          enable_honeypot: boolean | null
+          id: string
+          max_attachment_size_mb: number | null
+          max_message_length: number | null
+          max_submissions_per_hour: number | null
+          required_fields: Json | null
+          retention_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          allow_attachments?: boolean | null
+          auto_moderation?: boolean | null
+          blocked_domains?: Json | null
+          created_at?: string
+          enable_honeypot?: boolean | null
+          id?: string
+          max_attachment_size_mb?: number | null
+          max_message_length?: number | null
+          max_submissions_per_hour?: number | null
+          required_fields?: Json | null
+          retention_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          allow_attachments?: boolean | null
+          auto_moderation?: boolean | null
+          blocked_domains?: Json | null
+          created_at?: string
+          enable_honeypot?: boolean | null
+          id?: string
+          max_attachment_size_mb?: number | null
+          max_message_length?: number | null
+          max_submissions_per_hour?: number | null
+          required_fields?: Json | null
+          retention_days?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           content: string
@@ -2020,6 +2065,66 @@ export type Database = {
           ticket_number?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_contact_form_settings: {
+        Row: {
+          auto_reply_enabled: boolean | null
+          auto_reply_message: string | null
+          auto_reply_subject: string | null
+          collect_company: boolean | null
+          collect_phone: boolean | null
+          created_at: string
+          custom_fields: Json | null
+          enabled: boolean | null
+          form_description: string | null
+          form_title: string | null
+          id: string
+          max_message_length: number | null
+          notification_email: string | null
+          require_subject: boolean | null
+          spam_protection: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          auto_reply_subject?: string | null
+          collect_company?: boolean | null
+          collect_phone?: boolean | null
+          created_at?: string
+          custom_fields?: Json | null
+          enabled?: boolean | null
+          form_description?: string | null
+          form_title?: string | null
+          id?: string
+          max_message_length?: number | null
+          notification_email?: string | null
+          require_subject?: boolean | null
+          spam_protection?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
+          auto_reply_subject?: string | null
+          collect_company?: boolean | null
+          collect_phone?: boolean | null
+          created_at?: string
+          custom_fields?: Json | null
+          enabled?: boolean | null
+          form_description?: string | null
+          form_title?: string | null
+          id?: string
+          max_message_length?: number | null
+          notification_email?: string | null
+          require_subject?: boolean | null
+          spam_protection?: boolean | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

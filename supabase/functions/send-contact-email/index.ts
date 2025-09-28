@@ -103,55 +103,94 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Contact submission stored with ID:', submission.id);
 
-    // Send confirmation email to user
-    const userEmailResponse = await sendEmailWithResend(
-      email,
-      "We received your message!",
-      `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #333; font-size: 28px; margin-bottom: 10px;">Thank you for contacting us!</h1>
-            <p style="color: #666; font-size: 16px;">We have received your message and will get back to you soon.</p>
-          </div>
-          
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-            <h3 style="color: #333; margin-bottom: 15px;">Your Message:</h3>
-            <p style="color: #666; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
-          </div>
-          
-          <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #666; font-size: 14px;">
-            <p>We typically respond within 24 hours.</p>
-            <p>Best regards,<br>The AuthorPage Team</p>
-          </div>
-        </div>
-      `
-    );
+    // Get user's contact form settings and email
+    let userEmail = null;
+    let autoReplySettings = null;
+    
+    if (contactedUserId) {
+      // Get user's contact form settings
+      const { data: formSettings } = await supabase
+        .from('user_contact_form_settings')
+        .select('notification_email, auto_reply_enabled, auto_reply_subject, auto_reply_message')
+        .eq('user_id', contactedUserId)
+        .maybeSingle();
+      
+      // Get user's signup email
+      const { data: { user: contactedUser } } = await supabase.auth.admin.getUserById(contactedUserId);
+      
+      if (contactedUser?.email) {
+        userEmail = formSettings?.notification_email || contactedUser.email;
+        autoReplySettings = formSettings;
+      }
+    }
 
-    // Send notification email to admin (using the contact email as admin for demo)
-    const adminEmailResponse = await sendEmailWithResend(
-      email, // For demo purposes, send to the same email
-      `New ${type} message from ${name}`,
-      `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1>New Contact Message</h1>
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>From:</strong> ${name} (${email})</p>
-            <p><strong>Type:</strong> ${type}</p>
-            ${subject ? `<p><strong>Subject:</strong> ${subject}</p>` : ''}
-            <p><strong>Message:</strong></p>
-            <p style="white-space: pre-wrap;">${message}</p>
+    // Send confirmation email to user who submitted the form
+    if (autoReplySettings?.auto_reply_enabled) {
+      const userEmailResponse = await sendEmailWithResend(
+        email,
+        autoReplySettings.auto_reply_subject || "We received your message!",
+        `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; font-size: 28px; margin-bottom: 10px;">Thank you for contacting us!</h1>
+              <p style="color: #666; font-size: 16px;">We have received your message and will get back to you soon.</p>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+              <h3 style="color: #333; margin-bottom: 15px;">Your Message:</h3>
+              <p style="color: #666; line-height: 1.6;">${message.replace(/\n/g, '<br>')}</p>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+              <div style="color: #333; line-height: 1.6; white-space: pre-wrap;">${autoReplySettings.auto_reply_message || 'Thank you for contacting us. We will get back to you as soon as possible.'}</div>
+            </div>
+            
+            <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #666; font-size: 14px;">
+              <p>We typically respond within 24 hours.</p>
+              <p>Best regards,<br>The Team</p>
+            </div>
           </div>
-        </div>
-      `,
-      "AuthorPage Contact <onboarding@resend.dev>"
-    );
+        `
+      );
+      console.log("Auto-reply email sent successfully");
+    }
 
-    console.log("Contact emails sent successfully");
+    // Send notification email to the contacted user (using their signup email or notification email)
+    if (userEmail) {
+      const adminEmailResponse = await sendEmailWithResend(
+        userEmail,
+        `New ${type} message from ${name}`,
+        `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1>New Contact Message</h1>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>From:</strong> ${name} (${email})</p>
+              <p><strong>Type:</strong> ${type}</p>
+              ${subject ? `<p><strong>Subject:</strong> ${subject}</p>` : ''}
+              <p><strong>Message:</strong></p>
+              <p style="white-space: pre-wrap;">${message}</p>
+              <hr style="margin: 15px 0;">
+              <p style="font-size: 12px; color: #666;">
+                Submission ID: ${submission.id}<br>
+                Submitted at: ${new Date().toLocaleString()}
+              </p>
+            </div>
+            <div style="margin-top: 20px;">
+              <p><a href="https://your-domain.com/contact-management" style="color: #007bff;">View all messages in your dashboard</a></p>
+            </div>
+          </div>
+        `,
+        "Contact Form <onboarding@resend.dev>"
+      );
+      console.log("Notification email sent successfully");
+    }
+
+    console.log("Contact form processing completed successfully");
 
     return new Response(JSON.stringify({ 
-      success: true, 
-      userEmailResponse,
-      adminEmailResponse 
+      success: true,
+      submissionId: submission.id,
+      autoReplyEnabled: autoReplySettings?.auto_reply_enabled || false
     }), {
       status: 200,
       headers: {
