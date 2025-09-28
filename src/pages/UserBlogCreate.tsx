@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, FileText } from 'lucide-react';
+import { ArrowLeft, Save, FileText, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
@@ -17,6 +17,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface BlogSettings {
+  id: string;
+  max_title_length: number;
+  max_content_length: number;
+  max_excerpt_length: number;
+  allowed_image_size_mb: number;
+  allowed_image_types: string[];
+  require_approval: boolean;
+  allow_html: boolean;
+  categories: string[];
+  auto_generate_slug: boolean;
+  default_status: string;
+}
 
 interface BlogPost {
   id: string;
@@ -39,6 +54,8 @@ export default function UserBlogCreate() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [blogSettings, setBlogSettings] = useState<BlogSettings | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -51,7 +68,45 @@ export default function UserBlogCreate() {
     meta_description: '',
     tags: [] as string[],
     tagInput: '',
+    category: '',
   });
+
+  useEffect(() => {
+    fetchBlogSettings();
+  }, []);
+
+  const fetchBlogSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_settings')
+        .select('*')
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setBlogSettings({
+          ...data,
+          categories: Array.isArray(data.categories) ? data.categories as string[] : []
+        });
+        
+        // Set default status from settings
+        setFormData(prev => ({
+          ...prev,
+          status: (data.default_status as BlogPost['status']) || 'draft'
+        }));
+      }
+    } catch (error: any) {
+      console.error('Error fetching blog settings:', error);
+      toast({
+        title: "Warning",
+        description: "Could not load blog settings. Using defaults.",
+        variant: "destructive",
+      });
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
 
   const generateSlug = (title: string) => {
     return title
@@ -60,20 +115,34 @@ export default function UserBlogCreate() {
       .replace(/(^-|-$)+/g, '');
   };
 
-  const handleSubmit = async () => {
+  const validateForm = () => {
+    const errors: string[] = [];
+
     if (!formData.title.trim()) {
-      toast({
-        title: "Error",
-        description: "Title is required",
-        variant: "destructive",
-      });
-      return;
+      errors.push("Title is required");
+    } else if (blogSettings && formData.title.length > blogSettings.max_title_length) {
+      errors.push(`Title must be less than ${blogSettings.max_title_length} characters`);
     }
 
     if (!formData.content.trim()) {
+      errors.push("Content is required");
+    } else if (blogSettings && formData.content.length > blogSettings.max_content_length) {
+      errors.push(`Content must be less than ${blogSettings.max_content_length} characters`);
+    }
+
+    if (formData.excerpt && blogSettings && formData.excerpt.length > blogSettings.max_excerpt_length) {
+      errors.push(`Excerpt must be less than ${blogSettings.max_excerpt_length} characters`);
+    }
+
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
       toast({
-        title: "Error",
-        description: "Content is required",
+        title: "Validation Error",
+        description: validationErrors.join(", "),
         variant: "destructive",
       });
       return;
@@ -84,11 +153,20 @@ export default function UserBlogCreate() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const slug = formData.slug || generateSlug(formData.title);
+      const slug = (blogSettings?.auto_generate_slug && !formData.slug) 
+        ? generateSlug(formData.title)
+        : formData.slug || generateSlug(formData.title);
+        
+      // Set status based on approval requirements
+      const finalStatus = blogSettings?.require_approval && formData.status === 'published' 
+        ? 'draft' 
+        : formData.status;
+        
       const postData = {
         ...formData,
         slug,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null,
+        status: finalStatus,
+        published_at: finalStatus === 'published' ? new Date().toISOString() : null,
         user_id: user.id,
       };
 
@@ -98,9 +176,13 @@ export default function UserBlogCreate() {
 
       if (error) throw error;
 
+      const successMessage = blogSettings?.require_approval && formData.status === 'published'
+        ? "Blog post created and submitted for approval"
+        : "Blog post created successfully";
+
       toast({
         title: "Success",
-        description: "Blog post created successfully",
+        description: successMessage,
       });
       
       navigate('/user-blog-management');
@@ -115,7 +197,6 @@ export default function UserBlogCreate() {
       setLoading(false);
     }
   };
-
   const addTag = () => {
     if (formData.tagInput.trim() && !formData.tags.includes(formData.tagInput.trim())) {
       setFormData({
@@ -132,6 +213,28 @@ export default function UserBlogCreate() {
       tags: formData.tags.filter(tag => tag !== tagToRemove),
     });
   };
+
+  const getCharacterCount = (text: string, max?: number) => {
+    const color = max && text.length > max * 0.9 ? 'text-red-500' : 'text-muted-foreground';
+    return (
+      <span className={`text-xs ${color}`}>
+        {text.length}{max ? `/${max}` : ''}
+      </span>
+    );
+  };
+
+  if (settingsLoading) {
+    return (
+      <FeatureAccessGuard feature="blog">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading blog settings...</p>
+          </div>
+        </div>
+      </FeatureAccessGuard>
+    );
+  }
 
   return (
     <FeatureAccessGuard feature="blog">
@@ -160,6 +263,16 @@ export default function UserBlogCreate() {
           </Button>
         </div>
 
+        {/* Approval Notice */}
+        {blogSettings?.require_approval && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Posts marked as "Published" will be submitted for admin approval before going live.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Main Form */}
         <Card>
           <CardHeader>
@@ -169,45 +282,84 @@ export default function UserBlogCreate() {
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="title">Title *</Label>
+                  <div className="flex justify-between items-center mb-2">
+                    <Label htmlFor="title">Title *</Label>
+                    {getCharacterCount(formData.title, blogSettings?.max_title_length)}
+                  </div>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Enter blog post title"
+                    maxLength={blogSettings?.max_title_length}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">Slug {blogSettings?.auto_generate_slug && "(auto-generated)"}</Label>
                   <Input
                     id="slug"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="auto-generated-slug"
+                    disabled={blogSettings?.auto_generate_slug}
                   />
                 </div>
               </div>
 
+              {blogSettings?.categories && blogSettings.categories.length > 0 && (
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {blogSettings.categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
-                <Label htmlFor="excerpt">Excerpt</Label>
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="excerpt">Excerpt</Label>
+                  {getCharacterCount(formData.excerpt, blogSettings?.max_excerpt_length)}
+                </div>
                 <Textarea
                   id="excerpt"
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                   placeholder="Brief description of the blog post"
                   rows={3}
+                  maxLength={blogSettings?.max_excerpt_length}
                 />
               </div>
 
               <div>
-                <Label htmlFor="content">Content *</Label>
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="content">Content *</Label>
+                  {getCharacterCount(formData.content, blogSettings?.max_content_length)}
+                </div>
                 <Textarea
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   placeholder="Write your blog post content here..."
                   rows={12}
+                  maxLength={blogSettings?.max_content_length}
                 />
+                {!blogSettings?.allow_html && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    HTML tags are not allowed in content.
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -236,6 +388,12 @@ export default function UserBlogCreate() {
                     onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
                     placeholder="https://example.com/image.jpg"
                   />
+                  {blogSettings && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Max size: {blogSettings.allowed_image_size_mb}MB. 
+                      Allowed types: {blogSettings.allowed_image_types.join(', ')}
+                    </p>
+                  )}
                 </div>
               </div>
 
