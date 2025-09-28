@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,12 +84,12 @@ interface User {
 }
 
 export default function AdminUsers() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [publishers, setPublishers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState("table");
@@ -326,7 +327,6 @@ export default function AdminUsers() {
         description: "User updated successfully",
       });
 
-      setIsEditDialogOpen(false);
       fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
@@ -390,16 +390,7 @@ export default function AdminUsers() {
   };
 
   const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setEditForm({
-      full_name: user.full_name || "",
-      email: user.email || "",
-      bio: user.bio || "",
-      website_url: user.website_url || "",
-      public_profile: user.public_profile ?? true,
-      role: user.role || "user"
-    });
-    setIsEditDialogOpen(true);
+    navigate(`/admin/users/${user.id}/edit`);
   };
 
   const handleAddUser = () => {
@@ -916,12 +907,6 @@ export default function AdminUsers() {
         onOpenChange={setIsViewDialogOpen}
       />
 
-      <UserEditDialog
-        user={selectedUser}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSave={updateUser}
-      />
 
       {/* Add User Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

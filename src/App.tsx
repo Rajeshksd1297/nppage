@@ -37,6 +37,7 @@ import AffiliateSettingsPage from "./pages/admin/AffiliateSettings";
 import BookFieldSettingsPage from "./pages/admin/BookFieldSettings";
 import BookAnalyticsPage from "./pages/admin/BookAnalytics";
 import AdminUsers from "./pages/admin/Users";
+import UserEdit from "./pages/admin/UserEdit";
 import AdminBooks from "./pages/admin/BooksAdmin";
 import BooksManagement from "./pages/admin/BooksManagement";
 import AdminSettings from "./pages/admin/Settings";
@@ -174,6 +175,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <AdminUsers />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/users/:userId/edit" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <UserEdit />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
