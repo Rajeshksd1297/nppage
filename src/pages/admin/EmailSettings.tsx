@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Mail, Send, Settings as SettingsIcon, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EmailSettings() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const [emailSettings, setEmailSettings] = useState({
     // SMTP Configuration
@@ -56,6 +58,7 @@ Best regards,
 The AuthorPage Team`,
 
     // Notification Settings
+    notificationEmail: "", // This will be set to user's account email
     notificationEmails: true,
     adminNotifications: true,
     newUserNotifications: true,
@@ -66,6 +69,22 @@ The AuthorPage Team`,
     newsletterFromEmail: "",
     newsletterFromName: "AuthorPage Newsletter",
   });
+
+  useEffect(() => {
+    getCurrentUserEmail();
+  }, []);
+
+  const getCurrentUserEmail = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        setEmailSettings(prev => ({ ...prev, notificationEmail: user.email }));
+      }
+    } catch (error) {
+      console.error('Error getting user email:', error);
+    }
+  };
 
   const handleSaveEmailSettings = async () => {
     setSaving(true);
@@ -308,15 +327,30 @@ The AuthorPage Team`,
               <CardDescription>Configure when to send notification emails</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="notificationEmails"
-                    checked={emailSettings.notificationEmails}
-                    onCheckedChange={(checked) => setEmailSettings(prev => ({ ...prev, notificationEmails: checked }))}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="notificationEmail">Notification Email</Label>
+                  <Input
+                    id="notificationEmail"
+                    type="email"
+                    value={emailSettings.notificationEmail}
+                    disabled
+                    className="bg-muted text-muted-foreground cursor-not-allowed"
                   />
-                  <Label htmlFor="notificationEmails">Enable notification emails</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This is your account email and cannot be changed here. To change your account email, update it in your account settings.
+                  </p>
                 </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="notificationEmails"
+                      checked={emailSettings.notificationEmails}
+                      onCheckedChange={(checked) => setEmailSettings(prev => ({ ...prev, notificationEmails: checked }))}
+                    />
+                    <Label htmlFor="notificationEmails">Enable notification emails</Label>
+                  </div>
 
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -343,6 +377,7 @@ The AuthorPage Team`,
                     onCheckedChange={(checked) => setEmailSettings(prev => ({ ...prev, bookPublishedNotifications: checked }))}
                   />
                   <Label htmlFor="bookPublishedNotifications">Notify admins when books are published</Label>
+                </div>
                 </div>
               </div>
             </CardContent>
