@@ -179,6 +179,13 @@ export default function UserNewsletterManagement() {
     }
   };
 
+  const filteredSubscribers = subscribers.filter(subscriber => {
+    const matchesSearch = subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'all' || subscriber.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   const exportSubscribers = () => {
     const csvContent = [
       ['Email', 'Name', 'Status', 'Source', 'Tags', 'Subscribed Date'],
@@ -200,13 +207,6 @@ export default function UserNewsletterManagement() {
     a.click();
     window.URL.revokeObjectURL(url);
   };
-
-  const filteredSubscribers = subscribers.filter(subscriber => {
-    const matchesSearch = subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || subscriber.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusBadge = (status: string) => {
     const variants = {
