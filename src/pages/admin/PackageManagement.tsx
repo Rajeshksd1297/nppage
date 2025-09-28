@@ -19,7 +19,6 @@ import {
   CheckCircle2,
   X,
   Newspaper,
-  Camera,
   Calendar,
   Award,
   HelpCircle
@@ -46,7 +45,6 @@ interface Package {
   newsletter_integration: boolean;
   no_watermark: boolean;
   blog: boolean;
-  gallery: boolean;
   events: boolean;
   awards: boolean;
   faq: boolean;
@@ -142,7 +140,7 @@ export default function PackageManagement() {
             if (plan.newsletter_integration) features.push('Newsletter integration');
             if (plan.no_watermark) features.push('No watermark');
             if (plan.blog) features.push('Blog features');
-            if (plan.gallery) features.push('Gallery');
+            
             if (plan.events) features.push('Events');
             if (plan.awards) features.push('Awards');
             if (plan.faq) features.push('FAQ');
@@ -174,7 +172,6 @@ export default function PackageManagement() {
             newsletter_integration: plan.newsletter_integration || false,
             no_watermark: plan.no_watermark || false,
             blog: plan.blog || false,
-            gallery: plan.gallery || false,
             events: plan.events || false,
             awards: plan.awards || false,
             faq: plan.faq || false,
@@ -242,7 +239,7 @@ export default function PackageManagement() {
           if (pkg.newsletter_integration) features.push('Newsletter integration');
           if (pkg.no_watermark) features.push('No watermark');
           if (pkg.blog) features.push('Blog features');
-          if (pkg.gallery) features.push('Gallery');
+          
           if (pkg.events) features.push('Events');
           if (pkg.awards) features.push('Awards');
           if (pkg.faq) features.push('FAQ');
@@ -272,7 +269,6 @@ export default function PackageManagement() {
           newsletter_integration: pkg.newsletter_integration,
           no_watermark: pkg.no_watermark,
           blog: pkg.blog,
-          gallery: pkg.gallery,
           events: pkg.events,
           awards: pkg.awards,
           faq: pkg.faq,
@@ -335,7 +331,6 @@ export default function PackageManagement() {
       newsletter_integration: false,
       no_watermark: false,
       blog: false,
-      gallery: false,
       events: false,
       awards: false,
       faq: false,
@@ -704,16 +699,6 @@ export default function PackageManagement() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
-                            checked={pkg.gallery}
-                            onCheckedChange={(checked) => updatePackage(pkg.id, { gallery: checked })}
-                          />
-                          <Label className="flex items-center gap-2">
-                            <Camera className="h-3 w-3" />
-                            Gallery
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
                             checked={pkg.events}
                             onCheckedChange={(checked) => updatePackage(pkg.id, { events: checked })}
                           />
@@ -755,7 +740,7 @@ export default function PackageManagement() {
                           {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
                           {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
                           {pkg.blog && <Badge variant="outline" className="text-xs">Blog</Badge>}
-                          {pkg.gallery && <Badge variant="outline" className="text-xs">Gallery</Badge>}
+                          
                           {pkg.events && <Badge variant="outline" className="text-xs">Events</Badge>}
                           {pkg.awards && <Badge variant="outline" className="text-xs">Awards</Badge>}
                           {pkg.faq && <Badge variant="outline" className="text-xs">FAQ</Badge>}

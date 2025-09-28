@@ -1779,7 +1779,6 @@ export type Database = {
           events: boolean | null
           faq: boolean | null
           features: Json
-          gallery: boolean | null
           id: string
           max_books: number | null
           max_publications: number | null
@@ -1802,7 +1801,6 @@ export type Database = {
           events?: boolean | null
           faq?: boolean | null
           features?: Json
-          gallery?: boolean | null
           id?: string
           max_books?: number | null
           max_publications?: number | null
@@ -1825,7 +1823,6 @@ export type Database = {
           events?: boolean | null
           faq?: boolean | null
           features?: Json
-          gallery?: boolean | null
           id?: string
           max_books?: number | null
           max_publications?: number | null
