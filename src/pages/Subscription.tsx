@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, Crown, Zap, Clock, Star, ArrowRight, Sparkles, Shield, TrendingUp, Globe, Palette, BarChart3, MessageCircle, FileText, Award, Calendar, HelpCircle, Newspaper, Eye, Users, BookOpen, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 
 interface SubscriptionPlan {
   id: string;
@@ -44,13 +45,6 @@ interface UserStats {
   publishedBooks: number;
 }
 
-interface DetailedFeature {
-  name: string;
-  description: string;
-  icon: string;
-  category: string;
-}
-
 export default function Subscription() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [userStats, setUserStats] = useState<UserStats>({ totalBooks: 0, publishedBooks: 0 });
@@ -58,6 +52,7 @@ export default function Subscription() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { toast } = useToast();
   const { subscription, isOnTrial, trialDaysLeft, refreshSubscription } = useSubscription();
+  const { getPlanFeatures, getFeaturesByCategory, coreFeatures, premiumFeatures, loading: featuresLoading } = useDynamicFeatures();
 
   useEffect(() => {
     fetchData();
@@ -72,8 +67,8 @@ export default function Subscription() {
           schema: 'public',
           table: 'subscription_plans'
         },
-        () => {
-          console.log('Subscription plans changed, refetching...');
+        (payload) => {
+          console.log('Subscription plans changed, refetching...', payload);
           fetchData(); // Refetch data when plans change
         }
       )
@@ -95,22 +90,35 @@ export default function Subscription() {
     const iconMap: { [key: string]: any } = {
       'unlimited books': BookOpen,
       'books': BookOpen,
+      'book-open': BookOpen,
       'premium themes': Palette,
       'themes': Palette,
+      'palette': Palette,
       'advanced analytics': BarChart3,
       'analytics': BarChart3,
+      'bar-chart': BarChart3,
+      'trending-up': TrendingUp,
       'custom domain': Globe,
       'domain': Globe,
+      'globe': Globe,
       'contact forms': MessageCircle,
       'contact': MessageCircle,
+      'message-circle': MessageCircle,
       'newsletter': FileText,
+      'file-text': FileText,
       'blog': Newspaper,
+      'newspaper': Newspaper,
       'events': Calendar,
+      'calendar': Calendar,
       'awards': Award,
+      'award': Award,
       'faq': HelpCircle,
+      'help-circle': HelpCircle,
       'support': Users,
+      'users': Users,
       'watermark': Shield,
       'security': Shield,
+      'shield': Shield,
       'profile': Users
     };
     
@@ -120,170 +128,6 @@ export default function Subscription() {
       }
     }
     return Check;
-  };
-
-  const getDetailedFeatureList = (plan: SubscriptionPlan): DetailedFeature[] => {
-    const features: DetailedFeature[] = [];
-    
-    // Books & Content
-    if (plan.max_books === -1) {
-      features.push({ 
-        name: 'Unlimited Books', 
-        description: 'Add as many books as you want to your profile',
-        icon: 'books',
-        category: 'Content'
-      });
-    } else if (plan.max_books > 0) {
-      features.push({ 
-        name: `Up to ${plan.max_books} Books`, 
-        description: 'Limited book showcase',
-        icon: 'books',
-        category: 'Content'
-      });
-    } else {
-      features.push({ 
-        name: 'Up to 3 Books', 
-        description: 'Basic book showcase for beginners',
-        icon: 'books',
-        category: 'Content'
-      });
-    }
-
-    // Design & Customization
-    if (plan.premium_themes) {
-      features.push({ 
-        name: 'Premium Themes', 
-        description: 'Access to exclusive, professionally designed themes',
-        icon: 'themes',
-        category: 'Design'
-      });
-    } else {
-      features.push({ 
-        name: 'Standard Themes', 
-        description: 'Basic theme selection',
-        icon: 'themes',
-        category: 'Design'
-      });
-    }
-
-    // Analytics & Insights
-    if (plan.advanced_analytics) {
-      features.push({ 
-        name: 'Advanced Analytics', 
-        description: 'Detailed visitor insights, conversion tracking, and performance metrics',
-        icon: 'analytics',
-        category: 'Analytics'
-      });
-    } else {
-      features.push({ 
-        name: 'Basic Analytics', 
-        description: 'Simple page views and basic statistics',
-        icon: 'analytics',
-        category: 'Analytics'
-      });
-    }
-
-    // Domain & Branding
-    if (plan.custom_domain) {
-      features.push({ 
-        name: 'Custom Domain', 
-        description: 'Use your own domain (e.g., yourname.com)',
-        icon: 'domain',
-        category: 'Branding'
-      });
-    }
-
-    if (plan.no_watermark) {
-      features.push({ 
-        name: 'No Watermark', 
-        description: 'Clean, professional appearance without platform branding',
-        icon: 'watermark',
-        category: 'Branding'
-      });
-    }
-
-    // Communication & Marketing
-    if (plan.contact_form) {
-      features.push({ 
-        name: 'Contact Forms', 
-        description: 'Let readers reach out to you directly',
-        icon: 'contact',
-        category: 'Communication'
-      });
-    }
-
-    if (plan.newsletter_integration) {
-      features.push({ 
-        name: 'Newsletter Integration', 
-        description: 'Build and manage your email subscriber list',
-        icon: 'newsletter',
-        category: 'Marketing'
-      });
-    }
-
-    // Content Features
-    if (plan.blog) {
-      features.push({ 
-        name: 'Blog Features', 
-        description: 'Share articles, updates, and behind-the-scenes content',
-        icon: 'blog',
-        category: 'Content'
-      });
-    }
-
-    if (plan.events) {
-      features.push({ 
-        name: 'Events Management', 
-        description: 'Promote book launches, readings, and signings',
-        icon: 'events',
-        category: 'Content'
-      });
-    }
-
-    if (plan.awards) {
-      features.push({ 
-        name: 'Awards Showcase', 
-        description: 'Highlight your achievements and recognition',
-        icon: 'awards',
-        category: 'Content'
-      });
-    }
-
-    if (plan.faq) {
-      features.push({ 
-        name: 'FAQ Section', 
-        description: 'Answer common reader questions',
-        icon: 'faq',
-        category: 'Content'
-      });
-    }
-
-    // Support
-    if (plan.price_monthly === 0) {
-      features.push({ 
-        name: 'Community Support', 
-        description: 'Access to community forums and documentation',
-        icon: 'support',
-        category: 'Support'
-      });
-    } else {
-      features.push({ 
-        name: 'Priority Support', 
-        description: 'Fast, dedicated support via email and chat',
-        icon: 'support',
-        category: 'Support'
-      });
-    }
-
-    // Basic profile for all
-    features.push({ 
-      name: 'Professional Profile', 
-      description: 'Showcase your bio, photo, and author information',
-      icon: 'profile',
-      category: 'Core'
-    });
-    
-    return features;
   };
 
   const fetchData = async () => {
@@ -330,7 +174,7 @@ export default function Subscription() {
     return Math.min((userStats.totalBooks / subscription.subscription_plans.max_books) * 100, 100);
   };
 
-  if (loading) {
+  if (loading || featuresLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -506,6 +350,62 @@ export default function Subscription() {
                     )}
                   </div>
                 </div>
+
+                {/* Current Plan Features */}
+                <Separator className="my-6" />
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Your Plan Features</h3>
+                  
+                  {/* Core Features */}
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      Core Features
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {getFeaturesByCategory(subscription.subscription_plans.id, 'core').map((feature, idx) => {
+                        const IconComponent = getFeatureIcon(feature.icon);
+                        return (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="p-1 bg-green-100 rounded">
+                              <IconComponent className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-green-900">{feature.name}</p>
+                              <p className="text-xs text-green-700">{feature.description}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Premium Features */}
+                  {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                        <Crown className="w-4 h-4" />
+                        Premium Features
+                      </h4>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').map((feature, idx) => {
+                          const IconComponent = getFeatureIcon(feature.icon);
+                          return (
+                            <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                              <div className="p-1 bg-purple-100 rounded">
+                                <IconComponent className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-sm text-purple-900">{feature.name}</p>
+                                <p className="text-xs text-purple-700">{feature.description}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -559,7 +459,9 @@ export default function Subscription() {
               const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
               const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
               const isPopular = plan.name === 'Pro';
-              const features = getDetailedFeatureList(plan); // Get plan features
+              const planFeatures = getPlanFeatures(plan.id);
+              const coreFeaturesList = planFeatures.filter(f => f.category === 'core');
+              const premiumFeaturesList = planFeatures.filter(f => f.category === 'premium');
 
               return (
                 <Card 
@@ -615,37 +517,57 @@ export default function Subscription() {
                   </CardHeader>
 
                   <CardContent className="pt-0">
-                    {/* Feature Categories */}
-                    <div className="space-y-6 mb-8">
-                      {['Core', 'Content', 'Design', 'Analytics', 'Communication', 'Marketing', 'Branding', 'Support'].map(category => {
-                        const categoryFeatures = features.filter(f => f.category === category);
-                        if (categoryFeatures.length === 0) return null;
-                        
-                        return (
-                          <div key={category}>
-                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                              {category}
-                            </h4>
-                            <div className="space-y-3">
-                              {categoryFeatures.map((feature, idx) => {
-                                const IconComponent = getFeatureIcon(feature.icon);
-                                return (
-                                  <div key={idx} className="flex items-start gap-3">
-                                    <div className="p-1 bg-primary/10 rounded">
-                                      <IconComponent className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="font-medium text-sm">{feature.name}</p>
-                                      <p className="text-xs text-muted-foreground">{feature.description}</p>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {/* Core Features */}
+                    {coreFeaturesList.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                          <Shield className="w-4 h-4" />
+                          Core Features
+                        </h4>
+                        <div className="space-y-3">
+                          {coreFeaturesList.map((feature, idx) => {
+                            const IconComponent = getFeatureIcon(feature.icon);
+                            return (
+                              <div key={idx} className="flex items-start gap-3">
+                                <div className="p-1 bg-green-100 rounded">
+                                  <IconComponent className="w-4 h-4 text-green-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{feature.name}</p>
+                                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Premium Features */}
+                    {premiumFeaturesList.length > 0 && (
+                      <div className="mb-8">
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                          <Crown className="w-4 h-4" />
+                          Premium Features
+                        </h4>
+                        <div className="space-y-3">
+                          {premiumFeaturesList.map((feature, idx) => {
+                            const IconComponent = getFeatureIcon(feature.icon);
+                            return (
+                              <div key={idx} className="flex items-start gap-3">
+                                <div className="p-1 bg-purple-100 rounded">
+                                  <IconComponent className="w-4 h-4 text-purple-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{feature.name}</p>
+                                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
                     <Button 
                       className={`w-full h-12 ${isPremium ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90' : ''}`}
@@ -686,7 +608,7 @@ export default function Subscription() {
                 Feature Comparison
               </CardTitle>
               <CardDescription>
-                Compare all features across our subscription plans
+                Compare all features across our subscription plans (synced with package management)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -706,36 +628,55 @@ export default function Subscription() {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { name: 'Books Allowed', key: 'max_books' },
-                      { name: 'Premium Themes', key: 'premium_themes' },
-                      { name: 'Custom Domain', key: 'custom_domain' },
-                      { name: 'Advanced Analytics', key: 'advanced_analytics' },
-                      { name: 'Contact Forms', key: 'contact_form' },
-                      { name: 'Newsletter Integration', key: 'newsletter_integration' },
-                      { name: 'Blog Features', key: 'blog' },
-                      { name: 'Events Management', key: 'events' },
-                      { name: 'Awards Showcase', key: 'awards' },
-                      { name: 'FAQ Section', key: 'faq' },
-                      { name: 'No Watermark', key: 'no_watermark' }
-                    ].map((feature, idx) => (
-                      <tr key={idx} className="border-b hover:bg-muted/50">
+                    {/* Core Features Section */}
+                    <tr className="bg-muted/30">
+                      <td colSpan={plans.length + 1} className="p-4 font-semibold text-sm uppercase tracking-wide flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Core Features
+                      </td>
+                    </tr>
+                    {coreFeatures.map((feature, idx) => (
+                      <tr key={`core-${idx}`} className="border-b hover:bg-muted/50">
                         <td className="p-4 font-medium">{feature.name}</td>
-                        {plans.map(plan => (
-                          <td key={plan.id} className="text-center p-4">
-                            {feature.key === 'max_books' ? (
-                              <span className="font-medium">
-                                {plan.max_books === -1 ? '∞ Unlimited' : plan.max_books || '3'}
-                              </span>
-                            ) : (
-                              plan[feature.key as keyof SubscriptionPlan] ? (
+                        {plans.map(plan => {
+                          const planFeatures = getPlanFeatures(plan.id);
+                          const hasFeature = planFeatures.some(f => f.id === feature.id);
+                          return (
+                            <td key={plan.id} className="text-center p-4">
+                              {hasFeature ? (
                                 <Check className="w-5 h-5 text-green-500 mx-auto" />
                               ) : (
                                 <span className="text-muted-foreground">—</span>
-                              )
-                            )}
-                          </td>
-                        ))}
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    
+                    {/* Premium Features Section */}
+                    <tr className="bg-muted/30">
+                      <td colSpan={plans.length + 1} className="p-4 font-semibold text-sm uppercase tracking-wide flex items-center gap-2">
+                        <Crown className="w-4 h-4" />
+                        Premium Features
+                      </td>
+                    </tr>
+                    {premiumFeatures.map((feature, idx) => (
+                      <tr key={`premium-${idx}`} className="border-b hover:bg-muted/50">
+                        <td className="p-4 font-medium">{feature.name}</td>
+                        {plans.map(plan => {
+                          const planFeatures = getPlanFeatures(plan.id);
+                          const hasFeature = planFeatures.some(f => f.id === feature.id);
+                          return (
+                            <td key={plan.id} className="text-center p-4">
+                              {hasFeature ? (
+                                <Check className="w-5 h-5 text-green-500 mx-auto" />
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
