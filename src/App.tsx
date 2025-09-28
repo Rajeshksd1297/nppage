@@ -76,6 +76,8 @@ import UserAwardsManagement from "./pages/UserAwardsManagement";
 import UserAwardCreate from "./pages/UserAwardCreate";
 import UserAwardEdit from "./pages/UserAwardEdit";
 import UserFaqManagement from "./pages/UserFaqManagement";
+import UserFaqCreate from "./pages/UserFaqCreate";
+import UserFaqEdit from "./pages/UserFaqEdit";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
@@ -450,6 +452,16 @@ function App() {
             <Route path="/user-awards-management/edit/:id" element={
               <DashboardLayout>
                 <UserAwardEdit />
+              </DashboardLayout>
+            } />
+            <Route path="/user-faq-management/create" element={
+              <DashboardLayout>
+                <UserFaqCreate />
+              </DashboardLayout>
+            } />
+            <Route path="/user-faq-management/edit/:id" element={
+              <DashboardLayout>
+                <UserFaqEdit />
               </DashboardLayout>
             } />
             <Route path="/user-awards-management" element={

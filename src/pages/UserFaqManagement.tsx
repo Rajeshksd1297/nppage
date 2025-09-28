@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
@@ -20,28 +19,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface FaqItem {
   id: string;
@@ -56,23 +40,13 @@ interface FaqItem {
 }
 
 export default function UserFaqManagement() {
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useAdminSettings();
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedFaq, setSelectedFaq] = useState<FaqItem | null>(null);
-
-  const [formData, setFormData] = useState({
-    question: '',
-    answer: '',
-    category: '',
-    is_published: true,
-  });
-
-  const categories = ['General', 'Books', 'Events', 'Contact', 'Services', 'Other'];
 
   useEffect(() => {
     fetchFaqs();
@@ -124,61 +98,6 @@ export default function UserFaqManagement() {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const faqData = {
-        ...formData,
-        user_id: user.id,
-      };
-
-      if (selectedFaq) {
-        // Update existing FAQ
-        const { error } = await supabase
-          .from('faqs')
-          .update(faqData)
-          .eq('id', selectedFaq.id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "FAQ updated successfully",
-        });
-        setIsEditOpen(false);
-      } else {
-        // Create new FAQ
-        const maxOrder = Math.max(...faqs.map(faq => faq.sort_order), 0);
-        const { error } = await supabase
-          .from('faqs')
-          .insert([{ 
-            ...faqData,
-            sort_order: maxOrder + 1 
-          }]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "FAQ created successfully",
-        });
-        setIsCreateOpen(false);
-      }
-
-      resetForm();
-      fetchFaqs();
-    } catch (error: any) {
-      console.error('Error saving FAQ:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save FAQ",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDelete = async (faqId: string) => {
     if (!window.confirm('Are you sure you want to delete this FAQ?')) return;
@@ -270,27 +189,6 @@ export default function UserFaqManagement() {
     }
   };
 
-  const openEditDialog = (faq: FaqItem) => {
-    setSelectedFaq(faq);
-    setFormData({
-      question: faq.question,
-      answer: faq.answer,
-      category: faq.category || '',
-      is_published: faq.is_published,
-    });
-    setIsEditOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      question: '',
-      answer: '',
-      category: '',
-      is_published: true,
-    });
-    setSelectedFaq(null);
-  };
-
   const filteredFaqs = faqs.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
@@ -298,58 +196,11 @@ export default function UserFaqManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const FaqForm = () => (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="question">Question</Label>
-        <Input
-          id="question"
-          value={formData.question}
-          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          placeholder="Enter the frequently asked question"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="answer">Answer</Label>
-        <Textarea
-          id="answer"
-          value={formData.answer}
-          onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
-          placeholder="Provide a detailed answer"
-          rows={5}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) => setFormData({ ...formData, category: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="is_published"
-          checked={formData.is_published}
-          onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-        />
-        <Label htmlFor="is_published">Published (visible to visitors)</Label>
-      </div>
-    </div>
-  );
+  const getCategories = () => {
+    return settings?.faq?.categories || [
+      'general', 'account', 'billing', 'technical', 'support', 'features'
+    ];
+  };
 
   return (
     <FeatureAccessGuard feature="faq">
@@ -363,29 +214,10 @@ export default function UserFaqManagement() {
           </h1>
           <p className="text-muted-foreground">Manage frequently asked questions for your audience</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add FAQ
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add FAQ</DialogTitle>
-              <DialogDescription>
-                Add a new frequently asked question and answer.
-              </DialogDescription>
-            </DialogHeader>
-            <FaqForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Add FAQ</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => navigate('/user-faq-management/create')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add FAQ
+        </Button>
       </div>
 
       {/* Filters */}
@@ -409,9 +241,9 @@ export default function UserFaqManagement() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
+                {getCategories().map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -516,7 +348,7 @@ export default function UserFaqManagement() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openEditDialog(faq)}
+                          onClick={() => navigate(`/user-faq-management/edit/${faq.id}`)}
                         >
                           <Edit3 className="h-3 w-3" />
                         </Button>
@@ -537,54 +369,6 @@ export default function UserFaqManagement() {
         </CardContent>
       </Card>
 
-      {/* Preview Section */}
-      {filteredFaqs.filter(faq => faq.is_published).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview (Published FAQs)</CardTitle>
-            <CardDescription>
-              How your FAQs will appear to visitors
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              {filteredFaqs
-                .filter(faq => faq.is_published)
-                .map((faq) => (
-                  <AccordionItem key={faq.id} value={faq.id}>
-                    <AccordionTrigger className="text-left">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="text-muted-foreground">
-                        {faq.answer}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-            </Accordion>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit FAQ</DialogTitle>
-            <DialogDescription>
-              Update your FAQ question and answer.
-            </DialogDescription>
-          </DialogHeader>
-          <FaqForm />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Update FAQ</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       </div>
     </FeatureAccessGuard>
   );
