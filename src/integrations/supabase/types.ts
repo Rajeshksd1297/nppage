@@ -1052,6 +1052,51 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_campaigns: {
+        Row: {
+          content: string
+          created_at: string
+          from_email: string
+          from_name: string
+          id: string
+          preview_text: string | null
+          recipient_count: number
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          from_email: string
+          from_name: string
+          id?: string
+          preview_text?: string | null
+          recipient_count?: number
+          sent_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          preview_text?: string | null
+          recipient_count?: number
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       newsletter_settings: {
         Row: {
           allow_html_content: boolean | null
@@ -2123,6 +2168,45 @@ export type Database = {
           notification_email?: string | null
           require_subject?: boolean | null
           spam_protection?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_newsletter_settings: {
+        Row: {
+          created_at: string
+          enable_auto_unsubscribe: boolean
+          from_email: string
+          from_name: string
+          id: string
+          max_newsletters_per_month: number
+          max_recipients_per_newsletter: number
+          signature: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enable_auto_unsubscribe?: boolean
+          from_email: string
+          from_name: string
+          id?: string
+          max_newsletters_per_month?: number
+          max_recipients_per_newsletter?: number
+          signature?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enable_auto_unsubscribe?: boolean
+          from_email?: string
+          from_name?: string
+          id?: string
+          max_newsletters_per_month?: number
+          max_recipients_per_newsletter?: number
+          signature?: string | null
           updated_at?: string
           user_id?: string
         }

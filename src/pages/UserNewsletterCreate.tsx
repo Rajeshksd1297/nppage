@@ -1,137 +1,151 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Mail, UserPlus } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  ArrowLeft,
+  Send,
+  Mail,
+  Users
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminSettings } from '@/hooks/useAdminSettings';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
+
+const newsletterSchema = z.object({
+  subject: z.string().min(1, 'Subject is required').max(100, 'Subject must be less than 100 characters'),
+  content: z.string().min(1, 'Content is required').max(50000, 'Content must be less than 50,000 characters'),
+  previewText: z.string().optional(),
+});
+
+type NewsletterFormData = z.infer<typeof newsletterSchema>;
 
 export default function UserNewsletterCreate() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { settings, loading: settingsLoading } = useAdminSettings();
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    name: '',
-    source: 'manual',
-    tags: [] as string[],
-    tagInput: '',
-  });
-  
+  const { settings } = useAdminSettings();
   const [loading, setLoading] = useState(false);
-  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [subscriberCount, setSubscriberCount] = useState(0);
+
+  const form = useForm<NewsletterFormData>({
+    resolver: zodResolver(newsletterSchema),
+    defaultValues: {
+      subject: '',
+      content: '',
+      previewText: '',
+    },
+  });
 
   useEffect(() => {
-    fetchUserSubscribers();
+    fetchSubscriberCount();
   }, []);
 
-  const fetchUserSubscribers = async () => {
+  const fetchSubscriberCount = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { count } = await supabase
         .from('newsletter_subscribers')
-        .select('*')
-        .eq('user_id', user.id);
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-      setSubscribers(data || []);
+      setSubscriberCount(count || 0);
     } catch (error) {
-      console.error('Error fetching subscribers:', error);
+      console.error('Error fetching subscriber count:', error);
     }
   };
 
-  const validateForm = () => {
-    if (!formData.email.trim()) {
+  const onSubmit = async (data: NewsletterFormData) => {
+    if (subscriberCount === 0) {
       toast({
-        title: "Validation Error",
-        description: "Email address is required",
+        title: "No Recipients",
+        description: "You need at least one active subscriber to send a newsletter.",
         variant: "destructive",
       });
-      return false;
+      return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const checkEmailExists = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data } = await supabase
-      .from('newsletter_subscribers')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('email', formData.email)
-      .maybeSingle();
-
-    return !!data;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
 
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Check if email already exists
-      const emailExists = await checkEmailExists();
-      if (emailExists) {
+      // Get user profile for sender info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.email) {
         toast({
           title: "Error",
-          description: "This email is already subscribed",
+          description: "Please complete your profile with an email address before sending newsletters.",
           variant: "destructive",
         });
         return;
       }
 
-      const subscriberData = {
-        email: formData.email.trim(),
-        name: formData.name.trim() || null,
-        source: formData.source,
-        tags: formData.tags,
-        status: 'active' as const,
-        user_id: user.id,
-      };
-
-      const { error } = await supabase
+      // Get active subscribers
+      const { data: subscribers } = await supabase
         .from('newsletter_subscribers')
-        .insert([subscriberData]);
+        .select('email')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-      if (error) throw error;
+      if (!subscribers || subscribers.length === 0) {
+        toast({
+          title: "No Recipients",
+          description: "No active subscribers found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Send newsletter via edge function  
+      const { error: sendError } = await supabase.functions.invoke('send-newsletter', {
+        body: {
+          subject: data.subject,
+          content: data.content,
+          previewText: data.previewText,
+          fromEmail: profile.email,
+          fromName: profile.full_name || 'Newsletter',
+          recipients: subscribers.map(s => s.email),
+        }
+      });
+
+      if (sendError) {
+        throw sendError;
+      }
 
       toast({
         title: "Success",
-        description: "Subscriber added successfully",
+        description: `Newsletter sent to ${subscribers.length} subscriber(s)`,
       });
-      
+
       navigate('/user-newsletter-management');
     } catch (error: any) {
-      console.error('Error adding subscriber:', error);
+      console.error('Error sending newsletter:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to add subscriber",
+        description: error.message || "Failed to send newsletter",
         variant: "destructive",
       });
     } finally {
@@ -139,134 +153,119 @@ export default function UserNewsletterCreate() {
     }
   };
 
-  const addTag = () => {
-    if (formData.tagInput.trim() && !formData.tags.includes(formData.tagInput.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...formData.tags, formData.tagInput.trim()],
-        tagInput: '',
-      });
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter(tag => tag !== tagToRemove),
-    });
-  };
-
-  if (settingsLoading) {
-    return <div className="flex items-center justify-center h-64">Loading...</div>;
-  }
-
   return (
     <FeatureAccessGuard feature="newsletter">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/user-newsletter-management')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Subscribers
+          <Button variant="outline" size="sm" onClick={() => navigate('/user-newsletter-management')}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <UserPlus className="h-8 w-8" />
           <div>
-            <h1 className="text-3xl font-bold">Add Subscriber</h1>
-            <p className="text-muted-foreground">Manually add a new subscriber to your newsletter</p>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Mail className="h-8 w-8" />
+              Create Newsletter
+            </h1>
+            <p className="text-muted-foreground">
+              Compose and send a newsletter to your {subscriberCount} active subscriber(s)
+            </p>
           </div>
         </div>
 
-        {/* Form */}
+        {/* Stats */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active Recipients</p>
+                <p className="text-2xl font-bold">{subscriberCount}</p>
+              </div>
+              <Users className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Newsletter Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Subscriber Details</CardTitle>
+            <CardTitle>Newsletter Content</CardTitle>
+            <CardDescription>
+              Create your newsletter content. The email will be sent from your account email.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="subscriber@example.com"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="name">Name (Optional)</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Subscriber name"
-                  />
-                </div>
-              </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject Line</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter newsletter subject..."
+                          {...field}
+                          maxLength={100}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div>
-                <Label htmlFor="source">Source</Label>
-                <Select
-                  value={formData.source}
-                  onValueChange={(value) => setFormData({ ...formData, source: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="website">Website</SelectItem>
-                    <SelectItem value="event">Event</SelectItem>
-                    <SelectItem value="social">Social Media</SelectItem>
-                    <SelectItem value="referral">Referral</SelectItem>
-                    <SelectItem value="import">Import</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <FormField
+                  control={form.control}
+                  name="previewText"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preview Text (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Preview text shown in email clients..."
+                          {...field}
+                          maxLength={100}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div>
-                <Label>Tags</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={formData.tagInput}
-                    onChange={(e) => setFormData({ ...formData, tagInput: e.target.value })}
-                    placeholder="Add a tag"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  />
-                  <Button type="button" onClick={addTag} variant="outline">Add</Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                      {tag} ×
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Newsletter Content</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Write your newsletter content here..."
+                          className="min-h-[300px]"
+                          {...field}
+                          maxLength={50000}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="flex gap-4 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate('/user-newsletter-management')}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Adding...' : 'Add Subscriber'}
-                </Button>
-              </div>
-            </form>
+                <div className="flex gap-4 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/user-newsletter-management')}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading || subscriberCount === 0}>
+                    <Send className="h-4 w-4 mr-2" />
+                    {loading ? 'Sending...' : `Send to ${subscriberCount} Subscriber(s)`}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </div>
