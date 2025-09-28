@@ -10,9 +10,7 @@ import {
   Users,
   Settings,
   Trash2,
-  Edit3,
-  Plus,
-  UserPlus
+  Edit3
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,18 +29,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
- } from '@/components/ui/table';
+} from '@/components/ui/table';
 import { useAdminSettings } from '@/hooks/useAdminSettings';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 
 interface NewsletterSubscriber {
   id: string;
@@ -65,12 +53,6 @@ export default function UserNewsletterManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newSubscriber, setNewSubscriber] = useState({
-    email: '',
-    name: '',
-    tags: ''
-  });
 
   const [stats, setStats] = useState({
     total: 0,
@@ -217,61 +199,6 @@ export default function UserNewsletterManagement() {
     }
   };
 
-  const handleAddSubscriber = async () => {
-    if (!newSubscriber.email) {
-      toast({
-        title: "Error",
-        description: "Email is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const tags = newSubscriber.tags 
-        ? newSubscriber.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-        : [];
-
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .insert({
-          user_id: user.id,
-          email: newSubscriber.email.toLowerCase().trim(),
-          name: newSubscriber.name.trim() || null,
-          tags: tags,
-          status: 'active',
-          source: 'manual',
-          subscribed_at: new Date().toISOString()
-        });
-
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          throw new Error('This email is already subscribed');
-        }
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Subscriber added successfully",
-      });
-      
-      setNewSubscriber({ email: '', name: '', tags: '' });
-      setShowAddDialog(false);
-      fetchSubscribers();
-    } catch (error: any) {
-      console.error('Error adding subscriber:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add subscriber",
-        variant: "destructive",
-      });
-    }
-  };
-
   const filteredSubscribers = subscribers.filter(subscriber => {
     const matchesSearch = subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (subscriber.name && subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -303,64 +230,6 @@ export default function UserNewsletterManagement() {
             <p className="text-muted-foreground">Manage your newsletter subscriber list</p>
           </div>
           <div className="flex gap-2">
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Subscriber
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Subscriber</DialogTitle>
-                  <DialogDescription>
-                    Manually add a new subscriber to your newsletter list.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="subscriber@example.com"
-                      value={newSubscriber.email}
-                      onChange={(e) => setNewSubscriber(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name (Optional)</Label>
-                    <Input
-                      id="name"
-                      placeholder="Subscriber's name"
-                      value={newSubscriber.name}
-                      onChange={(e) => setNewSubscriber(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (Optional)</Label>
-                    <Input
-                      id="tags"
-                      placeholder="tag1, tag2, tag3"
-                      value={newSubscriber.tags}
-                      onChange={(e) => setNewSubscriber(prev => ({ ...prev, tags: e.target.value }))}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Separate multiple tags with commas
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleAddSubscriber}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Subscriber
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
             <Button onClick={() => navigate('/user-newsletter-management/create')}>
               <Mail className="h-4 w-4 mr-2" />
               Create Newsletter
