@@ -80,6 +80,7 @@ import UserFaqCreate from "./pages/UserFaqCreate";
 import UserFaqEdit from "./pages/UserFaqEdit";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
 import UserNewsletterCreate from "./pages/UserNewsletterCreate";
+import UserNewsletterSettings from "./pages/UserNewsletterSettings";
 import UserNewsletterEdit from "./pages/UserNewsletterEdit";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
@@ -469,6 +470,11 @@ function App() {
             <Route path="/user-newsletter-management/create" element={
               <DashboardLayout>
                 <UserNewsletterCreate />
+              </DashboardLayout>
+            } />
+            <Route path="/user-newsletter-settings" element={
+              <DashboardLayout>
+                <UserNewsletterSettings />
               </DashboardLayout>
             } />
             <Route path="/user-newsletter-management/edit/:id" element={

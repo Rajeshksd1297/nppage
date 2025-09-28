@@ -8,8 +8,7 @@ import {
   Search,
   Mail,
   Users,
-  Download,
-  UserPlus,
+  Settings,
   Trash2,
   Edit3
 } from 'lucide-react';
@@ -186,27 +185,6 @@ export default function UserNewsletterManagement() {
     return matchesSearch && matchesStatus;
   });
 
-  const exportSubscribers = () => {
-    const csvContent = [
-      ['Email', 'Name', 'Status', 'Source', 'Tags', 'Subscribed Date'],
-      ...filteredSubscribers.map(sub => [
-        sub.email,
-        sub.name || '',
-        sub.status,
-        sub.source || '',
-        sub.tags.join('; '),
-        new Date(sub.subscribed_at).toLocaleDateString()
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'newsletter-subscribers.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -231,13 +209,13 @@ export default function UserNewsletterManagement() {
             <p className="text-muted-foreground">Manage your newsletter subscriber list</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={exportSubscribers}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
             <Button onClick={() => navigate('/user-newsletter-management/create')}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Subscriber
+              <Mail className="h-4 w-4 mr-2" />
+              Create Newsletter
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/user-newsletter-settings')}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
             </Button>
           </div>
         </div>
