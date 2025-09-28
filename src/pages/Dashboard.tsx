@@ -64,7 +64,8 @@ export default function Dashboard() {
     isOnTrial,
     trialDaysLeft,
     isPro,
-    isFree
+    isFree,
+    getCurrentPlanName
   } = useSubscription();
   useEffect(() => {
     fetchDashboardData();
@@ -428,6 +429,83 @@ export default function Dashboard() {
 
       <DashboardAnalytics />
       
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="w-5 h-5" />
+            Your Plan: {getCurrentPlanName()}
+          </CardTitle>
+          <CardDescription>
+            Features available with your current subscription
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              <span className="text-sm">
+                {getLimit('books') === Infinity ? 'Unlimited' : getLimit('books')} Books
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4" />
+              <span className="text-sm">
+                {hasFeature('premium_themes') ? 'Premium' : 'Standard'} Themes
+              </span>
+              {hasFeature('premium_themes') && <Badge variant="secondary" className="text-xs">Pro</Badge>}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              <span className="text-sm">
+                {hasFeature('advanced_analytics') ? 'Advanced' : 'Basic'} Analytics
+              </span>
+              {hasFeature('advanced_analytics') && <Badge variant="secondary" className="text-xs">Pro</Badge>}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              <span className="text-sm">
+                {hasFeature('custom_domain') ? 'Custom Domain' : 'Subdomain Only'}
+              </span>
+              {hasFeature('custom_domain') && <Badge variant="secondary" className="text-xs">Pro</Badge>}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm">
+                {hasFeature('contact_form') ? 'Contact Forms' : 'No Contact Forms'}
+              </span>
+              {hasFeature('contact_form') && <Badge variant="secondary" className="text-xs">Pro</Badge>}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              <span className="text-sm">
+                {hasFeature('newsletter_integration') ? 'Newsletter' : 'No Newsletter'}
+              </span>
+              {hasFeature('newsletter_integration') && <Badge variant="secondary" className="text-xs">Pro</Badge>}
+            </div>
+          </div>
+          
+          {!hasFeature('premium_themes') && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-amber-900">Unlock Premium Features</p>
+                  <p className="text-sm text-amber-700">Upgrade to Pro for unlimited books, premium themes, and advanced analytics</p>
+                </div>
+                <Button onClick={() => navigate('/subscription')} size="sm" className="bg-amber-600 hover:bg-amber-700">
+                  Upgrade Now
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <DashboardFeatures hasFeature={hasFeature} isPro={isPro()} />
     </div>;
   const renderRecentBooks = () => <div className="space-y-4">

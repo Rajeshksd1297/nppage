@@ -49,7 +49,7 @@ export default function Books() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscription, getLimit, loading: subscriptionLoading } = useSubscription();
+  const { hasFeature, getLimit, getCurrentPlanName, loading: subscriptionLoading } = useSubscription();
 
   useEffect(() => {
     fetchBooks();

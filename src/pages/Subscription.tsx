@@ -21,6 +21,10 @@ interface SubscriptionPlan {
   no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
+  blog: boolean;
+  events: boolean;
+  awards: boolean;
+  faq: boolean;
 }
 
 interface UserSubscription {
@@ -71,11 +75,45 @@ export default function Subscription() {
   }, []);
 
   const getPackageDescription = (plan: SubscriptionPlan) => {
-    if (plan.price_monthly === 0) return 'Perfect for getting started';
-    if (plan.name.toLowerCase().includes('basic')) return 'Essential features for authors';
-    if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to grow';
+    if (plan.price_monthly === 0) return 'Perfect for getting started with basic features';
+    if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to showcase your work professionally';
     if (plan.name.toLowerCase().includes('enterprise')) return 'Advanced features for professionals';
     return 'Complete publishing solution';
+  };
+
+  const getFeatureList = (plan: SubscriptionPlan) => {
+    const features = [];
+    
+    // Basic features for all plans
+    if (plan.max_books === -1) {
+      features.push('Unlimited books');
+    } else if (plan.max_books > 0) {
+      features.push(`Up to ${plan.max_books} books`);
+    } else {
+      features.push('Up to 3 books');
+    }
+    
+    features.push('Basic profile');
+    
+    // Plan-specific features
+    if (plan.price_monthly === 0) {
+      features.push('Standard themes', 'Community support');
+    } else {
+      // Pro features
+      if (plan.custom_domain) features.push('Custom domain');
+      if (plan.premium_themes) features.push('Premium themes');
+      if (plan.advanced_analytics) features.push('Advanced analytics');
+      if (plan.contact_form) features.push('Contact forms');
+      if (plan.newsletter_integration) features.push('Newsletter integration');
+      if (plan.no_watermark) features.push('No watermark');
+      if (plan.blog) features.push('Blog features');
+      if (plan.events) features.push('Events management');
+      if (plan.awards) features.push('Awards showcase');
+      if (plan.faq) features.push('FAQ section');
+      features.push('Priority support');
+    }
+    
+    return features;
   };
 
   const fetchData = async () => {
@@ -210,7 +248,134 @@ export default function Subscription() {
                 <div className="text-3xl font-bold mt-4">
                   <span className="text-primary">${price}</span>
                   <span className="text-lg text-muted-foreground font-normal">{priceLabel}</span>
-                </div>
+      </div>
+
+      {/* Feature Comparison Table */}
+      <Card className="mt-12 max-w-6xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-center">Compare All Features</CardTitle>
+          <CardDescription className="text-center">
+            See exactly what's included with each plan
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-4 font-medium">Features</th>
+                  {plans.map(plan => (
+                    <th key={plan.id} className="text-center p-4 font-medium">
+                      {plan.name}
+                      <div className="text-sm text-muted-foreground font-normal">
+                        ${plan.price_monthly}/month
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="p-4 font-medium">Books Allowed</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.max_books === -1 ? '∞ Unlimited' : plan.max_books || '3'}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Premium Themes</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.premium_themes ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Custom Domain</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.custom_domain ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Advanced Analytics</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.advanced_analytics ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Contact Forms</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.contact_form ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Newsletter Integration</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.newsletter_integration ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Blog Features</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.blog ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Events Management</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.events ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">Awards Showcase</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.awards ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">FAQ Section</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.faq ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b">
+                  <td className="p-4">No Watermark</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.no_watermark ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-4">Support Level</td>
+                  {plans.map(plan => (
+                    <td key={plan.id} className="text-center p-4">
+                      {plan.price_monthly === 0 ? 'Community' : 'Priority'}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
                 {billingCycle === 'yearly' && plan.price_monthly > 0 && (
                   <p className="text-sm text-muted-foreground mt-1">
                     ${(plan.price_monthly * 12).toFixed(0)} billed annually
@@ -225,12 +390,12 @@ export default function Subscription() {
 
               <CardContent>
                 <ul className="space-y-3 mb-6">
-                  {Array.isArray(plan.features) ? plan.features.map((feature, index) => (
+                  {getFeatureList(plan).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </li>
-                  )) : null}
+                  ))}
                 </ul>
 
                 <Button 

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { PlanSync } from "@/components/PlanSync";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthorProfile from "./pages/AuthorProfile";
@@ -92,8 +93,9 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
+    <TooltipProvider>
+      <PlanSync />
+      <Toaster />
         <Sonner />
         
           <ThemeProvider>
