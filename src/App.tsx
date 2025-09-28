@@ -79,6 +79,8 @@ import UserFaqManagement from "./pages/UserFaqManagement";
 import UserFaqCreate from "./pages/UserFaqCreate";
 import UserFaqEdit from "./pages/UserFaqEdit";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
+import UserNewsletterCreate from "./pages/UserNewsletterCreate";
+import UserNewsletterEdit from "./pages/UserNewsletterEdit";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { AdminAccessGuard } from "./components/AdminAccessGuard";
@@ -462,6 +464,16 @@ function App() {
             <Route path="/user-faq-management/edit/:id" element={
               <DashboardLayout>
                 <UserFaqEdit />
+              </DashboardLayout>
+            } />
+            <Route path="/user-newsletter-management/create" element={
+              <DashboardLayout>
+                <UserNewsletterCreate />
+              </DashboardLayout>
+            } />
+            <Route path="/user-newsletter-management/edit/:id" element={
+              <DashboardLayout>
+                <UserNewsletterEdit />
               </DashboardLayout>
             } />
             <Route path="/user-awards-management" element={
