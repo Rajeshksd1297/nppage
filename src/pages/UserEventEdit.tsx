@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Calendar, AlertCircle, MapPin, Video } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,7 +45,7 @@ interface Event {
   event_date: string;
   end_date: string | null;
   location: string | null;
-  event_type: string;
+  event_type: 'general' | 'book_launch' | 'signing' | 'interview' | 'conference';
   is_virtual: boolean;
   meeting_link: string | null;
   registration_required: boolean;
@@ -74,7 +73,7 @@ export default function UserEventEdit() {
     event_date: '',
     end_date: '',
     location: '',
-    event_type: 'general',
+    event_type: 'general' as Event['event_type'],
     is_virtual: false,
     meeting_link: '',
     registration_required: false,
@@ -153,7 +152,7 @@ export default function UserEventEdit() {
         event_date: new Date(data.event_date).toISOString().slice(0, 16),
         end_date: data.end_date ? new Date(data.end_date).toISOString().slice(0, 16) : '',
         location: data.location || '',
-        event_type: data.event_type,
+        event_type: (data.event_type as Event['event_type']) || 'general',
         is_virtual: data.is_virtual,
         meeting_link: data.meeting_link || '',
         registration_required: data.registration_required,
@@ -204,6 +203,16 @@ export default function UserEventEdit() {
     }
 
     return errors;
+  };
+
+  const getAllowedEventTypes = () => {
+    return [
+      { value: 'general', label: 'General' },
+      { value: 'book_launch', label: 'Book Launch' },
+      { value: 'signing', label: 'Book Signing' },
+      { value: 'interview', label: 'Interview' },
+      { value: 'conference', label: 'Conference' },
+    ];
   };
 
   const handleSubmit = async () => {
@@ -377,25 +386,17 @@ export default function UserEventEdit() {
                   <Label htmlFor="event_type">Event Type</Label>
                   <Select
                     value={formData.event_type}
-                    onValueChange={(value) => setFormData({ ...formData, event_type: value })}
+                    onValueChange={(value: Event['event_type']) => setFormData({ ...formData, event_type: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select event type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {eventSettings?.categories?.map((category) => (
-                        <SelectItem key={category.toLowerCase().replace(' ', '_')} value={category.toLowerCase().replace(' ', '_')}>
-                          {category}
+                      {getAllowedEventTypes().map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
                         </SelectItem>
-                      )) || (
-                        <>
-                          <SelectItem value="general">General</SelectItem>
-                          <SelectItem value="book_launch">Book Launch</SelectItem>
-                          <SelectItem value="signing">Book Signing</SelectItem>
-                          <SelectItem value="interview">Interview</SelectItem>
-                          <SelectItem value="conference">Conference</SelectItem>
-                        </>
-                      )}
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
