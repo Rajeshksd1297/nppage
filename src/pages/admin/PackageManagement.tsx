@@ -68,7 +68,7 @@ export default function PackageManagement() {
   
   const [packageSettings, setPackageSettings] = useState({
     packages: [], // Will be loaded from database
-    trial_days: 15,
+    trial_days: 30, // Updated to 30 days
     allow_downgrades: true,
     prorate_charges: true,
     grace_period_days: 7,
