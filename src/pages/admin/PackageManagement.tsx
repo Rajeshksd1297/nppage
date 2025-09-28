@@ -174,6 +174,28 @@ export default function PackageManagement() {
 
   useEffect(() => {
     loadExistingPackages();
+    
+    // Set up real-time subscription for package changes
+    const channel = supabase
+      .channel('subscription_plans_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscription_plans'
+        },
+        (payload) => {
+          console.log('Real-time package change detected:', payload);
+          // Reload packages when changes occur
+          loadExistingPackages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadExistingPackages = async () => {
@@ -241,6 +263,11 @@ export default function PackageManagement() {
   const handleSavePackageSettings = async () => {
     setSaving(true);
     try {
+      // Get current packages from database to handle deletions
+      const { data: currentPlans } = await supabase
+        .from('subscription_plans')
+        .select('id, name');
+
       // Save/update packages to database
       for (const pkg of packageSettings.packages) {
         const packageData = {
@@ -264,26 +291,26 @@ export default function PackageManagement() {
           available_themes: pkg.available_themes || []
         };
 
-        // Check if package exists by name
-        const { data: existingPackage } = await supabase
-          .from('subscription_plans')
-          .select('id')
-          .eq('name', pkg.name)
-          .single();
-
-        if (existingPackage) {
+        if (pkg.id && !pkg.id.toString().startsWith('temp_')) {
           // Update existing package
-          await supabase
+          const { error } = await supabase
             .from('subscription_plans')
             .update(packageData)
-            .eq('id', existingPackage.id);
+            .eq('id', pkg.id);
+
+          if (error) throw error;
         } else {
           // Insert new package
-          await supabase
+          const { error } = await supabase
             .from('subscription_plans')
             .insert(packageData);
+
+          if (error) throw error;
         }
       }
+
+      // Reload packages to ensure sync
+      await loadExistingPackages();
 
       toast({
         title: "Success",
@@ -303,7 +330,7 @@ export default function PackageManagement() {
 
   const addNewPackage = () => {
     const newPackage: Package = {
-      id: Date.now().toString(),
+      id: `temp_${Date.now()}`, // Use temp ID for new packages
       name: 'New Package',
       price_monthly: 0,
       price_yearly: 0,
@@ -339,7 +366,7 @@ export default function PackageManagement() {
     }));
   };
 
-  const deletePackage = (packageId: string) => {
+  const deletePackage = async (packageId: string) => {
     if (packageSettings.packages.length <= 1) {
       toast({
         title: "Cannot Delete",
@@ -348,11 +375,55 @@ export default function PackageManagement() {
       });
       return;
     }
-    
-    setPackageSettings(prev => ({
-      ...prev,
-      packages: prev.packages.filter(pkg => pkg.id !== packageId)
-    }));
+
+    try {
+      // First check if any users are subscribed to this package
+      const { data: userSubscriptions, error: checkError } = await supabase
+        .from('user_subscriptions')
+        .select('id, profiles(full_name, email)')
+        .eq('plan_id', packageId);
+
+      if (checkError) throw checkError;
+
+      if (userSubscriptions && userSubscriptions.length > 0) {
+        toast({
+          title: "Cannot Delete Package",
+          description: `${userSubscriptions.length} user(s) are currently subscribed to this package. Please migrate them to another package first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Delete package from database
+      const { error: deleteError } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .eq('id', packageId);
+
+      if (deleteError) throw deleteError;
+
+      // Update local state
+      setPackageSettings(prev => ({
+        ...prev,
+        packages: prev.packages.filter(pkg => pkg.id !== packageId)
+      }));
+
+      toast({
+        title: "Package Deleted",
+        description: "Package has been successfully deleted from the database",
+      });
+
+      // Reload packages to ensure sync
+      await loadExistingPackages();
+
+    } catch (error) {
+      console.error('Error deleting package:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete package from database",
+        variant: "destructive",
+      });
+    }
   };
 
   const updatePackage = (packageId: string, updates: Partial<Package>) => {

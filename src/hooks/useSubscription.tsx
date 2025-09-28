@@ -45,7 +45,7 @@ export function useSubscription() {
   }, []);
 
   const setupRealtimeSubscription = () => {
-    const channel = supabase
+    const subscriptionChannel = supabase
       .channel('subscription-changes')
       .on(
         'postgres_changes',
@@ -60,8 +60,25 @@ export function useSubscription() {
       )
       .subscribe();
 
+    // Also listen for subscription plan changes to update features
+    const plansChannel = supabase
+      .channel('subscription-plans-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscription_plans'
+        },
+        () => {
+          fetchSubscription();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(subscriptionChannel);
+      supabase.removeChannel(plansChannel);
     };
   };
 
