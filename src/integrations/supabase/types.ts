@@ -441,6 +441,104 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_replies: {
+        Row: {
+          contact_submission_id: string
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          replied_by: string
+          reply_message: string
+          updated_at: string
+        }
+        Insert: {
+          contact_submission_id: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          replied_by: string
+          reply_message: string
+          updated_at?: string
+        }
+        Update: {
+          contact_submission_id?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          replied_by?: string
+          reply_message?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_replies_contact_submission_id_fkey"
+            columns: ["contact_submission_id"]
+            isOneToOne: false
+            referencedRelation: "contact_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_submissions: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          metadata: Json | null
+          name: string
+          priority: string | null
+          replied_at: string | null
+          resolved_at: string | null
+          source: string | null
+          status: string
+          subject: string | null
+          submitted_by: string | null
+          updated_at: string
+          user_agent: string | null
+          user_ip: unknown | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          name: string
+          priority?: string | null
+          replied_at?: string | null
+          resolved_at?: string | null
+          source?: string | null
+          status?: string
+          subject?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_ip?: unknown | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          name?: string
+          priority?: string | null
+          replied_at?: string | null
+          resolved_at?: string | null
+          source?: string | null
+          status?: string
+          subject?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_ip?: unknown | null
+        }
+        Relationships: []
+      }
       custom_domains: {
         Row: {
           created_at: string

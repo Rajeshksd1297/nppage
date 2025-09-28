@@ -140,6 +140,7 @@ const contentManagementItems = [
   { title: "Awards Management", url: "/admin/awards-management", icon: Award },
   { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
   { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
+  { title: "Contact Management", url: "/admin/contact-management", icon: MessageSquare },
 ];
 
 // Business Management

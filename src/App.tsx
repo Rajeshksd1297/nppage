@@ -44,7 +44,7 @@ import PackageManagement from "./pages/admin/PackageManagement";
 import DomainSettings from "./pages/admin/DomainSettings";
 import AdminHelpDesk from "./pages/admin/HelpDesk";
 import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
-import TicketDetails from "./pages/admin/TicketDetails";
+import ContactManagement from "./pages/admin/ContactManagement";
 import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
 import BlogManagement from "./pages/admin/BlogManagement";
@@ -274,10 +274,10 @@ function App() {
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
-            <Route path="/admin/ticket/:id" element={
+            <Route path="/admin/help-desk" element={
               <DashboardLayout>
                 <AdminAccessGuard>
-                  <TicketDetails />
+                  <AdminHelpDesk />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
@@ -292,6 +292,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <BlogManagement />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/contact-management" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <ContactManagement />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

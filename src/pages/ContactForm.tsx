@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Mail, MessageSquare, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { UpgradeBanner } from '@/components/UpgradeBanner';
 import { z } from 'zod';
@@ -46,8 +47,16 @@ export default function ContactForm() {
 
       setSending(true);
 
-      // Simulate sending email (would integrate with actual email service)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Send contact form via edge function
+      const { error: submitError } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          ...validatedData,
+          userAgent: navigator.userAgent,
+          userIp: null // Will be captured server-side if needed
+        }
+      });
+
+      if (submitError) throw submitError;
 
       toast({
         title: "Message Sent",
