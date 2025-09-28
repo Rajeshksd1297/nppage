@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ContactFormWidget } from '@/components/ContactFormWidget';
 import ContactFormSettings from '@/pages/ContactFormSettings';
+import ContactEmailSettings from '@/pages/ContactEmailSettings';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -256,7 +257,7 @@ export default function UserContactManagement() {
       </div>
 
       <Tabs defaultValue="messages" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="messages" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             Messages
@@ -268,6 +269,10 @@ export default function UserContactManagement() {
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Form Settings
+          </TabsTrigger>
+          <TabsTrigger value="email-settings" className="flex items-center gap-2">
+            <Mail className="w-4 h-4" />
+            Email Settings
           </TabsTrigger>
         </TabsList>
 
@@ -495,6 +500,10 @@ export default function UserContactManagement() {
 
         <TabsContent value="settings" className="mt-6">
           <ContactFormSettings />
+        </TabsContent>
+
+        <TabsContent value="email-settings" className="mt-6">
+          <ContactEmailSettings />
         </TabsContent>
       </Tabs>
     </div>;

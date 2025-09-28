@@ -2173,6 +2173,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_email_settings: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          resend_api_key: string | null
+          resend_from_email: string | null
+          resend_from_name: string | null
+          test_email_sent: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          resend_api_key?: string | null
+          resend_from_email?: string | null
+          resend_from_name?: string | null
+          test_email_sent?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          resend_api_key?: string | null
+          resend_from_email?: string | null
+          resend_from_name?: string | null
+          test_email_sent?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_newsletter_settings: {
         Row: {
           created_at: string
