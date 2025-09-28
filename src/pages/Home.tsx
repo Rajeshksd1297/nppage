@@ -10,10 +10,15 @@ import {
   BookOpen, Users, ArrowRight, CheckCircle, Eye, Activity, Book, BarChart3, 
   Palette, Rocket, Globe, Star, Sparkles, Trophy, TrendingUp, Bot, Camera, 
   Share, Mail, Play, ChevronLeft, ChevronRight, Crown, Zap, ChevronDown,
-  Calendar, CreditCard, Shield, Check, Clock, Target, Award
+  Calendar, CreditCard, Shield, Check, Clock, Target, Award, MessageCircle,
+  Newspaper, CalendarDays, Plus, Settings
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEOHead';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
+import { FeatureGate } from '@/components/FeatureGate';
+import { TrialBanner } from '@/components/TrialBanner';
 import heroAuthorsImage from '@/assets/hero-authors-workspace.jpg';
 import profileShowcaseImage from '@/assets/profile-showcase.jpg';
 import freePlanSuccessImage from '@/assets/free-plan-success.jpg';
@@ -63,12 +68,37 @@ const Home = () => {
   const [faqs, setFaqs] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Real-time subscription and admin settings
+  const { hasFeature, isPro, isFree, isOnTrial, getCurrentPlanName, loading: subscriptionLoading } = useSubscription();
+  const { hasFeatureAccess } = useAdminSettings();
 
   useEffect(() => {
     fetchSections();
     fetchPackages();
     fetchStats();
     fetchFaqs();
+    
+    // Set up real-time listeners for subscription changes
+    const channel = supabase
+      .channel('subscription-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        () => {
+          // Refetch data when subscription changes
+          fetchPackages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchSections = async () => {
@@ -993,8 +1023,309 @@ const Home = () => {
     }
   };
 
+  // Pro features showcase component
+  const renderProFeaturesShowcase = () => (
+    <section className="py-24 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Pro Features Available
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">
+            {isPro() ? "You're using Pro features!" : isOnTrial() ? "Currently in your Pro trial" : "Upgrade to unlock premium capabilities"}
+          </p>
+          {!subscriptionLoading && (
+            <Badge variant={isPro() ? "default" : isOnTrial() ? "secondary" : "outline"} className="mt-4">
+              Current Plan: {getCurrentPlanName()} {isOnTrial() && "(Trial)"}
+            </Badge>
+          )}
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Contact Management */}
+          <FeatureGate feature="contact_form" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('contact_form') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageCircle className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Contact Management</CardTitle>
+                <CardDescription>
+                  Manage reader inquiries and fan mail professionally
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Professional contact forms
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Email notifications
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Response tracking
+                  </li>
+                </ul>
+                {hasFeature('contact_form') && hasFeatureAccess('newsletter') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/user-contact-management')}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Contacts
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+
+          {/* Blog Management */}
+          <FeatureGate feature="blog" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('blog') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Newspaper className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Blog Management</CardTitle>
+                <CardDescription>
+                  Share your thoughts and connect with readers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Rich text editor
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    SEO optimization
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Categories & tags
+                  </li>
+                </ul>
+                {hasFeature('blog') && hasFeatureAccess('blog') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/user-blog-management')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Post
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+
+          {/* Events Management */}
+          <FeatureGate feature="events" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('events') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <CalendarDays className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Event Management</CardTitle>
+                <CardDescription>
+                  Promote book launches and author events
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Event calendar
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    RSVP tracking
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Virtual & in-person
+                  </li>
+                </ul>
+                {hasFeature('events') && hasFeatureAccess('events') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/user-events-management')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Event
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+
+          {/* Awards Management */}
+          <FeatureGate feature="awards" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('awards') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Award className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Awards & Recognition</CardTitle>
+                <CardDescription>
+                  Showcase your achievements and accolades
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Award galleries
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Certificate uploads
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Featured highlights
+                  </li>
+                </ul>
+                {hasFeature('awards') && hasFeatureAccess('awards') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/user-awards-management')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Award
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+
+          {/* Newsletter Management */}
+          <FeatureGate feature="newsletter_integration" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('newsletter_integration') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Mail className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Newsletter</CardTitle>
+                <CardDescription>
+                  Build and engage your reader community
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Subscriber management
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Campaign creation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Analytics tracking
+                  </li>
+                </ul>
+                {hasFeature('newsletter_integration') && hasFeatureAccess('newsletter') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/user-newsletter-management')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+
+          {/* Premium Themes */}
+          <FeatureGate feature="premium_themes" inline={false}>
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute top-0 right-0 p-4">
+                {hasFeature('premium_themes') && <Badge className="bg-green-500">Active</Badge>}
+              </div>
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Palette className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Premium Themes</CardTitle>
+                <CardDescription>
+                  Beautiful, professional theme designs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    50+ premium themes
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Custom styling
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    Mobile optimized
+                  </li>
+                </ul>
+                {hasFeature('premium_themes') && (
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/themes')}
+                  >
+                    <Palette className="h-4 w-4 mr-2" />
+                    Browse Themes
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </FeatureGate>
+        </div>
+
+        {!isPro() && !isOnTrial() && (
+          <div className="text-center mt-16">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/subscription')}
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            >
+              <Crown className="h-5 w-5 mr-2" />
+              Upgrade to Pro
+            </Button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
   return (
     <div className="min-h-screen bg-background">
+      <TrialBanner />
       <SEOHead 
         title="AuthorPage - Professional Author Profiles & Book Showcases"
         description="Create professional author profiles, showcase your books, and grow your audience with beautiful universal links. Start free today!"
