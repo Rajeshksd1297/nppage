@@ -14,7 +14,15 @@ interface SubscriptionPlan {
   no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
-  features: any; // Using any to handle Json type from database
+  features: {
+    contact_form?: boolean;
+    newsletter_integration?: boolean;
+    blog?: boolean;
+    events?: boolean;
+    awards?: boolean;
+    faq?: boolean;
+    gallery?: boolean;
+  };
 }
 
 interface UserSubscription {
@@ -33,7 +41,29 @@ export function useSubscription() {
 
   useEffect(() => {
     fetchSubscription();
+    setupRealtimeSubscription();
   }, []);
+
+  const setupRealtimeSubscription = () => {
+    const channel = supabase
+      .channel('subscription-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        () => {
+          fetchSubscription();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const fetchSubscription = async () => {
     try {
@@ -43,23 +73,19 @@ export function useSubscription() {
         return;
       }
 
-      // First try to get from user_subscriptions (including trials)
       const { data: subscriptionData } = await supabase
         .from('user_subscriptions')
         .select(`
           *,
-          subscription_plans (*)
+          subscription_plans(*)
         `)
         .eq('user_id', user.id)
-        .in('status', ['active', 'trialing'])
-        .order('created_at', { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       if (subscriptionData) {
-        setSubscription(subscriptionData);
+        setSubscription(subscriptionData as UserSubscription);
         
-        // Check if trial is active
+        // Check trial status
         if (subscriptionData.status === 'trialing' && subscriptionData.trial_ends_at) {
           const trialEnd = new Date(subscriptionData.trial_ends_at);
           const now = new Date();
@@ -72,95 +98,78 @@ export function useSubscription() {
             setTrialDaysLeft(diffDays);
           }
         }
-      } else {
-        // Fallback to lowest priced plan (usually Free)
-        const { data: defaultPlan } = await supabase
-          .from('subscription_plans')
-          .select('*')
-          .order('price_monthly', { ascending: true })
-          .limit(1)
-          .single();
-
-        if (defaultPlan) {
-          setSubscription({ 
-            id: '', 
-            status: 'inactive', 
-            trial_ends_at: null, 
-            current_period_end: null,
-            subscription_plans: defaultPlan 
-          });
-        }
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
-      // Fallback to lowest priced plan (usually Free)
-      const { data: defaultPlan } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .order('price_monthly', { ascending: true })
-        .limit(1)
-        .single();
-
-      if (defaultPlan) {
-        setSubscription({ 
-          id: '', 
-          status: 'inactive', 
-          trial_ends_at: null, 
-          current_period_end: null,
-          subscription_plans: defaultPlan 
-        });
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  const hasFeature = (feature: keyof SubscriptionPlan): boolean => {
-    if (!subscription) return false;
-    // If user is on active trial, they get all premium features
-    if (subscription.status === 'trialing' && isTrialActive) {
-      return true;
+  const hasFeature = (feature: keyof SubscriptionPlan | keyof SubscriptionPlan['features']): boolean => {
+    if (!subscription?.subscription_plans) return false;
+    
+    const plan = subscription.subscription_plans;
+    
+    // Check if feature exists directly on plan
+    if (feature in plan && typeof plan[feature as keyof SubscriptionPlan] === 'boolean') {
+      return plan[feature as keyof SubscriptionPlan] as boolean;
     }
-    // Otherwise check the plan's actual features
-    const value = subscription.subscription_plans[feature];
-    return typeof value === 'boolean' ? value : false;
+    
+    // Check in features object
+    if (plan.features && feature in plan.features) {
+      return plan.features[feature as keyof SubscriptionPlan['features']] === true;
+    }
+    
+    // Default feature mapping for compatibility
+    switch (feature) {
+      case 'contact_form':
+        return plan.contact_form;
+      case 'newsletter_integration':
+        return plan.newsletter_integration;
+      case 'blog':
+      case 'events':
+      case 'awards':
+      case 'faq':
+      case 'gallery':
+        return plan.name !== 'Free'; // These features available on paid plans
+      default:
+        return false;
+    }
   };
 
-  const getLimit = (type: 'books' | 'publications'): number => {
-    if (!subscription) return 0;
-    const limit = type === 'books' 
-      ? subscription.subscription_plans.max_books 
-      : subscription.subscription_plans.max_publications;
-    return limit === -1 ? Infinity : limit;
-  };
+  const isPro = () => subscription?.subscription_plans?.name === 'Pro';
+  const isFree = () => subscription?.subscription_plans?.name === 'Free' || !subscription;
+  const isOnTrial = () => isTrialActive && subscription?.status === 'trialing';
 
-  const isPro = () => {
-    return subscription?.subscription_plans.name === 'Pro' || subscription?.status === 'trialing';
-  };
-
-  const isFree = () => {
-    return subscription?.subscription_plans.price_monthly === 0 && subscription?.status !== 'trialing';
-  };
-
-  const isOnTrial = () => {
-    return subscription?.status === 'trialing' && isTrialActive;
+  const getLimit = (feature: string) => {
+    if (!subscription?.subscription_plans) return 0;
+    
+    const plan = subscription.subscription_plans;
+    switch (feature) {
+      case 'books':
+        return plan.max_books;
+      case 'publications':
+        return plan.max_publications;
+      default:
+        return 0;
+    }
   };
 
   const getCurrentPlanName = () => {
-    return subscription?.subscription_plans.name || 'Free';
+    return subscription?.subscription_plans?.name || 'Free';
   };
 
   return {
     subscription,
     loading,
     hasFeature,
-    getLimit,
     isPro,
     isFree,
     isOnTrial,
-    isTrialActive,
     trialDaysLeft,
-    getCurrentPlanName,
-    refetch: fetchSubscription
+    isTrialActive,
+    getLimit,
+    getCurrentPlanName
   };
 }

@@ -8,9 +8,10 @@ interface FeatureAccessGuardProps {
   feature: 'newsletter' | 'blog' | 'events' | 'awards' | 'faq';
   children: ReactNode;
   fallback?: ReactNode;
+  fallbackMessage?: string;
 }
 
-export const FeatureAccessGuard = ({ feature, children, fallback }: FeatureAccessGuardProps) => {
+export const FeatureAccessGuard = ({ feature, children, fallback, fallbackMessage }: FeatureAccessGuardProps) => {
   const { hasFeatureAccess, loading, error } = useAdminSettings();
 
   if (loading) {
@@ -46,7 +47,7 @@ export const FeatureAccessGuard = ({ feature, children, fallback }: FeatureAcces
           <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
           <CardTitle>Feature Not Available</CardTitle>
           <CardDescription>
-            The {feature} feature has been disabled by your administrator.
+            {fallbackMessage || `The ${feature} feature has been disabled by your administrator.`}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

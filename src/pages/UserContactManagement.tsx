@@ -15,6 +15,8 @@ import ContactEmailSettings from '@/pages/ContactEmailSettings';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
 interface ContactSubmission {
   id: string;
   name: string;
@@ -46,9 +48,11 @@ export default function UserContactManagement() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [userSlug, setUserSlug] = useState<string>('');
-  const {
-    toast
-  } = useToast();
+  const { hasFeature } = useSubscription();
+  const { toast } = useToast();
+  // Check if user has access to contact form feature
+  const canAccessContactForm = hasFeature('contact_form');
+
   useEffect(() => {
     getCurrentUser();
     fetchSubmissions();
@@ -248,13 +252,18 @@ export default function UserContactManagement() {
   useEffect(() => {
     fetchSubmissions();
   }, [searchTerm, statusFilter, sortBy, sortOrder]);
-  return <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Contact Management</h1>
-        <p className="text-muted-foreground">
-          Manage your contact form, messages, and settings
-        </p>
-      </div>
+  return (
+    <FeatureAccessGuard 
+      feature="newsletter"
+      fallbackMessage="Contact form management is available with Pro subscription"
+    >
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">My Contact</h1>
+          <p className="text-muted-foreground">
+            Manage your contact form, messages, and email settings
+          </p>
+        </div>
 
       <Tabs defaultValue="messages" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -506,5 +515,7 @@ export default function UserContactManagement() {
           <ContactEmailSettings />
         </TabsContent>
       </Tabs>
-    </div>;
+      </div>
+    </FeatureAccessGuard>
+  );
 }
