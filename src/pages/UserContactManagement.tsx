@@ -11,30 +11,9 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ContactFormWidget } from '@/components/ContactFormWidget';
 import ContactFormSettings from '@/pages/ContactFormSettings';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 interface ContactSubmission {
   id: string;
   name: string;
@@ -47,14 +26,12 @@ interface ContactSubmission {
   replied_at: string | null;
   source: string;
 }
-
 interface ContactReply {
   id: string;
   reply_message: string;
   created_at: string;
   is_internal: boolean;
 }
-
 export default function UserContactManagement() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,27 +45,28 @@ export default function UserContactManagement() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [userSlug, setUserSlug] = useState<string>('');
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     getCurrentUser();
     fetchSubmissions();
     setupRealtimeSubscription();
   }, []);
-
   const getCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
-        
+
         // Get user profile to find slug
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('slug')
-          .eq('id', user.id)
-          .single();
-        
+        const {
+          data: profile
+        } = await supabase.from('profiles').select('slug').eq('id', user.id).single();
         if (profile?.slug) {
           setUserSlug(profile.slug);
         }
@@ -97,109 +75,90 @@ export default function UserContactManagement() {
       console.error('Error getting current user:', error);
     }
   };
-
   const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('contact-management')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contact_submissions',
-          filter: `contacted_user_id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
-        },
-        () => {
-          fetchSubmissions();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('contact-management').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'contact_submissions',
+      filter: `contacted_user_id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
+    }, () => {
+      fetchSubmissions();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   };
-
   const fetchSubmissions = async () => {
     try {
-      const { data: user } = await supabase.auth.getUser();
+      const {
+        data: user
+      } = await supabase.auth.getUser();
       if (!user.user) return;
-
-      let query = supabase
-        .from('contact_submissions')
-        .select('*')
-        .eq('contacted_user_id', user.user.id);
-
+      let query = supabase.from('contact_submissions').select('*').eq('contacted_user_id', user.user.id);
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-
-      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-
-      const { data, error } = await query;
-
+      query = query.order(sortBy, {
+        ascending: sortOrder === 'asc'
+      });
+      const {
+        data,
+        error
+      } = await query;
       if (error) throw error;
-
       let filteredData = data || [];
       if (searchTerm) {
-        filteredData = filteredData.filter(
-          (submission) =>
-            submission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            submission.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            submission.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (submission.subject && submission.subject.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        filteredData = filteredData.filter(submission => submission.name.toLowerCase().includes(searchTerm.toLowerCase()) || submission.email.toLowerCase().includes(searchTerm.toLowerCase()) || submission.message.toLowerCase().includes(searchTerm.toLowerCase()) || submission.subject && submission.subject.toLowerCase().includes(searchTerm.toLowerCase()));
       }
-
       setSubmissions(filteredData);
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast({
         title: "Error",
         description: "Failed to fetch contact submissions",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const fetchReplies = async (submissionId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('contact_replies')
-        .select('*')
-        .eq('contact_submission_id', submissionId)
-        .order('created_at', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('contact_replies').select('*').eq('contact_submission_id', submissionId).order('created_at', {
+        ascending: true
+      });
       if (error) throw error;
       setReplies(data || []);
     } catch (error) {
       console.error('Error fetching replies:', error);
     }
   };
-
   const handleReply = async () => {
     if (!selectedSubmission || !replyMessage.trim()) return;
-
     try {
       setSending(true);
 
       // Insert reply into database
-      const { data: user } = await supabase.auth.getUser();
-      const { error: replyError } = await supabase
-        .from('contact_replies')
-        .insert({
-          contact_submission_id: selectedSubmission.id,
-          reply_message: replyMessage,
-          replied_by: user.user?.id,
-          is_internal: false
-        });
-
+      const {
+        data: user
+      } = await supabase.auth.getUser();
+      const {
+        error: replyError
+      } = await supabase.from('contact_replies').insert({
+        contact_submission_id: selectedSubmission.id,
+        reply_message: replyMessage,
+        replied_by: user.user?.id,
+        is_internal: false
+      });
       if (replyError) throw replyError;
 
       // Send email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-reply-email', {
+      const {
+        error: emailError
+      } = await supabase.functions.invoke('send-reply-email', {
         body: {
           submissionId: selectedSubmission.id,
           recipientEmail: selectedSubmission.email,
@@ -209,25 +168,20 @@ export default function UserContactManagement() {
           subject: selectedSubmission.subject || 'Contact Form Inquiry'
         }
       });
-
       if (emailError) throw emailError;
 
       // Update submission status
-      const { error: updateError } = await supabase
-        .from('contact_submissions')
-        .update({
-          status: 'replied',
-          replied_at: new Date().toISOString()
-        })
-        .eq('id', selectedSubmission.id);
-
+      const {
+        error: updateError
+      } = await supabase.from('contact_submissions').update({
+        status: 'replied',
+        replied_at: new Date().toISOString()
+      }).eq('id', selectedSubmission.id);
       if (updateError) throw updateError;
-
       toast({
         title: "Reply Sent",
-        description: "Your reply has been sent successfully",
+        description: "Your reply has been sent successfully"
       });
-
       setReplyMessage('');
       fetchReplies(selectedSubmission.id);
       fetchSubmissions();
@@ -236,62 +190,64 @@ export default function UserContactManagement() {
       toast({
         title: "Error",
         description: "Failed to send reply",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setSending(false);
     }
   };
-
   const updateStatus = async (submissionId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ status: newStatus })
-        .eq('id', submissionId);
-
+      const {
+        error
+      } = await supabase.from('contact_submissions').update({
+        status: newStatus
+      }).eq('id', submissionId);
       if (error) throw error;
-
       fetchSubmissions();
       toast({
         title: "Status Updated",
-        description: "Contact submission status has been updated",
+        description: "Contact submission status has been updated"
       });
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
         title: "Error",
         description: "Failed to update status",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'new': return 'default';
-      case 'in_progress': return 'secondary';
-      case 'replied': return 'outline';
-      case 'resolved': return 'destructive';
-      default: return 'default';
+      case 'new':
+        return 'default';
+      case 'in_progress':
+        return 'secondary';
+      case 'replied':
+        return 'outline';
+      case 'resolved':
+        return 'destructive';
+      default:
+        return 'default';
     }
   };
-
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'secondary';
-      case 'low': return 'outline';
-      default: return 'default';
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'secondary';
+      case 'low':
+        return 'outline';
+      default:
+        return 'default';
     }
   };
-
   useEffect(() => {
     fetchSubmissions();
   }, [searchTerm, statusFilter, sortBy, sortOrder]);
-
-  return (
-    <div className="container mx-auto p-6">
+  return <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Contact Management</h1>
         <p className="text-muted-foreground">
@@ -330,12 +286,7 @@ export default function UserContactManagement() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search messages..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search messages..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -361,11 +312,7 @@ export default function UserContactManagement() {
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center gap-2"
-            >
+            <Button variant="outline" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4" />
               {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             </Button>
@@ -382,14 +329,9 @@ export default function UserContactManagement() {
               </CardTitle>
             </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="text-center p-8">Loading...</div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center p-8 text-muted-foreground">
+          {loading ? <div className="text-center p-8">Loading...</div> : submissions.length === 0 ? <div className="text-center p-8 text-muted-foreground">
               No contact submissions found
-            </div>
-          ) : (
-            <Table>
+            </div> : <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>From</TableHead>
@@ -401,8 +343,7 @@ export default function UserContactManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {submissions.map((submission) => (
-                  <TableRow key={submission.id}>
+                {submissions.map(submission => <TableRow key={submission.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{submission.name}</div>
@@ -434,14 +375,10 @@ export default function UserContactManagement() {
                       <div className="flex items-center gap-2">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedSubmission(submission);
-                                fetchReplies(submission.id);
-                              }}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => {
+                            setSelectedSubmission(submission);
+                            fetchReplies(submission.id);
+                          }}>
                               <Reply className="w-4 h-4 mr-1" />
                               Reply
                             </Button>
@@ -473,28 +410,22 @@ export default function UserContactManagement() {
                               </Card>
 
                               {/* Previous Replies */}
-                              {replies.length > 0 && (
-                                <Card>
+                              {replies.length > 0 && <Card>
                                   <CardHeader>
                                     <CardTitle className="text-lg">Previous Replies</CardTitle>
                                   </CardHeader>
                                   <CardContent>
                                     <div className="space-y-4">
-                                      {replies.map((reply) => (
-                                        <div key={reply.id} className="border-l-4 border-primary pl-4">
+                                      {replies.map(reply => <div key={reply.id} className="border-l-4 border-primary pl-4">
                                           <div className="text-sm text-muted-foreground mb-2">
                                             {format(new Date(reply.created_at), 'PPpp')}
-                                            {reply.is_internal && (
-                                              <Badge variant="secondary" className="ml-2">Internal</Badge>
-                                            )}
+                                            {reply.is_internal && <Badge variant="secondary" className="ml-2">Internal</Badge>}
                                           </div>
                                           <div className="whitespace-pre-wrap">{reply.reply_message}</div>
-                                        </div>
-                                      ))}
+                                        </div>)}
                                     </div>
                                   </CardContent>
-                                </Card>
-                              )}
+                                </Card>}
 
                               {/* Reply Form */}
                               <Card>
@@ -502,17 +433,9 @@ export default function UserContactManagement() {
                                   <CardTitle className="text-lg">Your Reply</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                  <Textarea
-                                    placeholder="Type your reply..."
-                                    value={replyMessage}
-                                    onChange={(e) => setReplyMessage(e.target.value)}
-                                    rows={6}
-                                  />
+                                  <Textarea placeholder="Type your reply..." value={replyMessage} onChange={e => setReplyMessage(e.target.value)} rows={6} />
                                   <div className="flex justify-between">
-                                    <Select 
-                                      value={submission.status} 
-                                      onValueChange={(value) => updateStatus(submission.id, value)}
-                                    >
+                                    <Select value={submission.status} onValueChange={value => updateStatus(submission.id, value)}>
                                       <SelectTrigger className="w-40">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -524,18 +447,11 @@ export default function UserContactManagement() {
                                       </SelectContent>
                                     </Select>
                                     
-                                    <Button
-                                      onClick={handleReply}
-                                      disabled={sending || !replyMessage.trim()}
-                                    >
-                                      {sending ? (
-                                        "Sending..."
-                                      ) : (
-                                        <>
+                                    <Button onClick={handleReply} disabled={sending || !replyMessage.trim()}>
+                                      {sending ? "Sending..." : <>
                                           <Mail className="w-4 h-4 mr-2" />
                                           Send Reply
-                                        </>
-                                      )}
+                                        </>}
                                     </Button>
                                   </div>
                                 </CardContent>
@@ -545,11 +461,9 @@ export default function UserContactManagement() {
                         </Dialog>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>)}
               </TableBody>
-            </Table>
-          )}
+            </Table>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -557,38 +471,7 @@ export default function UserContactManagement() {
         <TabsContent value="form-preview" className="mt-6">
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Form Preview & Actions</CardTitle>
-                <CardDescription>
-                  Test your contact form and access it on your profile
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 mb-4">
-                  {userSlug ? (
-                    <a 
-                      href={`/${userSlug}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex"
-                    >
-                      <Button variant="outline" className="flex items-center gap-2">
-                        <ExternalLink className="w-4 h-4" />
-                        View Live Form
-                      </Button>
-                    </a>
-                  ) : (
-                    <Button variant="outline" disabled>
-                      Set Profile Slug First
-                    </Button>
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    {userSlug ? `Your form is available at /${userSlug}` : 'Set up your profile slug to make your form accessible'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            
 
             {/* Form Preview */}
             <Card>
@@ -599,15 +482,12 @@ export default function UserContactManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ContactFormWidget 
-                  userId={currentUserId} 
-                  onSubmissionSuccess={() => {
-                    toast({
-                      title: "Test Submission",
-                      description: "Form test completed successfully",
-                    });
-                  }}
-                />
+                <ContactFormWidget userId={currentUserId} onSubmissionSuccess={() => {
+                toast({
+                  title: "Test Submission",
+                  description: "Form test completed successfully"
+                });
+              }} />
               </CardContent>
             </Card>
           </div>
@@ -617,6 +497,5 @@ export default function UserContactManagement() {
           <ContactFormSettings />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
