@@ -70,6 +70,8 @@ import UserBlogManagement from "./pages/UserBlogManagement";
 import UserBlogCreate from "./pages/UserBlogCreate";
 import UserBlogEdit from "./pages/UserBlogEdit";
 import UserEventsManagement from "./pages/UserEventsManagement";
+import UserEventCreate from "./pages/UserEventCreate";
+import UserEventEdit from "./pages/UserEventEdit";
 import UserAwardsManagement from "./pages/UserAwardsManagement";
 import UserFaqManagement from "./pages/UserFaqManagement";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
@@ -426,6 +428,16 @@ function App() {
             <Route path="/user-events-management" element={
               <DashboardLayout>
                 <UserEventsManagement />
+              </DashboardLayout>
+            } />
+            <Route path="/user-events-management/create" element={
+              <DashboardLayout>
+                <UserEventCreate />
+              </DashboardLayout>
+            } />
+            <Route path="/user-events-management/edit/:id" element={
+              <DashboardLayout>
+                <UserEventEdit />
               </DashboardLayout>
             } />
             <Route path="/user-awards-management" element={

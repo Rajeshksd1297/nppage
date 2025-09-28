@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
@@ -20,15 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -36,7 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface Event {
   id: string;
@@ -46,7 +43,7 @@ interface Event {
   event_date: string;
   end_date: string | null;
   location: string | null;
-  event_type: 'general' | 'book_launch' | 'signing' | 'interview' | 'conference';
+  event_type: string;
   is_virtual: boolean;
   meeting_link: string | null;
   registration_required: boolean;
@@ -60,28 +57,11 @@ interface Event {
 
 export default function UserEventsManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    event_date: '',
-    end_date: '',
-    location: '',
-    event_type: 'general' as Event['event_type'],
-    is_virtual: false,
-    meeting_link: '',
-    registration_required: false,
-    max_attendees: null as number | null,
-    status: 'upcoming' as Event['status'],
-    featured_image_url: '',
-  });
 
   useEffect(() => {
     fetchEvents();
@@ -133,61 +113,6 @@ export default function UserEventsManagement() {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const eventData = {
-        ...formData,
-        max_attendees: formData.max_attendees || null,
-        event_date: new Date(formData.event_date).toISOString(),
-        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
-        user_id: user.id,
-      };
-
-      if (selectedEvent) {
-        // Update existing event
-        const { error } = await supabase
-          .from('events')
-          .update(eventData)
-          .eq('id', selectedEvent.id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Event updated successfully",
-        });
-        setIsEditOpen(false);
-      } else {
-        // Create new event
-        const { error } = await supabase
-          .from('events')
-          .insert([eventData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Event created successfully",
-        });
-        setIsCreateOpen(false);
-      }
-
-      resetForm();
-      fetchEvents();
-    } catch (error: any) {
-      console.error('Error saving event:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save event",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDelete = async (eventId: string) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
 
@@ -219,40 +144,7 @@ export default function UserEventsManagement() {
   };
 
   const openEditDialog = (event: Event) => {
-    setSelectedEvent(event);
-    setFormData({
-      title: event.title,
-      description: event.description || '',
-      event_date: new Date(event.event_date).toISOString().slice(0, 16),
-      end_date: event.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : '',
-      location: event.location || '',
-      event_type: event.event_type,
-      is_virtual: event.is_virtual,
-      meeting_link: event.meeting_link || '',
-      registration_required: event.registration_required,
-      max_attendees: event.max_attendees,
-      status: event.status,
-      featured_image_url: event.featured_image_url || '',
-    });
-    setIsEditOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      event_date: '',
-      end_date: '',
-      location: '',
-      event_type: 'general',
-      is_virtual: false,
-      meeting_link: '',
-      registration_required: false,
-      max_attendees: null,
-      status: 'upcoming',
-      featured_image_url: '',
-    });
-    setSelectedEvent(null);
+    navigate(`/user-events-management/edit/${event.id}`);
   };
 
   const filteredEvents = events.filter(event => {
@@ -282,163 +174,19 @@ export default function UserEventsManagement() {
       conference: 'bg-orange-100 text-orange-800',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs ${colors[type as keyof typeof colors]}`}>
+      <span className={`px-2 py-1 rounded-full text-xs ${colors[type as keyof typeof colors] || colors.general}`}>
         {type.replace('_', ' ').toUpperCase()}
       </span>
     );
   };
 
-  const EventForm = () => (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="title">Event Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Enter event title"
-          />
-        </div>
-        <div>
-          <Label htmlFor="event_type">Event Type</Label>
-          <Select
-            value={formData.event_type}
-            onValueChange={(value: Event['event_type']) => 
-              setFormData({ ...formData, event_type: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="general">General</SelectItem>
-              <SelectItem value="book_launch">Book Launch</SelectItem>
-              <SelectItem value="signing">Book Signing</SelectItem>
-              <SelectItem value="interview">Interview</SelectItem>
-              <SelectItem value="conference">Conference</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Describe the event"
-          rows={3}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="event_date">Start Date & Time</Label>
-          <Input
-            id="event_date"
-            type="datetime-local"
-            value={formData.event_date}
-            onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="end_date">End Date & Time (Optional)</Label>
-          <Input
-            id="end_date"
-            type="datetime-local"
-            value={formData.end_date}
-            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="is_virtual"
-          checked={formData.is_virtual}
-          onCheckedChange={(checked) => setFormData({ ...formData, is_virtual: checked })}
-        />
-        <Label htmlFor="is_virtual">Virtual Event</Label>
-      </div>
-
-      {formData.is_virtual ? (
-        <div>
-          <Label htmlFor="meeting_link">Meeting Link</Label>
-          <Input
-            id="meeting_link"
-            value={formData.meeting_link}
-            onChange={(e) => setFormData({ ...formData, meeting_link: e.target.value })}
-            placeholder="https://zoom.us/j/..."
-          />
-        </div>
-      ) : (
-        <div>
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            placeholder="Event venue address"
-          />
-        </div>
-      )}
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="registration_required"
-          checked={formData.registration_required}
-          onCheckedChange={(checked) => setFormData({ ...formData, registration_required: checked })}
-        />
-        <Label htmlFor="registration_required">Registration Required</Label>
-      </div>
-
-      {formData.registration_required && (
-        <div>
-          <Label htmlFor="max_attendees">Maximum Attendees (Optional)</Label>
-          <Input
-            id="max_attendees"
-            type="number"
-            value={formData.max_attendees || ''}
-            onChange={(e) => setFormData({ ...formData, max_attendees: parseInt(e.target.value) || null })}
-            placeholder="Leave empty for unlimited"
-          />
-        </div>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(value: Event['status']) => 
-              setFormData({ ...formData, status: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
-              <SelectItem value="ongoing">Ongoing</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="featured_image_url">Featured Image URL</Label>
-          <Input
-            id="featured_image_url"
-            value={formData.featured_image_url}
-            onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
-            placeholder="https://example.com/image.jpg"
-          />
-        </div>
-      </div>
-    </div>
-  );
+  const formatEventDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  };
 
   return (
     <FeatureAccessGuard feature="events">
@@ -452,29 +200,10 @@ export default function UserEventsManagement() {
           </h1>
           <p className="text-muted-foreground">Manage your events and scheduling</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Event
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create Event</DialogTitle>
-              <DialogDescription>
-                Create a new event with scheduling and registration details.
-              </DialogDescription>
-            </DialogHeader>
-            <EventForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Create Event</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => navigate('/user-events-management/create')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Event
+        </Button>
       </div>
 
       {/* Filters */}
@@ -508,117 +237,114 @@ export default function UserEventsManagement() {
         </CardContent>
       </Card>
 
-      {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full text-center py-8">Loading events...</div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            <Calendar className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">No events found</p>
-            <p className="text-sm">Create your first event to get started</p>
-          </div>
-        ) : (
-          filteredEvents.map((event) => (
-            <Card key={event.id} className="overflow-hidden">
-              {event.featured_image_url && (
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src={event.featured_image_url}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="font-semibold line-clamp-1 mb-1">{event.title}</h3>
-                    <div className="flex gap-2 mb-2">
-                      {getStatusBadge(event.status)}
-                      {getEventTypeBadge(event.event_type)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>{new Date(event.event_date).toLocaleString()}</span>
-                  </div>
-                  
-                  {event.is_virtual ? (
-                    <div className="flex items-center gap-2">
-                      <Video className="h-4 w-4" />
-                      <span>Virtual Event</span>
-                      {event.meeting_link && (
-                        <ExternalLink className="h-3 w-3" />
-                      )}
-                    </div>
-                  ) : event.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span className="line-clamp-1">{event.location}</span>
-                    </div>
-                  )}
-
-                  {event.registration_required && (
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>
-                        {event.current_attendees}
-                        {event.max_attendees ? ` / ${event.max_attendees}` : ''} attendees
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {event.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {event.description}
-                  </p>
-                )}
-
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditDialog(event)}
-                  >
-                    <Edit3 className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(event.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Event</DialogTitle>
-            <DialogDescription>
-              Update your event details and settings.
-            </DialogDescription>
-          </DialogHeader>
-          <EventForm />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Update Event</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Events Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Events ({filteredEvents.length})</CardTitle>
+          <CardDescription>
+            Manage your event schedule and details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-4">Loading events...</div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No events found</p>
+              <p className="text-sm">Create your first event to get started</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEvents.map((event) => {
+                  const eventDate = formatEventDate(event.event_date);
+                  return (
+                    <TableRow key={event.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{event.title}</div>
+                          {event.description && (
+                            <div className="text-sm text-muted-foreground line-clamp-1">
+                              {event.description}
+                            </div>
+                          )}
+                          {event.registration_required && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                              <Users className="h-3 w-3" />
+                              {event.current_attendees}/{event.max_attendees || '∞'} attendees
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getEventTypeBadge(event.event_type)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="h-3 w-3" />
+                          <div>
+                            <div>{eventDate.date}</div>
+                            <div className="text-muted-foreground">{eventDate.time}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          {event.is_virtual ? (
+                            <>
+                              <Video className="h-3 w-3" />
+                              <span>Virtual</span>
+                              {event.meeting_link && (
+                                <ExternalLink 
+                                  className="h-3 w-3 text-muted-foreground cursor-pointer" 
+                                  onClick={() => window.open(event.meeting_link!, '_blank')}
+                                />
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <MapPin className="h-3 w-3" />
+                              <span>{event.location || 'TBD'}</span>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(event.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openEditDialog(event)}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(event.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
       </div>
     </FeatureAccessGuard>
   );
