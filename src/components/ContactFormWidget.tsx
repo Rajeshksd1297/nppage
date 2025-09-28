@@ -124,7 +124,7 @@ export function ContactFormWidget({ userId, onSubmissionSuccess }: ContactFormWi
       setSending(true);
 
       // Send contact form via edge function
-      const { error: submitError } = await supabase.functions.invoke('send-contact-email', {
+      const { data, error: submitError } = await supabase.functions.invoke('send-contact-email', {
         body: {
           name: validatedData.name,
           email: validatedData.email,
@@ -140,9 +140,13 @@ export function ContactFormWidget({ userId, onSubmissionSuccess }: ContactFormWi
 
       if (submitError) throw submitError;
 
+      // Handle success response
+      const responseData = data || {};
+      const message = responseData.message || "Thank you for your message. We'll get back to you soon!";
+      
       toast({
         title: "Message Sent",
-        description: "Thank you for your message. We'll get back to you soon!",
+        description: message,
       });
 
       // Reset form
