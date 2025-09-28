@@ -425,7 +425,7 @@ export default function Subscription() {
           const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
           const priceLabel = billingCycle === 'monthly' ? '/month' : '/year';
           const isPopular = plan.name === 'Pro';
-          const features = getDetailedFeatureList(plan);
+          const features = getDetailedFeatureList(plan); // Get plan features
 
           return (
             <Card 
