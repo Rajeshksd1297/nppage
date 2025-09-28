@@ -406,6 +406,31 @@ function App() {
                 <UserNewsletterManagement />
               </DashboardLayout>
             } />
+            <Route path="/themes" element={
+              <DashboardLayout>
+                <Themes />
+              </DashboardLayout>
+            } />
+            <Route path="/social-connections" element={
+              <DashboardLayout>
+                <SocialConnections />
+              </DashboardLayout>
+            } />
+            <Route path="/contact-form" element={
+              <DashboardLayout>
+                <ContactForm />
+              </DashboardLayout>
+            } />
+            <Route path="/onix-manager" element={
+              <DashboardLayout>
+                <ONIXManager />
+              </DashboardLayout>
+            } />
+            <Route path="/support-tickets" element={
+              <DashboardLayout>
+                <SupportTickets />
+              </DashboardLayout>
+            } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             {/* Public author profile route - must be last before catch-all */}
