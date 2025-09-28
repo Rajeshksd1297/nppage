@@ -5,7 +5,7 @@ import { Lock, AlertCircle } from 'lucide-react';
 import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface FeatureAccessGuardProps {
-  feature: 'newsletter' | 'blog' | 'events' | 'gallery' | 'awards' | 'faq';
+  feature: 'newsletter' | 'blog' | 'events' | 'awards' | 'faq';
   children: ReactNode;
   fallback?: ReactNode;
 }

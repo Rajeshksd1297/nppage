@@ -49,14 +49,12 @@ import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
 import BlogManagement from "./pages/admin/BlogManagement";
 import BlogSettings from "./pages/admin/BlogSettings";
-import GalleryManagement from "./pages/admin/GalleryManagement";
 import EventsManagement from "./pages/admin/EventsManagement";
 import AwardsManagement from "./pages/admin/AwardsManagement";
 import FaqManagement from "./pages/admin/FaqManagement";
 import NewsletterManagement from "./pages/admin/NewsletterManagement";
 import NewsletterSettings from "./pages/admin/NewsletterSettings";
 import EventSettings from "./pages/admin/EventSettings";
-import GallerySettings from "./pages/admin/GallerySettings";
 import AwardsSettings from "./pages/admin/AwardsSettings";
 import FaqSettings from "./pages/admin/FaqSettings";
 import HomePageManagement from "./pages/admin/HomePageManagement";
@@ -65,7 +63,6 @@ import Home from "./pages/Home";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
-import UserGalleryManagement from "./pages/UserGalleryManagement"; 
 import UserEventsManagement from "./pages/UserEventsManagement";
 import UserAwardsManagement from "./pages/UserAwardsManagement";
 import UserFaqManagement from "./pages/UserFaqManagement";
@@ -305,20 +302,6 @@ function App() {
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
-            <Route path="/admin/gallery-management" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <GalleryManagement />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
-            <Route path="/admin/gallery-settings" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <GallerySettings />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
             <Route path="/admin/events-management" element={
               <DashboardLayout>
                 <AdminAccessGuard>
@@ -401,11 +384,6 @@ function App() {
             <Route path="/user-blog-management" element={
               <DashboardLayout>
                 <UserBlogManagement />
-              </DashboardLayout>
-            } />
-            <Route path="/user-gallery-management" element={
-              <DashboardLayout>
-                <UserGalleryManagement />
               </DashboardLayout>
             } />
             <Route path="/user-events-management" element={

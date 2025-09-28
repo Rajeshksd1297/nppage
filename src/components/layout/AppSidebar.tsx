@@ -136,7 +136,7 @@ const bookManagementItems = [
 const contentManagementItems = [
   { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
   { title: "Events Management", url: "/admin/events-management", icon: Calendar },
-  { title: "Gallery Management", url: "/admin/gallery-management", icon: Image },
+  
   { title: "Awards Management", url: "/admin/awards-management", icon: Award },
   { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
   { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
@@ -330,14 +330,6 @@ export function AppSidebar() {
                     <NavLink to="/user-blog-management" className={getNavCls}>
                       <Newspaper className="h-4 w-4" />
                       {!collapsed && <span>My Blog</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-gallery-management" className={getNavCls}>
-                      <Image className="h-4 w-4" />
-                      {!collapsed && <span>My Gallery</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

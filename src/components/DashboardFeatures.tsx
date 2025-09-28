@@ -48,13 +48,6 @@ export function DashboardFeatures({
     feature: "events",
     premium: false
   }, {
-    icon: Image,
-    title: "Photo Gallery",
-    description: "Showcase your photos and visual content",
-    path: "/user-gallery-management",
-    feature: "gallery",
-    premium: false
-  }, {
     icon: Award,
     title: "Awards & Recognition",
     description: "Display your achievements and accolades",

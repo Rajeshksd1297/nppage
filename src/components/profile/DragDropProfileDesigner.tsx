@@ -186,25 +186,6 @@ export function DragDropProfileDesigner({
           </div>
         );
 
-      case 'media-gallery':
-      case 'gallery':
-        return (
-          <div className={`${baseClasses} ${activeClasses}`}>
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <ImageIcon className="h-5 w-5" />
-                Media Gallery
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="aspect-square bg-muted rounded-md flex items-center justify-center">
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
 
       case 'blog':
         return (

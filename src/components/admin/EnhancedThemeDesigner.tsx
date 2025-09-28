@@ -276,14 +276,6 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
       order: 8
     },
     {
-      id: '10',
-      name: 'Media Gallery',
-      type: 'media-gallery',
-      enabled: false,
-      config: {},
-      order: 9
-    },
-    {
       id: '11',
       name: 'Awards & Recognition',
       type: 'awards',
@@ -802,10 +794,6 @@ export function EnhancedThemeDesigner({ theme, onSave, onCancel }: EnhancedTheme
                         <Button size="sm" onClick={() => addLayoutSection('newsletter')}>
                           <Plus className="h-4 w-4 mr-1" />
                           Newsletter
-                        </Button>
-                        <Button size="sm" onClick={() => addLayoutSection('media-gallery')}>
-                          <Plus className="h-4 w-4 mr-1" />
-                          Gallery
                         </Button>
                         <Button size="sm" onClick={() => addLayoutSection('blog')}>
                           <Plus className="h-4 w-4 mr-1" />
