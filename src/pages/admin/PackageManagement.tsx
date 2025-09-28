@@ -1238,6 +1238,102 @@ export default function PackageManagement() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <SettingsIcon className="w-5 h-5" />
+                Global Package Settings
+              </CardTitle>
+              <CardDescription>
+                Configure global settings that apply to all subscription packages and trials
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="trial_days">Trial Period (Days)</Label>
+                  <Input
+                    id="trial_days"
+                    type="number"
+                    value={packageSettings.trial_days}
+                    onChange={(e) => setPackageSettings(prev => ({
+                      ...prev,
+                      trial_days: parseInt(e.target.value) || 30
+                    }))}
+                    min="0"
+                    max="365"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Number of days new users get Pro trial access (updated to 30 days)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="grace_period">Grace Period (Days)</Label>
+                  <Input
+                    id="grace_period"
+                    type="number"
+                    value={packageSettings.grace_period_days}
+                    onChange={(e) => setPackageSettings(prev => ({
+                      ...prev,
+                      grace_period_days: parseInt(e.target.value) || 7
+                    }))}
+                    min="0"
+                    max="30"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Days after subscription expires before access is restricted
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="allow_downgrades"
+                    checked={packageSettings.allow_downgrades}
+                    onCheckedChange={(checked) => setPackageSettings(prev => ({
+                      ...prev,
+                      allow_downgrades: checked
+                    }))}
+                  />
+                  <Label htmlFor="allow_downgrades">Allow Plan Downgrades</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="auto_renewal"
+                    checked={packageSettings.auto_renewal}
+                    onCheckedChange={(checked) => setPackageSettings(prev => ({
+                      ...prev,
+                      auto_renewal: checked
+                    }))}
+                  />
+                  <Label htmlFor="auto_renewal">Auto-Renewal Enabled</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="prorate_charges"
+                    checked={packageSettings.prorate_charges}
+                    onCheckedChange={(checked) => setPackageSettings(prev => ({
+                      ...prev,
+                      prorate_charges: checked
+                    }))}
+                  />
+                  <Label htmlFor="prorate_charges">Prorate Charges on Upgrades</Label>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button onClick={handleSavePackageSettings} disabled={saving} className="w-full">
+                  {saving && <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                  Save Global Settings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       </>
       )}
