@@ -62,7 +62,10 @@ export default function UserNewsletterManagement() {
   });
 
   useEffect(() => {
-    fetchSubscribers();
+    // Add a small delay to ensure auth is ready
+    const timer = setTimeout(() => {
+      fetchSubscribers();
+    }, 100);
     
     // Set up real-time subscription
     const channel = supabase
@@ -81,6 +84,7 @@ export default function UserNewsletterManagement() {
       .subscribe();
 
     return () => {
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -88,16 +92,33 @@ export default function UserNewsletterManagement() {
   const fetchSubscribers = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      
+      // Wait for auth to be ready
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('Authentication failed');
+      }
+      
+      if (!user) {
+        console.error('No user found');
+        throw new Error('User not authenticated');
+      }
 
+      console.log('Fetching subscribers for user:', user.id);
+      
       const { data, error } = await supabase
         .from('newsletter_subscribers')
         .select('*')
         .eq('user_id', user.id)
         .order('subscribed_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched subscribers:', data);
       const subscriberData = (data as NewsletterSubscriber[]) || [];
       setSubscribers(subscriberData);
 
@@ -112,7 +133,7 @@ export default function UserNewsletterManagement() {
       console.error('Error fetching newsletter subscribers:', error);
       toast({
         title: "Error",
-        description: "Failed to load newsletter subscribers",
+        description: error instanceof Error ? error.message : "Failed to load newsletter subscribers",
         variant: "destructive",
       });
     } finally {
