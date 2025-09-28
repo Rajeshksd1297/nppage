@@ -418,10 +418,10 @@ export default function PackageManagement() {
     }
 
     try {
-      // First check if any users are subscribed to this package
+      // First check if any users are subscribed to this package (simplified check)
       const { data: userSubscriptions, error: checkError } = await supabase
         .from('user_subscriptions')
-        .select('id, profiles(full_name, email)')
+        .select('id, user_id')
         .eq('plan_id', packageId);
 
       if (checkError) {
@@ -466,9 +466,20 @@ export default function PackageManagement() {
 
     } catch (error) {
       console.error('Error deleting package:', error);
+      
+      // Provide more specific error message
+      let errorMessage = 'Unknown error';
+      if (error && typeof error === 'object') {
+        if ('message' in error) {
+          errorMessage = (error as any).message;
+        } else if ('details' in error) {
+          errorMessage = (error as any).details;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to delete package: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to delete package: ${errorMessage}`,
         variant: "destructive",
       });
     }
