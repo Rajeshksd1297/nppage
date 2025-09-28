@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
@@ -11,22 +9,12 @@ import {
   Trash2, 
   Search,
   FileText,
-  Eye,
   Calendar
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
 import { useNavigate } from 'react-router-dom';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -67,21 +55,6 @@ export default function UserBlogManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    slug: '',
-    status: 'draft' as BlogPost['status'],
-    featured_image_url: '',
-    meta_title: '',
-    meta_description: '',
-    tags: [] as string[],
-    tagInput: '',
-  });
 
   useEffect(() => {
     fetchPosts();
@@ -133,67 +106,6 @@ export default function UserBlogManagement() {
     }
   };
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const slug = formData.slug || generateSlug(formData.title);
-      const postData = {
-        ...formData,
-        slug,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null,
-        user_id: user.id,
-      };
-
-      if (selectedPost) {
-        // Update existing post
-        const { error } = await supabase
-          .from('blog_posts')
-          .update(postData)
-          .eq('id', selectedPost.id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Blog post updated successfully",
-        });
-        setIsEditOpen(false);
-      } else {
-        // Create new post
-        const { error } = await supabase
-          .from('blog_posts')
-          .insert([postData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Blog post created successfully",
-        });
-      }
-
-      resetForm();
-      fetchPosts();
-    } catch (error: any) {
-      console.error('Error saving blog post:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save blog post",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDelete = async (postId: string) => {
     if (!window.confirm('Are you sure you want to delete this blog post?')) return;
 
@@ -225,53 +137,7 @@ export default function UserBlogManagement() {
   };
 
   const openEditDialog = (post: BlogPost) => {
-    setSelectedPost(post);
-    setFormData({
-      title: post.title,
-      content: post.content,
-      excerpt: post.excerpt || '',
-      slug: post.slug,
-      status: post.status,
-      featured_image_url: post.featured_image_url || '',
-      meta_title: post.meta_title || '',
-      meta_description: post.meta_description || '',
-      tags: post.tags || [],
-      tagInput: '',
-    });
-    setIsEditOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      content: '',
-      excerpt: '',
-      slug: '',
-      status: 'draft',
-      featured_image_url: '',
-      meta_title: '',
-      meta_description: '',
-      tags: [],
-      tagInput: '',
-    });
-    setSelectedPost(null);
-  };
-
-  const addTag = () => {
-    if (formData.tagInput.trim() && !formData.tags.includes(formData.tagInput.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...formData.tags, formData.tagInput.trim()],
-        tagInput: '',
-      });
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter(tag => tag !== tagToRemove),
-    });
+    navigate(`/user-blog-management/edit/${post.id}`);
   };
 
   const filteredPosts = posts.filter(post => {
@@ -288,123 +154,6 @@ export default function UserBlogManagement() {
       <Badge variant="secondary">Draft</Badge>
     );
   };
-
-  const BlogPostForm = () => (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Enter blog post title"
-          />
-        </div>
-        <div>
-          <Label htmlFor="slug">Slug</Label>
-          <Input
-            id="slug"
-            value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            placeholder="auto-generated-slug"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="excerpt">Excerpt</Label>
-        <Textarea
-          id="excerpt"
-          value={formData.excerpt}
-          onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-          placeholder="Brief description of the blog post"
-          rows={2}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          placeholder="Write your blog post content here..."
-          rows={10}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(value: BlogPost['status']) => 
-              setFormData({ ...formData, status: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="featured_image_url">Featured Image URL</Label>
-          <Input
-            id="featured_image_url"
-            value={formData.featured_image_url}
-            onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
-            placeholder="https://example.com/image.jpg"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label>Tags</Label>
-        <div className="flex gap-2 mb-2">
-          <Input
-            value={formData.tagInput}
-            onChange={(e) => setFormData({ ...formData, tagInput: e.target.value })}
-            placeholder="Add a tag"
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-          />
-          <Button type="button" onClick={addTag} variant="outline">Add</Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {formData.tags.map((tag, index) => (
-            <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-              {tag} ×
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="meta_title">Meta Title</Label>
-          <Input
-            id="meta_title"
-            value={formData.meta_title}
-            onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-            placeholder="SEO meta title"
-          />
-        </div>
-        <div>
-          <Label htmlFor="meta_description">Meta Description</Label>
-          <Input
-            id="meta_description"
-            value={formData.meta_description}
-            onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-            placeholder="SEO meta description"
-          />
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <FeatureAccessGuard feature="blog">
@@ -533,25 +282,6 @@ export default function UserBlogManagement() {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Blog Post</DialogTitle>
-            <DialogDescription>
-              Update your blog post content and settings.
-            </DialogDescription>
-          </DialogHeader>
-          <BlogPostForm />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Update Post</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       </div>
     </FeatureAccessGuard>
   );
