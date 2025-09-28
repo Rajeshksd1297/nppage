@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FeatureAccessGuard } from '@/components/FeatureAccessGuard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
@@ -21,22 +20,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { useAdminSettings } from '@/hooks/useAdminSettings';
 
 interface AwardItem {
   id: string;
@@ -55,27 +45,13 @@ interface AwardItem {
 }
 
 export default function UserAwardsManagement() {
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useAdminSettings();
   const [awards, setAwards] = useState<AwardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedAward, setSelectedAward] = useState<AwardItem | null>(null);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    organization: '',
-    category: '',
-    award_date: '',
-    is_featured: false,
-    award_image_url: '',
-    certificate_url: '',
-  });
-
-  const categories = ['Literary', 'Academic', 'Professional', 'Community', 'Industry Recognition', 'Other'];
 
   useEffect(() => {
     fetchAwards();
@@ -127,62 +103,6 @@ export default function UserAwardsManagement() {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const awardData = {
-        ...formData,
-        award_date: formData.award_date || null,
-        user_id: user.id,
-      };
-
-      if (selectedAward) {
-        // Update existing award
-        const { error } = await supabase
-          .from('awards')
-          .update(awardData)
-          .eq('id', selectedAward.id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Award updated successfully",
-        });
-        setIsEditOpen(false);
-      } else {
-        // Create new award
-        const maxOrder = Math.max(...awards.map(award => award.sort_order), 0);
-        const { error } = await supabase
-          .from('awards')
-          .insert([{ 
-            ...awardData,
-            sort_order: maxOrder + 1 
-          }]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Award created successfully",
-        });
-        setIsCreateOpen(false);
-      }
-
-      resetForm();
-      fetchAwards();
-    } catch (error: any) {
-      console.error('Error saving award:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save award",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDelete = async (awardId: string) => {
     if (!window.confirm('Are you sure you want to delete this award?')) return;
@@ -251,34 +171,6 @@ export default function UserAwardsManagement() {
     updateSortOrder(targetAward.id, award.sort_order);
   };
 
-  const openEditDialog = (award: AwardItem) => {
-    setSelectedAward(award);
-    setFormData({
-      title: award.title,
-      description: award.description || '',
-      organization: award.organization || '',
-      category: award.category || '',
-      award_date: award.award_date ? new Date(award.award_date).toISOString().slice(0, 10) : '',
-      is_featured: award.is_featured,
-      award_image_url: award.award_image_url || '',
-      certificate_url: award.certificate_url || '',
-    });
-    setIsEditOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      organization: '',
-      category: '',
-      award_date: '',
-      is_featured: false,
-      award_image_url: '',
-      certificate_url: '',
-    });
-    setSelectedAward(null);
-  };
 
   const filteredAwards = awards.filter(award => {
     const matchesSearch = award.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,101 +179,12 @@ export default function UserAwardsManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const AwardForm = () => (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="title">Award Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Enter award title"
-          />
-        </div>
-        <div>
-          <Label htmlFor="organization">Organization</Label>
-          <Input
-            id="organization"
-            value={formData.organization}
-            onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-            placeholder="Awarding organization"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="award_date">Award Date</Label>
-          <Input
-            id="award_date"
-            type="date"
-            value={formData.award_date}
-            onChange={(e) => setFormData({ ...formData, award_date: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Describe the award and achievement"
-          rows={3}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="award_image_url">Award Image URL</Label>
-          <Input
-            id="award_image_url"
-            value={formData.award_image_url}
-            onChange={(e) => setFormData({ ...formData, award_image_url: e.target.value })}
-            placeholder="https://example.com/award.jpg"
-          />
-        </div>
-        <div>
-          <Label htmlFor="certificate_url">Certificate URL</Label>
-          <Input
-            id="certificate_url"
-            value={formData.certificate_url}
-            onChange={(e) => setFormData({ ...formData, certificate_url: e.target.value })}
-            placeholder="https://example.com/certificate.pdf"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="is_featured"
-          checked={formData.is_featured}
-          onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
-        />
-        <Label htmlFor="is_featured">Featured Award</Label>
-      </div>
-    </div>
-  );
+  const getCategories = () => {
+    return settings?.awards?.categories || [
+      'achievement', 'recognition', 'excellence', 'innovation', 
+      'leadership', 'community', 'academic', 'professional'
+    ];
+  };
 
   return (
     <FeatureAccessGuard feature="awards">
@@ -395,29 +198,10 @@ export default function UserAwardsManagement() {
           </h1>
           <p className="text-muted-foreground">Showcase your achievements and recognition</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Award
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add Award</DialogTitle>
-              <DialogDescription>
-                Add a new award or recognition to your portfolio.
-              </DialogDescription>
-            </DialogHeader>
-            <AwardForm />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Add Award</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => navigate('/user-awards-management/create')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Award
+        </Button>
       </div>
 
       {/* Filters */}
@@ -441,9 +225,9 @@ export default function UserAwardsManagement() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
+                {getCategories().map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -542,7 +326,7 @@ export default function UserAwardsManagement() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openEditDialog(award)}
+                      onClick={() => navigate(`/user-awards-management/edit/${award.id}`)}
                     >
                       <Edit3 className="h-3 w-3" />
                     </Button>
@@ -560,25 +344,6 @@ export default function UserAwardsManagement() {
           ))
         )}
       </div>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Award</DialogTitle>
-            <DialogDescription>
-              Update your award details and information.
-            </DialogDescription>
-          </DialogHeader>
-          <AwardForm />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit}>Update Award</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       </div>
     </FeatureAccessGuard>
   );

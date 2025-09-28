@@ -73,6 +73,8 @@ import UserEventsManagement from "./pages/UserEventsManagement";
 import UserEventCreate from "./pages/UserEventCreate";
 import UserEventEdit from "./pages/UserEventEdit";
 import UserAwardsManagement from "./pages/UserAwardsManagement";
+import UserAwardCreate from "./pages/UserAwardCreate";
+import UserAwardEdit from "./pages/UserAwardEdit";
 import UserFaqManagement from "./pages/UserFaqManagement";
 import UserNewsletterManagement from "./pages/UserNewsletterManagement";
 
@@ -438,6 +440,16 @@ function App() {
             <Route path="/user-events-management/edit/:id" element={
               <DashboardLayout>
                 <UserEventEdit />
+              </DashboardLayout>
+            } />
+            <Route path="/user-awards-management/create" element={
+              <DashboardLayout>
+                <UserAwardCreate />
+              </DashboardLayout>
+            } />
+            <Route path="/user-awards-management/edit/:id" element={
+              <DashboardLayout>
+                <UserAwardEdit />
               </DashboardLayout>
             } />
             <Route path="/user-awards-management" element={
