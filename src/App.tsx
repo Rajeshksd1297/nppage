@@ -47,6 +47,7 @@ import DomainSettings from "./pages/admin/DomainSettings";
 import AdminHelpDesk from "./pages/admin/HelpDesk";
 import HelpDeskSettings from "./pages/admin/HelpDeskSettings";
 import ContactManagement from "./pages/admin/ContactManagement";
+import ContactSubmissionDetail from "./pages/ContactSubmissionDetail";
 import AdminContactFormSettings from "./pages/admin/ContactFormSettings";
 import SupportTickets from "./pages/SupportTickets";
 import ThemeManagement from "./pages/admin/ThemeManagement";
@@ -302,6 +303,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <ContactManagement />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/contact-submission/:id" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <ContactSubmissionDetail />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
