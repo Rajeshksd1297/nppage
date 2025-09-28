@@ -98,7 +98,6 @@ export default function UserFaqManagement() {
     }
   };
 
-
   const handleDelete = async (faqId: string) => {
     if (!window.confirm('Are you sure you want to delete this FAQ?')) return;
 
@@ -205,170 +204,169 @@ export default function UserFaqManagement() {
   return (
     <FeatureAccessGuard feature="faq">
       <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <HelpCircle className="h-8 w-8" />
-            My FAQs
-          </h1>
-          <p className="text-muted-foreground">Manage frequently asked questions for your audience</p>
-        </div>
-        <Button onClick={() => navigate('/user-faq-management/create')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add FAQ
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4 items-center">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search FAQs..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {getCategories().map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <HelpCircle className="h-8 w-8" />
+              My FAQs
+            </h1>
+            <p className="text-muted-foreground">Manage frequently asked questions for your audience</p>
           </div>
-        </CardContent>
-      </Card>
+          <Button onClick={() => navigate('/user-faq-management/create')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add FAQ
+          </Button>
+        </div>
 
-      {/* FAQs List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>FAQs ({filteredFaqs.length})</CardTitle>
-          <CardDescription>
-            Manage your frequently asked questions and their visibility
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading FAQs...</div>
-          ) : filteredFaqs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <HelpCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">No FAQs found</p>
-              <p className="text-sm">Add your first FAQ to help your audience</p>
+        {/* Filters */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-4 items-center">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search FAQs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {getCategories().map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredFaqs.map((faq, index) => (
-                <Card key={faq.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold line-clamp-2">{faq.question}</h3>
-                          <div className="flex gap-2">
-                            {faq.is_published ? (
-                              <Badge variant="default">
-                                <Eye className="h-3 w-3 mr-1" />
-                                Published
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                <EyeOff className="h-3 w-3 mr-1" />
-                                Draft
-                              </Badge>
-                            )}
-                            {faq.category && (
-                              <Badge variant="outline" className="text-xs">
-                                {faq.category}
-                              </Badge>
-                            )}
+          </CardContent>
+        </Card>
+
+        {/* FAQs List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>FAQs ({filteredFaqs.length})</CardTitle>
+            <CardDescription>
+              Manage your frequently asked questions and their visibility
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">Loading FAQs...</div>
+            ) : filteredFaqs.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <HelpCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No FAQs found</p>
+                <p className="text-sm">Add your first FAQ to help your audience</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredFaqs.map((faq, index) => (
+                  <Card key={faq.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold line-clamp-2">{faq.question}</h3>
+                            <div className="flex gap-2">
+                              {faq.is_published ? (
+                                <Badge variant="default">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Published
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">
+                                  <EyeOff className="h-3 w-3 mr-1" />
+                                  Draft
+                                </Badge>
+                              )}
+                              {faq.category && (
+                                <Badge variant="outline" className="text-xs">
+                                  {faq.category}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {faq.answer}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {faq.answer}
-                        </p>
+                        <div className="flex gap-1 ml-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveFaq(faq.id, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveFaq(faq.id, 'down')}
+                            disabled={index === filteredFaqs.length - 1}
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveFaq(faq.id, 'up')}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveFaq(faq.id, 'down')}
-                          disabled={index === filteredFaqs.length - 1}
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
+                      
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs text-muted-foreground">
+                            Order: {faq.sort_order}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => togglePublished(faq.id, faq.is_published)}
+                          >
+                            {faq.is_published ? (
+                              <>
+                                <EyeOff className="h-3 w-3 mr-1" />
+                                Unpublish
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Publish
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/user-faq-management/edit/${faq.id}`)}
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(faq.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs text-muted-foreground">
-                          Order: {faq.sort_order}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => togglePublished(faq.id, faq.is_published)}
-                        >
-                          {faq.is_published ? (
-                            <>
-                              <EyeOff className="h-3 w-3 mr-1" />
-                              Unpublish
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-3 w-3 mr-1" />
-                              Publish
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/user-faq-management/edit/${faq.id}`)}
-                        >
-                          <Edit3 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(faq.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </FeatureAccessGuard>
   );
