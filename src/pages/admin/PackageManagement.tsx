@@ -218,21 +218,55 @@ export default function PackageManagement() {
         
         const packages: Package[] = plans.map((plan: any) => {
           console.log('Processing plan:', plan.id, 'Type:', typeof plan.id);
+          
+          // Generate proper feature descriptions based on actual features
+          const generateFeatures = (plan: any): string[] => {
+            const features: string[] = [];
+            
+            if (plan.max_books === -1) {
+              features.push('Unlimited books');
+            } else if (plan.max_books > 0) {
+              features.push(`Up to ${plan.max_books} books`);
+            }
+            
+            if (plan.custom_domain) features.push('Custom domain');
+            if (plan.premium_themes) features.push('Premium themes');
+            if (plan.advanced_analytics) features.push('Advanced analytics');
+            if (plan.contact_form) features.push('Contact forms');
+            if (plan.newsletter_integration) features.push('Newsletter integration');
+            if (plan.no_watermark) features.push('No watermark');
+            if (plan.blog) features.push('Blog features');
+            if (plan.gallery) features.push('Gallery');
+            if (plan.events) features.push('Events');
+            if (plan.awards) features.push('Awards');
+            if (plan.faq) features.push('FAQ');
+            
+            // Add basic features for all plans
+            features.push('Basic profile');
+            if (plan.name === 'Free') {
+              features.push('Standard themes', 'Community support');
+            } else {
+              features.push('Priority support');
+            }
+            
+            return features;
+          };
+
           return {
             id: String(plan.id), // Ensure it's a string
             name: plan.name,
             price_monthly: plan.price_monthly,
             price_yearly: plan.price_yearly,
-            features: Array.isArray(plan.features) ? plan.features : [],
+            features: generateFeatures(plan),
             max_books: plan.max_books === -1 ? null : plan.max_books,
             max_publications: plan.max_publications === -1 ? null : plan.max_publications,
             max_authors: null,
-            advanced_analytics: plan.advanced_analytics,
-            custom_domain: plan.custom_domain,
-            premium_themes: plan.premium_themes,
-            contact_form: plan.contact_form,
-            newsletter_integration: plan.newsletter_integration,
-            no_watermark: plan.no_watermark,
+            advanced_analytics: plan.advanced_analytics || false,
+            custom_domain: plan.custom_domain || false,
+            premium_themes: plan.premium_themes || false,
+            contact_form: plan.contact_form || false,
+            newsletter_integration: plan.newsletter_integration || false,
+            no_watermark: plan.no_watermark || false,
             blog: plan.blog || false,
             gallery: plan.gallery || false,
             events: plan.events || false,
@@ -240,7 +274,9 @@ export default function PackageManagement() {
             faq: plan.faq || false,
             badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
             badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
-            description: `${plan.name} plan features`,
+            description: plan.name === 'Free' ? 'Perfect for getting started with your author journey' : 
+                        plan.name === 'Pro' ? 'Everything you need to grow your author brand' : 
+                        `${plan.name} plan features`,
             active: true,
             popular: plan.name === 'Pro',
             discount_percent: 0,
@@ -251,7 +287,13 @@ export default function PackageManagement() {
           };
         });
 
-        console.log('Processed packages:', packages.map(p => ({ id: p.id, name: p.name, idType: typeof p.id })));
+        console.log('Processed packages:', packages.map(p => ({ 
+          id: p.id, 
+          name: p.name, 
+          features: p.features,
+          premium_themes: p.premium_themes,
+          advanced_analytics: p.advanced_analytics
+        })));
 
         setPackageSettings(prev => ({
           ...prev,
@@ -275,18 +317,46 @@ export default function PackageManagement() {
   const handleSavePackageSettings = async () => {
     setSaving(true);
     try {
-      // Get current packages from database to handle deletions
-      const { data: currentPlans } = await supabase
-        .from('subscription_plans')
-        .select('id, name');
-
       // Save/update packages to database
       for (const pkg of packageSettings.packages) {
+        // Generate updated features array based on enabled features
+        const generateFeatures = (pkg: Package): string[] => {
+          const features: string[] = [];
+          
+          if (pkg.max_books === null) {
+            features.push('Unlimited books');
+          } else if (pkg.max_books > 0) {
+            features.push(`Up to ${pkg.max_books} books`);
+          }
+          
+          if (pkg.custom_domain) features.push('Custom domain');
+          if (pkg.premium_themes) features.push('Premium themes');
+          if (pkg.advanced_analytics) features.push('Advanced analytics');
+          if (pkg.contact_form) features.push('Contact forms');
+          if (pkg.newsletter_integration) features.push('Newsletter integration');
+          if (pkg.no_watermark) features.push('No watermark');
+          if (pkg.blog) features.push('Blog features');
+          if (pkg.gallery) features.push('Gallery');
+          if (pkg.events) features.push('Events');
+          if (pkg.awards) features.push('Awards');
+          if (pkg.faq) features.push('FAQ');
+          
+          // Add basic features for all plans
+          features.push('Basic profile');
+          if (pkg.name === 'Free') {
+            features.push('Standard themes', 'Community support');
+          } else {
+            features.push('Priority support');
+          }
+          
+          return features;
+        };
+
         const packageData = {
           name: pkg.name,
           price_monthly: pkg.price_monthly,
           price_yearly: pkg.price_yearly,
-          features: pkg.features,
+          features: generateFeatures(pkg),
           max_books: pkg.max_books === null ? -1 : pkg.max_books, // -1 for unlimited
           max_publications: pkg.max_publications === null ? -1 : pkg.max_publications,
           advanced_analytics: pkg.advanced_analytics,
@@ -311,6 +381,7 @@ export default function PackageManagement() {
             .eq('id', pkg.id);
 
           if (error) throw error;
+          console.log(`Updated package: ${pkg.name} with features:`, packageData);
         } else {
           // Insert new package
           const { error } = await supabase
@@ -318,6 +389,7 @@ export default function PackageManagement() {
             .insert(packageData);
 
           if (error) throw error;
+          console.log(`Inserted new package: ${pkg.name} with features:`, packageData);
         }
       }
 
@@ -326,7 +398,7 @@ export default function PackageManagement() {
 
       toast({
         title: "Success",
-        description: "Package settings saved successfully to database",
+        description: "Package settings saved successfully to database. Features are now properly synced.",
       });
     } catch (error) {
       console.error('Error saving packages:', error);
