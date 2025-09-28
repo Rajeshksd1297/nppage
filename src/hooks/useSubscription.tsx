@@ -92,7 +92,8 @@ export function useSubscription() {
         return;
       }
 
-      const { data: subscriptionData } = await supabase
+      console.log('Fetching subscription for user:', user.id);
+      const { data: subscriptionData, error } = await supabase
         .from('user_subscriptions')
         .select(`
           *,
@@ -101,6 +102,13 @@ export function useSubscription() {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return;
+      }
+
+      console.log('Subscription data fetched:', subscriptionData);
+      
       if (subscriptionData) {
         setSubscription(subscriptionData as UserSubscription);
         
@@ -116,13 +124,26 @@ export function useSubscription() {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             setTrialDaysLeft(diffDays);
           }
+        } else {
+          setIsTrialActive(false);
+          setTrialDaysLeft(0);
         }
+      } else {
+        console.log('No subscription found for user');
+        setSubscription(null);
+        setIsTrialActive(false);
+        setTrialDaysLeft(0);
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshSubscription = () => {
+    console.log('Manual subscription refresh triggered');
+    fetchSubscription();
   };
 
   const hasFeature = (feature: keyof SubscriptionPlan | keyof SubscriptionPlan['features']): boolean => {
@@ -189,6 +210,7 @@ export function useSubscription() {
     trialDaysLeft,
     isTrialActive,
     getLimit,
-    getCurrentPlanName
+    getCurrentPlanName,
+    refreshSubscription
   };
 }

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Crown, Zap, Clock, Star, ArrowRight, Sparkles, Shield, TrendingUp, Globe, Palette, BarChart3, MessageCircle, FileText, Award, Calendar, HelpCircle, Newspaper, Eye, Users, BookOpen } from 'lucide-react';
+import { Check, Crown, Zap, Clock, Star, ArrowRight, Sparkles, Shield, TrendingUp, Globe, Palette, BarChart3, MessageCircle, FileText, Award, Calendar, HelpCircle, Newspaper, Eye, Users, BookOpen, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -57,7 +57,7 @@ export default function Subscription() {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { toast } = useToast();
-  const { subscription, isOnTrial, trialDaysLeft } = useSubscription();
+  const { subscription, isOnTrial, trialDaysLeft, refreshSubscription } = useSubscription();
 
   useEffect(() => {
     fetchData();
@@ -415,13 +415,26 @@ export default function Subscription() {
           {subscription ? (
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-purple-600/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Crown className="w-6 h-6 text-primary" />
-                  Your Current Plan
-                </CardTitle>
-                <CardDescription>
-                  {subscription.status === 'trialing' ? 'You are currently on a free trial' : 'Your active subscription details'}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Crown className="w-6 h-6 text-primary" />
+                      Your Current Plan
+                    </CardTitle>
+                    <CardDescription>
+                      {subscription.status === 'trialing' ? 'You are currently on a free trial' : 'Your active subscription details'}
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={refreshSubscription}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
