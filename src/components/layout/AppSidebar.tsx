@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 import { NavLink, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -152,6 +153,7 @@ export function AppSidebar() {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
   const { hasFeature, subscription, isPro, isFree, isOnTrial, trialDaysLeft } = useSubscription();
+  const { getPlanFeatures } = useDynamicFeatures();
 
   useEffect(() => {
     getCurrentUserRole();
@@ -319,55 +321,66 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {/* Content Management Tools */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/contact-management" className={getNavCls}>
-                      <MessageSquare className="h-4 w-4" />
-                      {!collapsed && <span>My Contact</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-blog-management" className={getNavCls}>
-                      <Newspaper className="h-4 w-4" />
-                      {!collapsed && <span>My Blog</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-events-management" className={getNavCls}>
-                      <Calendar className="h-4 w-4" />
-                      {!collapsed && <span>My Events</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-awards-management" className={getNavCls}>
-                      <Award className="h-4 w-4" />
-                      {!collapsed && <span>My Awards</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-faq-management" className={getNavCls}>
-                      <HelpCircle className="h-4 w-4" />
-                      {!collapsed && <span>My FAQ</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/user-newsletter-management" className={getNavCls}>
-                      <Mail className="h-4 w-4" />
-                      {!collapsed && <span>My Newsletter</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {/* Content Management Tools - Only show if enabled in current plan */}
+                {(() => {
+                  if (!subscription?.subscription_plans?.id) return null;
+                  const currentPlanFeatures = getPlanFeatures(subscription.subscription_plans.id);
+                  const contentFeatures = [
+                    {
+                      feature: 'contact_forms',
+                      title: 'My Contact',
+                      url: '/contact-management',
+                      icon: MessageSquare
+                    },
+                    {
+                      feature: 'blog',
+                      title: 'My Blog',
+                      url: '/user-blog-management',
+                      icon: Newspaper
+                    },
+                    {
+                      feature: 'events',
+                      title: 'My Events',
+                      url: '/user-events-management',
+                      icon: Calendar
+                    },
+                    {
+                      feature: 'awards',
+                      title: 'My Awards',
+                      url: '/user-awards-management',
+                      icon: Award
+                    },
+                    {
+                      feature: 'faq',
+                      title: 'My FAQ',
+                      url: '/user-faq-management',
+                      icon: HelpCircle
+                    },
+                    {
+                      feature: 'newsletter',
+                      title: 'My Newsletter',
+                      url: '/user-newsletter-management',
+                      icon: Mail
+                    }
+                  ];
+
+                  return contentFeatures.map((item) => {
+                    const isFeatureEnabled = currentPlanFeatures.some(f => f.id === item.feature && f.enabled);
+                    
+                    if (!isFeatureEnabled) return null;
+
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }).filter(Boolean);
+                })()}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
