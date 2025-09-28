@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { AdminAccessGuard } from '@/components/AdminAccessGuard';
 import { 
   Mail, 
-  Eye, 
   Search,
   Filter,
   AlertCircle,
@@ -352,8 +351,8 @@ export default function ContactManagement() {
                           size="sm"
                           onClick={() => navigate(`/admin/contact-submission/${submission.id}`)}
                         >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
+                          <Mail className="w-4 h-4 mr-1" />
+                          Reply
                         </Button>
                       </TableCell>
                     </TableRow>
