@@ -10,6 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { DashboardWelcome } from "@/components/DashboardWelcome";
 import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 import { DashboardFeatures } from "@/components/DashboardFeatures";
+import { DynamicUserDashboard } from "@/components/DynamicUserDashboard";
 interface DashboardStats {
   totalBooks: number;
   publishedBooks: number;
