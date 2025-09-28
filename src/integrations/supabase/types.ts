@@ -482,6 +482,7 @@ export type Database = {
       contact_submissions: {
         Row: {
           assigned_to: string | null
+          contacted_user_id: string | null
           created_at: string
           email: string
           id: string
@@ -501,6 +502,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          contacted_user_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -520,6 +522,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          contacted_user_id?: string | null
           created_at?: string
           email?: string
           id?: string

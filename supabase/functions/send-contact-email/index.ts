@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,9 @@ interface ContactEmailRequest {
   subject?: string;
   message: string;
   type?: 'contact' | 'support' | 'feedback';
+  contactedUserId?: string;
+  userAgent?: string;
+  userIp?: string;
 }
 
 const sendEmailWithResend = async (to: string, subject: string, html: string, from?: string) => {
@@ -50,9 +54,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, subject, message, type = 'contact' }: ContactEmailRequest = await req.json();
+    const { 
+      name, 
+      email, 
+      subject, 
+      message, 
+      type = 'contact',
+      contactedUserId,
+      userAgent,
+      userIp
+    }: ContactEmailRequest = await req.json();
 
-    console.log('Processing contact email from:', email, 'Type:', type);
+    console.log('Processing contact email from:', email, 'Type:', type, 'Contacted User:', contactedUserId);
 
     if (!name || !email || !message) {
       return new Response(JSON.stringify({ error: 'Missing required fields: name, email, message' }), {
@@ -60,6 +73,35 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
+
+    // Initialize Supabase client for database operations
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Store the contact submission in the database
+    const { data: submission, error: dbError } = await supabase
+      .from('contact_submissions')
+      .insert({
+        name,
+        email,
+        subject,
+        message,
+        contacted_user_id: contactedUserId,
+        user_agent: userAgent,
+        source: 'contact_form',
+        status: 'new',
+        priority: 'medium'
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      throw new Error('Failed to store contact submission');
+    }
+
+    console.log('Contact submission stored with ID:', submission.id);
 
     // Send confirmation email to user
     const userEmailResponse = await sendEmailWithResend(

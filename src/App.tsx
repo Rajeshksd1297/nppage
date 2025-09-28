@@ -27,6 +27,7 @@ import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
+import UserContactManagement from "./pages/UserContactManagement";
 
 import BookCatalog from "./pages/admin/BookCatalog";
 import ISBNLookupPage from "./pages/admin/ISBNLookup";
@@ -426,6 +427,11 @@ function App() {
             <Route path="/contact-form" element={
               <DashboardLayout>
                 <ContactForm />
+              </DashboardLayout>
+            } />
+            <Route path="/contact-management" element={
+              <DashboardLayout>
+                <UserContactManagement />
               </DashboardLayout>
             } />
             <Route path="/onix-manager" element={

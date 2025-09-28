@@ -1,8 +1,33 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const sendEmailWithResend = async (to: string, subject: string, html: string, from?: string) => {
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: from || "AuthorPage <onboarding@resend.dev>",
+      to: Array.isArray(to) ? to : [to],
+      subject: subject,
+      html: html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Resend API error: ${response.status} - ${errorData}`);
+  }
+
+  return await response.json();
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -72,11 +97,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send reply email
-    const emailResponse = await resend.emails.send({
-      from: `${adminName} <onboarding@resend.dev>`,
-      to: [recipientEmail],
-      subject: subject.startsWith('Re:') ? subject : `Re: ${subject}`,
-      html: `
+    const emailResponse = await sendEmailWithResend(
+      recipientEmail,
+      subject.startsWith('Re:') ? subject : `Re: ${subject}`,
+      `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="margin-bottom: 30px;">
             <h2 style="color: #333; margin-bottom: 10px;">Thank you for your message</h2>
@@ -105,8 +129,9 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
           </div>
         </div>
-      `
-    });
+      `,
+      `${adminName} <onboarding@resend.dev>`
+    );
 
     console.log("Reply email sent successfully:", emailResponse);
 

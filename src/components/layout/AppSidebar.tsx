@@ -328,6 +328,14 @@ export function AppSidebar() {
                 {/* Content Management Tools */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
+                    <NavLink to="/contact-management" className={getNavCls}>
+                      <MessageSquare className="h-4 w-4" />
+                      {!collapsed && <span>Contact Messages</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
                     <NavLink to="/user-blog-management" className={getNavCls}>
                       <Newspaper className="h-4 w-4" />
                       {!collapsed && <span>My Blog</span>}

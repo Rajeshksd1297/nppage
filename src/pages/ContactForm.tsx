@@ -47,10 +47,31 @@ export default function ContactForm() {
 
       setSending(true);
 
+      // Get current user's profile to determine who is being contacted
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentPath = window.location.pathname;
+      let contactedUserId = null;
+
+      // If on a user's profile page, get their user ID
+      if (currentPath.includes('/profile/')) {
+        const profileSlug = currentPath.split('/profile/')[1];
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('slug', profileSlug)
+          .single();
+        
+        contactedUserId = profile?.id;
+      } else {
+        // Default to current user if logged in
+        contactedUserId = user?.id;
+      }
+
       // Send contact form via edge function
       const { error: submitError } = await supabase.functions.invoke('send-contact-email', {
         body: {
           ...validatedData,
+          contactedUserId,
           userAgent: navigator.userAgent,
           userIp: null // Will be captured server-side if needed
         }
