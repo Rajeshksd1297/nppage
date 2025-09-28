@@ -54,7 +54,8 @@ export function useSubscription() {
           schema: 'public',
           table: 'user_subscriptions'
         },
-        () => {
+        (payload) => {
+          console.log('User subscription changed:', payload);
           fetchSubscription();
         }
       )
@@ -70,7 +71,8 @@ export function useSubscription() {
           schema: 'public',
           table: 'subscription_plans'
         },
-        () => {
+        (payload) => {
+          console.log('Subscription plans changed:', payload);
           fetchSubscription();
         }
       )

@@ -327,7 +327,7 @@ export default function Subscription() {
 
   const getPlanUsagePercentage = () => {
     if (!subscription?.subscription_plans.max_books || subscription.subscription_plans.max_books === -1) return 0;
-    return (userStats.totalBooks / subscription.subscription_plans.max_books) * 100;
+    return Math.min((userStats.totalBooks / subscription.subscription_plans.max_books) * 100, 100);
   };
 
   if (loading) {
@@ -451,13 +451,22 @@ export default function Subscription() {
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-sm text-muted-foreground">Book Usage</p>
                         <p className="text-sm font-medium">
-                          {userStats.totalBooks}{subscription.subscription_plans.max_books !== -1 ? `/${subscription.subscription_plans.max_books}` : ''}
+                          {userStats.totalBooks}{subscription.subscription_plans.max_books === -1 ? ' (Unlimited)' : subscription.subscription_plans.max_books !== -1 ? `/${subscription.subscription_plans.max_books}` : ''}
                         </p>
                       </div>
-                      <Progress 
-                        value={getPlanUsagePercentage()} 
-                        className="h-2"
-                      />
+                      {subscription.subscription_plans.max_books !== -1 && (
+                        <Progress 
+                          value={getPlanUsagePercentage()} 
+                          className="h-2"
+                        />
+                      )}
+                      {subscription.subscription_plans.max_books === -1 && (
+                        <div className="text-center p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-800 font-medium">
+                            ✅ Unlimited Books Available
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -471,7 +480,7 @@ export default function Subscription() {
                       </div>
                     </div>
                     
-                    {subscription.subscription_plans.max_books && 
+                    {subscription.subscription_plans.max_books !== -1 && 
                      userStats.totalBooks >= subscription.subscription_plans.max_books && (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                         <p className="text-sm text-amber-800 font-medium mb-1">
