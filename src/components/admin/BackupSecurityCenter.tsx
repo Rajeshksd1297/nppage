@@ -478,6 +478,12 @@ export const BackupSecurityCenter: React.FC = () => {
 
   const downloadBackup = async (backupId: string) => {
     try {
+      // Find the backup job details
+      const backupJob = backupJobs.find(job => job.id === backupId);
+      if (!backupJob) {
+        throw new Error('Backup not found');
+      }
+
       const { data, error } = await supabase.functions.invoke('backup-manager', {
         body: { 
           action: 'download',
@@ -487,15 +493,61 @@ export const BackupSecurityCenter: React.FC = () => {
 
       if (error) throw error;
 
+      // Create a blob from the response data
+      let blob;
+      let filename = `backup-${backupJob.job_type}-${new Date().toISOString().split('T')[0]}.${backupJob.job_type === 'database' ? 'sql' : 'zip'}`;
+      
+      if (data.content) {
+        // If we get base64 content, decode it
+        if (data.encoding === 'base64') {
+          const binaryString = atob(data.content);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          blob = new Blob([bytes], { type: data.contentType || 'application/octet-stream' });
+        } else {
+          // Plain text content
+          blob = new Blob([data.content], { type: data.contentType || 'text/plain' });
+        }
+        
+        if (data.filename) {
+          filename = data.filename;
+        }
+      } else {
+        // Fallback: create a simple backup info file
+        const backupInfo = {
+          id: backupJob.id,
+          type: backupJob.job_type,
+          created_at: backupJob.created_at,
+          file_size: backupJob.file_size,
+          file_path: backupJob.file_path,
+          checksum: backupJob.checksum,
+          metadata: backupJob.metadata
+        };
+        blob = new Blob([JSON.stringify(backupInfo, null, 2)], { type: 'application/json' });
+        filename = `backup-info-${backupJob.id}.json`;
+      }
+
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       toast({
-        title: "Download prepared",
-        description: "Backup download has been prepared."
+        title: "Download started",
+        description: `Backup file "${filename}" is being downloaded.`
       });
     } catch (error) {
       console.error('Error downloading backup:', error);
       toast({
         title: "Download failed",
-        description: "Failed to prepare backup download.",
+        description: "Failed to download backup file.",
         variant: "destructive"
       });
     }
