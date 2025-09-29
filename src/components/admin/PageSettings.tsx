@@ -35,6 +35,22 @@ interface GlobalSEOSettings {
   canonicalUrl: string;
   enableSitemap: boolean;
   enableRobots: boolean;
+  // Enhanced SEO fields
+  metaAuthor: string;
+  metaLanguage: string;
+  structuredDataType: string;
+  schemaMarkup: string;
+  richSnippets: boolean;
+  aiOptimization: boolean;
+  contentStrategy: string;
+  targetAudience: string;
+  competitorKeywords: string;
+  localSEO: {
+    businessName: string;
+    address: string;
+    phone: string;
+    businessType: string;
+  };
 }
 
 interface AnalyticsSettings {
@@ -79,7 +95,23 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
     twitterHandle: '',
     canonicalUrl: '',
     enableSitemap: true,
-    enableRobots: true
+    enableRobots: true,
+    // Enhanced SEO defaults
+    metaAuthor: '',
+    metaLanguage: 'en',
+    structuredDataType: 'WebSite',
+    schemaMarkup: '',
+    richSnippets: true,
+    aiOptimization: true,
+    contentStrategy: 'author-focused',
+    targetAudience: 'readers, publishers, book enthusiasts',
+    competitorKeywords: '',
+    localSEO: {
+      businessName: '',
+      address: '',
+      phone: '',
+      businessType: 'ProfessionalService'
+    }
   });
 
   const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>({
@@ -142,10 +174,18 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
-            <TabsList className="grid w-full grid-rows-6 h-auto gap-1">
+            <TabsList className="grid w-full grid-rows-8 h-auto gap-1">
               <TabsTrigger value="seo" className="flex items-center justify-start space-x-2 h-10">
                 <Search className="h-4 w-4" />
-                <span>SEO & Meta</span>
+                <span>Basic SEO</span>
+              </TabsTrigger>
+              <TabsTrigger value="advanced-seo" className="flex items-center justify-start space-x-2 h-10">
+                <Globe className="h-4 w-4" />
+                <span>Advanced SEO</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai-optimization" className="flex items-center justify-start space-x-2 h-10">
+                <Zap className="h-4 w-4" />
+                <span>AI Optimization</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center justify-start space-x-2 h-10">
                 <BarChart3 className="h-4 w-4" />
@@ -180,7 +220,7 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
             <TabsContent value="seo" className="space-y-6">
               <div className="flex items-center space-x-2 mb-4">
                 <Search className="h-5 w-5" />
-                <h2 className="text-xl font-semibold">SEO & Meta Settings</h2>
+                <h2 className="text-xl font-semibold">Basic SEO Settings</h2>
                 <Badge variant="outline">Essential</Badge>
               </div>
 
@@ -221,7 +261,7 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
                       onChange={(e) => setSeoSettings({...seoSettings, siteKeywords: e.target.value})}
                       placeholder="author, books, publishing, writing"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Comma-separated keywords</p>
+                    <p className="text-xs text-muted-foreground mt-1">Target 5-10 relevant keywords</p>
                   </div>
 
                   <div>
@@ -232,7 +272,39 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
                       onChange={(e) => setSeoSettings({...seoSettings, canonicalUrl: e.target.value})}
                       placeholder="https://yourdomain.com"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Primary domain for SEO</p>
+                    <p className="text-xs text-muted-foreground mt-1">Helps prevent duplicate content issues</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="metaAuthor">Author Meta Tag</Label>
+                    <Input
+                      id="metaAuthor"
+                      value={seoSettings.metaAuthor}
+                      onChange={(e) => setSeoSettings({...seoSettings, metaAuthor: e.target.value})}
+                      placeholder="Your Name or Organization"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Author attribution for content</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="metaLanguage">Content Language</Label>
+                    <Select 
+                      value={seoSettings.metaLanguage} 
+                      onValueChange={(value) => setSeoSettings({...seoSettings, metaLanguage: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="it">Italian</SelectItem>
+                        <SelectItem value="pt">Portuguese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Primary language of your content</p>
                   </div>
                 </CardContent>
               </Card>
@@ -316,6 +388,293 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
                       checked={seoSettings.enableRobots}
                       onCheckedChange={(checked) => setSeoSettings({...seoSettings, enableRobots: checked})}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Advanced SEO Settings */}
+            <TabsContent value="advanced-seo" className="space-y-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Globe className="h-5 w-5" />
+                <h2 className="text-xl font-semibold">Advanced SEO</h2>
+                <Badge variant="secondary">Pro</Badge>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Structured Data & Schema</CardTitle>
+                  <CardDescription>Help search engines understand your content better</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Rich Snippets</Label>
+                      <p className="text-xs text-muted-foreground">Automatically generate structured data</p>
+                    </div>
+                    <Switch
+                      checked={seoSettings.richSnippets}
+                      onCheckedChange={(checked) => setSeoSettings({...seoSettings, richSnippets: checked})}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="structuredDataType">Schema Type</Label>
+                    <Select 
+                      value={seoSettings.structuredDataType} 
+                      onValueChange={(value) => setSeoSettings({...seoSettings, structuredDataType: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WebSite">Website</SelectItem>
+                        <SelectItem value="Person">Person/Author</SelectItem>
+                        <SelectItem value="Organization">Organization</SelectItem>
+                        <SelectItem value="Book">Book/Publication</SelectItem>
+                        <SelectItem value="CreativeWork">Creative Work</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="schemaMarkup">Custom Schema Markup</Label>
+                    <Textarea
+                      id="schemaMarkup"
+                      value={seoSettings.schemaMarkup}
+                      onChange={(e) => setSeoSettings({...seoSettings, schemaMarkup: e.target.value})}
+                      placeholder='{"@context": "https://schema.org", "@type": "Person", "name": "Your Name"}'
+                      rows={4}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">JSON-LD structured data</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Content Strategy</CardTitle>
+                  <CardDescription>Define your SEO content approach</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="contentStrategy">Content Focus</Label>
+                    <Select 
+                      value={seoSettings.contentStrategy} 
+                      onValueChange={(value) => setSeoSettings({...seoSettings, contentStrategy: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="author-focused">Author Platform</SelectItem>
+                        <SelectItem value="book-marketing">Book Marketing</SelectItem>
+                        <SelectItem value="publisher-network">Publisher Network</SelectItem>
+                        <SelectItem value="reader-community">Reader Community</SelectItem>
+                        <SelectItem value="educational">Educational Content</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="targetAudience">Target Audience</Label>
+                    <Input
+                      id="targetAudience"
+                      value={seoSettings.targetAudience}
+                      onChange={(e) => setSeoSettings({...seoSettings, targetAudience: e.target.value})}
+                      placeholder="readers, publishers, book enthusiasts"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="competitorKeywords">Competitor Keywords</Label>
+                    <Textarea
+                      id="competitorKeywords"
+                      value={seoSettings.competitorKeywords}
+                      onChange={(e) => setSeoSettings({...seoSettings, competitorKeywords: e.target.value})}
+                      placeholder="goodreads, bookbub, author website, book marketing"
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Research what your competitors rank for</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Local SEO</CardTitle>
+                  <CardDescription>Optimize for local search results</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="businessName">Business Name</Label>
+                    <Input
+                      id="businessName"
+                      value={seoSettings.localSEO.businessName}
+                      onChange={(e) => setSeoSettings({
+                        ...seoSettings, 
+                        localSEO: {...seoSettings.localSEO, businessName: e.target.value}
+                      })}
+                      placeholder="Your Author Business Name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="businessAddress">Address</Label>
+                    <Input
+                      id="businessAddress"
+                      value={seoSettings.localSEO.address}
+                      onChange={(e) => setSeoSettings({
+                        ...seoSettings, 
+                        localSEO: {...seoSettings.localSEO, address: e.target.value}
+                      })}
+                      placeholder="123 Main St, City, State, ZIP"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="businessPhone">Phone Number</Label>
+                    <Input
+                      id="businessPhone"
+                      value={seoSettings.localSEO.phone}
+                      onChange={(e) => setSeoSettings({
+                        ...seoSettings, 
+                        localSEO: {...seoSettings.localSEO, phone: e.target.value}
+                      })}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="businessType">Business Type</Label>
+                    <Select 
+                      value={seoSettings.localSEO.businessType} 
+                      onValueChange={(value) => setSeoSettings({
+                        ...seoSettings, 
+                        localSEO: {...seoSettings.localSEO, businessType: value}
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ProfessionalService">Professional Service</SelectItem>
+                        <SelectItem value="LocalBusiness">Local Business</SelectItem>
+                        <SelectItem value="CreativeWork">Creative Work</SelectItem>
+                        <SelectItem value="EducationalOrganization">Educational Organization</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* AI Optimization */}
+            <TabsContent value="ai-optimization" className="space-y-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Zap className="h-5 w-5" />
+                <h2 className="text-xl font-semibold">AI & Search Optimization</h2>
+                <Badge variant="default">New</Badge>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>AI Search Optimization</CardTitle>
+                  <CardDescription>Optimize for AI-powered search engines and voice search</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable AI Optimization</Label>
+                      <p className="text-xs text-muted-foreground">Optimize content for ChatGPT, Bard, and other AI</p>
+                    </div>
+                    <Switch
+                      checked={seoSettings.aiOptimization}
+                      onCheckedChange={(checked) => setSeoSettings({...seoSettings, aiOptimization: checked})}
+                    />
+                  </div>
+
+                  {seoSettings.aiOptimization && (
+                    <div className="space-y-4 p-4 bg-muted/20 rounded-lg">
+                      <div className="text-sm font-medium text-muted-foreground">AI Optimization Features:</div>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Conversational content formatting</li>
+                        <li>• FAQ-style content structure</li>
+                        <li>• Natural language optimization</li>
+                        <li>• Voice search keywords</li>
+                        <li>• Featured snippet optimization</li>
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Content Quality Signals</CardTitle>
+                  <CardDescription>Enhance content for better AI understanding</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-sm font-medium text-green-700 dark:text-green-400">E-A-T Signals</div>
+                      <div className="text-xs text-green-600 dark:text-green-500 mt-1">
+                        Expertise, Authoritativeness, Trustworthiness
+                      </div>
+                    </div>
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-sm font-medium text-blue-700 dark:text-blue-400">User Experience</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-500 mt-1">
+                        Core Web Vitals & Accessibility
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium">Content Optimization Tips:</div>
+                    <ul className="text-sm space-y-2 text-muted-foreground">
+                      <li>✓ Use clear, descriptive headings (H1, H2, H3)</li>
+                      <li>✓ Include author bio and credentials</li>
+                      <li>✓ Add publication dates and update timestamps</li>
+                      <li>✓ Use semantic HTML and proper markup</li>
+                      <li>✓ Optimize for readability and scanability</li>
+                      <li>✓ Include relevant internal and external links</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Search Engine Features</CardTitle>
+                  <CardDescription>Target specific search features</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm">Featured Snippets</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        FAQ format, lists, step-by-step guides
+                      </div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm">People Also Ask</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Related questions and answers
+                      </div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm">Knowledge Panels</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Author information, books, awards
+                      </div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm">Rich Results</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Book reviews, events, articles
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
