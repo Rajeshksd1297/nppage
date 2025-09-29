@@ -4396,67 +4396,7 @@ const HomePageManagement = () => {
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Backup & Security</CardTitle>
-              <CardDescription>Manage backups and security settings</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="h-auto p-4 flex-col">
-                  <Download className="h-6 w-6 mb-2" />
-                  <span className="font-medium">Create Backup</span>
-                  <span className="text-xs text-muted-foreground">Export site data</span>
-                </Button>
-
-                <Button variant="outline" className="h-auto p-4 flex-col">
-                  <Upload className="h-6 w-6 mb-2" />
-                  <span className="font-medium">Restore Backup</span>
-                  <span className="text-xs text-muted-foreground">Import site data</span>
-                </Button>
-
-                <Button variant="outline" className="h-auto p-4 flex-col">
-                  <Settings className="h-6 w-6 mb-2" />
-                  <span className="font-medium">Security Scan</span>
-                  <span className="text-xs text-muted-foreground">Check for issues</span>
-                </Button>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Automatic Backups</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Create daily automatic backups
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Two-Factor Authentication</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Require 2FA for admin access
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Login Attempts Limit</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Limit failed login attempts
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          
         </TabsContent>
       </Tabs>
     </div>;
