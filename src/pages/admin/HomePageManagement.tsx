@@ -1794,9 +1794,11 @@ const HomePageManagement = () => {
               <p className="text-muted-foreground">Monitor cookie consent rates and GDPR compliance</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => window.open('/admin/cookie-consent', '_blank')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Manage Cookie Settings
+              <Button variant="outline" asChild>
+                <a href="/admin/cookie-consent">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage Cookie Settings
+                </a>
               </Button>
               <Button>
                 <Download className="h-4 w-4 mr-2" />
