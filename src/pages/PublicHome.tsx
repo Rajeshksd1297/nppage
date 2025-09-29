@@ -4,6 +4,13 @@ import { DynamicHomePage } from '@/components/DynamicHomePage';
 // Public Home component that bypasses authentication
 const PublicHome = () => {
   console.log('PublicHome component rendering - no auth required');
+  console.log('Current URL:', window.location.href);
+  console.log('Current pathname:', window.location.pathname);
+  
+  // Force public access check
+  if (window.location.pathname === '/') {
+    console.log('Root path detected, rendering public home page');
+  }
   
   // Simple fallback content in case DynamicHomePage fails
   return (

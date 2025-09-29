@@ -51,9 +51,12 @@ interface Book {
 
 export const DynamicHomePage: React.FC = () => {
   console.log('DynamicHomePage component started rendering');
+  console.log('Current URL:', window.location.href);
+  console.log('Current pathname:', window.location.pathname);
   
   // Early return test to ensure component renders
   if (typeof window !== 'undefined') {
+    console.log('Window is available');
     console.log('Current URL:', window.location.href);
     console.log('Current pathname:', window.location.pathname);
   }
