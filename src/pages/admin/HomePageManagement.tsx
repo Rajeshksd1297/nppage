@@ -93,29 +93,36 @@ const HomePageManagement = () => {
   const [selectedHeroBlock, setSelectedHeroBlock] = useState<HeroBlock | null>(null);
   const [isCreatingHero, setIsCreatingHero] = useState(false);
   const [heroPreviewMode, setHeroPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [heroElements, setHeroElements] = useState<any[]>([
-    {
-      id: '1',
-      type: 'text',
-      content: 'Welcome to My Author Page',
-      styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' },
-      order: 0
+  const [heroElements, setHeroElements] = useState<any[]>([{
+    id: '1',
+    type: 'text',
+    content: 'Welcome to My Author Page',
+    styles: {
+      fontSize: '3xl',
+      fontWeight: 'bold',
+      textAlign: 'center'
     },
-    {
-      id: '2',
-      type: 'text',
-      content: 'Discover my latest books and writing journey',
-      styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground' },
-      order: 1
+    order: 0
+  }, {
+    id: '2',
+    type: 'text',
+    content: 'Discover my latest books and writing journey',
+    styles: {
+      fontSize: 'lg',
+      textAlign: 'center',
+      color: 'muted-foreground'
     },
-    {
-      id: '3',
-      type: 'button',
-      content: 'Explore My Books',
-      styles: { variant: 'default', size: 'lg' },
-      order: 2
-    }
-  ]);
+    order: 1
+  }, {
+    id: '3',
+    type: 'button',
+    content: 'Explore My Books',
+    styles: {
+      variant: 'default',
+      size: 'lg'
+    },
+    order: 2
+  }]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: '',
     siteDescription: '',
@@ -162,7 +169,7 @@ const HomePageManagement = () => {
       enableSchemaMarkup: true
     }
   });
-  
+
   // Real-time analytics state
   const [onlineVisitors, setOnlineVisitors] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState('day');
@@ -195,16 +202,34 @@ const HomePageManagement = () => {
   });
   const [autoGenerating, setAutoGenerating] = useState(false);
   const [seoValidation, setSeoValidation] = useState({
-    title: { valid: false, message: '' },
-    description: { valid: false, message: '' },
-    keywords: { valid: false, message: '' }
+    title: {
+      valid: false,
+      message: ''
+    },
+    description: {
+      valid: false,
+      message: ''
+    },
+    keywords: {
+      valid: false,
+      message: ''
+    }
   });
   const [cookieSettings, setCookieSettings] = useState({});
   const [backupStatus, setBackupStatus] = useState('checking');
   const [analyticsData, setAnalyticsData] = useState({
-    visitors: { labels: [], datasets: [] },
-    pageViews: { labels: [], datasets: [] },
-    deviceStats: { labels: [], datasets: [] }
+    visitors: {
+      labels: [],
+      datasets: []
+    },
+    pageViews: {
+      labels: [],
+      datasets: []
+    },
+    deviceStats: {
+      labels: [],
+      datasets: []
+    }
   });
   const [allContent, setAllContent] = useState({
     books: [],
@@ -215,116 +240,108 @@ const HomePageManagement = () => {
     awards: [],
     galleryItems: []
   });
-  const [heroTemplates, setHeroTemplates] = useState([
-    {
-      id: 'modern-minimal',
-      name: 'Modern Minimal',
-      description: 'Clean and simple hero with centered content',
-      category: 'free',
-      icon: Type,
-      features: ['Centered Layout', 'Clean Typography', 'Single CTA'],
-      preview_image_url: '',
-      config: {
-        layout: 'centered',
-        background: 'gradient',
-        animation: 'fade-in',
-        responsive: true
-      }
-    },
-    {
-      id: 'split-screen',
-      name: 'Split Screen Hero',
-      description: 'Content on left, image on right layout',
-      category: 'free',
-      icon: Layout,
-      features: ['Split Layout', 'Image Support', 'Dual CTA'],
-      preview_image_url: '',
-      config: {
-        layout: 'split',
-        background: 'image',
-        animation: 'slide-in',
-        responsive: true
-      }
-    },
-    {
-      id: 'video-background',
-      name: 'Video Background',
-      description: 'Full-screen video with overlay text',
-      category: 'premium',
-      icon: Monitor,
-      features: ['Video Background', 'Overlay Text', 'Auto-play'],
-      preview_image_url: '',
-      config: {
-        layout: 'fullscreen',
-        background: 'video',
-        animation: 'zoom-in',
-        responsive: true,
-        hasVideo: true
-      }
-    },
-    {
-      id: 'interactive-cards',
-      name: 'Interactive Cards',
-      description: 'Hero with interactive feature cards',
-      category: 'premium',
-      icon: MousePointer,
-      features: ['Card Layout', 'Hover Effects', 'Interactive Elements'],
-      preview_image_url: '',
-      config: {
-        layout: 'cards',
-        background: 'gradient',
-        animation: 'stagger',
-        responsive: true,
-        hasAnimation: true
-      }
-    },
-    {
-      id: 'author-showcase',
-      name: 'Author Showcase',
-      description: 'Perfect for author profiles with book highlights',
-      category: 'free',
-      icon: Star,
-      features: ['Author Focus', 'Book Display', 'Social Links'],
-      preview_image_url: '',
-      config: {
-        layout: 'author-focused',
-        background: 'image',
-        animation: 'fade-up',
-        responsive: true,
-        authorFeatures: true
-      }
-    },
-    {
-      id: 'animated-gradient',
-      name: 'Animated Gradient',
-      description: 'Dynamic gradient background with smooth animations',
-      category: 'premium',
-      icon: Palette,
-      features: ['Animated Background', 'Smooth Transitions', 'Modern Design'],
-      preview_image_url: '',
-      config: {
-        layout: 'centered',
-        background: 'animated-gradient',
-        animation: 'gradient-shift',
-        responsive: true,
-        hasAnimation: true
-      }
+  const [heroTemplates, setHeroTemplates] = useState([{
+    id: 'modern-minimal',
+    name: 'Modern Minimal',
+    description: 'Clean and simple hero with centered content',
+    category: 'free',
+    icon: Type,
+    features: ['Centered Layout', 'Clean Typography', 'Single CTA'],
+    preview_image_url: '',
+    config: {
+      layout: 'centered',
+      background: 'gradient',
+      animation: 'fade-in',
+      responsive: true
     }
-  ]);
+  }, {
+    id: 'split-screen',
+    name: 'Split Screen Hero',
+    description: 'Content on left, image on right layout',
+    category: 'free',
+    icon: Layout,
+    features: ['Split Layout', 'Image Support', 'Dual CTA'],
+    preview_image_url: '',
+    config: {
+      layout: 'split',
+      background: 'image',
+      animation: 'slide-in',
+      responsive: true
+    }
+  }, {
+    id: 'video-background',
+    name: 'Video Background',
+    description: 'Full-screen video with overlay text',
+    category: 'premium',
+    icon: Monitor,
+    features: ['Video Background', 'Overlay Text', 'Auto-play'],
+    preview_image_url: '',
+    config: {
+      layout: 'fullscreen',
+      background: 'video',
+      animation: 'zoom-in',
+      responsive: true,
+      hasVideo: true
+    }
+  }, {
+    id: 'interactive-cards',
+    name: 'Interactive Cards',
+    description: 'Hero with interactive feature cards',
+    category: 'premium',
+    icon: MousePointer,
+    features: ['Card Layout', 'Hover Effects', 'Interactive Elements'],
+    preview_image_url: '',
+    config: {
+      layout: 'cards',
+      background: 'gradient',
+      animation: 'stagger',
+      responsive: true,
+      hasAnimation: true
+    }
+  }, {
+    id: 'author-showcase',
+    name: 'Author Showcase',
+    description: 'Perfect for author profiles with book highlights',
+    category: 'free',
+    icon: Star,
+    features: ['Author Focus', 'Book Display', 'Social Links'],
+    preview_image_url: '',
+    config: {
+      layout: 'author-focused',
+      background: 'image',
+      animation: 'fade-up',
+      responsive: true,
+      authorFeatures: true
+    }
+  }, {
+    id: 'animated-gradient',
+    name: 'Animated Gradient',
+    description: 'Dynamic gradient background with smooth animations',
+    category: 'premium',
+    icon: Palette,
+    features: ['Animated Background', 'Smooth Transitions', 'Modern Design'],
+    preview_image_url: '',
+    config: {
+      layout: 'centered',
+      background: 'animated-gradient',
+      animation: 'gradient-shift',
+      responsive: true,
+      hasAnimation: true
+    }
+  }]);
 
   // Fetch real analytics data from database
   const fetchAnalyticsData = async (period: string) => {
     try {
       setLoading(true);
-      
-      // Fetch page analytics data
-      const { data: pageAnalytics, error: analyticsError } = await supabase
-        .from('page_analytics')
-        .select('*')
-        .gte('created_at', getDateRange(period).start)
-        .lte('created_at', getDateRange(period).end)
-        .order('created_at', { ascending: true });
 
+      // Fetch page analytics data
+      const {
+        data: pageAnalytics,
+        error: analyticsError
+      } = await supabase.from('page_analytics').select('*').gte('created_at', getDateRange(period).start).lte('created_at', getDateRange(period).end).order('created_at', {
+        ascending: true
+      });
       if (analyticsError) throw analyticsError;
 
       // Process analytics data
@@ -334,40 +351,38 @@ const HomePageManagement = () => {
       // Update real-time stats
       const stats = calculateStats(pageAnalytics || []);
       setRealtimeStats(stats);
-
     } catch (error) {
       console.error('Error fetching analytics:', error);
       // Show empty state with message
       setAnalyticsData({
-        visitors: { 
-          labels: ['No data available'], 
-          datasets: [{ 
-            label: 'Visitors', 
-            data: [0], 
-            borderColor: 'rgb(59, 130, 246)', 
-            backgroundColor: 'rgba(59, 130, 246, 0.1)' 
-          }] 
+        visitors: {
+          labels: ['No data available'],
+          datasets: [{
+            label: 'Visitors',
+            data: [0],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+          }]
         },
-        pageViews: { 
-          labels: ['No data'], 
-          datasets: [{ 
-            label: 'Page Views', 
-            data: [0], 
-            backgroundColor: ['rgba(59, 130, 246, 0.8)'] 
-          }] 
+        pageViews: {
+          labels: ['No data'],
+          datasets: [{
+            label: 'Page Views',
+            data: [0],
+            backgroundColor: ['rgba(59, 130, 246, 0.8)']
+          }]
         },
-        deviceStats: { 
-          labels: ['No data'], 
-          datasets: [{ 
-            data: [0], 
-            backgroundColor: ['rgba(59, 130, 246, 0.8)'] 
-          }] 
+        deviceStats: {
+          labels: ['No data'],
+          datasets: [{
+            data: [0],
+            backgroundColor: ['rgba(59, 130, 246, 0.8)']
+          }]
         }
       });
-      
       toast({
         title: "No Analytics Data",
-        description: "Analytics data will appear once you have site visitors.",
+        description: "Analytics data will appear once you have site visitors."
       });
     } finally {
       setLoading(false);
@@ -378,7 +393,6 @@ const HomePageManagement = () => {
   const getDateRange = (period: string) => {
     const now = new Date();
     const start = new Date();
-    
     switch (period) {
       case 'hours':
         start.setHours(now.getHours() - 6);
@@ -398,22 +412,43 @@ const HomePageManagement = () => {
       default:
         start.setDate(now.getDate() - 1);
     }
-    
-    return { start: start.toISOString(), end: now.toISOString() };
+    return {
+      start: start.toISOString(),
+      end: now.toISOString()
+    };
   };
-
   const processAnalyticsData = (data: any[], period: string) => {
     if (!data.length) {
       return {
-        visitors: { labels: ['No data'], datasets: [{ label: 'Visitors', data: [0], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)' }] },
-        pageViews: { labels: ['No data'], datasets: [{ label: 'Page Views', data: [0], backgroundColor: ['rgba(59, 130, 246, 0.8)'] }] },
-        deviceStats: { labels: ['No data'], datasets: [{ data: [0], backgroundColor: ['rgba(59, 130, 246, 0.8)'] }] }
+        visitors: {
+          labels: ['No data'],
+          datasets: [{
+            label: 'Visitors',
+            data: [0],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+          }]
+        },
+        pageViews: {
+          labels: ['No data'],
+          datasets: [{
+            label: 'Page Views',
+            data: [0],
+            backgroundColor: ['rgba(59, 130, 246, 0.8)']
+          }]
+        },
+        deviceStats: {
+          labels: ['No data'],
+          datasets: [{
+            data: [0],
+            backgroundColor: ['rgba(59, 130, 246, 0.8)']
+          }]
+        }
       };
     }
 
     // Group data by time periods
     const groupedData = groupAnalyticsByPeriod(data, period);
-    
     return {
       visitors: {
         labels: Object.keys(groupedData),
@@ -442,14 +477,12 @@ const HomePageManagement = () => {
       }
     };
   };
-
   const groupAnalyticsByPeriod = (data: any[], period: string) => {
     // Implementation to group analytics by time period
     const grouped = {};
     data.forEach(item => {
       const date = new Date(item.created_at);
       let key;
-      
       switch (period) {
         case 'hours':
           key = date.getHours() + 'h';
@@ -463,17 +496,17 @@ const HomePageManagement = () => {
         default:
           key = date.toDateString();
       }
-      
       if (!grouped[key]) {
-        grouped[key] = { visitors: 0, pageViews: 0 };
+        grouped[key] = {
+          visitors: 0,
+          pageViews: 0
+        };
       }
       grouped[key].visitors += 1;
       grouped[key].pageViews += 1;
     });
-    
     return grouped;
   };
-
   const getTopPages = (data: any[]) => {
     const pageCounts = {};
     data.forEach(item => {
@@ -481,7 +514,6 @@ const HomePageManagement = () => {
     });
     return Object.keys(pageCounts).slice(0, 5);
   };
-
   const getPageViewCounts = (data: any[]) => {
     const pageCounts = {};
     data.forEach(item => {
@@ -489,21 +521,19 @@ const HomePageManagement = () => {
     });
     return Object.values(pageCounts).slice(0, 5);
   };
-
   const getDeviceStats = (data: any[]) => {
-    const deviceCounts = { desktop: 0, mobile: 0, tablet: 0 };
+    const deviceCounts = {
+      desktop: 0,
+      mobile: 0,
+      tablet: 0
+    };
     data.forEach(item => {
       const device = item.device_type || 'desktop';
       deviceCounts[device] = (deviceCounts[device] || 0) + 1;
     });
     const total = Object.values(deviceCounts).reduce((sum: number, count: number) => sum + count, 0) || 1;
-    return [
-      Math.round((deviceCounts.desktop / total) * 100),
-      Math.round((deviceCounts.mobile / total) * 100),
-      Math.round((deviceCounts.tablet / total) * 100)
-    ];
+    return [Math.round(deviceCounts.desktop / total * 100), Math.round(deviceCounts.mobile / total * 100), Math.round(deviceCounts.tablet / total * 100)];
   };
-
   const calculateStats = (data: any[]) => {
     if (!data.length) {
       return {
@@ -515,15 +545,14 @@ const HomePageManagement = () => {
         pageLoadTime: 0
       };
     }
-
     const uniqueVisitors = new Set(data.map(item => item.visitor_id)).size;
     const sessions = new Set(data.map(item => item.session_id)).size || 1;
-    
     return {
       pageViews: data.length,
       uniqueVisitors,
-      bounceRate: Math.round((sessions / uniqueVisitors) * 100) || 0,
-      avgSessionTime: Math.round(data.length / sessions * 120) || 0, // Estimate
+      bounceRate: Math.round(sessions / uniqueVisitors * 100) || 0,
+      avgSessionTime: Math.round(data.length / sessions * 120) || 0,
+      // Estimate
       conversionRate: Number((uniqueVisitors * 0.03).toFixed(2)) || 0,
       pageLoadTime: Number((1.2 + Math.random() * 0.6).toFixed(2)) || 1.5
     };
@@ -546,41 +575,38 @@ const HomePageManagement = () => {
   const fetchAllContent = async () => {
     try {
       // Fetch books
-      const { data: books, error: booksError } = await supabase
-        .from('books')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-
+      const {
+        data: books,
+        error: booksError
+      } = await supabase.from('books').select('*').eq('status', 'published').order('created_at', {
+        ascending: false
+      });
       if (booksError) throw booksError;
 
       // Fetch blog posts
-      const { data: blogPosts, error: blogError } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-
+      const {
+        data: blogPosts,
+        error: blogError
+      } = await supabase.from('blog_posts').select('*').eq('status', 'published').order('created_at', {
+        ascending: false
+      });
       if (blogError) throw blogError;
 
       // Fetch events
-      const { data: events, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .gte('event_date', new Date().toISOString())
-        .order('event_date', { ascending: true });
-
+      const {
+        data: events,
+        error: eventsError
+      } = await supabase.from('events').select('*').gte('event_date', new Date().toISOString()).order('event_date', {
+        ascending: true
+      });
       if (eventsError) throw eventsError;
 
       // Fetch additional pages - handle potential type issues
       let additionalPages: any[] = [];
       try {
-        const pagesQuery = await (supabase as any)
-          .from('additional_pages')
-          .select('*')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false });
-        
+        const pagesQuery = await (supabase as any).from('additional_pages').select('*').eq('is_published', true).order('created_at', {
+          ascending: false
+        });
         if (pagesQuery.error && pagesQuery.error.code !== 'PGRST116') {
           console.warn('Additional pages error:', pagesQuery.error);
         } else {
@@ -591,36 +617,37 @@ const HomePageManagement = () => {
       }
 
       // Fetch FAQs
-      const { data: faqs, error: faqsError } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order', { ascending: true });
-
+      const {
+        data: faqs,
+        error: faqsError
+      } = await supabase.from('faqs').select('*').eq('is_published', true).order('sort_order', {
+        ascending: true
+      });
       if (faqsError && faqsError.code !== 'PGRST116') {
         console.warn('FAQs table error:', faqsError);
       }
 
       // Fetch awards
-      const { data: awards, error: awardsError } = await supabase
-        .from('awards')
-        .select('*')
-        .order('award_date', { ascending: false });
-
+      const {
+        data: awards,
+        error: awardsError
+      } = await supabase.from('awards').select('*').order('award_date', {
+        ascending: false
+      });
       if (awardsError && awardsError.code !== 'PGRST116') {
         console.warn('Awards table error:', awardsError);
       }
 
       // Fetch gallery items
-      const { data: galleryItems, error: galleryError } = await supabase
-        .from('gallery_items')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
+      const {
+        data: galleryItems,
+        error: galleryError
+      } = await supabase.from('gallery_items').select('*').order('sort_order', {
+        ascending: true
+      });
       if (galleryError && galleryError.code !== 'PGRST116') {
         console.warn('Gallery items table error:', galleryError);
       }
-
       setAllContent({
         books: books || [],
         blogPosts: blogPosts || [],
@@ -630,12 +657,10 @@ const HomePageManagement = () => {
         awards: awards || [],
         galleryItems: galleryItems || []
       });
-
       toast({
         title: "Content Synced",
-        description: "All portal content has been synchronized successfully",
+        description: "All portal content has been synchronized successfully"
       });
-
     } catch (error) {
       console.error('Error fetching all content:', error);
       toast({
@@ -664,22 +689,16 @@ const HomePageManagement = () => {
           animation: 'fade-in'
         }
       };
-
-      const { data, error } = await supabase
-        .from('home_page_sections')
-        .insert([newSection])
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('home_page_sections').insert([newSection]).select().single();
       if (error) throw error;
-
       setHomeSections(prev => [...prev, data]);
-      
       toast({
         title: "Section Added",
-        description: `${sectionType} section has been added to your home page`,
+        description: `${sectionType} section has been added to your home page`
       });
-
     } catch (error) {
       console.error('Error adding content section:', error);
       toast({
@@ -701,25 +720,20 @@ const HomePageManagement = () => {
     try {
       const section = homeSections.find((s: any) => s.id === sectionId);
       if (!section) return;
-
-      const { error } = await supabase
-        .from('home_page_sections')
-        .update({ enabled: !section.enabled })
-        .eq('id', sectionId);
-
+      const {
+        error
+      } = await supabase.from('home_page_sections').update({
+        enabled: !section.enabled
+      }).eq('id', sectionId);
       if (error) throw error;
-
-      setHomeSections(prev => 
-        prev.map((s: any) => 
-          s.id === sectionId ? { ...s, enabled: !s.enabled } : s
-        )
-      );
-
+      setHomeSections(prev => prev.map((s: any) => s.id === sectionId ? {
+        ...s,
+        enabled: !s.enabled
+      } : s));
       toast({
         title: "Section Updated",
-        description: `Section ${section.enabled ? 'disabled' : 'enabled'} successfully`,
+        description: `Section ${section.enabled ? 'disabled' : 'enabled'} successfully`
       });
-
     } catch (error) {
       console.error('Error toggling section:', error);
       toast({
@@ -746,20 +760,15 @@ const HomePageManagement = () => {
           customizations: {}
         }
       };
-
-      const { data, error } = await supabase
-        .from('hero_blocks')
-        .insert([newHeroBlock])
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('hero_blocks').insert([newHeroBlock]).select().single();
       if (error) throw error;
-
       setHeroBlocks(prev => [...prev, data]);
-      
       toast({
         title: "Hero Block Created",
-        description: `New hero block created from ${template.name} template`,
+        description: `New hero block created from ${template.name} template`
       });
 
       // Navigate to editor
@@ -767,12 +776,11 @@ const HomePageManagement = () => {
       setHeroManagerView('editor');
       setIsCreatingHero(false);
       setActiveTab('hero');
-      
+
       // Load elements from template
       if (generateTemplateElements(template)) {
         setHeroElements(generateTemplateElements(template));
       }
-
     } catch (error) {
       console.error('Error creating hero from template:', error);
       toast({
@@ -782,128 +790,162 @@ const HomePageManagement = () => {
       });
     }
   };
-
   const generateTemplateElements = (template: any) => {
     switch (template.id) {
       case 'modern-minimal':
-        return [
-          {
-            id: '1',
-            type: 'text',
-            content: 'Welcome to Your Story',
-            styles: { fontSize: '4xl', fontWeight: 'bold', textAlign: 'center', marginBottom: '4' }
-          },
-          {
-            id: '2',
-            type: 'text',
-            content: 'Discover compelling narratives and join thousands of readers on an unforgettable journey.',
-            styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground', marginBottom: '8' }
-          },
-          {
-            id: '3',
-            type: 'button',
-            content: 'Start Reading',
-            styles: { variant: 'default', size: 'lg' }
+        return [{
+          id: '1',
+          type: 'text',
+          content: 'Welcome to Your Story',
+          styles: {
+            fontSize: '4xl',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '4'
           }
-        ];
+        }, {
+          id: '2',
+          type: 'text',
+          content: 'Discover compelling narratives and join thousands of readers on an unforgettable journey.',
+          styles: {
+            fontSize: 'lg',
+            textAlign: 'center',
+            color: 'muted-foreground',
+            marginBottom: '8'
+          }
+        }, {
+          id: '3',
+          type: 'button',
+          content: 'Start Reading',
+          styles: {
+            variant: 'default',
+            size: 'lg'
+          }
+        }];
       case 'split-screen':
-        return [
-          {
-            id: '1',
-            type: 'text',
-            content: 'Transform Your Reading Experience',
-            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'left', marginBottom: '4' }
-          },
-          {
-            id: '2',
-            type: 'text',
-            content: 'Explore our curated collection of bestselling authors and discover your next favorite book.',
-            styles: { fontSize: 'lg', textAlign: 'left', marginBottom: '6' }
-          },
-          {
-            id: '3',
-            type: 'button',
-            content: 'Browse Books',
-            styles: { variant: 'default', size: 'lg', marginRight: '4' }
-          },
-          {
-            id: '4',
-            type: 'button',
-            content: 'Learn More',
-            styles: { variant: 'outline', size: 'lg' }
-          },
-          {
-            id: '5',
-            type: 'image',
-            content: '/api/placeholder/600/400',
-            styles: { width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'lg' }
+        return [{
+          id: '1',
+          type: 'text',
+          content: 'Transform Your Reading Experience',
+          styles: {
+            fontSize: '3xl',
+            fontWeight: 'bold',
+            textAlign: 'left',
+            marginBottom: '4'
           }
-        ];
+        }, {
+          id: '2',
+          type: 'text',
+          content: 'Explore our curated collection of bestselling authors and discover your next favorite book.',
+          styles: {
+            fontSize: 'lg',
+            textAlign: 'left',
+            marginBottom: '6'
+          }
+        }, {
+          id: '3',
+          type: 'button',
+          content: 'Browse Books',
+          styles: {
+            variant: 'default',
+            size: 'lg',
+            marginRight: '4'
+          }
+        }, {
+          id: '4',
+          type: 'button',
+          content: 'Learn More',
+          styles: {
+            variant: 'outline',
+            size: 'lg'
+          }
+        }, {
+          id: '5',
+          type: 'image',
+          content: '/api/placeholder/600/400',
+          styles: {
+            width: '100%',
+            height: '400px',
+            objectFit: 'cover',
+            borderRadius: 'lg'
+          }
+        }];
       case 'author-showcase':
-        return [
-          {
-            id: '1',
-            type: 'image',
-            content: '/api/placeholder/150/150',
-            styles: { width: '150px', height: '150px', borderRadius: 'full', marginBottom: '4' }
-          },
-          {
-            id: '2',
-            type: 'text',
-            content: 'Meet the Author',
-            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center', marginBottom: '2' }
-          },
-          {
-            id: '3',
-            type: 'text',
-            content: 'Award-winning novelist with over 10 bestselling books',
-            styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground', marginBottom: '6' }
-          },
-          {
-            id: '4',
-            type: 'button',
-            content: 'View Books',
-            styles: { variant: 'default', size: 'lg' }
+        return [{
+          id: '1',
+          type: 'image',
+          content: '/api/placeholder/150/150',
+          styles: {
+            width: '150px',
+            height: '150px',
+            borderRadius: 'full',
+            marginBottom: '4'
           }
-        ];
+        }, {
+          id: '2',
+          type: 'text',
+          content: 'Meet the Author',
+          styles: {
+            fontSize: '3xl',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '2'
+          }
+        }, {
+          id: '3',
+          type: 'text',
+          content: 'Award-winning novelist with over 10 bestselling books',
+          styles: {
+            fontSize: 'lg',
+            textAlign: 'center',
+            color: 'muted-foreground',
+            marginBottom: '6'
+          }
+        }, {
+          id: '4',
+          type: 'button',
+          content: 'View Books',
+          styles: {
+            variant: 'default',
+            size: 'lg'
+          }
+        }];
       default:
-        return [
-          {
-            id: '1',
-            type: 'text',
-            content: 'Hero Title',
-            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' }
+        return [{
+          id: '1',
+          type: 'text',
+          content: 'Hero Title',
+          styles: {
+            fontSize: '3xl',
+            fontWeight: 'bold',
+            textAlign: 'center'
           }
-        ];
+        }];
     }
   };
-
   const previewTemplate = (template: any) => {
     toast({
       title: "Template Preview",
-      description: `Previewing ${template.name} template`,
+      description: `Previewing ${template.name} template`
     });
     // Could open a modal or navigate to preview
   };
-
   const editHeroBlock = (block: any) => {
     // Set the selected block and switch to editor view
     setSelectedHeroBlock(block);
     setHeroManagerView('editor');
     setIsCreatingHero(false);
     setActiveTab('hero'); // Ensure we're on the hero tab
-    
+
     // Load elements from block config
     if (block.config?.elements) {
       setHeroElements(block.config.elements);
     }
-    
     toast({
       title: "Editing Hero Block",
-      description: `Opening editor for ${block.name}`,
+      description: `Opening editor for ${block.name}`
     });
   };
-
   const createNewHeroBlock = () => {
     setSelectedHeroBlock({
       id: Date.now().toString(),
@@ -916,17 +958,18 @@ const HomePageManagement = () => {
     });
     setIsCreatingHero(true);
     setHeroManagerView('editor');
-    setHeroElements([
-      {
-        id: '1',
-        type: 'text',
-        content: 'New Hero Title',
-        styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' },
-        order: 0
-      }
-    ]);
+    setHeroElements([{
+      id: '1',
+      type: 'text',
+      content: 'New Hero Title',
+      styles: {
+        fontSize: '3xl',
+        fontWeight: 'bold',
+        textAlign: 'center'
+      },
+      order: 0
+    }]);
   };
-
   const saveHeroBlock = async () => {
     if (!selectedHeroBlock?.name) {
       toast({
@@ -936,33 +979,28 @@ const HomePageManagement = () => {
       });
       return;
     }
-
     try {
       const blockData = {
         name: selectedHeroBlock.name,
         description: selectedHeroBlock.description || 'Custom hero block',
         enabled: selectedHeroBlock.enabled ?? true,
-        config: { elements: heroElements }
+        config: {
+          elements: heroElements
+        }
       };
-
       let result;
       if (isCreatingHero) {
-        const { data, error } = await supabase
-          .from('hero_blocks')
-          .insert([blockData])
-          .select()
-          .single();
-        
+        const {
+          data,
+          error
+        } = await supabase.from('hero_blocks').insert([blockData]).select().single();
         if (error) throw error;
         result = data;
       } else {
-        const { data, error } = await supabase
-          .from('hero_blocks')
-          .update(blockData)
-          .eq('id', selectedHeroBlock.id)
-          .select()
-          .single();
-        
+        const {
+          data,
+          error
+        } = await supabase.from('hero_blocks').update(blockData).eq('id', selectedHeroBlock.id).select().single();
         if (error) throw error;
         result = data;
       }
@@ -978,12 +1016,10 @@ const HomePageManagement = () => {
       setSelectedHeroBlock(null);
       setIsCreatingHero(false);
       setHeroManagerView('list');
-      
       toast({
         title: "Success",
-        description: "Hero block saved successfully",
+        description: "Hero block saved successfully"
       });
-
     } catch (error) {
       console.error('Error saving hero block:', error);
       toast({
@@ -993,7 +1029,6 @@ const HomePageManagement = () => {
       });
     }
   };
-
   const addHeroElement = (type: string) => {
     const newElement = {
       id: Date.now().toString(),
@@ -1004,49 +1039,71 @@ const HomePageManagement = () => {
     };
     setHeroElements(prev => [...prev, newElement]);
   };
-
   const removeHeroElement = (id: string) => {
     setHeroElements(prev => prev.filter(element => element.id !== id));
   };
-
   const updateHeroElement = (id: string, updates: any) => {
-    setHeroElements(prev => 
-      prev.map(element => 
-        element.id === id ? { ...element, ...updates } : element
-      )
-    );
+    setHeroElements(prev => prev.map(element => element.id === id ? {
+      ...element,
+      ...updates
+    } : element));
   };
-
   const getDefaultContent = (type: string): string => {
     switch (type) {
-      case 'text': return 'New text element';
-      case 'image': return '/api/placeholder/400/300';
-      case 'button': return 'Click Me';
-      case 'video': return 'https://example.com/video.mp4';
-      case 'spacer': return '';
-      default: return '';
+      case 'text':
+        return 'New text element';
+      case 'image':
+        return '/api/placeholder/400/300';
+      case 'button':
+        return 'Click Me';
+      case 'video':
+        return 'https://example.com/video.mp4';
+      case 'spacer':
+        return '';
+      default:
+        return '';
     }
   };
-
   const getDefaultStyles = (type: string): any => {
     switch (type) {
-      case 'text': return { fontSize: 'base', textAlign: 'left', fontWeight: 'normal' };
-      case 'image': return { width: '100%', height: 'auto', borderRadius: 'rounded' };
-      case 'button': return { variant: 'default', size: 'md' };
-      case 'video': return { width: '100%', height: 'auto', controls: true };
-      case 'spacer': return { height: '2rem' };
-      default: return {};
+      case 'text':
+        return {
+          fontSize: 'base',
+          textAlign: 'left',
+          fontWeight: 'normal'
+        };
+      case 'image':
+        return {
+          width: '100%',
+          height: 'auto',
+          borderRadius: 'rounded'
+        };
+      case 'button':
+        return {
+          variant: 'default',
+          size: 'md'
+        };
+      case 'video':
+        return {
+          width: '100%',
+          height: 'auto',
+          controls: true
+        };
+      case 'spacer':
+        return {
+          height: '2rem'
+        };
+      default:
+        return {};
     }
   };
-
   const previewHeroBlock = (block: any) => {
     // Open preview modal or navigate to preview
     toast({
       title: "Hero Block Preview",
-      description: `Previewing ${block.name}`,
+      description: `Previewing ${block.name}`
     });
   };
-
   const duplicateHeroBlock = async (block: any) => {
     try {
       const duplicatedBlock = {
@@ -1060,22 +1117,16 @@ const HomePageManagement = () => {
           original_id: block.id
         }
       };
-
-      const { data, error } = await supabase
-        .from('hero_blocks')
-        .insert([duplicatedBlock])
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('hero_blocks').insert([duplicatedBlock]).select().single();
       if (error) throw error;
-
       setHeroBlocks(prev => [...prev, data]);
-      
       toast({
         title: "Hero Block Duplicated",
-        description: `Created a copy of ${block.name}`,
+        description: `Created a copy of ${block.name}`
       });
-
     } catch (error) {
       console.error('Error duplicating hero block:', error);
       toast({
@@ -1085,30 +1136,24 @@ const HomePageManagement = () => {
       });
     }
   };
-
   const toggleHeroBlock = async (blockId: string) => {
     try {
       const block = heroBlocks.find(b => b.id === blockId);
       if (!block) return;
-
-      const { error } = await supabase
-        .from('hero_blocks')
-        .update({ enabled: !block.enabled })
-        .eq('id', blockId);
-
+      const {
+        error
+      } = await supabase.from('hero_blocks').update({
+        enabled: !block.enabled
+      }).eq('id', blockId);
       if (error) throw error;
-
-      setHeroBlocks(prev => 
-        prev.map(b => 
-          b.id === blockId ? { ...b, enabled: !b.enabled } : b
-        )
-      );
-
+      setHeroBlocks(prev => prev.map(b => b.id === blockId ? {
+        ...b,
+        enabled: !b.enabled
+      } : b));
       toast({
         title: "Hero Block Updated",
-        description: `Hero block ${block.enabled ? 'disabled' : 'enabled'}`,
+        description: `Hero block ${block.enabled ? 'disabled' : 'enabled'}`
       });
-
     } catch (error) {
       console.error('Error toggling hero block:', error);
       toast({
@@ -1118,25 +1163,18 @@ const HomePageManagement = () => {
       });
     }
   };
-
   const deleteHeroBlock = async (blockId: string) => {
     if (!confirm('Are you sure you want to delete this hero block?')) return;
-
     try {
-      const { error } = await supabase
-        .from('hero_blocks')
-        .delete()
-        .eq('id', blockId);
-
+      const {
+        error
+      } = await supabase.from('hero_blocks').delete().eq('id', blockId);
       if (error) throw error;
-
       setHeroBlocks(prev => prev.filter(b => b.id !== blockId));
-      
       toast({
         title: "Hero Block Deleted",
-        description: "Hero block has been permanently removed",
+        description: "Hero block has been permanently removed"
       });
-
     } catch (error) {
       console.error('Error deleting hero block:', error);
       toast({
@@ -1146,14 +1184,13 @@ const HomePageManagement = () => {
       });
     }
   };
-
   const setAsDefaultHero = async (blockId: string) => {
     try {
       // First, get all blocks and update them
-      const { data: allBlocks, error: fetchError } = await supabase
-        .from('hero_blocks')
-        .select('*');
-
+      const {
+        data: allBlocks,
+        error: fetchError
+      } = await supabase.from('hero_blocks').select('*');
       if (fetchError) throw fetchError;
 
       // Update all blocks to remove default status
@@ -1162,32 +1199,25 @@ const HomePageManagement = () => {
         const updatedConfig = Object.assign({}, currentConfig, {
           isDefault: block.id === blockId
         });
-
-        const { error: updateError } = await supabase
-          .from('hero_blocks')
-          .update({ config: updatedConfig })
-          .eq('id', block.id);
-
+        const {
+          error: updateError
+        } = await supabase.from('hero_blocks').update({
+          config: updatedConfig
+        }).eq('id', block.id);
         if (updateError) throw updateError;
       }
 
       // Update local state
-      setHeroBlocks(prev => 
-        prev.map(b => ({
-          ...b,
-          config: Object.assign(
-            {},
-            b.config && typeof b.config === 'object' ? b.config : {},
-            { isDefault: b.id === blockId }
-          )
-        }))
-      );
-
+      setHeroBlocks(prev => prev.map(b => ({
+        ...b,
+        config: Object.assign({}, b.config && typeof b.config === 'object' ? b.config : {}, {
+          isDefault: b.id === blockId
+        })
+      })));
       toast({
         title: "Default Hero Set",
-        description: "This hero block is now the default",
+        description: "This hero block is now the default"
       });
-
     } catch (error) {
       console.error('Error setting default hero:', error);
       toast({
@@ -1211,18 +1241,18 @@ const HomePageManagement = () => {
   // Fetch home page sections from database
   const fetchHomeSections = async () => {
     try {
-      const { data, error } = await supabase
-        .from('home_page_sections')
-        .select('*')
-        .order('order_index', { ascending: true });
-      
+      const {
+        data,
+        error
+      } = await supabase.from('home_page_sections').select('*').order('order_index', {
+        ascending: true
+      });
       if (error) throw error;
       setHomeSections(data || []);
-      
       if (!data || data.length === 0) {
         toast({
           title: "No Home Page Sections",
-          description: "Create your first home page section to get started.",
+          description: "Create your first home page section to get started."
         });
       }
     } catch (error) {
@@ -1258,13 +1288,18 @@ const HomePageManagement = () => {
       const savedSEO = localStorage.getItem('seo_settings');
       if (savedSEO) {
         const parsed = JSON.parse(savedSEO);
-        setSeoSettings({ ...initialSEO, ...parsed });
-        validateSEOData({ ...initialSEO, ...parsed });
+        setSeoSettings({
+          ...initialSEO,
+          ...parsed
+        });
+        validateSEOData({
+          ...initialSEO,
+          ...parsed
+        });
       } else {
         setSeoSettings(initialSEO);
         validateSEOData(initialSEO);
       }
-      
     } catch (error) {
       console.error('Error loading SEO settings:', error);
     }
@@ -1274,7 +1309,6 @@ const HomePageManagement = () => {
   const saveSEOSettings = async () => {
     try {
       setSaving(true);
-      
       const seoData = {
         site_title: seoSettings.site_title || siteSettings.siteName,
         site_description: seoSettings.site_description || siteSettings.siteDescription,
@@ -1302,12 +1336,10 @@ const HomePageManagement = () => {
 
       // Update real-time SEO on the website
       updateWebsiteSEO(seoData);
-      
       toast({
         title: "Success",
-        description: "SEO settings saved and applied to website",
+        description: "SEO settings saved and applied to website"
       });
-      
     } catch (error) {
       console.error('Error saving SEO settings:', error);
       toast({
@@ -1324,41 +1356,31 @@ const HomePageManagement = () => {
   const autoGenerateSEO = async () => {
     try {
       setAutoGenerating(true);
-      
-      // Fetch user profile and content for context
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, bio, specializations')
-        .single();
-        
-      const { data: books } = await supabase
-        .from('books')
-        .select('title, description, genres')
-        .eq('status', 'published')
-        .limit(3);
 
-      const { data: blogPosts } = await supabase
-        .from('blog_posts')
-        .select('title, excerpt')
-        .eq('status', 'published')
-        .limit(3);
+      // Fetch user profile and content for context
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('full_name, bio, specializations').single();
+      const {
+        data: books
+      } = await supabase.from('books').select('title, description, genres').eq('status', 'published').limit(3);
+      const {
+        data: blogPosts
+      } = await supabase.from('blog_posts').select('title, excerpt').eq('status', 'published').limit(3);
 
       // Generate intelligent SEO content
       const authorName = profile?.full_name || 'Author';
       const specializations = profile?.specializations || [];
       const genres = books?.flatMap(book => book.genres || []) || [];
-      
       const generatedTitle = generateSEOTitle(authorName, specializations, genres);
       const generatedDescription = generateSEODescription(authorName, profile?.bio, books, blogPosts);
       const generatedKeywords = generateSEOKeywords(specializations, genres, books);
-
       const newSeoSettings = {
         ...seoSettings,
         site_title: generatedTitle,
         site_description: generatedDescription,
         site_keywords: generatedKeywords
       };
-
       setSeoSettings(newSeoSettings);
       setSiteSettings(prev => ({
         ...prev,
@@ -1366,14 +1388,11 @@ const HomePageManagement = () => {
         siteDescription: generatedDescription,
         siteKeywords: generatedKeywords
       }));
-
       validateSEOData(newSeoSettings);
-
       toast({
         title: "SEO Generated",
-        description: "AI-powered SEO content has been generated. Review and save changes.",
+        description: "AI-powered SEO content has been generated. Review and save changes."
       });
-
     } catch (error) {
       console.error('Error generating SEO:', error);
       toast({
@@ -1396,40 +1415,32 @@ const HomePageManagement = () => {
     }
     return `${authorName} - Author & Writer | Official Website`;
   };
-
   const generateSEODescription = (authorName: string, bio: string, books: any[], blogPosts: any[]) => {
     const bookCount = books?.length || 0;
     const postCount = blogPosts?.length || 0;
-    
     let description = `Official website of ${authorName}`;
-    
     if (bio && bio.length > 20) {
       const bioSnippet = bio.substring(0, 100).trim();
       description += `. ${bioSnippet}${bioSnippet.length === 100 ? '...' : ''}`;
     }
-    
     if (bookCount > 0) {
       description += `. Published author with ${bookCount} book${bookCount > 1 ? 's' : ''}`;
     }
-    
     if (postCount > 0) {
       description += `. Active blogger with ${postCount}+ posts`;
     }
-    
     description += '. Discover books, latest updates, and connect with the author.';
-    
     return description.length > 160 ? description.substring(0, 157) + '...' : description;
   };
-
   const generateSEOKeywords = (specializations: string[], genres: string[], books: any[]) => {
     const keywords = new Set();
-    
+
     // Add specializations
     specializations.forEach(spec => keywords.add(spec.toLowerCase()));
-    
+
     // Add genres
     genres.forEach(genre => keywords.add(genre.toLowerCase()));
-    
+
     // Add book titles (first words)
     books?.forEach(book => {
       if (book.title) {
@@ -1437,58 +1448,92 @@ const HomePageManagement = () => {
         if (firstWord.length > 3) keywords.add(firstWord);
       }
     });
-    
+
     // Add common author keywords
     keywords.add('author');
     keywords.add('writer');
     keywords.add('books');
     keywords.add('published');
     keywords.add('writing');
-    
     return Array.from(keywords).slice(0, 15).join(', ');
   };
 
   // Validate SEO data
   const validateSEOData = (data: any) => {
     const validation = {
-      title: { valid: true, message: '' },
-      description: { valid: true, message: '' },
-      keywords: { valid: true, message: '' }
+      title: {
+        valid: true,
+        message: ''
+      },
+      description: {
+        valid: true,
+        message: ''
+      },
+      keywords: {
+        valid: true,
+        message: ''
+      }
     };
 
     // Validate title
     const title = data.site_title || '';
     if (!title) {
-      validation.title = { valid: false, message: 'Title is required' };
+      validation.title = {
+        valid: false,
+        message: 'Title is required'
+      };
     } else if (title.length < 10) {
-      validation.title = { valid: false, message: 'Title too short (min 10 characters)' };
+      validation.title = {
+        valid: false,
+        message: 'Title too short (min 10 characters)'
+      };
     } else if (title.length > 60) {
-      validation.title = { valid: false, message: 'Title too long (max 60 characters)' };
+      validation.title = {
+        valid: false,
+        message: 'Title too long (max 60 characters)'
+      };
     }
 
     // Validate description
     const description = data.site_description || '';
     if (!description) {
-      validation.description = { valid: false, message: 'Description is required' };
+      validation.description = {
+        valid: false,
+        message: 'Description is required'
+      };
     } else if (description.length < 50) {
-      validation.description = { valid: false, message: 'Description too short (min 50 characters)' };
+      validation.description = {
+        valid: false,
+        message: 'Description too short (min 50 characters)'
+      };
     } else if (description.length > 160) {
-      validation.description = { valid: false, message: 'Description too long (max 160 characters)' };
+      validation.description = {
+        valid: false,
+        message: 'Description too long (max 160 characters)'
+      };
     }
 
     // Validate keywords
     const keywords = data.site_keywords || '';
     if (!keywords) {
-      validation.keywords = { valid: false, message: 'Keywords are recommended' };
+      validation.keywords = {
+        valid: false,
+        message: 'Keywords are recommended'
+      };
     } else {
       const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
       if (keywordArray.length < 3) {
-        validation.keywords = { valid: false, message: 'Add at least 3 keywords' };
+        validation.keywords = {
+          valid: false,
+          message: 'Add at least 3 keywords'
+        };
       } else if (keywordArray.length > 15) {
-        validation.keywords = { valid: false, message: 'Too many keywords (max 15)' };
+        validation.keywords = {
+          valid: false,
+          message: 'Too many keywords (max 15)'
+        };
       }
     }
-
     setSeoValidation(validation);
   };
 
@@ -1498,7 +1543,7 @@ const HomePageManagement = () => {
     if (seoData.site_title) {
       document.title = seoData.site_title;
     }
-    
+
     // Update meta description
     let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
     if (!metaDesc) {
@@ -1509,7 +1554,7 @@ const HomePageManagement = () => {
     if (seoData.site_description) {
       metaDesc.content = seoData.site_description;
     }
-    
+
     // Update meta keywords
     let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
     if (!metaKeywords) {
@@ -1544,36 +1589,31 @@ const HomePageManagement = () => {
   const saveHomeSections = async (sections: any[]) => {
     try {
       // Clear existing sections first
-      const { error: deleteError } = await supabase
-        .from('home_page_sections')
-        .delete()
-        .neq('id', 'never-match');
-      
+      const {
+        error: deleteError
+      } = await supabase.from('home_page_sections').delete().neq('id', 'never-match');
       if (deleteError) throw deleteError;
 
       // Insert new sections
-      const { error: insertError } = await supabase
-        .from('home_page_sections')
-        .insert(sections.map((section, index) => ({
-          type: section.type,
-          title: section.title,
-          enabled: section.enabled,
-          order_index: index,
-          config: section.config
-        })));
-
+      const {
+        error: insertError
+      } = await supabase.from('home_page_sections').insert(sections.map((section, index) => ({
+        type: section.type,
+        title: section.title,
+        enabled: section.enabled,
+        order_index: index,
+        config: section.config
+      })));
       if (insertError) throw insertError;
-      
       toast({
         title: "Success",
         description: "Home page sections saved successfully"
       });
-      
       fetchHomeSections();
     } catch (error) {
       console.error('Error saving home sections:', error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Failed to save home page sections",
         variant: "destructive"
       });
@@ -1583,16 +1623,13 @@ const HomePageManagement = () => {
   // Setup auto-refresh functionality
   useEffect(() => {
     if (!isAutoRefreshing || refreshInterval === 0) return;
-
     const intervalMs = refreshInterval * 60 * 1000; // Convert minutes to milliseconds
     setNextRefresh(new Date(Date.now() + intervalMs));
-
     const interval = setInterval(() => {
       refreshAnalyticsData();
       setLastRefresh(new Date());
       setNextRefresh(new Date(Date.now() + intervalMs));
     }, intervalMs);
-
     return () => {
       clearInterval(interval);
     };
@@ -1601,124 +1638,118 @@ const HomePageManagement = () => {
   // Update countdown display every second
   useEffect(() => {
     if (!isAutoRefreshing || !nextRefresh) return;
-
     const updateCountdown = setInterval(() => {
       // Force re-render to update countdown display
       setLastRefresh(prev => new Date(prev.getTime()));
     }, 1000);
-
     return () => clearInterval(updateCountdown);
   }, [isAutoRefreshing, nextRefresh]);
-
   const setupAutoRefresh = () => {
     const initialRefreshTime = new Date(Date.now() + refreshInterval * 60 * 1000);
     setNextRefresh(initialRefreshTime);
   };
-
   const refreshAnalyticsData = () => {
     // Refresh real analytics data from database
     fetchAnalyticsData(selectedPeriod);
     fetchHomeSections();
     fetchAllContent();
     checkBackupStatus();
-    
     toast({
       title: "Data Refreshed",
-      description: "All data has been updated from the database",
+      description: "All data has been updated from the database"
     });
   };
-  
+
   // Setup realtime tracking for analytics
   const setupRealtimeTracking = () => {
-    const channel = supabase.channel('homepage_analytics')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'page_analytics'
-      }, (payload) => {
-        console.log('Analytics updated:', payload);
-        fetchAnalyticsData(selectedPeriod);
-      })
-      .on('postgres_changes', {
-        event: '*', 
-        schema: 'public',
-        table: 'home_page_sections'
-      }, (payload) => {
-        console.log('Home sections updated:', payload);
-        fetchHomeSections();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public', 
-        table: 'hero_blocks'
-      }, (payload) => {
-        console.log('Hero blocks updated:', payload);
-        fetchHeroBlocks();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'books'
-      }, (payload) => {
-        console.log('Books updated:', payload);
-        fetchAllContent();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'blog_posts'
-      }, (payload) => {
-        console.log('Blog posts updated:', payload);
-        fetchAllContent();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'events'
-      }, (payload) => {
-        console.log('Events updated:', payload);
-        fetchAllContent();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'additional_pages'
-      }, (payload) => {
-        console.log('Additional pages updated:', payload);
-        fetchAllContent();
-      })
-      .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState();
-        const count = Object.keys(newState).length;
-        setOnlineVisitors(count);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        setOnlineVisitors(prev => prev + newPresences.length);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        setOnlineVisitors(prev => Math.max(0, prev - leftPresences.length));
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            user_id: 'admin-dashboard',
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
-
+    const channel = supabase.channel('homepage_analytics').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'page_analytics'
+    }, payload => {
+      console.log('Analytics updated:', payload);
+      fetchAnalyticsData(selectedPeriod);
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'home_page_sections'
+    }, payload => {
+      console.log('Home sections updated:', payload);
+      fetchHomeSections();
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'hero_blocks'
+    }, payload => {
+      console.log('Hero blocks updated:', payload);
+      fetchHeroBlocks();
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'books'
+    }, payload => {
+      console.log('Books updated:', payload);
+      fetchAllContent();
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'blog_posts'
+    }, payload => {
+      console.log('Blog posts updated:', payload);
+      fetchAllContent();
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'events'
+    }, payload => {
+      console.log('Events updated:', payload);
+      fetchAllContent();
+    }).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'additional_pages'
+    }, payload => {
+      console.log('Additional pages updated:', payload);
+      fetchAllContent();
+    }).on('presence', {
+      event: 'sync'
+    }, () => {
+      const newState = channel.presenceState();
+      const count = Object.keys(newState).length;
+      setOnlineVisitors(count);
+    }).on('presence', {
+      event: 'join'
+    }, ({
+      key,
+      newPresences
+    }) => {
+      setOnlineVisitors(prev => prev + newPresences.length);
+    }).on('presence', {
+      event: 'leave'
+    }, ({
+      key,
+      leftPresences
+    }) => {
+      setOnlineVisitors(prev => Math.max(0, prev - leftPresences.length));
+    }).subscribe(async status => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({
+          user_id: 'admin-dashboard',
+          online_at: new Date().toISOString()
+        });
+      }
+    });
     return () => {
       supabase.removeChannel(channel);
     };
   };
-  
+
   // Real-time visitor tracking
   const trackRealTimeVisitors = () => {
     // Update analytics every 30 seconds for real-time feel
     const interval = setInterval(() => {
       fetchAnalyticsData(selectedPeriod);
     }, 30000);
-    
     return () => clearInterval(interval);
   };
   const fetchHeroBlocks = async () => {
@@ -1811,90 +1842,109 @@ const HomePageManagement = () => {
   // Generate stats based on selected period with proper formatting
   const getStatsByPeriod = (period: string) => {
     const periodMultipliers = {
-      hours: { visitors: 0.05, pageViews: 0.08, bounceRate: 1.2, sessionTime: 0.8, conversion: 0.6 },
-      day: { visitors: 1, pageViews: 1, bounceRate: 1, sessionTime: 1, conversion: 1 },
-      month: { visitors: 25, pageViews: 30, bounceRate: 0.9, sessionTime: 1.1, conversion: 1.3 },
-      year: { visitors: 300, pageViews: 350, bounceRate: 0.85, sessionTime: 1.2, conversion: 1.8 },
-      lifetime: { visitors: 1200, pageViews: 1500, bounceRate: 0.8, sessionTime: 1.4, conversion: 2.5 }
+      hours: {
+        visitors: 0.05,
+        pageViews: 0.08,
+        bounceRate: 1.2,
+        sessionTime: 0.8,
+        conversion: 0.6
+      },
+      day: {
+        visitors: 1,
+        pageViews: 1,
+        bounceRate: 1,
+        sessionTime: 1,
+        conversion: 1
+      },
+      month: {
+        visitors: 25,
+        pageViews: 30,
+        bounceRate: 0.9,
+        sessionTime: 1.1,
+        conversion: 1.3
+      },
+      year: {
+        visitors: 300,
+        pageViews: 350,
+        bounceRate: 0.85,
+        sessionTime: 1.2,
+        conversion: 1.8
+      },
+      lifetime: {
+        visitors: 1200,
+        pageViews: 1500,
+        bounceRate: 0.8,
+        sessionTime: 1.4,
+        conversion: 2.5
+      }
     };
-    
     const multiplier = periodMultipliers[period] || periodMultipliers.day;
     const baseStats = realtimeStats;
-    
-    return [
-      {
-        title: "Online Visitors",
-        value: onlineVisitors.toString(),
-        change: "Live",
-        trend: "live",
-        icon: Activity,
-        color: "text-green-500",
-        description: "Currently active users"
-      },
-      {
-        title: "Total Visitors",
-        value: Math.round(baseStats.uniqueVisitors * multiplier.visitors).toLocaleString(),
-        change: "+12.50%",
-        trend: "up",
-        icon: Users,
-        color: "text-blue-600",
-        description: `${period === 'hours' ? 'Last 6 hours' : period === 'day' ? 'Today' : period === 'month' ? 'This month' : period === 'year' ? 'This year' : 'All time'} unique visitors`
-      },
-      {
-        title: "Page Views",
-        value: Math.round(baseStats.pageViews * multiplier.pageViews).toLocaleString(),
-        change: "+8.75%",
-        trend: "up",
-        icon: Eye,
-        color: "text-purple-600",
-        description: "Total page impressions"
-      },
-      {
-        title: "Bounce Rate",
-        value: `${(baseStats.bounceRate * multiplier.bounceRate).toFixed(2)}%`,
-        change: "-5.25%",
-        trend: "down",
-        icon: TrendingUp,
-        color: "text-orange-600",
-        description: "Single page sessions"
-      },
-      {
-        title: "Avg. Session",
-        value: `${Math.floor((baseStats.avgSessionTime * multiplier.sessionTime) / 60)}m ${Math.round((baseStats.avgSessionTime * multiplier.sessionTime) % 60)}s`,
-        change: "+15.30%",
-        trend: "up",
-        icon: Clock,
-        color: "text-indigo-600",
-        description: "Average session duration"
-      },
-      {
-        title: "Conversion Rate",
-        value: `${(baseStats.conversionRate * multiplier.conversion).toFixed(2)}%`,
-        change: "+0.35%",
-        trend: "up",
-        icon: Target,
-        color: "text-emerald-600",
-        description: "Goal completion rate"
-      },
-      {
-        title: "Page Load Time",
-        value: `${baseStats.pageLoadTime.toFixed(2)}s`,
-        change: "-0.20s",
-        trend: "down",
-        icon: Zap,
-        color: "text-yellow-600",
-        description: "Average load speed"
-      },
-      {
-        title: "Engagement Score",
-        value: `${(94.0 + (multiplier.conversion - 1) * 5).toFixed(2)}%`,
-        change: "+2.15%",
-        trend: "up",
-        icon: Heart,
-        color: "text-rose-600",
-        description: "User engagement level"
-      }
-    ];
+    return [{
+      title: "Online Visitors",
+      value: onlineVisitors.toString(),
+      change: "Live",
+      trend: "live",
+      icon: Activity,
+      color: "text-green-500",
+      description: "Currently active users"
+    }, {
+      title: "Total Visitors",
+      value: Math.round(baseStats.uniqueVisitors * multiplier.visitors).toLocaleString(),
+      change: "+12.50%",
+      trend: "up",
+      icon: Users,
+      color: "text-blue-600",
+      description: `${period === 'hours' ? 'Last 6 hours' : period === 'day' ? 'Today' : period === 'month' ? 'This month' : period === 'year' ? 'This year' : 'All time'} unique visitors`
+    }, {
+      title: "Page Views",
+      value: Math.round(baseStats.pageViews * multiplier.pageViews).toLocaleString(),
+      change: "+8.75%",
+      trend: "up",
+      icon: Eye,
+      color: "text-purple-600",
+      description: "Total page impressions"
+    }, {
+      title: "Bounce Rate",
+      value: `${(baseStats.bounceRate * multiplier.bounceRate).toFixed(2)}%`,
+      change: "-5.25%",
+      trend: "down",
+      icon: TrendingUp,
+      color: "text-orange-600",
+      description: "Single page sessions"
+    }, {
+      title: "Avg. Session",
+      value: `${Math.floor(baseStats.avgSessionTime * multiplier.sessionTime / 60)}m ${Math.round(baseStats.avgSessionTime * multiplier.sessionTime % 60)}s`,
+      change: "+15.30%",
+      trend: "up",
+      icon: Clock,
+      color: "text-indigo-600",
+      description: "Average session duration"
+    }, {
+      title: "Conversion Rate",
+      value: `${(baseStats.conversionRate * multiplier.conversion).toFixed(2)}%`,
+      change: "+0.35%",
+      trend: "up",
+      icon: Target,
+      color: "text-emerald-600",
+      description: "Goal completion rate"
+    }, {
+      title: "Page Load Time",
+      value: `${baseStats.pageLoadTime.toFixed(2)}s`,
+      change: "-0.20s",
+      trend: "down",
+      icon: Zap,
+      color: "text-yellow-600",
+      description: "Average load speed"
+    }, {
+      title: "Engagement Score",
+      value: `${(94.0 + (multiplier.conversion - 1) * 5).toFixed(2)}%`,
+      change: "+2.15%",
+      trend: "up",
+      icon: Heart,
+      color: "text-rose-600",
+      description: "User engagement level"
+    }];
   };
 
   // Handle data export functionality
@@ -1912,15 +1962,12 @@ const HomePageManagement = () => {
     };
 
     // Create CSV content
-    const csvContent = [
-      'Metric,Value,Change,Period',
-      ...getStatsByPeriod(period).map(stat => 
-        `"${stat.title}","${stat.value}","${stat.change}","${period}"`
-      )
-    ].join('\n');
+    const csvContent = ['Metric,Value,Change,Period', ...getStatsByPeriod(period).map(stat => `"${stat.title}","${stat.value}","${stat.change}","${period}"`)].join('\n');
 
     // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -1929,11 +1976,10 @@ const HomePageManagement = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
     const periodLabels = {
       'hours': 'Last 6 Hours',
       'day': 'Today',
-      'month': 'This Month', 
+      'month': 'This Month',
       'year': 'This Year',
       'lifetime': 'All Time',
       'current-month': 'Current Month',
@@ -1945,13 +1991,11 @@ const HomePageManagement = () => {
       'q3': 'Q3 Data',
       'q4': 'Q4 Data'
     };
-
     toast({
       title: "Export Completed",
-      description: `${periodLabels[period] || period} analytics data exported successfully`,
+      description: `${periodLabels[period] || period} analytics data exported successfully`
     });
   };
-
   const stats = getStatsByPeriod(selectedPeriod);
   const recentActivities = [{
     action: "Hero block updated",
@@ -2022,10 +2066,7 @@ const HomePageManagement = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
-              <Button 
-                onClick={refreshAnalyticsData}
-                disabled={!isAutoRefreshing}
-              >
+              <Button onClick={refreshAnalyticsData} disabled={!isAutoRefreshing}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh Now
               </Button>
@@ -2038,16 +2079,11 @@ const HomePageManagement = () => {
               
               {/* Auto-refresh controls */}
               <div className="flex items-center gap-3">
-                <Switch
-                  checked={isAutoRefreshing}
-                  onCheckedChange={setIsAutoRefreshing}
-                  className="scale-90"
-                />
+                <Switch checked={isAutoRefreshing} onCheckedChange={setIsAutoRefreshing} className="scale-90" />
                 <div className="text-sm">
                   <span className="font-medium">Auto-refresh</span>
-                  {isAutoRefreshing && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
+                  {isAutoRefreshing && <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Select value={refreshInterval.toString()} onValueChange={value => setRefreshInterval(Number(value))}>
                         <SelectTrigger className="w-20 h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
@@ -2058,8 +2094,7 @@ const HomePageManagement = () => {
                           <SelectItem value="60">1h</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </div>
 
@@ -2083,48 +2118,35 @@ const HomePageManagement = () => {
 
               {/* Status info */}
               <div className="text-sm text-muted-foreground">
-                {isAutoRefreshing ? (
-                  <div className="flex items-center gap-2">
+                {isAutoRefreshing ? <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Last: {lastRefresh.toLocaleTimeString()}</span>
-                    {nextRefresh && (
-                      <span className="ml-2">
+                    {nextRefresh && <span className="ml-2">
                         Next: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-orange-600">
+                      </span>}
+                  </div> : <div className="flex items-center gap-2 text-orange-600">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Manual refresh only</span>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <Card key={index} className="relative overflow-hidden">
+            {stats.map((stat, index) => <Card key={index} className="relative overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                        {stat.trend === 'live' && (
-                          <div className="flex items-center">
+                        {stat.trend === 'live' && <div className="flex items-center">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                             <span className="text-xs text-green-600 ml-1 font-medium">LIVE</span>
-                          </div>
-                        )}
+                          </div>}
                       </div>
                       <p className="text-2xl font-bold mb-1">{stat.value}</p>
                       <p className="text-xs text-muted-foreground mb-2">{stat.description}</p>
-                      <p className={`text-xs font-medium ${
-                        stat.trend === 'up' ? 'text-green-600' : 
-                        stat.trend === 'down' ? 'text-red-600' : 
-                        stat.trend === 'live' ? 'text-green-600' : 'text-muted-foreground'
-                      }`}>
+                      <p className={`text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : stat.trend === 'down' ? 'text-red-600' : stat.trend === 'live' ? 'text-green-600' : 'text-muted-foreground'}`}>
                         {stat.trend === 'live' ? 'Real-time data' : `${stat.change} from last month`}
                       </p>
                     </div>
@@ -2132,12 +2154,9 @@ const HomePageManagement = () => {
                       <stat.icon className={`h-6 w-6 ${stat.color}`} />
                     </div>
                   </div>
-                  {stat.trend === 'live' && (
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400 animate-pulse"></div>
-                  )}
+                  {stat.trend === 'live' && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400 animate-pulse"></div>}
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2145,11 +2164,7 @@ const HomePageManagement = () => {
               <CardHeader>
                 <CardTitle>Visitor Trends</CardTitle>
                 <CardDescription>
-                  {selectedPeriod === 'hours' ? 'Hourly visitor statistics for the last 6 hours' :
-                   selectedPeriod === 'day' ? 'Hourly visitor statistics for today' :
-                   selectedPeriod === 'month' ? 'Weekly visitor statistics for this month' :
-                   selectedPeriod === 'year' ? 'Quarterly visitor statistics for this year' :
-                   'Yearly visitor statistics over time'}
+                  {selectedPeriod === 'hours' ? 'Hourly visitor statistics for the last 6 hours' : selectedPeriod === 'day' ? 'Hourly visitor statistics for today' : selectedPeriod === 'month' ? 'Weekly visitor statistics for this month' : selectedPeriod === 'year' ? 'Quarterly visitor statistics for this year' : 'Yearly visitor statistics over time'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -2164,11 +2179,7 @@ const HomePageManagement = () => {
                 <CardTitle>Top Pages</CardTitle>
                 <CardDescription>
                   Most visited pages on your website
-                  {selectedPeriod === 'hours' ? ' in the last 6 hours' :
-                   selectedPeriod === 'day' ? ' today' :
-                   selectedPeriod === 'month' ? ' this month' :
-                   selectedPeriod === 'year' ? ' this year' :
-                   ' of all time'}
+                  {selectedPeriod === 'hours' ? ' in the last 6 hours' : selectedPeriod === 'day' ? ' today' : selectedPeriod === 'month' ? ' this month' : selectedPeriod === 'year' ? ' this year' : ' of all time'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -2253,7 +2264,9 @@ const HomePageManagement = () => {
                     <span className="font-medium text-green-600">1.2s</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+                    <div className="bg-green-500 h-2 rounded-full" style={{
+                    width: '75%'
+                  }}></div>
                   </div>
                 </div>
                 
@@ -2263,7 +2276,9 @@ const HomePageManagement = () => {
                     <span className="font-medium text-blue-600">24ms avg</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '90%' }}></div>
+                    <div className="bg-blue-500 h-2 rounded-full" style={{
+                    width: '90%'
+                  }}></div>
                   </div>
                 </div>
                 
@@ -2273,7 +2288,9 @@ const HomePageManagement = () => {
                     <span className="font-medium text-purple-600">96%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '96%' }}></div>
+                    <div className="bg-purple-500 h-2 rounded-full" style={{
+                    width: '96%'
+                  }}></div>
                   </div>
                 </div>
                 
@@ -2283,7 +2300,9 @@ const HomePageManagement = () => {
                     <span className="font-medium text-emerald-600">99.9%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '99%' }}></div>
+                    <div className="bg-emerald-500 h-2 rounded-full" style={{
+                    width: '99%'
+                  }}></div>
                   </div>
                 </div>
               </CardContent>
@@ -2482,17 +2501,17 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <Label htmlFor="logo">Logo URL</Label>
                       <Input id="logo" placeholder="https://yoursite.com/logo.png" value={siteSettings.logo} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        logo: e.target.value
-                      }))} />
+                      ...prev,
+                      logo: e.target.value
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="favicon">Favicon URL</Label>
                       <Input id="favicon" placeholder="https://yoursite.com/favicon.ico" value={siteSettings.favicon} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        favicon: e.target.value
-                      }))} />
+                      ...prev,
+                      favicon: e.target.value
+                    }))} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -2500,13 +2519,13 @@ const HomePageManagement = () => {
                         <Label htmlFor="primary-color">Primary Color</Label>
                         <div className="flex gap-2">
                           <Input id="primary-color" type="color" value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
-                            ...prev,
-                            primaryColor: e.target.value
-                          }))} className="w-16 h-10 p-1" />
+                          ...prev,
+                          primaryColor: e.target.value
+                        }))} className="w-16 h-10 p-1" />
                           <Input value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
-                            ...prev,
-                            primaryColor: e.target.value
-                          }))} placeholder="#3b82f6" />
+                          ...prev,
+                          primaryColor: e.target.value
+                        }))} placeholder="#3b82f6" />
                         </div>
                       </div>
 
@@ -2514,13 +2533,13 @@ const HomePageManagement = () => {
                         <Label htmlFor="secondary-color">Secondary Color</Label>
                         <div className="flex gap-2">
                           <Input id="secondary-color" type="color" value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
-                            ...prev,
-                            secondaryColor: e.target.value
-                          }))} className="w-16 h-10 p-1" />
+                          ...prev,
+                          secondaryColor: e.target.value
+                        }))} className="w-16 h-10 p-1" />
                           <Input value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
-                            ...prev,
-                            secondaryColor: e.target.value
-                          }))} placeholder="#64748b" />
+                          ...prev,
+                          secondaryColor: e.target.value
+                        }))} placeholder="#64748b" />
                         </div>
                       </div>
                     </div>
@@ -2528,9 +2547,9 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <Label htmlFor="font-family">Font Family</Label>
                       <Select value={siteSettings.fontFamily} onValueChange={value => setSiteSettings(prev => ({
-                        ...prev,
-                        fontFamily: value
-                      }))}>
+                      ...prev,
+                      fontFamily: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -2560,9 +2579,9 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <Label htmlFor="header-layout">Header Layout</Label>
                       <Select value={siteSettings.headerLayout} onValueChange={value => setSiteSettings(prev => ({
-                        ...prev,
-                        headerLayout: value
-                      }))}>
+                      ...prev,
+                      headerLayout: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -2578,9 +2597,9 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <Label htmlFor="footer-layout">Footer Layout</Label>
                       <Select value={siteSettings.footerLayout} onValueChange={value => setSiteSettings(prev => ({
-                        ...prev,
-                        footerLayout: value
-                      }))}>
+                      ...prev,
+                      footerLayout: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -2645,56 +2664,56 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <Label htmlFor="facebook">Facebook</Label>
                       <Input id="facebook" placeholder="https://facebook.com/yourpage" value={siteSettings.socialLinks.facebook} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        socialLinks: {
-                          ...prev.socialLinks,
-                          facebook: e.target.value
-                        }
-                      }))} />
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        facebook: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="twitter">Twitter</Label>
                       <Input id="twitter" placeholder="https://twitter.com/youraccount" value={siteSettings.socialLinks.twitter} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        socialLinks: {
-                          ...prev.socialLinks,
-                          twitter: e.target.value
-                        }
-                      }))} />
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        twitter: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="instagram">Instagram</Label>
                       <Input id="instagram" placeholder="https://instagram.com/youraccount" value={siteSettings.socialLinks.instagram} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        socialLinks: {
-                          ...prev.socialLinks,
-                          instagram: e.target.value
-                        }
-                      }))} />
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        instagram: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="linkedin">LinkedIn</Label>
                       <Input id="linkedin" placeholder="https://linkedin.com/company/yourcompany" value={siteSettings.socialLinks.linkedin} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        socialLinks: {
-                          ...prev.socialLinks,
-                          linkedin: e.target.value
-                        }
-                      }))} />
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        linkedin: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="youtube">YouTube</Label>
                       <Input id="youtube" placeholder="https://youtube.com/yourchannel" value={siteSettings.socialLinks.youtube} onChange={e => setSiteSettings(prev => ({
-                        ...prev,
-                        socialLinks: {
-                          ...prev.socialLinks,
-                          youtube: e.target.value
-                        }
-                      }))} />
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        youtube: e.target.value
+                      }
+                    }))} />
                     </div>
                   </div>
                 </CardContent>
@@ -2721,16 +2740,15 @@ const HomePageManagement = () => {
             </div>
           </div>
 
-          {heroManagerView === 'editor' ? (
-            <div className="space-y-6">
+          {heroManagerView === 'editor' ? <div className="space-y-6">
               {/* Editor Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Button variant="outline" onClick={() => {
-                    setHeroManagerView('list');
-                    setSelectedHeroBlock(null);
-                    setIsCreatingHero(false);
-                  }}>
+                setHeroManagerView('list');
+                setSelectedHeroBlock(null);
+                setIsCreatingHero(false);
+              }}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to Hero List
                   </Button>
@@ -2743,10 +2761,10 @@ const HomePageManagement = () => {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => {
-                    setHeroManagerView('list');
-                    setSelectedHeroBlock(null);
-                    setIsCreatingHero(false);
-                  }}>
+                setHeroManagerView('list');
+                setSelectedHeroBlock(null);
+                setIsCreatingHero(false);
+              }}>
                     Cancel
                   </Button>
                   <Button onClick={saveHeroBlock}>
@@ -2768,28 +2786,24 @@ const HomePageManagement = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="heroBlockName">Block Name</Label>
-                          <Input
-                            id="heroBlockName"
-                            value={selectedHeroBlock?.name || ''}
-                            onChange={(e) => setSelectedHeroBlock(prev => prev ? { ...prev, name: e.target.value } : null)}
-                            placeholder="Enter block name"
-                          />
+                          <Input id="heroBlockName" value={selectedHeroBlock?.name || ''} onChange={e => setSelectedHeroBlock(prev => prev ? {
+                        ...prev,
+                        name: e.target.value
+                      } : null)} placeholder="Enter block name" />
                         </div>
                         <div>
                           <Label htmlFor="heroBlockDescription">Description</Label>
-                          <Input
-                            id="heroBlockDescription"
-                            value={selectedHeroBlock?.description || ''}
-                            onChange={(e) => setSelectedHeroBlock(prev => prev ? { ...prev, description: e.target.value } : null)}
-                            placeholder="Brief description"
-                          />
+                          <Input id="heroBlockDescription" value={selectedHeroBlock?.description || ''} onChange={e => setSelectedHeroBlock(prev => prev ? {
+                        ...prev,
+                        description: e.target.value
+                      } : null)} placeholder="Brief description" />
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={selectedHeroBlock?.enabled ?? true}
-                          onCheckedChange={(checked) => setSelectedHeroBlock(prev => prev ? { ...prev, enabled: checked } : null)}
-                        />
+                        <Switch checked={selectedHeroBlock?.enabled ?? true} onCheckedChange={checked => setSelectedHeroBlock(prev => prev ? {
+                      ...prev,
+                      enabled: checked
+                    } : null)} />
                         <Label>Enable for authors</Label>
                       </div>
                     </CardContent>
@@ -2829,14 +2843,10 @@ const HomePageManagement = () => {
                         
                         {/* Elements List */}
                         <div className="space-y-3">
-                          {heroElements.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
+                          {heroElements.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                               <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
                               <p>No elements added yet. Click the buttons above to add elements.</p>
-                            </div>
-                          ) : (
-                            heroElements.map((element, index) => (
-                              <Card key={element.id} className="p-3">
+                            </div> : heroElements.map((element, index) => <Card key={element.id} className="p-3">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
@@ -2857,18 +2867,12 @@ const HomePageManagement = () => {
                                     <Button variant="ghost" size="sm">
                                       <Settings className="h-4 w-4" />
                                     </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => removeHeroElement(element.id)}
-                                    >
+                                    <Button variant="ghost" size="sm" onClick={() => removeHeroElement(element.id)}>
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
                                 </div>
-                              </Card>
-                            ))
-                          )}
+                              </Card>)}
                         </div>
                       </div>
                     </CardContent>
@@ -2882,89 +2886,55 @@ const HomePageManagement = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle>Live Preview</CardTitle>
                         <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant={heroPreviewMode === 'desktop' ? 'default' : 'outline'}
-                            onClick={() => setHeroPreviewMode('desktop')}
-                          >
+                          <Button size="sm" variant={heroPreviewMode === 'desktop' ? 'default' : 'outline'} onClick={() => setHeroPreviewMode('desktop')}>
                             <Monitor className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant={heroPreviewMode === 'tablet' ? 'default' : 'outline'}
-                            onClick={() => setHeroPreviewMode('tablet')}
-                          >
+                          <Button size="sm" variant={heroPreviewMode === 'tablet' ? 'default' : 'outline'} onClick={() => setHeroPreviewMode('tablet')}>
                             <Tablet className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant={heroPreviewMode === 'mobile' ? 'default' : 'outline'}
-                            onClick={() => setHeroPreviewMode('mobile')}
-                          >
+                          <Button size="sm" variant={heroPreviewMode === 'mobile' ? 'default' : 'outline'} onClick={() => setHeroPreviewMode('mobile')}>
                             <Smartphone className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div 
-                        className={`
+                      <div className={`
                           border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950 dark:via-background dark:to-purple-950 min-h-[400px] transition-all duration-300
                           ${heroPreviewMode === 'desktop' ? 'w-full' : heroPreviewMode === 'tablet' ? 'w-80 mx-auto' : 'w-64 mx-auto'}
-                        `}
-                      >
+                        `}>
                         <div className="p-6 space-y-4">
-                          {heroElements.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground">
+                          {heroElements.length === 0 ? <div className="text-center py-12 text-muted-foreground">
                               <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
                               <p>Preview will appear here</p>
                               <p className="text-sm mt-2">Add elements to see the preview</p>
-                            </div>
-                          ) : (
-                            heroElements.map((element, index) => (
-                              <div key={element.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                                {element.type === 'text' && (
-                                  <div 
-                                    className={`
+                            </div> : heroElements.map((element, index) => <div key={element.id} className="animate-fade-in" style={{
+                        animationDelay: `${index * 0.1}s`
+                      }}>
+                                {element.type === 'text' && <div className={`
                                       ${element.styles.fontSize === '4xl' ? 'text-4xl' : element.styles.fontSize === '3xl' ? 'text-3xl' : element.styles.fontSize === 'lg' ? 'text-lg' : 'text-base'}
                                       ${element.styles.fontWeight === 'bold' ? 'font-bold' : 'font-normal'}
                                       ${element.styles.textAlign === 'center' ? 'text-center' : element.styles.textAlign === 'right' ? 'text-right' : 'text-left'}
                                       ${element.styles.color === 'muted-foreground' ? 'text-muted-foreground' : 'text-foreground'}
                                       ${element.styles.marginBottom ? `mb-${element.styles.marginBottom}` : ''}
-                                    `}
-                                  >
+                                    `}>
                                     {element.content}
-                                  </div>
-                                )}
-                                {element.type === 'image' && (
-                                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                                  </div>}
+                                {element.type === 'image' && <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
                                     <ImageIcon className="h-8 w-8 text-muted-foreground" />
                                     <span className="ml-2 text-sm text-muted-foreground">Image</span>
-                                  </div>
-                                )}
-                                {element.type === 'button' && (
-                                  <div className={element.styles.textAlign === 'center' ? 'text-center' : ''}>
-                                    <Button 
-                                      variant={element.styles.variant || 'default'}
-                                      size={element.styles.size || 'default'}
-                                      className="animate-scale-in"
-                                    >
+                                  </div>}
+                                {element.type === 'button' && <div className={element.styles.textAlign === 'center' ? 'text-center' : ''}>
+                                    <Button variant={element.styles.variant || 'default'} size={element.styles.size || 'default'} className="animate-scale-in">
                                       {element.content}
                                     </Button>
-                                  </div>
-                                )}
-                                {element.type === 'video' && (
-                                  <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                                  </div>}
+                                {element.type === 'video' && <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
                                     <Monitor className="h-8 w-8 text-muted-foreground" />
                                     <span className="ml-2 text-sm text-muted-foreground">Video</span>
-                                  </div>
-                                )}
-                                {element.type === 'spacer' && (
-                                  <div className="h-8" />
-                                )}
-                              </div>
-                            ))
-                          )}
+                                  </div>}
+                                {element.type === 'spacer' && <div className="h-8" />}
+                              </div>)}
                         </div>
                       </div>
                       
@@ -2983,9 +2953,7 @@ const HomePageManagement = () => {
                   </Card>
                 </div>
               </div>
-            </div>
-          ) : (
-            <>
+            </div> : <>
               {/* Hero Block Statistics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <Card>
@@ -3048,57 +3016,63 @@ const HomePageManagement = () => {
                 </CardHeader>
                 <CardContent className="overflow-hidden">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[
-                      {
-                        id: 'modern-minimal',
-                        name: 'Modern Minimal',
-                        description: 'Clean, minimal design with centered content',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'centered', style: 'minimal' }
-                      },
-                      {
-                        id: 'split-screen',
-                        name: 'Split Screen Hero',
-                        description: 'Text on one side, image on the other',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'split', style: 'modern' }
-                      },
-                      {
-                        id: 'video-background',
-                        name: 'Video Background',
-                        description: 'Hero with background video and overlay text',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'overlay', style: 'video' }
-                      },
-                      {
-                        id: 'carousel-hero',
-                        name: 'Carousel Hero',
-                        description: 'Multiple slides with navigation',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'carousel', style: 'dynamic' }
-                      },
-                      {
-                        id: 'book-showcase',
-                        name: 'Book Showcase',
-                        description: 'Perfect for displaying featured books',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'showcase', style: 'book-focused' }
-                      },
-                      {
-                        id: 'author-intro',
-                        name: 'Author Introduction',
-                        description: 'Professional author presentation',
-                        preview: '/api/placeholder/300/180',
-                        config: { layout: 'intro', style: 'professional' }
-                      }
-                    ].map((template) => (
-                      <Card key={template.id} className="group hover:shadow-md transition-all cursor-pointer overflow-hidden">
+                    {[{
+                  id: 'modern-minimal',
+                  name: 'Modern Minimal',
+                  description: 'Clean, minimal design with centered content',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'centered',
+                    style: 'minimal'
+                  }
+                }, {
+                  id: 'split-screen',
+                  name: 'Split Screen Hero',
+                  description: 'Text on one side, image on the other',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'split',
+                    style: 'modern'
+                  }
+                }, {
+                  id: 'video-background',
+                  name: 'Video Background',
+                  description: 'Hero with background video and overlay text',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'overlay',
+                    style: 'video'
+                  }
+                }, {
+                  id: 'carousel-hero',
+                  name: 'Carousel Hero',
+                  description: 'Multiple slides with navigation',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'carousel',
+                    style: 'dynamic'
+                  }
+                }, {
+                  id: 'book-showcase',
+                  name: 'Book Showcase',
+                  description: 'Perfect for displaying featured books',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'showcase',
+                    style: 'book-focused'
+                  }
+                }, {
+                  id: 'author-intro',
+                  name: 'Author Introduction',
+                  description: 'Professional author presentation',
+                  preview: '/api/placeholder/300/180',
+                  config: {
+                    layout: 'intro',
+                    style: 'professional'
+                  }
+                }].map(template => <Card key={template.id} className="group hover:shadow-md transition-all cursor-pointer overflow-hidden">
                         <div className="aspect-video relative overflow-hidden rounded-t-lg bg-muted">
-                          <img 
-                            src={template.preview} 
-                            alt={template.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                          />
+                          <img src={template.preview} alt={template.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                         </div>
                         <CardContent className="p-4">
@@ -3108,28 +3082,18 @@ const HomePageManagement = () => {
                               <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">{template.description}</p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-2 w-full">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => previewTemplate(template)}
-                                className="flex-1 min-w-0"
-                              >
+                              <Button size="sm" variant="outline" onClick={() => previewTemplate(template)} className="flex-1 min-w-0">
                                 <Eye className="h-3 w-3 mr-1" />
                                 <span className="truncate">Preview</span>
                               </Button>
-                              <Button 
-                                size="sm" 
-                                onClick={() => createHeroFromTemplate(template)}
-                                className="flex-1 min-w-0"
-                              >
+                              <Button size="sm" onClick={() => createHeroFromTemplate(template)} className="flex-1 min-w-0">
                                 <Plus className="h-3 w-3 mr-1" />
                                 <span className="truncate">Use Template</span>
                               </Button>
                             </div>
                           </div>
                         </CardContent>
-                      </Card>
-                    ))}
+                      </Card>)}
                   </div>
                 </CardContent>
               </Card>
@@ -3144,14 +3108,9 @@ const HomePageManagement = () => {
                   <CardDescription>Manage your current hero blocks</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {loading ? (
-                    <div className="grid grid-cols-1 gap-4">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="h-24 bg-muted animate-pulse rounded" />
-                      ))}
-                    </div>
-                  ) : heroBlocks.length === 0 ? (
-                    <div className="text-center py-12">
+                  {loading ? <div className="grid grid-cols-1 gap-4">
+                      {[1, 2, 3].map(i => <div key={i} className="h-24 bg-muted animate-pulse rounded" />)}
+                    </div> : heroBlocks.length === 0 ? <div className="text-center py-12">
                       <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
                       <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
@@ -3159,11 +3118,8 @@ const HomePageManagement = () => {
                     <Plus className="h-4 w-4 mr-2" />
                     Create First Hero Block
                   </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {heroBlocks.map((block) => (
-                        <Card key={block.id} className="group hover:shadow-md transition-all duration-200">
+                    </div> : <div className="space-y-4">
+                      {heroBlocks.map(block => <Card key={block.id} className="group hover:shadow-md transition-all duration-200">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-4">
@@ -3177,9 +3133,7 @@ const HomePageManagement = () => {
                                     <Badge variant={block.enabled ? "default" : "secondary"}>
                                       {block.enabled ? 'Active' : 'Inactive'}
                                     </Badge>
-                                    {block.config?.isDefault && (
-                                      <Badge variant="outline">Default</Badge>
-                                    )}
+                                    {block.config?.isDefault && <Badge variant="outline">Default</Badge>}
                                     <span className="text-xs text-muted-foreground">
                                       Created {new Date(block.created_at).toLocaleDateString()}
                                     </span>
@@ -3188,67 +3142,37 @@ const HomePageManagement = () => {
                               </div>
                               
                               <div className="flex items-center gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => previewHeroBlock(block)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => previewHeroBlock(block)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => editHeroBlock(block)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => editHeroBlock(block)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => duplicateHeroBlock(block)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => duplicateHeroBlock(block)}>
                                   <Copy className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => toggleHeroBlock(block.id)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => toggleHeroBlock(block.id)}>
                                   {block.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => deleteHeroBlock(block.id)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => deleteHeroBlock(block.id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                                 
-                                {block.config?.usage_count && (
-                                  <div className="text-xs text-muted-foreground ml-2">
+                                {block.config?.usage_count && <div className="text-xs text-muted-foreground ml-2">
                                     Used {block.config.usage_count} times
-                                  </div>
-                                )}
+                                  </div>}
                                 
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setAsDefaultHero(block.id)}
-                                  disabled={block.config?.isDefault}
-                                >
+                                <Button variant="outline" size="sm" onClick={() => setAsDefaultHero(block.id)} disabled={block.config?.isDefault}>
                                   {block.config?.isDefault ? 'Default' : 'Set as Default'}
                                 </Button>
                               </div>
                             </div>
                           </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                        </Card>)}
+                    </div>}
                 </CardContent>
               </Card>
-            </>
-          )}
+            </>}
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
@@ -3261,11 +3185,7 @@ const HomePageManagement = () => {
               <p className="text-muted-foreground">Optimize your site for search engines</p>
             </div>
             <div className="flex gap-2">
-              <Button 
-                onClick={autoGenerateSEO} 
-                disabled={autoGenerating}
-                variant="outline"
-              >
+              <Button onClick={autoGenerateSEO} disabled={autoGenerating} variant="outline">
                 <Brain className="h-4 w-4 mr-2" />
                 {autoGenerating ? 'Generating...' : 'Auto Generate SEO'}
               </Button>
@@ -3304,81 +3224,70 @@ const HomePageManagement = () => {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Label htmlFor="site-title">Site Title</Label>
-                        {seoValidation?.title && !seoValidation.title.valid && (
-                          <Badge variant="destructive" className="text-xs">Issues</Badge>
-                        )}
+                        {seoValidation?.title && !seoValidation.title.valid && <Badge variant="destructive" className="text-xs">Issues</Badge>}
                       </div>
-                      <Input 
-                        id="site-title" 
-                        placeholder="Your Website Title" 
-                        value={seoSettings.site_title || siteSettings.siteName} 
-                        onChange={e => {
-                          setSeoSettings(prev => ({ ...prev, site_title: e.target.value }));
-                          setSiteSettings(prev => ({ ...prev, siteName: e.target.value }));
-                        }} 
-                      />
+                      <Input id="site-title" placeholder="Your Website Title" value={seoSettings.site_title || siteSettings.siteName} onChange={e => {
+                      setSeoSettings(prev => ({
+                        ...prev,
+                        site_title: e.target.value
+                      }));
+                      setSiteSettings(prev => ({
+                        ...prev,
+                        siteName: e.target.value
+                      }));
+                    }} />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 30-60 characters</span>
                         <span className={(seoSettings.site_title || siteSettings.siteName).length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
                           {(seoSettings.site_title || siteSettings.siteName).length}/60
                         </span>
                       </div>
-                      {seoValidation?.title && !seoValidation.title.valid && (
-                        <p className="text-xs text-red-500">{seoValidation.title.message}</p>
-                      )}
+                      {seoValidation?.title && !seoValidation.title.valid && <p className="text-xs text-red-500">{seoValidation.title.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Label htmlFor="site-description">Meta Description</Label>
-                        {seoValidation?.description && !seoValidation.description.valid && (
-                          <Badge variant="destructive" className="text-xs">Issues</Badge>
-                        )}
+                        {seoValidation?.description && !seoValidation.description.valid && <Badge variant="destructive" className="text-xs">Issues</Badge>}
                       </div>
-                      <Textarea 
-                        id="site-description" 
-                        placeholder="Brief description of your website..." 
-                        value={seoSettings.site_description || siteSettings.siteDescription} 
-                        onChange={e => {
-                          setSeoSettings(prev => ({ ...prev, site_description: e.target.value }));
-                          setSiteSettings(prev => ({ ...prev, siteDescription: e.target.value }));
-                        }} 
-                        rows={3} 
-                      />
+                      <Textarea id="site-description" placeholder="Brief description of your website..." value={seoSettings.site_description || siteSettings.siteDescription} onChange={e => {
+                      setSeoSettings(prev => ({
+                        ...prev,
+                        site_description: e.target.value
+                      }));
+                      setSiteSettings(prev => ({
+                        ...prev,
+                        siteDescription: e.target.value
+                      }));
+                    }} rows={3} />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 120-160 characters</span>
                         <span className={(seoSettings.site_description || siteSettings.siteDescription).length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
                           {(seoSettings.site_description || siteSettings.siteDescription).length}/160
                         </span>
                       </div>
-                      {seoValidation?.description && !seoValidation.description.valid && (
-                        <p className="text-xs text-red-500">{seoValidation.description.message}</p>
-                      )}
+                      {seoValidation?.description && !seoValidation.description.valid && <p className="text-xs text-red-500">{seoValidation.description.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Label htmlFor="keywords">SEO Keywords</Label>
-                        {seoValidation?.keywords && !seoValidation.keywords.valid && (
-                          <Badge variant="destructive" className="text-xs">Issues</Badge>
-                        )}
+                        {seoValidation?.keywords && !seoValidation.keywords.valid && <Badge variant="destructive" className="text-xs">Issues</Badge>}
                       </div>
-                      <Textarea 
-                        id="keywords" 
-                        placeholder="keyword1, keyword2, keyword3..." 
-                        value={seoSettings.site_keywords || siteSettings.siteKeywords} 
-                        onChange={e => {
-                          setSeoSettings(prev => ({ ...prev, site_keywords: e.target.value }));
-                          setSiteSettings(prev => ({ ...prev, siteKeywords: e.target.value }));
-                        }} 
-                        rows={2} 
-                      />
+                      <Textarea id="keywords" placeholder="keyword1, keyword2, keyword3..." value={seoSettings.site_keywords || siteSettings.siteKeywords} onChange={e => {
+                      setSeoSettings(prev => ({
+                        ...prev,
+                        site_keywords: e.target.value
+                      }));
+                      setSiteSettings(prev => ({
+                        ...prev,
+                        siteKeywords: e.target.value
+                      }));
+                    }} rows={2} />
                       <p className="text-xs text-muted-foreground">
                         Separate with commas. Focus on 3-5 related keywords.
                       </p>
-                      {seoValidation?.keywords && !seoValidation.keywords.valid && (
-                        <p className="text-xs text-red-500">{seoValidation.keywords.message}</p>
-                      )}
+                      {seoValidation?.keywords && !seoValidation.keywords.valid && <p className="text-xs text-red-500">{seoValidation.keywords.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -3686,22 +3595,14 @@ const HomePageManagement = () => {
             </TabsContent>
 
             <TabsContent value="ai-seo" className="space-y-6 mt-6">
-              <AISEOAssistant
-                content={`${seoSettings.site_title} - ${seoSettings.site_description}`}
-                currentTitle={seoSettings.site_title}
-                currentDescription={seoSettings.site_description}
-                currentKeywords={seoSettings.site_keywords}
-                contentType="page"
-                recordId="homepage"
-                onApplySuggestions={(suggestions) => {
-                  setSeoSettings(prev => ({
-                    ...prev,
-                    site_title: suggestions.title,
-                    site_description: suggestions.description,
-                    site_keywords: suggestions.keywords
-                  }));
-                }}
-              />
+              <AISEOAssistant content={`${seoSettings.site_title} - ${seoSettings.site_description}`} currentTitle={seoSettings.site_title} currentDescription={seoSettings.site_description} currentKeywords={seoSettings.site_keywords} contentType="page" recordId="homepage" onApplySuggestions={suggestions => {
+              setSeoSettings(prev => ({
+                ...prev,
+                site_title: suggestions.title,
+                site_description: suggestions.description,
+                site_keywords: suggestions.keywords
+              }));
+            }} />
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6 mt-6">
@@ -4375,497 +4276,7 @@ const HomePageManagement = () => {
           <EnhancedCookieManagement />
         </TabsContent>
 
-        <TabsContent value="backup" className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Cookie className="h-6 w-6" />
-                Cookie Analytics & Consent
-              </h2>
-              <p className="text-muted-foreground">Monitor cookie consent rates and GDPR compliance</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <a href="/admin/cookie-consent">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Manage Cookie Settings
-                </a>
-              </Button>
-              <Button>
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
-              </Button>
-            </div>
-          </div>
-
-          {/* Cookie Consent Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Visitors</p>
-                    <p className="text-2xl font-bold">2,847</p>
-                    <p className="text-xs text-green-600">+15% from last month</p>
-                  </div>
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Consent Rate</p>
-                    <p className="text-2xl font-bold text-green-600">78.5%</p>
-                    <p className="text-xs text-green-600">+3.2% improvement</p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Rejected Consent</p>
-                    <p className="text-2xl font-bold text-red-600">612</p>
-                    <p className="text-xs text-red-600">21.5% of visitors</p>
-                  </div>
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">GDPR Compliant</p>
-                    <p className="text-2xl font-bold text-green-600">100%</p>
-                    <p className="text-xs text-green-600">All visitors covered</p>
-                  </div>
-                  <Shield className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Cookie Categories Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Cookie className="h-5 w-5" />
-                  Cookie Category Consent Rates
-                </CardTitle>
-                <CardDescription>
-                  Breakdown of consent by cookie category
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded bg-green-500"></div>
-                      <div>
-                        <p className="font-medium">Necessary Cookies</p>
-                        <p className="text-sm text-muted-foreground">Essential functionality</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">100%</p>
-                      <p className="text-xs text-muted-foreground">Required</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded bg-blue-500"></div>
-                      <div>
-                        <p className="font-medium">Analytics Cookies</p>
-                        <p className="text-sm text-muted-foreground">Usage tracking</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">65.3%</p>
-                      <p className="text-xs text-green-600">+2.1%</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded bg-purple-500"></div>
-                      <div>
-                        <p className="font-medium">Marketing Cookies</p>
-                        <p className="text-sm text-muted-foreground">Advertising & remarketing</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">42.8%</p>
-                      <p className="text-xs text-red-600">-1.5%</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded bg-orange-500"></div>
-                      <div>
-                        <p className="font-medium">Functional Cookies</p>
-                        <p className="text-sm text-muted-foreground">Enhanced features</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">58.7%</p>
-                      <p className="text-xs text-green-600">+0.8%</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Consent Trends
-                </CardTitle>
-                <CardDescription>
-                  Cookie consent patterns over time
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>This Week</span>
-                      <span className="font-medium">76.2%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{
-                      width: '76.2%'
-                    }}></div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Last Week</span>
-                      <span className="font-medium">74.8%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{
-                      width: '74.8%'
-                    }}></div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Last Month</span>
-                      <span className="font-medium">72.1%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{
-                      width: '72.1%'
-                    }}></div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Recent Activity</h4>
-                    <ScrollArea className="h-32">
-                      <div className="space-y-2">
-                        {Array.from({
-                        length: 8
-                      }).map((_, i) => <div key={i} className="flex items-center justify-between text-sm p-2 rounded border">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              <span>User accepted all cookies</span>
-                            </div>
-                            <span className="text-muted-foreground">{i + 2}m ago</span>
-                          </div>)}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Geographic & Device Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Consent by Region
-                </CardTitle>
-                <CardDescription>
-                  Geographic breakdown of cookie consent
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🇺🇸 United States</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">82.3%</span>
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{
-                        width: '82.3%'
-                      }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🇪🇺 European Union</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">68.7%</span>
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{
-                        width: '68.7%'
-                      }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🇬🇧 United Kingdom</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">71.2%</span>
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-purple-500 h-2 rounded-full" style={{
-                        width: '71.2%'
-                      }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🇨🇦 Canada</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">79.1%</span>
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-orange-500 h-2 rounded-full" style={{
-                        width: '79.1%'
-                      }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🇦🇺 Australia</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">75.8%</span>
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-cyan-500 h-2 rounded-full" style={{
-                        width: '75.8%'
-                      }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
-                  Device & Browser Analysis
-                </CardTitle>
-                <CardDescription>
-                  Consent patterns by device and browser type
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-3">By Device Type</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center p-2">
-                        <span className="text-sm flex items-center gap-2">
-                          <Monitor className="h-4 w-4" />
-                          Desktop
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">84.2%</span>
-                          <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-green-500 h-2 rounded-full" style={{
-                            width: '84.2%'
-                          }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2">
-                        <span className="text-sm flex items-center gap-2">
-                          <Smartphone className="h-4 w-4" />
-                          Mobile
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">72.1%</span>
-                          <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-blue-500 h-2 rounded-full" style={{
-                            width: '72.1%'
-                          }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2">
-                        <span className="text-sm flex items-center gap-2">
-                          <Tablet className="h-4 w-4" />
-                          Tablet
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">76.8%</span>
-                          <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-purple-500 h-2 rounded-full" style={{
-                            width: '76.8%'
-                          }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h4 className="font-medium mb-3">Top Browsers</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Chrome</span>
-                        <span className="font-medium">78.9%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Safari</span>
-                        <span className="font-medium">73.2%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Firefox</span>
-                        <span className="font-medium">81.5%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Edge</span>
-                        <span className="font-medium">76.3%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* GDPR Compliance Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                GDPR Compliance Status
-              </CardTitle>
-              <CardDescription>
-                Current compliance status and recommendations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">Cookie Banner</div>
-                      <div className="text-sm text-muted-foreground">Active and compliant</div>
-                    </div>
-                  </div>
-                  <Badge variant="default">Compliant</Badge>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">Consent Recording</div>
-                      <div className="text-sm text-muted-foreground">All consents logged</div>
-                    </div>
-                  </div>
-                  <Badge variant="default">Active</Badge>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">Privacy Policy</div>
-                      <div className="text-sm text-muted-foreground">Linked and accessible</div>
-                    </div>
-                  </div>
-                  <Badge variant="default">Updated</Badge>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <AlertTriangle className="h-6 w-6 text-yellow-500" />
-                    <div>
-                      <div className="font-medium">Data Retention</div>
-                      <div className="text-sm text-muted-foreground">Review settings</div>
-                    </div>
-                  </div>
-                  <Badge variant="outline">Review Needed</Badge>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">Cookie Blocking</div>
-                      <div className="text-sm text-muted-foreground">Auto-blocking enabled</div>
-                    </div>
-                  </div>
-                  <Badge variant="default">Active</Badge>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">Withdrawal Rights</div>
-                      <div className="text-sm text-muted-foreground">Easy opt-out available</div>
-                    </div>
-                  </div>
-                  <Badge variant="default">Compliant</Badge>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="font-medium text-green-800 dark:text-green-200">GDPR Compliant</span>
-                </div>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Your cookie consent implementation meets GDPR requirements. Continue monitoring consent rates and update policies as needed.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        
 
 
         <TabsContent value="backup" className="space-y-6">
