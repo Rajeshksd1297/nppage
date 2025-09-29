@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
@@ -90,6 +90,31 @@ const HomePageManagement = () => {
   const [currentView, setCurrentView] = useState('overview');
   const [heroManagerView, setHeroManagerView] = useState<'list' | 'editor'>('list');
   const [selectedHeroBlock, setSelectedHeroBlock] = useState<HeroBlock | null>(null);
+  const [isCreatingHero, setIsCreatingHero] = useState(false);
+  const [heroPreviewMode, setHeroPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [heroElements, setHeroElements] = useState<any[]>([
+    {
+      id: '1',
+      type: 'text',
+      content: 'Welcome to My Author Page',
+      styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' },
+      order: 0
+    },
+    {
+      id: '2',
+      type: 'text',
+      content: 'Discover my latest books and writing journey',
+      styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground' },
+      order: 1
+    },
+    {
+      id: '3',
+      type: 'button',
+      content: 'Explore My Books',
+      styles: { variant: 'default', size: 'lg' },
+      order: 2
+    }
+  ]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: '',
     siteDescription: '',
@@ -740,7 +765,13 @@ const HomePageManagement = () => {
       // Navigate to editor
       setSelectedHeroBlock(data);
       setHeroManagerView('editor');
+      setIsCreatingHero(false);
       setActiveTab('hero');
+      
+      // Load elements from template
+      if (generateTemplateElements(template)) {
+        setHeroElements(generateTemplateElements(template));
+      }
 
     } catch (error) {
       console.error('Error creating hero from template:', error);
@@ -859,11 +890,153 @@ const HomePageManagement = () => {
     // Set the selected block and switch to editor view
     setSelectedHeroBlock(block);
     setHeroManagerView('editor');
+    setIsCreatingHero(false);
     setActiveTab('hero'); // Ensure we're on the hero tab
+    
+    // Load elements from block config
+    if (block.config?.elements) {
+      setHeroElements(block.config.elements);
+    }
+    
     toast({
       title: "Editing Hero Block",
       description: `Opening editor for ${block.name}`,
     });
+  };
+
+  const createNewHeroBlock = () => {
+    setSelectedHeroBlock({
+      id: Date.now().toString(),
+      name: '',
+      description: '',
+      enabled: true,
+      config: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    setIsCreatingHero(true);
+    setHeroManagerView('editor');
+    setHeroElements([
+      {
+        id: '1',
+        type: 'text',
+        content: 'New Hero Title',
+        styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' },
+        order: 0
+      }
+    ]);
+  };
+
+  const saveHeroBlock = async () => {
+    if (!selectedHeroBlock?.name) {
+      toast({
+        title: "Error",
+        description: "Please enter a block name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const blockData = {
+        name: selectedHeroBlock.name,
+        description: selectedHeroBlock.description || 'Custom hero block',
+        enabled: selectedHeroBlock.enabled ?? true,
+        config: { elements: heroElements }
+      };
+
+      let result;
+      if (isCreatingHero) {
+        const { data, error } = await supabase
+          .from('hero_blocks')
+          .insert([blockData])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase
+          .from('hero_blocks')
+          .update(blockData)
+          .eq('id', selectedHeroBlock.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      }
+
+      // Update local state
+      if (isCreatingHero) {
+        setHeroBlocks(prev => [...prev, result]);
+      } else {
+        setHeroBlocks(prev => prev.map(b => b.id === result.id ? result : b));
+      }
+
+      // Reset form
+      setSelectedHeroBlock(null);
+      setIsCreatingHero(false);
+      setHeroManagerView('list');
+      
+      toast({
+        title: "Success",
+        description: "Hero block saved successfully",
+      });
+
+    } catch (error) {
+      console.error('Error saving hero block:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save hero block",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addHeroElement = (type: string) => {
+    const newElement = {
+      id: Date.now().toString(),
+      type,
+      content: getDefaultContent(type),
+      styles: getDefaultStyles(type),
+      order: heroElements.length
+    };
+    setHeroElements(prev => [...prev, newElement]);
+  };
+
+  const removeHeroElement = (id: string) => {
+    setHeroElements(prev => prev.filter(element => element.id !== id));
+  };
+
+  const updateHeroElement = (id: string, updates: any) => {
+    setHeroElements(prev => 
+      prev.map(element => 
+        element.id === id ? { ...element, ...updates } : element
+      )
+    );
+  };
+
+  const getDefaultContent = (type: string): string => {
+    switch (type) {
+      case 'text': return 'New text element';
+      case 'image': return '/api/placeholder/400/300';
+      case 'button': return 'Click Me';
+      case 'video': return 'https://example.com/video.mp4';
+      case 'spacer': return '';
+      default: return '';
+    }
+  };
+
+  const getDefaultStyles = (type: string): any => {
+    switch (type) {
+      case 'text': return { fontSize: 'base', textAlign: 'left', fontWeight: 'normal' };
+      case 'image': return { width: '100%', height: 'auto', borderRadius: 'rounded' };
+      case 'button': return { variant: 'default', size: 'md' };
+      case 'video': return { width: '100%', height: 'auto', controls: true };
+      case 'spacer': return { height: '2rem' };
+      default: return {};
+    }
   };
 
   const previewHeroBlock = (block: any) => {
@@ -2025,10 +2198,7 @@ const HomePageManagement = () => {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Sync Blocks
               </Button>
-              <Button onClick={() => {
-                setSelectedHeroBlock(null);
-                setHeroManagerView('editor');
-              }}>
+              <Button onClick={createNewHeroBlock}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Hero Block
               </Button>
@@ -2036,19 +2206,268 @@ const HomePageManagement = () => {
           </div>
 
           {heroManagerView === 'editor' ? (
-            <HeroBlockManager
-              heroBlocks={heroBlocks}
-              selectedBlock={selectedHeroBlock}
-              onBack={() => {
-                setHeroManagerView('list');
-                setSelectedHeroBlock(null);
-              }}
-              onUpdate={(updatedBlocks) => {
-                setHeroBlocks(updatedBlocks);
-                setHeroManagerView('list');
-                setSelectedHeroBlock(null);
-              }}
-            />
+            <div className="space-y-6">
+              {/* Editor Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" onClick={() => {
+                    setHeroManagerView('list');
+                    setSelectedHeroBlock(null);
+                    setIsCreatingHero(false);
+                  }}>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Hero List
+                  </Button>
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      {isCreatingHero ? 'Create New Hero Block' : `Edit: ${selectedHeroBlock?.name}`}
+                    </h3>
+                    <p className="text-muted-foreground">Design your hero section with live preview</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => {
+                    setHeroManagerView('list');
+                    setSelectedHeroBlock(null);
+                    setIsCreatingHero(false);
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={saveHeroBlock}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Block
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Editor Panel */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Block Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Block Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="heroBlockName">Block Name</Label>
+                          <Input
+                            id="heroBlockName"
+                            value={selectedHeroBlock?.name || ''}
+                            onChange={(e) => setSelectedHeroBlock(prev => prev ? { ...prev, name: e.target.value } : null)}
+                            placeholder="Enter block name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="heroBlockDescription">Description</Label>
+                          <Input
+                            id="heroBlockDescription"
+                            value={selectedHeroBlock?.description || ''}
+                            onChange={(e) => setSelectedHeroBlock(prev => prev ? { ...prev, description: e.target.value } : null)}
+                            placeholder="Brief description"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={selectedHeroBlock?.enabled ?? true}
+                          onCheckedChange={(checked) => setSelectedHeroBlock(prev => prev ? { ...prev, enabled: checked } : null)}
+                        />
+                        <Label>Enable for authors</Label>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Elements Editor */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Hero Elements</CardTitle>
+                      <CardDescription>Add and arrange elements for your hero section</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {/* Element Buttons */}
+                        <div className="flex gap-2 flex-wrap p-4 bg-muted rounded-lg">
+                          <Button size="sm" variant="outline" onClick={() => addHeroElement('text')}>
+                            <Type className="h-4 w-4 mr-1" />
+                            Add Text
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => addHeroElement('image')}>
+                            <ImageIcon className="h-4 w-4 mr-1" />
+                            Add Image
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => addHeroElement('button')}>
+                            <MousePointer className="h-4 w-4 mr-1" />
+                            Add Button
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => addHeroElement('video')}>
+                            <Monitor className="h-4 w-4 mr-1" />
+                            Add Video
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => addHeroElement('spacer')}>
+                            <Layout className="h-4 w-4 mr-1" />
+                            Add Spacer
+                          </Button>
+                        </div>
+                        
+                        {/* Elements List */}
+                        <div className="space-y-3">
+                          {heroElements.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                              <p>No elements added yet. Click the buttons above to add elements.</p>
+                            </div>
+                          ) : (
+                            heroElements.map((element, index) => (
+                              <Card key={element.id} className="p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                                      {element.type === 'text' && <Type className="h-4 w-4" />}
+                                      {element.type === 'image' && <ImageIcon className="h-4 w-4" />}
+                                      {element.type === 'button' && <MousePointer className="h-4 w-4" />}
+                                      {element.type === 'video' && <Monitor className="h-4 w-4" />}
+                                      {element.type === 'spacer' && <Layout className="h-4 w-4" />}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium capitalize">{element.type}</p>
+                                      <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                        {element.content}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="sm">
+                                      <Settings className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => removeHeroElement(element.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Live Preview Panel */}
+                <div className="lg:col-span-1">
+                  <Card className="sticky top-6">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Live Preview</CardTitle>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant={heroPreviewMode === 'desktop' ? 'default' : 'outline'}
+                            onClick={() => setHeroPreviewMode('desktop')}
+                          >
+                            <Monitor className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={heroPreviewMode === 'tablet' ? 'default' : 'outline'}
+                            onClick={() => setHeroPreviewMode('tablet')}
+                          >
+                            <Tablet className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={heroPreviewMode === 'mobile' ? 'default' : 'outline'}
+                            onClick={() => setHeroPreviewMode('mobile')}
+                          >
+                            <Smartphone className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div 
+                        className={`
+                          border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950 dark:via-background dark:to-purple-950 min-h-[400px] transition-all duration-300
+                          ${heroPreviewMode === 'desktop' ? 'w-full' : heroPreviewMode === 'tablet' ? 'w-80 mx-auto' : 'w-64 mx-auto'}
+                        `}
+                      >
+                        <div className="p-6 space-y-4">
+                          {heroElements.length === 0 ? (
+                            <div className="text-center py-12 text-muted-foreground">
+                              <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                              <p>Preview will appear here</p>
+                              <p className="text-sm mt-2">Add elements to see the preview</p>
+                            </div>
+                          ) : (
+                            heroElements.map((element, index) => (
+                              <div key={element.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                                {element.type === 'text' && (
+                                  <div 
+                                    className={`
+                                      ${element.styles.fontSize === '4xl' ? 'text-4xl' : element.styles.fontSize === '3xl' ? 'text-3xl' : element.styles.fontSize === 'lg' ? 'text-lg' : 'text-base'}
+                                      ${element.styles.fontWeight === 'bold' ? 'font-bold' : 'font-normal'}
+                                      ${element.styles.textAlign === 'center' ? 'text-center' : element.styles.textAlign === 'right' ? 'text-right' : 'text-left'}
+                                      ${element.styles.color === 'muted-foreground' ? 'text-muted-foreground' : 'text-foreground'}
+                                      ${element.styles.marginBottom ? `mb-${element.styles.marginBottom}` : ''}
+                                    `}
+                                  >
+                                    {element.content}
+                                  </div>
+                                )}
+                                {element.type === 'image' && (
+                                  <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                                    <span className="ml-2 text-sm text-muted-foreground">Image</span>
+                                  </div>
+                                )}
+                                {element.type === 'button' && (
+                                  <div className={element.styles.textAlign === 'center' ? 'text-center' : ''}>
+                                    <Button 
+                                      variant={element.styles.variant || 'default'}
+                                      size={element.styles.size || 'default'}
+                                      className="animate-scale-in"
+                                    >
+                                      {element.content}
+                                    </Button>
+                                  </div>
+                                )}
+                                {element.type === 'video' && (
+                                  <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                                    <Monitor className="h-8 w-8 text-muted-foreground" />
+                                    <span className="ml-2 text-sm text-muted-foreground">Video</span>
+                                  </div>
+                                )}
+                                {element.type === 'spacer' && (
+                                  <div className="h-8" />
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Preview Info */}
+                      <div className="mt-4 p-3 bg-muted rounded-lg">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {heroPreviewMode === 'desktop' ? 'Desktop View' : heroPreviewMode === 'tablet' ? 'Tablet View' : 'Mobile View'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {heroElements.length} element{heroElements.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
           ) : (
             <>
               {/* Hero Block Statistics */}
@@ -2207,13 +2626,10 @@ const HomePageManagement = () => {
                       <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
                       <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
-                      <Button onClick={() => {
-                        setSelectedHeroBlock(null);
-                        setHeroManagerView('editor');
-                      }}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create First Hero Block
-                      </Button>
+                  <Button onClick={createNewHeroBlock}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Hero Block
+                  </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
