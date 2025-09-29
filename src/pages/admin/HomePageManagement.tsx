@@ -21,7 +21,7 @@ import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
 import AISEOAssistant from '@/components/seo/AISEOAssistant';
-// Simplified version - removed heavy chart dependencies
+// Import Chart.js components if needed in the future
 interface HeroBlock {
   id: string;
   name: string;
@@ -527,27 +527,7 @@ const HomePageManagement = () => {
       pageLoadTime: Number((1.2 + Math.random() * 0.6).toFixed(2)) || 1.5
     };
   };
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  };
-  const doughnutOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'bottom' as const
-      }
-    }
-  };
+  // Chart options removed - using placeholder content instead
   useEffect(() => {
     fetchHeroBlocks();
     fetchSiteSettings();
