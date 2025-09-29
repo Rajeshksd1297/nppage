@@ -633,182 +633,130 @@ const HomePageManagement = () => {
           <TabsTrigger value="settings" className="flex-shrink-0 text-xs sm:text-sm">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-8 animate-fade-in">
-          <div className="flex items-center justify-between mb-8">
-            <div className="space-y-1">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Overview & Analytics Dashboard
-              </h2>
-              <p className="text-muted-foreground text-lg">Comprehensive view of your website's performance and management</p>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Overview & Analytics Dashboard</h2>
+              <p className="text-muted-foreground">Comprehensive view of your website's performance and management</p>
             </div>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => handleExportData(selectedPeriod)}
-                className="hover-scale shadow-md hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
-              >
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => handleExportData(selectedPeriod)}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
               <Button 
                 onClick={refreshAnalyticsData}
                 disabled={!isAutoRefreshing}
-                className="hover-scale shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${!isAutoRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh Now
               </Button>
             </div>
           </div>
 
-          {/* Enhanced Unified Controls */}
-          <div className="bg-gradient-to-r from-background via-muted/20 to-background border rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+          {/* Unified Controls */}
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
               
-              {/* Enhanced Auto-refresh controls */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={isAutoRefreshing}
-                    onCheckedChange={setIsAutoRefreshing}
-                    className="scale-110 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-green-500 data-[state=checked]:to-emerald-500"
-                  />
-                  <div className="space-y-1">
-                    <span className="font-semibold text-foreground">Auto-refresh</span>
+              {/* Auto-refresh controls */}
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={isAutoRefreshing}
+                  onCheckedChange={setIsAutoRefreshing}
+                  className="scale-90"
+                />
+                <div className="text-sm">
+                  <span className="font-medium">Auto-refresh</span>
+                  {isAutoRefreshing && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className={`w-2 h-2 rounded-full ${isAutoRefreshing ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                      <span>{isAutoRefreshing ? 'Active' : 'Disabled'}</span>
+                      <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
+                        <SelectTrigger className="w-20 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          <SelectItem value="1">1m</SelectItem>
+                          <SelectItem value="5">5m</SelectItem>
+                          <SelectItem value="15">15m</SelectItem>
+                          <SelectItem value="60">1h</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
+                  )}
                 </div>
-                {isAutoRefreshing && (
-                  <div className="animate-fade-in">
-                    <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
-                      <SelectTrigger className="w-24 h-8 text-xs border-primary/20 hover:border-primary/40 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background/95 backdrop-blur-sm border shadow-2xl z-50">
-                        <SelectItem value="1">1m</SelectItem>
-                        <SelectItem value="5">5m</SelectItem>
-                        <SelectItem value="15">15m</SelectItem>
-                        <SelectItem value="60">1h</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </div>
 
-              {/* Enhanced Time period selector */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-muted-foreground">Analytics Period</Label>
+              {/* Time period selector */}
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground">Period:</Label>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger className="w-full h-10 bg-background/50 border-primary/20 hover:border-primary/40 shadow-sm hover:shadow-md transition-all duration-200">
+                  <SelectTrigger className="w-36 h-9 bg-background border shadow-sm">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-background/95 backdrop-blur-sm border shadow-2xl z-50">
-                    <SelectItem value="hours" className="hover:bg-primary/10">📊 Last 6 Hours</SelectItem>
-                    <SelectItem value="day" className="hover:bg-primary/10">🌅 Today</SelectItem>
-                    <SelectItem value="month" className="hover:bg-primary/10">📅 This Month</SelectItem>
-                    <SelectItem value="year" className="hover:bg-primary/10">🗓️ This Year</SelectItem>
-                    <SelectItem value="lifetime" className="hover:bg-primary/10">♾️ All Time</SelectItem>
-                    <SelectItem value="custom-date" className="hover:bg-primary/10">📋 Custom Range</SelectItem>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    <SelectItem value="hours">Last 6 Hours</SelectItem>
+                    <SelectItem value="day">Today</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="year">This Year</SelectItem>
+                    <SelectItem value="lifetime">All Time</SelectItem>
+                    <SelectItem value="custom-date">📅 Custom Range</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Enhanced Status info */}
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground mb-2">System Status</div>
+              {/* Status info */}
+              <div className="text-sm text-muted-foreground">
                 {isAutoRefreshing ? (
-                  <div className="space-y-2 animate-fade-in">
-                    <div className="flex items-center gap-2 text-sm">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-                      <span className="text-green-700 dark:text-green-400 font-medium">Live Updates</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div>Last: {lastRefresh.toLocaleTimeString()}</div>
-                      {nextRefresh && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>Next: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m</span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Last: {lastRefresh.toLocaleTimeString()}</span>
+                    {nextRefresh && (
+                      <span className="ml-2">
+                        Next: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m
+                      </span>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400 animate-fade-in">
+                  <div className="flex items-center gap-2 text-orange-600">
                     <AlertTriangle className="h-4 w-4" />
-                    <span className="font-medium">Manual Only</span>
+                    <span>Manual refresh only</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Enhanced Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
-              <Card 
-                key={index} 
-                className="relative overflow-hidden hover-scale bg-gradient-to-br from-background via-background to-muted/30 border-0 shadow-lg hover:shadow-2xl transition-all duration-300 group"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardContent className="p-6 relative">
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
-                  <div className="flex items-start justify-between relative z-10">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2 mb-2">
-                        <p className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">{stat.title}</p>
+              <Card key={index} className="relative overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
                         {stat.trend === 'live' && (
-                          <div className="flex items-center animate-fade-in">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-                            <span className="text-xs text-green-600 ml-1 font-bold bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded-full">LIVE</span>
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-green-600 ml-1 font-medium">LIVE</span>
                           </div>
                         )}
                       </div>
-                      
-                      <div className="space-y-1">
-                        <p className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                          {stat.value}
-                        </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{stat.description}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 pt-2">
-                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                          stat.trend === 'up' ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400' : 
-                          stat.trend === 'down' ? 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400' : 
-                          stat.trend === 'live' ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400' : 
-                          'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                        }`}>
-                          {stat.trend === 'up' && <TrendingUp className="h-3 w-3" />}
-                          {stat.trend === 'down' && <TrendingUp className="h-3 w-3 rotate-180" />}
-                          {stat.trend === 'live' && <Activity className="h-3 w-3" />}
-                          <span>
-                            {stat.trend === 'live' ? 'Real-time' : `${stat.change} vs last period`}
-                          </span>
-                        </div>
-                      </div>
+                      <p className="text-2xl font-bold mb-1">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{stat.description}</p>
+                      <p className={`text-xs font-medium ${
+                        stat.trend === 'up' ? 'text-green-600' : 
+                        stat.trend === 'down' ? 'text-red-600' : 
+                        stat.trend === 'live' ? 'text-green-600' : 'text-muted-foreground'
+                      }`}>
+                        {stat.trend === 'live' ? 'Real-time data' : `${stat.change} from last month`}
+                      </p>
                     </div>
-                    
-                    <div className="flex-shrink-0 ml-4">
-                      <div className={`p-3 rounded-xl ${stat.color.replace('text-', 'bg-').replace('-600', '-100').replace('-500', '-100')} dark:${stat.color.replace('text-', 'bg-').replace('-600', '-950').replace('-500', '-950')} group-hover:scale-110 transition-transform duration-300`}>
-                        <stat.icon className={`h-6 w-6 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
-                      </div>
+                    <div className="flex-shrink-0">
+                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
                     </div>
                   </div>
-                  
-                  {/* Animated bottom border for live stats */}
                   {stat.trend === 'live' && (
-                    <div className="absolute bottom-0 left-0 w-full h-1">
-                      <div className="w-full h-full bg-gradient-to-r from-green-500 via-emerald-400 to-green-500 animate-pulse"></div>
-                    </div>
+                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400 animate-pulse"></div>
                   )}
-                  
-                  {/* Hover effect border */}
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/20 rounded-lg transition-colors duration-300"></div>
                 </CardContent>
               </Card>
             ))}
