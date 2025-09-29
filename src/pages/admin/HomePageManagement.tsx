@@ -14,6 +14,7 @@ import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
 import AISEOAssistant from '@/components/seo/AISEOAssistant';
 import EnhancedCookieManagement from '@/components/admin/EnhancedCookieManagement';
+import BackupSecurityManagement from '@/components/admin/BackupSecurityManagement';
 import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
@@ -4394,26 +4395,24 @@ const HomePageManagement = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Cookie className="h-6 w-6" />
-                Cookie Analytics & Consent
+                <Shield className="h-6 w-6" />
+                Backup & Security Management
               </h2>
-              <p className="text-muted-foreground">Monitor cookie consent rates and GDPR compliance</p>
+              <p className="text-muted-foreground">Configure automated backups and security settings</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <a href="/admin/cookie-consent">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Manage Cookie Settings
-                </a>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export All Data
               </Button>
               <Button>
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
+                <Shield className="h-4 w-4 mr-2" />
+                Security Scan
               </Button>
             </div>
           </div>
 
-          {/* Cookie Consent Overview */}
+          <BackupSecurityManagement />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardContent className="p-6">
@@ -4881,53 +4880,12 @@ const HomePageManagement = () => {
             </CardContent>
           </Card>
         </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
-
-        <TabsContent value="backup" className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Shield className="h-6 w-6" />
-                Backup & Security Management
-              </h2>
-              <p className="text-muted-foreground">Configure automated backups and security settings</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export All Data
-              </Button>
-              <Button>
-                <Shield className="h-4 w-4 mr-2" />
-                Security Scan
-              </Button>
-            </div>
-          </div>
-
-          <Tabs defaultValue="backups" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="backups">Auto Backups</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-              <TabsTrigger value="recovery">Recovery</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              <TabsTrigger value="logs">Security Logs</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="backups" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Auto Backup Configuration */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Timer className="h-5 w-5" />
-                      Automated Backup Settings
-                    </CardTitle>
-                    <CardDescription>
-                      Configure automatic backup schedules and retention policies
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+export default HomePageManagement;
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <Label>Enable Automated Backups</Label>
