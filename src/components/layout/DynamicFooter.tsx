@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDynamicFooter } from '@/hooks/useDynamicFooter';
 import { 
   BookOpen, 
   Twitter, 
@@ -28,6 +29,11 @@ interface FooterConfig {
     phone?: string;
     address?: string;
   };
+  navigation?: Array<{
+    label: string;
+    url: string;
+    external?: boolean;
+  }>;
 }
 
 interface DynamicFooterProps {
@@ -36,26 +42,47 @@ interface DynamicFooterProps {
 }
 
 export const DynamicFooter: React.FC<DynamicFooterProps> = ({
-  config,
-  siteTitle = "AuthorPage"
+  config: propConfig,
+  siteTitle: propSiteTitle
 }) => {
   const navigate = useNavigate();
   
+  // Load dynamic configuration from database
+  const { footerConfig, siteTitle: dbSiteTitle, loading } = useDynamicFooter();
+  
+  // Use prop config if provided, otherwise use database config
+  const config = propConfig || footerConfig;
+  const siteTitle = propSiteTitle || dbSiteTitle;
+  // Show loading skeleton if still loading and no prop config provided
+  if (loading && !propConfig) {
+    return (
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="space-y-4">
+                <div className="h-5 bg-muted rounded w-24 animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-full animate-pulse"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 animate-pulse"></div>
+                  <div className="h-4 bg-muted rounded w-1/2 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </footer>
+    );
+  }
+  
   const currentYear = new Date().getFullYear();
   const copyright = config?.copyright || `© ${currentYear} ${siteTitle}. All rights reserved.`;
-  const customText = config?.customText || "Built with AuthorPage";
-  const showPages = config?.showPages !== false;
-  const showSocial = config?.showSocial !== false;
+  const customText = config?.customText || "";
+  const showPages = config?.showPages && config?.navigation && config.navigation.length > 0;
+  const showSocial = config?.showSocial && config?.socialLinks;
 
-  const pageLinks = [
-    { label: 'Home', url: '/' },
-    { label: 'Authors', url: '/authors' },
-    { label: 'Books', url: '/books' },
-    { label: 'About', url: '/about' },
-    { label: 'Contact', url: '/contact' },
-    { label: 'Privacy Policy', url: '/privacy' },
-    { label: 'Terms of Service', url: '/terms' }
-  ];
+  // Use navigation from config, or empty array
+  const navigationLinks = config?.navigation || [];
 
   const socialLinks = [
     { 
@@ -80,6 +107,14 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
     }
   ].filter(link => link.url);
 
+  const handleNavigation = (url: string, external?: boolean) => {
+    if (external) {
+      window.open(url, '_blank');
+    } else {
+      navigate(url);
+    }
+  };
+
   return (
     <footer className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 py-12">
@@ -102,16 +137,16 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             )}
           </div>
 
-          {/* Quick Links */}
+          {/* Navigation Links - Only show if configured */}
           {showPages && (
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
               <ul className="space-y-2">
-                {pageLinks.slice(0, 5).map((link, index) => (
+                {navigationLinks.map((link, index) => (
                   <li key={index}>
                     <button
-                      onClick={() => navigate(link.url)}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => handleNavigation(link.url, link.external)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors text-left"
                     >
                       {link.label}
                     </button>
@@ -121,31 +156,10 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             </div>
           )}
 
-          {/* Legal Links */}
-          {showPages && (
+          {/* Contact Information - Only show if configured */}
+          {config?.contact && (config.contact.email || config.contact.phone || config.contact.address) && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-foreground">Legal</h3>
-              <ul className="space-y-2">
-                {pageLinks.slice(5).map((link, index) => (
-                  <li key={index}>
-                    <button
-                      onClick={() => navigate(link.url)}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Contact & Social */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Connect</h3>
-            
-            {/* Contact Information */}
-            {config?.contact && (
+              <h3 className="text-sm font-semibold text-foreground">Contact</h3>
               <div className="space-y-2">
                 {config.contact.email && (
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -178,31 +192,29 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
                   </div>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Social Links */}
-            {showSocial && socialLinks.length > 0 && (
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                  Follow Us
-                </h4>
-                <div className="flex space-x-3">
-                  {socialLinks.map((social, index) => (
-                    <a
-                      key={index}
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
-                      aria-label={social.label}
-                    >
-                      {social.icon}
-                    </a>
-                  ))}
-                </div>
+          {/* Social Links - Only show if configured */}
+          {showSocial && socialLinks.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Follow Us</h3>
+              <div className="flex space-x-3">
+                {socialLinks.map((social, index) => (
+                  <a
+                    key={index}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                    aria-label={social.label}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom Section */}
@@ -210,10 +222,6 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <div className="text-sm text-muted-foreground">
               {copyright}
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Branding removed */}
             </div>
           </div>
         </div>

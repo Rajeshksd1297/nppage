@@ -279,10 +279,7 @@ export const DynamicHomePage: React.FC = () => {
       )}
 
       {/* Dynamic Footer */}
-      <DynamicFooter 
-        config={siteSettings?.footer_config}
-        siteTitle={siteSettings?.site_title}
-      />
+      <DynamicFooter />
     </div>
   );
 };

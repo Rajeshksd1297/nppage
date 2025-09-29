@@ -25,33 +25,13 @@ const PublicPage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [siteSettings, setSiteSettings] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (slug) {
       loadPage();
-      loadSiteSettings();
     }
   }, [slug]);
-
-  const loadSiteSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading site settings:', error);
-        return;
-      }
-
-      setSiteSettings(data);
-    } catch (error) {
-      console.error('Error loading site settings:', error);
-    }
-  };
 
   const loadPage = async () => {
     try {
@@ -122,10 +102,7 @@ const PublicPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <DynamicFooter 
-          config={siteSettings?.footer_config}
-          siteTitle={siteSettings?.site_title}
-        />
+        <DynamicFooter />
       </div>
     );
   }
@@ -146,10 +123,7 @@ const PublicPage: React.FC = () => {
             </Button>
           </div>
         </div>
-        <DynamicFooter 
-          config={siteSettings?.footer_config}
-          siteTitle={siteSettings?.site_title}
-        />
+        <DynamicFooter />
       </div>
     );
   }
@@ -164,7 +138,7 @@ const PublicPage: React.FC = () => {
         description={pageDescription}
         url={`/page/${page.slug}`}
         type="article"
-        image={siteSettings?.logo_url || "/hero-authors-workspace.jpg"}
+        image="/hero-authors-workspace.jpg"
       />
 
       <DynamicHeader />
@@ -233,10 +207,7 @@ const PublicPage: React.FC = () => {
         </div>
       </main>
 
-      <DynamicFooter 
-        config={siteSettings?.footer_config}
-        siteTitle={siteSettings?.site_title}
-      />
+      <DynamicFooter />
     </div>
   );
 };
