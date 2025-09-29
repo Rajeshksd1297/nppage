@@ -110,7 +110,7 @@ const coreAdminItems = [
 
 // Site Management
 const siteManagementItems = [
-  { title: "Home Page Editor", url: "/admin/home-page-management", icon: Home },
+  { title: "Home Page Management", url: "/admin/home-page-management", icon: Home },
   { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
   { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
