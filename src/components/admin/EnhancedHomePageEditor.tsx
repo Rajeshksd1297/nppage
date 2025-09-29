@@ -1360,72 +1360,11 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
             </Button>
           </div>
         </div>
-        
-        {/* Secondary toolbar for Visual tab */}
-        {currentTab === 'visual' && (
-          <div className="flex h-12 items-center justify-between px-4 border-t bg-muted/5">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-semibold">Visual Page Editor</h2>
-              <Badge variant="outline" className="text-sm">
-                {sections.length} sections
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button size="sm" onClick={() => setCurrentTab('sections')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Section
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setCurrentTab('settings')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <div className="flex items-center space-x-1 ml-4">
-                <Button
-                  variant={previewMode === 'desktop' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('desktop')}
-                  className="p-2"
-                >
-                  <Monitor className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={previewMode === 'tablet' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('tablet')}
-                  className="p-2"
-                >
-                  <Tablet className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={previewMode === 'mobile' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('mobile')}
-                  className="p-2"
-                >
-                  <Smartphone className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Main Content */}
       {currentTab === 'visual' ? (
-        <VisualPageEditor 
-          onBack={onBack}
-          sections={sections}
-          onAddSection={(type) => {
-            setCurrentTab('sections');
-            handleAddSection(type);
-          }}
-          onEditSection={(section) => {
-            setEditingSection(section);
-            setCurrentTab('sections');
-          }}
-          previewMode={previewMode}
-          onPreviewModeChange={setPreviewMode}
-        />
+        <VisualPageEditor onBack={onBack} />
       ) : currentTab === 'header' ? (
         <HeaderEditorVisual onBack={onBack} />
       ) : currentTab === 'footer' ? (
