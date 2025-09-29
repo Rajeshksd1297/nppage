@@ -311,6 +311,105 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_jobs: {
+        Row: {
+          backup_duration: number | null
+          checksum: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          job_type: string
+          metadata: Json | null
+          status: string
+        }
+        Insert: {
+          backup_duration?: number | null
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          job_type: string
+          metadata?: Json | null
+          status?: string
+        }
+        Update: {
+          backup_duration?: number | null
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          job_type?: string
+          metadata?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
+      backup_settings: {
+        Row: {
+          auto_cleanup_enabled: boolean
+          backup_types: Json
+          compression_enabled: boolean
+          created_at: string
+          custom_schedule: string | null
+          enabled: boolean
+          encryption_enabled: boolean
+          frequency: string
+          id: string
+          last_backup_at: string | null
+          max_versions: number
+          next_backup_at: string | null
+          retention_days: number
+          storage_locations: Json
+          updated_at: string
+          versioning_enabled: boolean
+        }
+        Insert: {
+          auto_cleanup_enabled?: boolean
+          backup_types?: Json
+          compression_enabled?: boolean
+          created_at?: string
+          custom_schedule?: string | null
+          enabled?: boolean
+          encryption_enabled?: boolean
+          frequency?: string
+          id?: string
+          last_backup_at?: string | null
+          max_versions?: number
+          next_backup_at?: string | null
+          retention_days?: number
+          storage_locations?: Json
+          updated_at?: string
+          versioning_enabled?: boolean
+        }
+        Update: {
+          auto_cleanup_enabled?: boolean
+          backup_types?: Json
+          compression_enabled?: boolean
+          created_at?: string
+          custom_schedule?: string | null
+          enabled?: boolean
+          encryption_enabled?: boolean
+          frequency?: string
+          id?: string
+          last_backup_at?: string | null
+          max_versions?: number
+          next_backup_at?: string | null
+          retention_days?: number
+          storage_locations?: Json
+          updated_at?: string
+          versioning_enabled?: boolean
+        }
+        Relationships: []
+      }
       billing_transactions: {
         Row: {
           amount: number
@@ -1852,6 +1951,144 @@ export type Database = {
           page?: string
           position?: number
           query?: string
+        }
+        Relationships: []
+      }
+      security_logs: {
+        Row: {
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_settings: {
+        Row: {
+          alert_email: string | null
+          alert_sms: string | null
+          allowed_countries: Json | null
+          auto_updates: boolean
+          blocked_countries: Json | null
+          created_at: string
+          data_encryption: boolean
+          ddos_protection: boolean
+          firewall_enabled: boolean
+          hsts_enabled: boolean
+          https_redirect: boolean
+          id: string
+          ip_blacklist: Json | null
+          ip_whitelist: Json | null
+          lockout_duration: number
+          log_monitoring: boolean
+          malware_scanning: boolean
+          max_login_attempts: number
+          password_min_length: number
+          password_require_lowercase: boolean
+          password_require_numbers: boolean
+          password_require_symbols: boolean
+          password_require_uppercase: boolean
+          security_alerts: boolean
+          session_timeout: number
+          ssl_enforcement: boolean
+          two_factor_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          alert_email?: string | null
+          alert_sms?: string | null
+          allowed_countries?: Json | null
+          auto_updates?: boolean
+          blocked_countries?: Json | null
+          created_at?: string
+          data_encryption?: boolean
+          ddos_protection?: boolean
+          firewall_enabled?: boolean
+          hsts_enabled?: boolean
+          https_redirect?: boolean
+          id?: string
+          ip_blacklist?: Json | null
+          ip_whitelist?: Json | null
+          lockout_duration?: number
+          log_monitoring?: boolean
+          malware_scanning?: boolean
+          max_login_attempts?: number
+          password_min_length?: number
+          password_require_lowercase?: boolean
+          password_require_numbers?: boolean
+          password_require_symbols?: boolean
+          password_require_uppercase?: boolean
+          security_alerts?: boolean
+          session_timeout?: number
+          ssl_enforcement?: boolean
+          two_factor_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          alert_email?: string | null
+          alert_sms?: string | null
+          allowed_countries?: Json | null
+          auto_updates?: boolean
+          blocked_countries?: Json | null
+          created_at?: string
+          data_encryption?: boolean
+          ddos_protection?: boolean
+          firewall_enabled?: boolean
+          hsts_enabled?: boolean
+          https_redirect?: boolean
+          id?: string
+          ip_blacklist?: Json | null
+          ip_whitelist?: Json | null
+          lockout_duration?: number
+          log_monitoring?: boolean
+          malware_scanning?: boolean
+          max_login_attempts?: number
+          password_min_length?: number
+          password_require_lowercase?: boolean
+          password_require_numbers?: boolean
+          password_require_symbols?: boolean
+          password_require_uppercase?: boolean
+          security_alerts?: boolean
+          session_timeout?: number
+          ssl_enforcement?: boolean
+          two_factor_enabled?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
