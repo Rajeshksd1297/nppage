@@ -50,11 +50,15 @@ export const useDynamicFooter = () => {
   }, []);
 
   const loadFooterConfig = async () => {
+    console.log('Loading footer config...');
     try {
       const { data, error } = await supabase
         .from('site_settings')
         .select('*')
         .maybeSingle();
+
+      console.log('Site settings data:', data);
+      console.log('Site settings error:', error);
 
       if (error) {
         console.error('Error loading footer config:', error);
@@ -71,9 +75,11 @@ export const useDynamicFooter = () => {
 
       if (data) {
         const footerConfigData = data.footer_config as FooterConfig || {};
+        console.log('Footer config data:', footerConfigData);
         
         // Load additional pages for footer navigation if showPages is true
         if (footerConfigData.showPages) {
+          console.log('Loading additional pages for footer...');
           try {
             const { data: pagesData, error: pagesError } = await supabase
               .from('additional_pages')
@@ -81,6 +87,9 @@ export const useDynamicFooter = () => {
               .eq('is_published', true)
               .eq('show_in_footer', true)
               .order('created_at', { ascending: true });
+
+            console.log('Pages data:', pagesData);
+            console.log('Pages error:', pagesError);
 
             if (!pagesError && pagesData && pagesData.length > 0) {
               // Add pages to navigation
@@ -99,9 +108,11 @@ export const useDynamicFooter = () => {
             footerConfigData.navigation = [];
           }
         } else {
+          console.log('showPages is false, not loading pages');
           footerConfigData.navigation = [];
         }
         
+        console.log('Final footer config:', footerConfigData);
         setFooterConfig(footerConfigData);
         setSiteTitle(data.site_title || "AuthorPage");
       } else {

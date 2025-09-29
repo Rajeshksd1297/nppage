@@ -50,6 +50,9 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
   // Load dynamic configuration from database
   const { footerConfig, siteTitle: dbSiteTitle, loading } = useDynamicFooter();
   
+  console.log('DynamicFooter - footerConfig:', footerConfig);
+  console.log('DynamicFooter - loading:', loading);
+  
   // Use prop config if provided, otherwise use database config
   const config = propConfig || footerConfig;
   const siteTitle = propSiteTitle || dbSiteTitle;
@@ -80,6 +83,10 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
   const customText = config?.customText || "";
   const showPages = config?.showPages && config?.navigation && config.navigation.length > 0;
   const showSocial = config?.showSocial && config?.socialLinks;
+
+  console.log('DynamicFooter - config:', config);
+  console.log('DynamicFooter - showPages:', showPages);
+  console.log('DynamicFooter - navigation:', config?.navigation);
 
   // Use navigation from config, or empty array
   const navigationLinks = config?.navigation || [];
