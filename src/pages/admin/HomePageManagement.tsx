@@ -445,7 +445,7 @@ const HomePageManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="hero">Hero Blocks</TabsTrigger>
@@ -453,6 +453,7 @@ const HomePageManagement = () => {
           <TabsTrigger value="design">Design</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="cookies">Cookie Analytics</TabsTrigger>
+          <TabsTrigger value="backup">Backup & Security</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -2653,6 +2654,995 @@ const HomePageManagement = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="backup" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Shield className="h-6 w-6" />
+                Backup & Security Management
+              </h2>
+              <p className="text-muted-foreground">Configure automated backups and security settings</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export All Data
+              </Button>
+              <Button>
+                <Shield className="h-4 w-4 mr-2" />
+                Security Scan
+              </Button>
+            </div>
+          </div>
+
+          <Tabs defaultValue="backups" className="w-full">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="backups">Auto Backups</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+              <TabsTrigger value="recovery">Recovery</TabsTrigger>
+              <TabsTrigger value="compliance">Compliance</TabsTrigger>
+              <TabsTrigger value="logs">Security Logs</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="backups" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Auto Backup Configuration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Timer className="h-5 w-5" />
+                      Automated Backup Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure automatic backup schedules and retention policies
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label>Enable Automated Backups</Label>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Backup Frequency</Label>
+                        <Select defaultValue="daily">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="hourly">Every Hour</SelectItem>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium">Backup Schedules</Label>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <Card className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="secondary">1 Day</Badge>
+                              <Switch defaultChecked />
+                            </div>
+                            <p className="text-sm text-muted-foreground">Daily backup at 2:00 AM</p>
+                            <p className="text-xs text-muted-foreground mt-1">Retention: 30 days</p>
+                          </Card>
+
+                          <Card className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="secondary">3 Days</Badge>
+                              <Switch />
+                            </div>
+                            <p className="text-sm text-muted-foreground">Every 3 days at 1:00 AM</p>
+                            <p className="text-xs text-muted-foreground mt-1">Retention: 90 days</p>
+                          </Card>
+
+                          <Card className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="secondary">7 Days</Badge>
+                              <Switch />
+                            </div>
+                            <p className="text-sm text-muted-foreground">Weekly on Sunday 12:00 AM</p>
+                            <p className="text-xs text-muted-foreground mt-1">Retention: 365 days</p>
+                          </Card>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-2">
+                        <Label>Backup Storage Location</Label>
+                        <Select defaultValue="cloud">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="local">Local Storage</SelectItem>
+                            <SelectItem value="cloud">Cloud Storage</SelectItem>
+                            <SelectItem value="both">Both Local & Cloud</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Compression Level</Label>
+                        <Select defaultValue="medium">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None (Fastest)</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High (Smallest)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Backup Status & History */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Backup Status & History
+                    </CardTitle>
+                    <CardDescription>
+                      View recent backups and system status
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">Last Backup: Success</span>
+                      </div>
+                      <Badge variant="secondary">2 hours ago</Badge>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Recent Backup History</Label>
+                      <ScrollArea className="h-48 w-full border rounded-md p-2">
+                        <div className="space-y-2">
+                          {[
+                            { date: '2024-01-15 02:00', status: 'success', size: '45.2 MB', type: 'Daily' },
+                            { date: '2024-01-14 02:00', status: 'success', size: '44.8 MB', type: 'Daily' },
+                            { date: '2024-01-13 02:00', status: 'success', size: '44.5 MB', type: 'Daily' },
+                            { date: '2024-01-12 02:00', status: 'warning', size: '44.1 MB', type: 'Daily' },
+                            { date: '2024-01-11 02:00', status: 'success', size: '43.9 MB', type: 'Daily' },
+                          ].map((backup, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex items-center gap-2">
+                                {backup.status === 'success' ? (
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
+                                ) : (
+                                  <AlertTriangle className="h-3 w-3 text-yellow-600" />
+                                )}
+                                <span className="text-xs">{backup.date}</span>
+                                <Badge variant="outline" className="text-xs">{backup.type}</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">{backup.size}</span>
+                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold">156</div>
+                        <div className="text-xs text-muted-foreground">Total Backups</div>
+                      </div>
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold">2.3 GB</div>
+                        <div className="text-xs text-muted-foreground">Storage Used</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Advanced Backup Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">Retention Policies</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Daily Backups</Label>
+                          <Select defaultValue="30">
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="7">7 days</SelectItem>
+                              <SelectItem value="14">14 days</SelectItem>
+                              <SelectItem value="30">30 days</SelectItem>
+                              <SelectItem value="60">60 days</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Weekly Backups</Label>
+                          <Select defaultValue="12">
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="4">4 weeks</SelectItem>
+                              <SelectItem value="8">8 weeks</SelectItem>
+                              <SelectItem value="12">12 weeks</SelectItem>
+                              <SelectItem value="26">26 weeks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Monthly Backups</Label>
+                          <Select defaultValue="12">
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="6">6 months</SelectItem>
+                              <SelectItem value="12">12 months</SelectItem>
+                              <SelectItem value="24">24 months</SelectItem>
+                              <SelectItem value="36">36 months</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">Backup Content</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Database</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">User Files</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">System Settings</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Themes & Templates</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Logs & Analytics</Label>
+                          <Switch />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">Notifications</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Success Notifications</Label>
+                          <Switch />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Failure Alerts</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Weekly Reports</Label>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm">Email Recipients</Label>
+                          <Input placeholder="admin@example.com" className="text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Security Dashboard */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      Security Overview
+                    </CardTitle>
+                    <CardDescription>
+                      Current security status and recommendations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">Security Score: 92/100</span>
+                      </div>
+                      <Badge variant="secondary">Excellent</Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">SSL Certificate Valid</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Active</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">Firewall Protection</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-3 w-3 text-yellow-600" />
+                          <span className="text-sm">Two-Factor Authentication</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Partial</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">Regular Security Scans</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Weekly</Badge>
+                      </div>
+                    </div>
+
+                    <Button className="w-full">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Run Security Scan Now
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Security Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Security Configuration
+                    </CardTitle>
+                    <CardDescription>
+                      Configure security features and policies
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Enable Brute Force Protection</Label>
+                          <p className="text-xs text-muted-foreground">Block IPs after failed login attempts</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Rate Limiting</Label>
+                          <p className="text-xs text-muted-foreground">Limit API requests per minute</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>IP Whitelist Mode</Label>
+                          <p className="text-xs text-muted-foreground">Only allow specific IP addresses</p>
+                        </div>
+                        <Switch />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Require HTTPS</Label>
+                          <p className="text-xs text-muted-foreground">Force SSL for all connections</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-2">
+                        <Label>Password Policy</Label>
+                        <Select defaultValue="strong">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="basic">Basic (8+ characters)</SelectItem>
+                            <SelectItem value="medium">Medium (12+ chars, mixed case)</SelectItem>
+                            <SelectItem value="strong">Strong (16+ chars, symbols)</SelectItem>
+                            <SelectItem value="very-strong">Very Strong (20+ chars, all types)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Session Timeout (minutes)</Label>
+                        <Select defaultValue="30">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="240">4 hours</SelectItem>
+                            <SelectItem value="480">8 hours</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Max Failed Login Attempts</Label>
+                        <Select defaultValue="5">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="3">3 attempts</SelectItem>
+                            <SelectItem value="5">5 attempts</SelectItem>
+                            <SelectItem value="10">10 attempts</SelectItem>
+                            <SelectItem value="unlimited">Unlimited</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Security Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <span className="font-medium">Medium Priority</span>
+                      </div>
+                      <p className="text-sm mb-2">Enable two-factor authentication for all admin accounts to improve security.</p>
+                      <Button size="sm" variant="outline">
+                        Configure 2FA
+                      </Button>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Suggestion</span>
+                      </div>
+                      <p className="text-sm mb-2">Consider implementing Content Security Policy headers for better XSS protection.</p>
+                      <Button size="sm" variant="outline">
+                        Learn More
+                      </Button>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="font-medium">Good Practice</span>
+                      </div>
+                      <p className="text-sm">Your SSL certificate is properly configured and up to date.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="monitoring" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Real-time Monitoring */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Monitor className="h-5 w-5" />
+                      Real-time Security Monitoring
+                    </CardTitle>
+                    <CardDescription>
+                      Live security events and threat detection
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold text-green-600">0</div>
+                        <div className="text-xs text-muted-foreground">Active Threats</div>
+                      </div>
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold">24</div>
+                        <div className="text-xs text-muted-foreground">Blocked Attempts</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Recent Security Events</Label>
+                      <ScrollArea className="h-48 w-full border rounded-md p-2">
+                        <div className="space-y-2">
+                          {[
+                            { time: '14:32', event: 'Failed login attempt', ip: '192.168.1.100', severity: 'low' },
+                            { time: '14:15', event: 'Successful admin login', ip: '10.0.0.1', severity: 'info' },
+                            { time: '13:58', event: 'Rate limit exceeded', ip: '203.0.113.5', severity: 'medium' },
+                            { time: '13:45', event: 'Password reset request', ip: '198.51.100.2', severity: 'low' },
+                            { time: '13:22', event: 'New user registration', ip: '203.0.113.8', severity: 'info' },
+                          ].map((event, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  event.severity === 'info' ? 'bg-blue-500' :
+                                  event.severity === 'low' ? 'bg-yellow-500' :
+                                  event.severity === 'medium' ? 'bg-orange-500' : 'bg-red-500'
+                                }`} />
+                                <span className="text-xs">{event.time}</span>
+                                <span className="text-xs">{event.event}</span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">{event.ip}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Monitoring Configuration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Monitoring Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure monitoring and alerting preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Real-time Monitoring</Label>
+                          <p className="text-xs text-muted-foreground">Monitor security events live</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Intrusion Detection</Label>
+                          <p className="text-xs text-muted-foreground">Detect suspicious activities</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>DDoS Protection</Label>
+                          <p className="text-xs text-muted-foreground">Protect against DDoS attacks</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Malware Scanning</Label>
+                          <p className="text-xs text-muted-foreground">Scan uploaded files for malware</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-2">
+                        <Label>Alert Threshold</Label>
+                        <Select defaultValue="medium">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low (All events)</SelectItem>
+                            <SelectItem value="medium">Medium (Important events)</SelectItem>
+                            <SelectItem value="high">High (Critical only)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Monitoring Retention</Label>
+                        <Select defaultValue="90">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30">30 days</SelectItem>
+                            <SelectItem value="90">90 days</SelectItem>
+                            <SelectItem value="180">180 days</SelectItem>
+                            <SelectItem value="365">1 year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="recovery" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Disaster Recovery */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <RotateCcw className="h-5 w-5" />
+                      Disaster Recovery
+                    </CardTitle>
+                    <CardDescription>
+                      Recovery options and disaster preparedness
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Recovery Plan Status: Active</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Last tested: 7 days ago</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button className="w-full justify-start" variant="outline">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Restore from Backup
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Point-in-Time Recovery
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Recovery Kit
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <Label>Recovery Time Objective (RTO)</Label>
+                      <Select defaultValue="4h">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1h">1 hour</SelectItem>
+                          <SelectItem value="4h">4 hours</SelectItem>
+                          <SelectItem value="24h">24 hours</SelectItem>
+                          <SelectItem value="72h">72 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Recovery Point Objective (RPO)</Label>
+                      <Select defaultValue="1h">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15m">15 minutes</SelectItem>
+                          <SelectItem value="1h">1 hour</SelectItem>
+                          <SelectItem value="4h">4 hours</SelectItem>
+                          <SelectItem value="24h">24 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recovery Testing */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Recovery Testing
+                    </CardTitle>
+                    <CardDescription>
+                      Test and validate recovery procedures
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <Button className="w-full justify-start">
+                        <Timer className="h-4 w-4 mr-2" />
+                        Schedule Recovery Test
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Validate Backup Integrity
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Test Recovery Procedures
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <Label>Last Recovery Tests</Label>
+                      <ScrollArea className="h-32 w-full border rounded-md p-2">
+                        <div className="space-y-2">
+                          {[
+                            { date: '2024-01-08', test: 'Full System Recovery', result: 'success', duration: '15m' },
+                            { date: '2024-01-01', test: 'Database Recovery', result: 'success', duration: '8m' },
+                            { date: '2023-12-25', test: 'File System Recovery', result: 'success', duration: '12m' },
+                          ].map((test, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-3 w-3 text-green-600" />
+                                <span className="text-xs">{test.date}</span>
+                                <span className="text-xs">{test.test}</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs">{test.duration}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="compliance" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Compliance Overview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Compliance Status
+                    </CardTitle>
+                    <CardDescription>
+                      Security compliance and certification status
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold text-green-600">GDPR</div>
+                        <div className="text-xs text-muted-foreground">Compliant</div>
+                      </div>
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-lg font-semibold text-green-600">SOC 2</div>
+                        <div className="text-xs text-muted-foreground">Type II</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">Data Encryption</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">AES-256</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">Access Controls</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">RBAC</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="text-sm">Audit Logging</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-3 w-3 text-yellow-600" />
+                          <span className="text-sm">Data Retention Policy</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Review Required</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Compliance Tools */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Compliance Tools
+                    </CardTitle>
+                    <CardDescription>
+                      Generate reports and manage compliance
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <Button className="w-full justify-start" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Generate Compliance Report
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export Audit Logs
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Security Assessment
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <Award className="h-4 w-4 mr-2" />
+                        Certification Status
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <Label>Data Retention Period</Label>
+                      <Select defaultValue="7years">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1year">1 year</SelectItem>
+                          <SelectItem value="3years">3 years</SelectItem>
+                          <SelectItem value="5years">5 years</SelectItem>
+                          <SelectItem value="7years">7 years</SelectItem>
+                          <SelectItem value="indefinite">Indefinite</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Compliance Framework</Label>
+                      <Select defaultValue="gdpr">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gdpr">GDPR</SelectItem>
+                          <SelectItem value="ccpa">CCPA</SelectItem>
+                          <SelectItem value="hipaa">HIPAA</SelectItem>
+                          <SelectItem value="soc2">SOC 2</SelectItem>
+                          <SelectItem value="iso27001">ISO 27001</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="logs" className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Security Audit Logs
+                  </CardTitle>
+                  <CardDescription>
+                    Comprehensive security event logging and analysis
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Input placeholder="Search logs..." className="w-64" />
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Events</SelectItem>
+                          <SelectItem value="login">Login</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="security">Security</SelectItem>
+                          <SelectItem value="backup">Backup</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filter
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
+                  </div>
+
+                  <ScrollArea className="h-96 w-full border rounded-md">
+                    <div className="p-4 space-y-2">
+                      {[
+                        { timestamp: '2024-01-15 14:32:15', level: 'INFO', event: 'User login successful', user: 'admin@example.com', ip: '192.168.1.100', details: 'Login from trusted device' },
+                        { timestamp: '2024-01-15 14:28:43', level: 'WARN', event: 'Failed login attempt', user: 'unknown', ip: '203.0.113.5', details: 'Invalid credentials provided' },
+                        { timestamp: '2024-01-15 14:15:22', level: 'INFO', event: 'Backup completed successfully', user: 'system', ip: 'localhost', details: 'Daily backup - 45.2 MB' },
+                        { timestamp: '2024-01-15 13:58:11', level: 'WARN', event: 'Rate limit exceeded', user: 'api_user', ip: '198.51.100.2', details: '100+ requests in 1 minute' },
+                        { timestamp: '2024-01-15 13:45:33', level: 'INFO', event: 'Password reset initiated', user: 'user@example.com', ip: '10.0.0.1', details: 'Reset token sent via email' },
+                        { timestamp: '2024-01-15 13:22:18', level: 'INFO', event: 'New user registration', user: 'newuser@example.com', ip: '203.0.113.8', details: 'Email verification required' },
+                        { timestamp: '2024-01-15 12:15:45', level: 'ERROR', event: 'Security scan detected threat', user: 'system', ip: 'scanner', details: 'Malicious file upload blocked' },
+                        { timestamp: '2024-01-15 11:30:22', level: 'INFO', event: 'Admin panel accessed', user: 'admin@example.com', ip: '192.168.1.100', details: 'User management section' },
+                        { timestamp: '2024-01-15 10:45:11', level: 'WARN', event: 'Suspicious activity detected', user: 'unknown', ip: '185.220.101.5', details: 'Multiple failed requests' },
+                        { timestamp: '2024-01-15 09:15:33', level: 'INFO', event: 'Database backup started', user: 'system', ip: 'localhost', details: 'Scheduled weekly backup' },
+                      ].map((log, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                          <div className="flex items-center gap-3">
+                            <Badge variant={
+                              log.level === 'ERROR' ? 'destructive' :
+                              log.level === 'WARN' ? 'secondary' : 'outline'
+                            } className="text-xs">
+                              {log.level}
+                            </Badge>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{log.event}</span>
+                              <span className="text-xs text-muted-foreground">{log.details}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs">{log.timestamp}</div>
+                            <div className="text-xs text-muted-foreground">{log.user} • {log.ip}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Showing 10 of 1,247 events</p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled>Previous</Button>
+                      <Button variant="outline" size="sm">Next</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
