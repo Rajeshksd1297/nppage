@@ -96,16 +96,15 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
 
   const handleSavePage = async (pageData: Partial<AdditionalPage>) => {
     try {
-      // Validate slug uniqueness
-      if (pageData.slug) {
+      // Validate slug uniqueness only if we're creating a new page or changing the slug
+      if (pageData.slug && (!editingPage?.id || pageData.slug !== editingPage.slug)) {
         const { data: existingPage } = await supabase
           .from('additional_pages')
           .select('id')
           .eq('slug', pageData.slug)
-          .neq('id', editingPage?.id || '')
           .maybeSingle();
 
-        if (existingPage) {
+        if (existingPage && existingPage.id !== editingPage?.id) {
           toast({
             title: "Error",
             description: "A page with this URL slug already exists. Please use a different slug.",
