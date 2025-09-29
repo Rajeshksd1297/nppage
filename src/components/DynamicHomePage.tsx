@@ -262,8 +262,8 @@ export const DynamicHomePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center">
-        <div className="text-center space-y-6 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center p-4">
+        <div className="text-center space-y-6 max-w-sm mx-auto">
           <div className="relative">
             <div className="animate-spin h-12 w-12 border-3 border-primary/30 border-t-primary rounded-full mx-auto"></div>
             <div className="absolute inset-0 animate-ping h-12 w-12 border border-primary/20 rounded-full mx-auto"></div>
@@ -329,7 +329,7 @@ export const DynamicHomePage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/10" 
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/10 overflow-x-hidden" 
          style={{
            '--brand-primary': siteSettings?.primary_color,
            '--brand-secondary': siteSettings?.secondary_color
@@ -343,55 +343,58 @@ export const DynamicHomePage: React.FC = () => {
         image={siteSettings?.logo_url || "/hero-authors-workspace.jpg"}
       />
 
-      {/* Dynamic Header with Brand Identity */}
+      {/* Dynamic Header with Mobile Optimization */}
       <DynamicHeader 
         config={siteSettings?.header_config} 
         siteTitle={siteSettings?.site_title}
         logoUrl={siteSettings?.logo_url}
       />
 
-      {/* Hero Blocks with Enhanced Styling */}
-      {heroBlocks.map((heroBlock) => (
-        <DynamicHeroBlock
-          key={heroBlock.id}
-          config={heroBlock.config}
-          name={heroBlock.name}
-          description={heroBlock.description}
-        />
-      ))}
-
-      {/* Dynamic Sections with Brand Theming */}
-      <main className="relative">
-        {sections.map((section, index) => (
-          <DynamicSection
-            key={section.id}
-            type={section.type}
-            title={section.title}
-            config={section.config}
-            books={section.type === 'book_showcase' ? books : undefined}
+      {/* Hero Blocks with Mobile Enhancement */}
+      <div className="w-full">
+        {heroBlocks.map((heroBlock) => (
+          <DynamicHeroBlock
+            key={heroBlock.id}
+            config={heroBlock.config}
+            name={heroBlock.name}
+            description={heroBlock.description}
           />
         ))}
+      </div>
 
-        {/* Default Welcome Section if no sections exist */}
+      {/* Dynamic Sections with Mobile-First Design */}
+      <main className="relative w-full">
+        {sections.map((section, index) => (
+          <div key={section.id} className={`w-full ${index % 2 === 1 ? 'bg-muted/30' : ''}`}>
+            <DynamicSection
+              type={section.type}
+              title={section.title}
+              config={section.config}
+              books={section.type === 'book_showcase' ? books : undefined}
+            />
+          </div>
+        ))}
+
+        {/* Default Welcome Section - Mobile Optimized */}
         {sections.length === 0 && (
-          <section className="py-24 px-6">
+          <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6">
             <div className="container mx-auto text-center max-w-4xl">
-              <div className="space-y-8 animate-fade-in">
+              <div className="space-y-6 sm:space-y-8 animate-fade-in">
                 <div className="space-y-4">
-                  <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent leading-tight">
                     Welcome to Your Author Platform
                   </h1>
-                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4">
                     Your professional author website is ready to showcase your work. 
                     Customize your brand identity and add compelling content through the admin dashboard.
                   </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <div className="px-6 py-3 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
+                  <div className="px-4 sm:px-6 py-2 sm:py-3 bg-primary/10 text-primary rounded-full text-xs sm:text-sm font-medium border border-primary/20 w-full sm:w-auto text-center">
                     🎨 Brand Identity Ready
                   </div>
-                  <div className="px-6 py-3 bg-muted text-muted-foreground rounded-full text-sm font-medium">
+                  <div className="px-4 sm:px-6 py-2 sm:py-3 bg-muted text-muted-foreground rounded-full text-xs sm:text-sm font-medium w-full sm:w-auto text-center">
                     📝 Add Content to Get Started
                   </div>
                 </div>
@@ -401,7 +404,7 @@ export const DynamicHomePage: React.FC = () => {
         )}
       </main>
 
-      {/* Dynamic Footer with Brand Integration */}
+      {/* Dynamic Footer with Mobile Enhancement */}
       <DynamicFooter 
         config={siteSettings?.footer_config}
         siteTitle={siteSettings?.site_title}

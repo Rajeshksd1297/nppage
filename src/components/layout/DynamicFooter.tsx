@@ -82,17 +82,17 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
 
   return (
     <footer className="bg-muted/50 border-t">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          {/* Brand Section - Mobile Optimized */}
+          <div className="space-y-4 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 {siteTitle}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground max-w-xs">
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto sm:mx-0">
               Professional author profiles and book showcases for the modern writer.
             </p>
             {customText && (
@@ -102,9 +102,9 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             )}
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links - Mobile Friendly */}
           {showPages && (
-            <div className="space-y-4">
+            <div className="space-y-4 text-center sm:text-left">
               <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
               <ul className="space-y-2">
                 {pageLinks.slice(0, 5).map((link, index) => (
@@ -121,9 +121,9 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             </div>
           )}
 
-          {/* Legal Links */}
+          {/* Legal Links - Mobile Friendly */}
           {showPages && (
-            <div className="space-y-4">
+            <div className="space-y-4 text-center sm:text-left">
               <h3 className="text-sm font-semibold text-foreground">Legal</h3>
               <ul className="space-y-2">
                 {pageLinks.slice(5).map((link, index) => (
@@ -140,19 +140,19 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             </div>
           )}
 
-          {/* Contact & Social */}
-          <div className="space-y-4">
+          {/* Contact & Social - Mobile Optimized */}
+          <div className="space-y-4 text-center sm:text-left">
             <h3 className="text-sm font-semibold text-foreground">Connect</h3>
             
             {/* Contact Information */}
             {config?.contact && (
               <div className="space-y-2">
                 {config.contact.email && (
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
+                  <div className="flex items-center justify-center sm:justify-start space-x-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4 flex-shrink-0" />
                     <a 
                       href={`mailto:${config.contact.email}`}
-                      className="hover:text-primary transition-colors"
+                      className="hover:text-primary transition-colors truncate"
                     >
                       {config.contact.email}
                     </a>
@@ -160,8 +160,8 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
                 )}
                 
                 {config.contact.phone && (
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
+                  <div className="flex items-center justify-center sm:justify-start space-x-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4 flex-shrink-0" />
                     <a 
                       href={`tel:${config.contact.phone}`}
                       className="hover:text-primary transition-colors"
@@ -172,28 +172,28 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
                 )}
                 
                 {config.contact.address && (
-                  <div className="flex items-start space-x-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5" />
-                    <span>{config.contact.address}</span>
+                  <div className="flex items-start justify-center sm:justify-start space-x-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span className="text-center sm:text-left">{config.contact.address}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Social Links */}
+            {/* Social Links - Mobile Enhanced */}
             {showSocial && socialLinks.length > 0 && (
               <div>
                 <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
                   Follow Us
                 </h4>
-                <div className="flex space-x-3">
+                <div className="flex justify-center sm:justify-start space-x-3">
                   {socialLinks.map((social, index) => (
                     <a
                       key={index}
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                      className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200 hover:scale-110"
                       aria-label={social.label}
                     >
                       {social.icon}
@@ -205,9 +205,9 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-8 pt-8 border-t border-border">
-          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        {/* Bottom Section - Mobile Responsive */}
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border">
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 text-center sm:text-left">
             <div className="text-sm text-muted-foreground">
               {copyright}
             </div>
