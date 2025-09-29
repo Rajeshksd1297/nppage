@@ -12,92 +12,16 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import {
-  Plus,
-  Edit,
-  Eye,
-  Trash2,
-  Settings,
-  Home,
-  Users,
-  BarChart3,
-  Layout,
-  Globe,
-  TrendingUp,
-  Clock,
-  MapPin,
-  Activity,
-  Monitor,
-  Smartphone,
-  Target,
-  Search,
-  Brain,
-  CheckCircle,
-  AlertTriangle,
-  Lightbulb,
-  Share2,
-  ExternalLink,
-  Database,
-  FileText,
-  Code,
-  Save,
-  RefreshCw,
-  Timer,
-  Signal,
-  Wifi,
-  Gauge,
-  Download,
-  Upload,
-  Filter,
-  Calendar,
-  Type,
-  ImageIcon,
-  Hash,
-  Link,
-  Star,
-  Award,
-  Bookmark,
-  Copy,
-  Trash,
-  RotateCcw,
-  HardDrive,
-  Cpu,
-  Cookie,
-  Shield,
-  Tablet
-} from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
 import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement, 
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement, 
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
-
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 interface HeroBlock {
   id: string;
   name: string;
@@ -108,7 +32,6 @@ interface HeroBlock {
   created_at: string;
   updated_at: string;
 }
-
 interface SiteSettings {
   siteName: string;
   siteDescription: string;
@@ -155,10 +78,11 @@ interface SiteSettings {
     enableSchemaMarkup: boolean;
   };
 }
-
 const HomePageManagement = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,63 +152,50 @@ const HomePageManagement = () => {
       datasets: [{
         label: 'Page Views',
         data: [4500, 2300, 3200, 1800, 2800],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(245, 158, 11, 0.8)',
-          'rgba(239, 68, 68, 0.8)',
-          'rgba(139, 92, 246, 0.8)'
-        ]
+        backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)']
       }]
     },
     deviceStats: {
       labels: ['Desktop', 'Mobile', 'Tablet'],
       datasets: [{
         data: [65, 30, 5],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(245, 158, 11, 0.8)'
-        ]
+        backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)']
       }]
     }
   };
-
   const chartOptions = {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top' as const,
-      },
+        position: 'top' as const
+      }
     },
     scales: {
       y: {
-        beginAtZero: true,
-      },
-    },
+        beginAtZero: true
+      }
+    }
   };
-
   const doughnutOptions = {
     responsive: true,
     plugins: {
       legend: {
-        position: 'bottom' as const,
-      },
-    },
+        position: 'bottom' as const
+      }
+    }
   };
-
   useEffect(() => {
     fetchHeroBlocks();
     fetchSiteSettings();
   }, []);
-
   const fetchHeroBlocks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('hero_blocks')
-        .select('*')
-        .order('order', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('hero_blocks').select('*').order('order', {
+        ascending: true
+      });
       if (error) throw error;
       setHeroBlocks(data || []);
     } catch (error) {
@@ -292,23 +203,20 @@ const HomePageManagement = () => {
       toast({
         title: "Error",
         description: "Failed to fetch hero blocks",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const fetchSiteSettings = async () => {
     try {
       // Use any to bypass TypeScript issues with the new table
-      const { data, error } = await (supabase as any)
-        .from('site_settings')
-        .select('*')
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await (supabase as any).from('site_settings').select('*').maybeSingle();
       if (error && error.code !== 'PGRST116') throw error;
-      
       if (data) {
         setSiteSettings(prev => ({
           ...prev,
@@ -331,106 +239,105 @@ const HomePageManagement = () => {
       console.error('Error fetching site settings:', error);
     }
   };
-
   const handleSaveSiteSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await (supabase as any)
-        .from('site_settings')
-        .upsert({
-          site_name: siteSettings.siteName,
-          site_description: siteSettings.siteDescription,
-          site_keywords: siteSettings.siteKeywords,
-          contact_email: siteSettings.contactEmail,
-          allow_registration: siteSettings.allowRegistration,
-          require_email_verification: siteSettings.requireEmailVerification,
-          default_theme: siteSettings.defaultTheme,
-          maintenance_mode: siteSettings.maintenanceMode,
-          max_file_size: siteSettings.maxFileSize,
-          allowed_file_types: siteSettings.allowedFileTypes,
-          timezone: siteSettings.timezone,
-          date_format: siteSettings.dateFormat,
-          language: siteSettings.language
-        });
-
+      const {
+        error
+      } = await (supabase as any).from('site_settings').upsert({
+        site_name: siteSettings.siteName,
+        site_description: siteSettings.siteDescription,
+        site_keywords: siteSettings.siteKeywords,
+        contact_email: siteSettings.contactEmail,
+        allow_registration: siteSettings.allowRegistration,
+        require_email_verification: siteSettings.requireEmailVerification,
+        default_theme: siteSettings.defaultTheme,
+        maintenance_mode: siteSettings.maintenanceMode,
+        max_file_size: siteSettings.maxFileSize,
+        allowed_file_types: siteSettings.allowedFileTypes,
+        timezone: siteSettings.timezone,
+        date_format: siteSettings.dateFormat,
+        language: siteSettings.language
+      });
       if (error) throw error;
-
       toast({
         title: "Success",
-        description: "Site settings saved successfully",
+        description: "Site settings saved successfully"
       });
     } catch (error) {
       console.error('Error saving site settings:', error);
       toast({
         title: "Error",
         description: "Failed to save site settings",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setSaving(false);
     }
   };
-
-  const stats = [
-    {
-      title: "Total Visitors",
-      value: "12,345",
-      change: "+12%",
-      trend: "up",
-      icon: Users,
-      color: "text-blue-600"
-    },
-    {
-      title: "Page Views",
-      value: "45,678",
-      change: "+8%",
-      trend: "up",
-      icon: Eye,
-      color: "text-green-600"
-    },
-    {
-      title: "Bounce Rate",
-      value: "32%",
-      change: "-5%",
-      trend: "down",
-      icon: TrendingUp,
-      color: "text-orange-600"
-    },
-    {
-      title: "Avg. Session",
-      value: "2m 34s",
-      change: "+15%",
-      trend: "up",
-      icon: Clock,
-      color: "text-purple-600"
-    }
-  ];
-
-  const recentActivities = [
-    { action: "Hero block updated", time: "2 minutes ago", user: "Admin" },
-    { action: "New page created", time: "1 hour ago", user: "Editor" },
-    { action: "SEO settings modified", time: "3 hours ago", user: "Admin" },
-    { action: "Contact form submission", time: "5 hours ago", user: "Visitor" },
-    { action: "Blog post published", time: "1 day ago", user: "Author" }
-  ];
-
+  const stats = [{
+    title: "Total Visitors",
+    value: "12,345",
+    change: "+12%",
+    trend: "up",
+    icon: Users,
+    color: "text-blue-600"
+  }, {
+    title: "Page Views",
+    value: "45,678",
+    change: "+8%",
+    trend: "up",
+    icon: Eye,
+    color: "text-green-600"
+  }, {
+    title: "Bounce Rate",
+    value: "32%",
+    change: "-5%",
+    trend: "down",
+    icon: TrendingUp,
+    color: "text-orange-600"
+  }, {
+    title: "Avg. Session",
+    value: "2m 34s",
+    change: "+15%",
+    trend: "up",
+    icon: Clock,
+    color: "text-purple-600"
+  }];
+  const recentActivities = [{
+    action: "Hero block updated",
+    time: "2 minutes ago",
+    user: "Admin"
+  }, {
+    action: "New page created",
+    time: "1 hour ago",
+    user: "Editor"
+  }, {
+    action: "SEO settings modified",
+    time: "3 hours ago",
+    user: "Admin"
+  }, {
+    action: "Contact form submission",
+    time: "5 hours ago",
+    user: "Visitor"
+  }, {
+    action: "Blog post published",
+    time: "1 day ago",
+    user: "Author"
+  }];
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
+  return <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="font-bold flex items-center gap-2 text-xl">
             <Home className="h-8 w-8" />
             Home Page Management
           </h1>
-          <p className="text-muted-foreground">Manage your website's homepage content and settings</p>
+          <p className="text-muted-foreground text-sm">Manage your website's homepage content and settings</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate('/admin')}>
@@ -475,8 +382,7 @@ const HomePageManagement = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index}>
+            {stats.map((stat, index) => <Card key={index}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -489,8 +395,7 @@ const HomePageManagement = () => {
                     <stat.icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -650,15 +555,13 @@ const HomePageManagement = () => {
               <CardContent>
                 <ScrollArea className="h-64">
                   <div className="space-y-3">
-                    {recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    {recentActivities.map((activity, index) => <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                         <div>
                           <p className="text-sm font-medium">{activity.action}</p>
                           <p className="text-xs text-muted-foreground">by {activity.user}</p>
                         </div>
                         <p className="text-xs text-muted-foreground">{activity.time}</p>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -695,15 +598,11 @@ const HomePageManagement = () => {
             </div>
           </div>
           
-          <HeroBlockManager
-            heroBlocks={heroBlocks.map(block => ({
-              ...block,
-              preview_image: block.preview_image_url || '',
-              enabled_for_authors: block.enabled
-            }))}
-            onBack={() => setCurrentView('overview')}
-            onUpdate={fetchHeroBlocks}
-          />
+          <HeroBlockManager heroBlocks={heroBlocks.map(block => ({
+          ...block,
+          preview_image: block.preview_image_url || '',
+          enabled_for_authors: block.enabled
+        }))} onBack={() => setCurrentView('overview')} onUpdate={fetchHeroBlocks} />
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
@@ -749,12 +648,10 @@ const HomePageManagement = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="site-title">Site Title</Label>
-                      <Input
-                        id="site-title"
-                        placeholder="Your Website Title"
-                        value={siteSettings.siteName}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                      />
+                      <Input id="site-title" placeholder="Your Website Title" value={siteSettings.siteName} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteName: e.target.value
+                    }))} />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 30-60 characters</span>
                         <span className={siteSettings.siteName.length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
@@ -765,13 +662,10 @@ const HomePageManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="site-description">Meta Description</Label>
-                      <Textarea
-                        id="site-description"
-                        placeholder="Brief description of your website..."
-                        value={siteSettings.siteDescription}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
-                        rows={3}
-                      />
+                      <Textarea id="site-description" placeholder="Brief description of your website..." value={siteSettings.siteDescription} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteDescription: e.target.value
+                    }))} rows={3} />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 120-160 characters</span>
                         <span className={siteSettings.siteDescription.length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
@@ -782,13 +676,10 @@ const HomePageManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="keywords">SEO Keywords</Label>
-                      <Textarea
-                        id="keywords"
-                        placeholder="keyword1, keyword2, keyword3..."
-                        value={siteSettings.siteKeywords}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteKeywords: e.target.value }))}
-                        rows={2}
-                      />
+                      <Textarea id="keywords" placeholder="keyword1, keyword2, keyword3..." value={siteSettings.siteKeywords} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteKeywords: e.target.value
+                    }))} rows={2} />
                       <p className="text-xs text-muted-foreground">
                         Separate with commas. Focus on 3-5 related keywords.
                       </p>
@@ -796,7 +687,10 @@ const HomePageManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="language">Language</Label>
-                      <Select value={siteSettings.language} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, language: value }))}>
+                      <Select value={siteSettings.language} onValueChange={value => setSiteSettings(prev => ({
+                      ...prev,
+                      language: value
+                    }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select language" />
                         </SelectTrigger>
@@ -992,12 +886,7 @@ const HomePageManagement = () => {
             </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6 mt-6">
-              <SEOAnalyzer 
-                content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform."
-                title={siteSettings.siteName || 'Your Website'}
-                description={siteSettings.siteDescription || 'Website description'}
-                keywords={siteSettings.siteKeywords ? siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k) : []}
-              />
+              <SEOAnalyzer content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform." title={siteSettings.siteName || 'Your Website'} description={siteSettings.siteDescription || 'Website description'} keywords={siteSettings.siteKeywords ? siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k) : []} />
             </TabsContent>
 
             <TabsContent value="schema" className="space-y-6 mt-6">
@@ -1034,20 +923,12 @@ const HomePageManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="custom-robots">Custom Robots.txt</Label>
-                      <Textarea
-                        id="custom-robots"
-                        placeholder="User-agent: *&#10;Disallow: /admin/&#10;Sitemap: https://yoursite.com/sitemap.xml"
-                        rows={6}
-                      />
+                      <Textarea id="custom-robots" placeholder="User-agent: *&#10;Disallow: /admin/&#10;Sitemap: https://yoursite.com/sitemap.xml" rows={6} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="htaccess">Custom .htaccess Rules</Label>
-                      <Textarea
-                        id="htaccess"
-                        placeholder="RewriteEngine On&#10;RewriteCond %{HTTPS} off&#10;RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]"
-                        rows={4}
-                      />
+                      <Textarea id="htaccess" placeholder="RewriteEngine On&#10;RewriteCond %{HTTPS} off&#10;RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]" rows={4} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1105,11 +986,7 @@ const HomePageManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="custom-schema">Custom Schema JSON-LD</Label>
-                      <Textarea
-                        id="custom-schema"
-                        placeholder='{"@context": "https://schema.org", "@type": "Organization", "name": "Your Company"}'
-                        rows={4}
-                      />
+                      <Textarea id="custom-schema" placeholder='{"@context": "https://schema.org", "@type": "Organization", "name": "Your Company"}' rows={4} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1217,49 +1094,40 @@ const HomePageManagement = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="google-analytics">Google Analytics ID</Label>
-                      <Input
-                        id="google-analytics"
-                        placeholder="G-XXXXXXXXXX"
-                        value={siteSettings.analytics.googleAnalytics}
-                        onChange={(e) => setSiteSettings(prev => ({
-                          ...prev,
-                          analytics: { ...prev.analytics, googleAnalytics: e.target.value }
-                        }))}
-                      />
+                      <Input id="google-analytics" placeholder="G-XXXXXXXXXX" value={siteSettings.analytics.googleAnalytics} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        googleAnalytics: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="gtm">Google Tag Manager</Label>
-                      <Input
-                        id="gtm"
-                        placeholder="GTM-XXXXXXX"
-                        value={siteSettings.analytics.googleTagManager}
-                        onChange={(e) => setSiteSettings(prev => ({
-                          ...prev,
-                          analytics: { ...prev.analytics, googleTagManager: e.target.value }
-                        }))}
-                      />
+                      <Input id="gtm" placeholder="GTM-XXXXXXX" value={siteSettings.analytics.googleTagManager} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        googleTagManager: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="facebook-pixel">Facebook Pixel</Label>
-                      <Input
-                        id="facebook-pixel"
-                        placeholder="Facebook Pixel ID"
-                        value={siteSettings.analytics.facebookPixel}
-                        onChange={(e) => setSiteSettings(prev => ({
-                          ...prev,
-                          analytics: { ...prev.analytics, facebookPixel: e.target.value }
-                        }))}
-                      />
+                      <Input id="facebook-pixel" placeholder="Facebook Pixel ID" value={siteSettings.analytics.facebookPixel} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        facebookPixel: e.target.value
+                      }
+                    }))} />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="hotjar">Hotjar Tracking Code</Label>
-                      <Input
-                        id="hotjar"
-                        placeholder="Hotjar Site ID"
-                      />
+                      <Input id="hotjar" placeholder="Hotjar Site ID" />
                     </div>
 
                     <Button className="w-full">
@@ -1286,10 +1154,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-blue-500"></div>
                         Google Search Console
                       </Label>
-                      <Input 
-                        id="google-search-console" 
-                        placeholder="google-site-verification=xxxxx" 
-                      />
+                      <Input id="google-search-console" placeholder="google-site-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">Dominant in US, EU, most global markets</p>
                     </div>
 
@@ -1299,10 +1164,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-orange-500"></div>
                         Bing Webmaster Tools
                       </Label>
-                      <Input 
-                        id="bing-webmaster" 
-                        placeholder="msvalidate.01=xxxxx" 
-                      />
+                      <Input id="bing-webmaster" placeholder="msvalidate.01=xxxxx" />
                       <p className="text-xs text-muted-foreground">Important for US market, ~6% search share</p>
                     </div>
 
@@ -1312,10 +1174,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-red-500"></div>
                         Yandex Webmaster
                       </Label>
-                      <Input 
-                        id="yandex-webmaster" 
-                        placeholder="yandex-verification=xxxxx" 
-                      />
+                      <Input id="yandex-webmaster" placeholder="yandex-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">Dominant in Russia, CIS countries (~65% in Russia)</p>
                     </div>
 
@@ -1325,10 +1184,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-blue-600"></div>
                         Baidu Webmaster Tools
                       </Label>
-                      <Input 
-                        id="baidu-webmaster" 
-                        placeholder="baidu-site-verification=xxxxx" 
-                      />
+                      <Input id="baidu-webmaster" placeholder="baidu-site-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">Dominant in China (~76% market share)</p>
                     </div>
 
@@ -1359,10 +1215,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-green-500"></div>
                         Naver Search Advisor (Korea)
                       </Label>
-                      <Input 
-                        id="naver-webmaster" 
-                        placeholder="naver-site-verification=xxxxx" 
-                      />
+                      <Input id="naver-webmaster" placeholder="naver-site-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">~75% market share in South Korea</p>
                     </div>
 
@@ -1372,10 +1225,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-red-600"></div>
                         Seznam Webmaster (Czech Republic)
                       </Label>
-                      <Input 
-                        id="seznam-webmaster" 
-                        placeholder="seznam-verification=xxxxx" 
-                      />
+                      <Input id="seznam-webmaster" placeholder="seznam-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">~50% market share in Czech Republic</p>
                     </div>
 
@@ -1385,10 +1235,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-orange-600"></div>
                         DuckDuckGo (Privacy-focused)
                       </Label>
-                      <Input 
-                        id="duckduckgo" 
-                        placeholder="duckduckgo-verification=xxxxx" 
-                      />
+                      <Input id="duckduckgo" placeholder="duckduckgo-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">Growing privacy-conscious user base</p>
                     </div>
 
@@ -1398,10 +1245,7 @@ const HomePageManagement = () => {
                         <div className="w-4 h-4 rounded bg-blue-700"></div>
                         Qwant (France)
                       </Label>
-                      <Input 
-                        id="qwant" 
-                        placeholder="qwant-verification=xxxxx" 
-                      />
+                      <Input id="qwant" placeholder="qwant-verification=xxxxx" />
                       <p className="text-xs text-muted-foreground">Popular privacy-focused search in France</p>
                     </div>
                   </CardContent>
@@ -2071,7 +1915,9 @@ const HomePageManagement = () => {
                       <span className="font-medium">76.2%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{width: '76.2%'}}></div>
+                      <div className="bg-green-500 h-2 rounded-full" style={{
+                      width: '76.2%'
+                    }}></div>
                     </div>
                   </div>
 
@@ -2081,7 +1927,9 @@ const HomePageManagement = () => {
                       <span className="font-medium">74.8%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{width: '74.8%'}}></div>
+                      <div className="bg-blue-500 h-2 rounded-full" style={{
+                      width: '74.8%'
+                    }}></div>
                     </div>
                   </div>
 
@@ -2091,7 +1939,9 @@ const HomePageManagement = () => {
                       <span className="font-medium">72.1%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '72.1%'}}></div>
+                      <div className="bg-purple-500 h-2 rounded-full" style={{
+                      width: '72.1%'
+                    }}></div>
                     </div>
                   </div>
 
@@ -2101,15 +1951,15 @@ const HomePageManagement = () => {
                     <h4 className="font-medium">Recent Activity</h4>
                     <ScrollArea className="h-32">
                       <div className="space-y-2">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <div key={i} className="flex items-center justify-between text-sm p-2 rounded border">
+                        {Array.from({
+                        length: 8
+                      }).map((_, i) => <div key={i} className="flex items-center justify-between text-sm p-2 rounded border">
                             <div className="flex items-center gap-2">
                               <CheckCircle className="h-3 w-3 text-green-500" />
                               <span>User accepted all cookies</span>
                             </div>
                             <span className="text-muted-foreground">{i + 2}m ago</span>
-                          </div>
-                        ))}
+                          </div>)}
                       </div>
                     </ScrollArea>
                   </div>
@@ -2139,7 +1989,9 @@ const HomePageManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">82.3%</span>
                       <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{width: '82.3%'}}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{
+                        width: '82.3%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
@@ -2151,7 +2003,9 @@ const HomePageManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">68.7%</span>
                       <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{width: '68.7%'}}></div>
+                        <div className="bg-blue-500 h-2 rounded-full" style={{
+                        width: '68.7%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
@@ -2163,7 +2017,9 @@ const HomePageManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">71.2%</span>
                       <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-purple-500 h-2 rounded-full" style={{width: '71.2%'}}></div>
+                        <div className="bg-purple-500 h-2 rounded-full" style={{
+                        width: '71.2%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
@@ -2175,7 +2031,9 @@ const HomePageManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">79.1%</span>
                       <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-orange-500 h-2 rounded-full" style={{width: '79.1%'}}></div>
+                        <div className="bg-orange-500 h-2 rounded-full" style={{
+                        width: '79.1%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
@@ -2187,7 +2045,9 @@ const HomePageManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">75.8%</span>
                       <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-cyan-500 h-2 rounded-full" style={{width: '75.8%'}}></div>
+                        <div className="bg-cyan-500 h-2 rounded-full" style={{
+                        width: '75.8%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
@@ -2218,7 +2078,9 @@ const HomePageManagement = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">84.2%</span>
                           <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-green-500 h-2 rounded-full" style={{width: '84.2%'}}></div>
+                            <div className="bg-green-500 h-2 rounded-full" style={{
+                            width: '84.2%'
+                          }}></div>
                           </div>
                         </div>
                       </div>
@@ -2231,7 +2093,9 @@ const HomePageManagement = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">72.1%</span>
                           <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-blue-500 h-2 rounded-full" style={{width: '72.1%'}}></div>
+                            <div className="bg-blue-500 h-2 rounded-full" style={{
+                            width: '72.1%'
+                          }}></div>
                           </div>
                         </div>
                       </div>
@@ -2244,7 +2108,9 @@ const HomePageManagement = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">76.8%</span>
                           <div className="w-12 bg-muted rounded-full h-2">
-                            <div className="bg-purple-500 h-2 rounded-full" style={{width: '76.8%'}}></div>
+                            <div className="bg-purple-500 h-2 rounded-full" style={{
+                            width: '76.8%'
+                          }}></div>
                           </div>
                         </div>
                       </div>
@@ -2393,65 +2259,56 @@ const HomePageManagement = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="logo">Logo URL</Label>
-                  <Input
-                    id="logo"
-                    placeholder="https://yoursite.com/logo.png"
-                    value={siteSettings.logo}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, logo: e.target.value }))}
-                  />
+                  <Input id="logo" placeholder="https://yoursite.com/logo.png" value={siteSettings.logo} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  logo: e.target.value
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="favicon">Favicon URL</Label>
-                  <Input
-                    id="favicon"
-                    placeholder="https://yoursite.com/favicon.ico"
-                    value={siteSettings.favicon}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, favicon: e.target.value }))}
-                  />
+                  <Input id="favicon" placeholder="https://yoursite.com/favicon.ico" value={siteSettings.favicon} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  favicon: e.target.value
+                }))} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="primary-color">Primary Color</Label>
                     <div className="flex gap-2">
-                      <Input
-                        id="primary-color"
-                        type="color"
-                        value={siteSettings.primaryColor}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
-                        className="w-16 h-10 p-1"
-                      />
-                      <Input
-                        value={siteSettings.primaryColor}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
-                        placeholder="#3b82f6"
-                      />
+                      <Input id="primary-color" type="color" value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      primaryColor: e.target.value
+                    }))} className="w-16 h-10 p-1" />
+                      <Input value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      primaryColor: e.target.value
+                    }))} placeholder="#3b82f6" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="secondary-color">Secondary Color</Label>
                     <div className="flex gap-2">
-                      <Input
-                        id="secondary-color"
-                        type="color"
-                        value={siteSettings.secondaryColor}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                        className="w-16 h-10 p-1"
-                      />
-                      <Input
-                        value={siteSettings.secondaryColor}
-                        onChange={(e) => setSiteSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                        placeholder="#64748b"
-                      />
+                      <Input id="secondary-color" type="color" value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      secondaryColor: e.target.value
+                    }))} className="w-16 h-10 p-1" />
+                      <Input value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      secondaryColor: e.target.value
+                    }))} placeholder="#64748b" />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="font-family">Font Family</Label>
-                  <Select value={siteSettings.fontFamily} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, fontFamily: value }))}>
+                  <Select value={siteSettings.fontFamily} onValueChange={value => setSiteSettings(prev => ({
+                  ...prev,
+                  fontFamily: value
+                }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -2476,7 +2333,10 @@ const HomePageManagement = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="header-layout">Header Layout</Label>
-                  <Select value={siteSettings.headerLayout} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, headerLayout: value }))}>
+                  <Select value={siteSettings.headerLayout} onValueChange={value => setSiteSettings(prev => ({
+                  ...prev,
+                  headerLayout: value
+                }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -2491,7 +2351,10 @@ const HomePageManagement = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="footer-layout">Footer Layout</Label>
-                  <Select value={siteSettings.footerLayout} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, footerLayout: value }))}>
+                  <Select value={siteSettings.footerLayout} onValueChange={value => setSiteSettings(prev => ({
+                  ...prev,
+                  footerLayout: value
+                }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -2553,67 +2416,57 @@ const HomePageManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="facebook">Facebook</Label>
-                  <Input
-                    id="facebook"
-                    placeholder="https://facebook.com/yourpage"
-                    value={siteSettings.socialLinks.facebook}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      socialLinks: { ...prev.socialLinks, facebook: e.target.value }
-                    }))}
-                  />
+                  <Input id="facebook" placeholder="https://facebook.com/yourpage" value={siteSettings.socialLinks.facebook} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  socialLinks: {
+                    ...prev.socialLinks,
+                    facebook: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="twitter">Twitter</Label>
-                  <Input
-                    id="twitter"
-                    placeholder="https://twitter.com/youraccount"
-                    value={siteSettings.socialLinks.twitter}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      socialLinks: { ...prev.socialLinks, twitter: e.target.value }
-                    }))}
-                  />
+                  <Input id="twitter" placeholder="https://twitter.com/youraccount" value={siteSettings.socialLinks.twitter} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  socialLinks: {
+                    ...prev.socialLinks,
+                    twitter: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    placeholder="https://instagram.com/youraccount"
-                    value={siteSettings.socialLinks.instagram}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      socialLinks: { ...prev.socialLinks, instagram: e.target.value }
-                    }))}
-                  />
+                  <Input id="instagram" placeholder="https://instagram.com/youraccount" value={siteSettings.socialLinks.instagram} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  socialLinks: {
+                    ...prev.socialLinks,
+                    instagram: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="linkedin">LinkedIn</Label>
-                  <Input
-                    id="linkedin"
-                    placeholder="https://linkedin.com/company/yourcompany"
-                    value={siteSettings.socialLinks.linkedin}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      socialLinks: { ...prev.socialLinks, linkedin: e.target.value }
-                    }))}
-                  />
+                  <Input id="linkedin" placeholder="https://linkedin.com/company/yourcompany" value={siteSettings.socialLinks.linkedin} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  socialLinks: {
+                    ...prev.socialLinks,
+                    linkedin: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="youtube">YouTube</Label>
-                  <Input
-                    id="youtube"
-                    placeholder="https://youtube.com/yourchannel"
-                    value={siteSettings.socialLinks.youtube}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      socialLinks: { ...prev.socialLinks, youtube: e.target.value }
-                    }))}
-                  />
+                  <Input id="youtube" placeholder="https://youtube.com/yourchannel" value={siteSettings.socialLinks.youtube} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  socialLinks: {
+                    ...prev.socialLinks,
+                    youtube: e.target.value
+                  }
+                }))} />
                 </div>
               </div>
             </CardContent>
@@ -2779,20 +2632,34 @@ const HomePageManagement = () => {
                       <Label>Recent Backup History</Label>
                       <ScrollArea className="h-48 w-full border rounded-md p-2">
                         <div className="space-y-2">
-                          {[
-                            { date: '2024-01-15 02:00', status: 'success', size: '45.2 MB', type: 'Daily' },
-                            { date: '2024-01-14 02:00', status: 'success', size: '44.8 MB', type: 'Daily' },
-                            { date: '2024-01-13 02:00', status: 'success', size: '44.5 MB', type: 'Daily' },
-                            { date: '2024-01-12 02:00', status: 'warning', size: '44.1 MB', type: 'Daily' },
-                            { date: '2024-01-11 02:00', status: 'success', size: '43.9 MB', type: 'Daily' },
-                          ].map((backup, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          {[{
+                          date: '2024-01-15 02:00',
+                          status: 'success',
+                          size: '45.2 MB',
+                          type: 'Daily'
+                        }, {
+                          date: '2024-01-14 02:00',
+                          status: 'success',
+                          size: '44.8 MB',
+                          type: 'Daily'
+                        }, {
+                          date: '2024-01-13 02:00',
+                          status: 'success',
+                          size: '44.5 MB',
+                          type: 'Daily'
+                        }, {
+                          date: '2024-01-12 02:00',
+                          status: 'warning',
+                          size: '44.1 MB',
+                          type: 'Daily'
+                        }, {
+                          date: '2024-01-11 02:00',
+                          status: 'success',
+                          size: '43.9 MB',
+                          type: 'Daily'
+                        }].map((backup, index) => <div key={index} className="flex items-center justify-between p-2 border rounded">
                               <div className="flex items-center gap-2">
-                                {backup.status === 'success' ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <AlertTriangle className="h-3 w-3 text-yellow-600" />
-                                )}
+                                {backup.status === 'success' ? <CheckCircle className="h-3 w-3 text-green-600" /> : <AlertTriangle className="h-3 w-3 text-yellow-600" />}
                                 <span className="text-xs">{backup.date}</span>
                                 <Badge variant="outline" className="text-xs">{backup.type}</Badge>
                               </div>
@@ -2802,8 +2669,7 @@ const HomePageManagement = () => {
                                   <Download className="h-3 w-3" />
                                 </Button>
                               </div>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </ScrollArea>
                     </div>
@@ -3160,26 +3026,39 @@ const HomePageManagement = () => {
                       <Label>Recent Security Events</Label>
                       <ScrollArea className="h-48 w-full border rounded-md p-2">
                         <div className="space-y-2">
-                          {[
-                            { time: '14:32', event: 'Failed login attempt', ip: '192.168.1.100', severity: 'low' },
-                            { time: '14:15', event: 'Successful admin login', ip: '10.0.0.1', severity: 'info' },
-                            { time: '13:58', event: 'Rate limit exceeded', ip: '203.0.113.5', severity: 'medium' },
-                            { time: '13:45', event: 'Password reset request', ip: '198.51.100.2', severity: 'low' },
-                            { time: '13:22', event: 'New user registration', ip: '203.0.113.8', severity: 'info' },
-                          ].map((event, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          {[{
+                          time: '14:32',
+                          event: 'Failed login attempt',
+                          ip: '192.168.1.100',
+                          severity: 'low'
+                        }, {
+                          time: '14:15',
+                          event: 'Successful admin login',
+                          ip: '10.0.0.1',
+                          severity: 'info'
+                        }, {
+                          time: '13:58',
+                          event: 'Rate limit exceeded',
+                          ip: '203.0.113.5',
+                          severity: 'medium'
+                        }, {
+                          time: '13:45',
+                          event: 'Password reset request',
+                          ip: '198.51.100.2',
+                          severity: 'low'
+                        }, {
+                          time: '13:22',
+                          event: 'New user registration',
+                          ip: '203.0.113.8',
+                          severity: 'info'
+                        }].map((event, index) => <div key={index} className="flex items-center justify-between p-2 border rounded">
                               <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  event.severity === 'info' ? 'bg-blue-500' :
-                                  event.severity === 'low' ? 'bg-yellow-500' :
-                                  event.severity === 'medium' ? 'bg-orange-500' : 'bg-red-500'
-                                }`} />
+                                <div className={`w-2 h-2 rounded-full ${event.severity === 'info' ? 'bg-blue-500' : event.severity === 'low' ? 'bg-yellow-500' : event.severity === 'medium' ? 'bg-orange-500' : 'bg-red-500'}`} />
                                 <span className="text-xs">{event.time}</span>
                                 <span className="text-xs">{event.event}</span>
                               </div>
                               <span className="text-xs text-muted-foreground">{event.ip}</span>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </ScrollArea>
                     </div>
@@ -3371,20 +3250,29 @@ const HomePageManagement = () => {
                       <Label>Last Recovery Tests</Label>
                       <ScrollArea className="h-32 w-full border rounded-md p-2">
                         <div className="space-y-2">
-                          {[
-                            { date: '2024-01-08', test: 'Full System Recovery', result: 'success', duration: '15m' },
-                            { date: '2024-01-01', test: 'Database Recovery', result: 'success', duration: '8m' },
-                            { date: '2023-12-25', test: 'File System Recovery', result: 'success', duration: '12m' },
-                          ].map((test, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          {[{
+                          date: '2024-01-08',
+                          test: 'Full System Recovery',
+                          result: 'success',
+                          duration: '15m'
+                        }, {
+                          date: '2024-01-01',
+                          test: 'Database Recovery',
+                          result: 'success',
+                          duration: '8m'
+                        }, {
+                          date: '2023-12-25',
+                          test: 'File System Recovery',
+                          result: 'success',
+                          duration: '12m'
+                        }].map((test, index) => <div key={index} className="flex items-center justify-between p-2 border rounded">
                               <div className="flex items-center gap-2">
                                 <CheckCircle className="h-3 w-3 text-green-600" />
                                 <span className="text-xs">{test.date}</span>
                                 <span className="text-xs">{test.test}</span>
                               </div>
                               <Badge variant="outline" className="text-xs">{test.duration}</Badge>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </ScrollArea>
                     </div>
@@ -3562,24 +3450,79 @@ const HomePageManagement = () => {
 
                   <ScrollArea className="h-96 w-full border rounded-md">
                     <div className="p-4 space-y-2">
-                      {[
-                        { timestamp: '2024-01-15 14:32:15', level: 'INFO', event: 'User login successful', user: 'admin@example.com', ip: '192.168.1.100', details: 'Login from trusted device' },
-                        { timestamp: '2024-01-15 14:28:43', level: 'WARN', event: 'Failed login attempt', user: 'unknown', ip: '203.0.113.5', details: 'Invalid credentials provided' },
-                        { timestamp: '2024-01-15 14:15:22', level: 'INFO', event: 'Backup completed successfully', user: 'system', ip: 'localhost', details: 'Daily backup - 45.2 MB' },
-                        { timestamp: '2024-01-15 13:58:11', level: 'WARN', event: 'Rate limit exceeded', user: 'api_user', ip: '198.51.100.2', details: '100+ requests in 1 minute' },
-                        { timestamp: '2024-01-15 13:45:33', level: 'INFO', event: 'Password reset initiated', user: 'user@example.com', ip: '10.0.0.1', details: 'Reset token sent via email' },
-                        { timestamp: '2024-01-15 13:22:18', level: 'INFO', event: 'New user registration', user: 'newuser@example.com', ip: '203.0.113.8', details: 'Email verification required' },
-                        { timestamp: '2024-01-15 12:15:45', level: 'ERROR', event: 'Security scan detected threat', user: 'system', ip: 'scanner', details: 'Malicious file upload blocked' },
-                        { timestamp: '2024-01-15 11:30:22', level: 'INFO', event: 'Admin panel accessed', user: 'admin@example.com', ip: '192.168.1.100', details: 'User management section' },
-                        { timestamp: '2024-01-15 10:45:11', level: 'WARN', event: 'Suspicious activity detected', user: 'unknown', ip: '185.220.101.5', details: 'Multiple failed requests' },
-                        { timestamp: '2024-01-15 09:15:33', level: 'INFO', event: 'Database backup started', user: 'system', ip: 'localhost', details: 'Scheduled weekly backup' },
-                      ].map((log, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                      {[{
+                      timestamp: '2024-01-15 14:32:15',
+                      level: 'INFO',
+                      event: 'User login successful',
+                      user: 'admin@example.com',
+                      ip: '192.168.1.100',
+                      details: 'Login from trusted device'
+                    }, {
+                      timestamp: '2024-01-15 14:28:43',
+                      level: 'WARN',
+                      event: 'Failed login attempt',
+                      user: 'unknown',
+                      ip: '203.0.113.5',
+                      details: 'Invalid credentials provided'
+                    }, {
+                      timestamp: '2024-01-15 14:15:22',
+                      level: 'INFO',
+                      event: 'Backup completed successfully',
+                      user: 'system',
+                      ip: 'localhost',
+                      details: 'Daily backup - 45.2 MB'
+                    }, {
+                      timestamp: '2024-01-15 13:58:11',
+                      level: 'WARN',
+                      event: 'Rate limit exceeded',
+                      user: 'api_user',
+                      ip: '198.51.100.2',
+                      details: '100+ requests in 1 minute'
+                    }, {
+                      timestamp: '2024-01-15 13:45:33',
+                      level: 'INFO',
+                      event: 'Password reset initiated',
+                      user: 'user@example.com',
+                      ip: '10.0.0.1',
+                      details: 'Reset token sent via email'
+                    }, {
+                      timestamp: '2024-01-15 13:22:18',
+                      level: 'INFO',
+                      event: 'New user registration',
+                      user: 'newuser@example.com',
+                      ip: '203.0.113.8',
+                      details: 'Email verification required'
+                    }, {
+                      timestamp: '2024-01-15 12:15:45',
+                      level: 'ERROR',
+                      event: 'Security scan detected threat',
+                      user: 'system',
+                      ip: 'scanner',
+                      details: 'Malicious file upload blocked'
+                    }, {
+                      timestamp: '2024-01-15 11:30:22',
+                      level: 'INFO',
+                      event: 'Admin panel accessed',
+                      user: 'admin@example.com',
+                      ip: '192.168.1.100',
+                      details: 'User management section'
+                    }, {
+                      timestamp: '2024-01-15 10:45:11',
+                      level: 'WARN',
+                      event: 'Suspicious activity detected',
+                      user: 'unknown',
+                      ip: '185.220.101.5',
+                      details: 'Multiple failed requests'
+                    }, {
+                      timestamp: '2024-01-15 09:15:33',
+                      level: 'INFO',
+                      event: 'Database backup started',
+                      user: 'system',
+                      ip: 'localhost',
+                      details: 'Scheduled weekly backup'
+                    }].map((log, index) => <div key={index} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
                           <div className="flex items-center gap-3">
-                            <Badge variant={
-                              log.level === 'ERROR' ? 'destructive' :
-                              log.level === 'WARN' ? 'secondary' : 'outline'
-                            } className="text-xs">
+                            <Badge variant={log.level === 'ERROR' ? 'destructive' : log.level === 'WARN' ? 'secondary' : 'outline'} className="text-xs">
                               {log.level}
                             </Badge>
                             <div className="flex flex-col">
@@ -3591,8 +3534,7 @@ const HomePageManagement = () => {
                             <div className="text-xs">{log.timestamp}</div>
                             <div className="text-xs text-muted-foreground">{log.user} • {log.ip}</div>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </ScrollArea>
 
@@ -3630,43 +3572,35 @@ const HomePageManagement = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="contact-email">Email Address</Label>
-                  <Input
-                    id="contact-email"
-                    type="email"
-                    placeholder="contact@yoursite.com"
-                    value={siteSettings.contactInfo.email}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      contactInfo: { ...prev.contactInfo, email: e.target.value }
-                    }))}
-                  />
+                  <Input id="contact-email" type="email" placeholder="contact@yoursite.com" value={siteSettings.contactInfo.email} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  contactInfo: {
+                    ...prev.contactInfo,
+                    email: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="contact-phone">Phone Number</Label>
-                  <Input
-                    id="contact-phone"
-                    placeholder="+1 (555) 123-4567"
-                    value={siteSettings.contactInfo.phone}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      contactInfo: { ...prev.contactInfo, phone: e.target.value }
-                    }))}
-                  />
+                  <Input id="contact-phone" placeholder="+1 (555) 123-4567" value={siteSettings.contactInfo.phone} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  contactInfo: {
+                    ...prev.contactInfo,
+                    phone: e.target.value
+                  }
+                }))} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="contact-address">Business Address</Label>
-                  <Textarea
-                    id="contact-address"
-                    placeholder="123 Main St, City, State 12345"
-                    value={siteSettings.contactInfo.address}
-                    onChange={(e) => setSiteSettings(prev => ({
-                      ...prev,
-                      contactInfo: { ...prev.contactInfo, address: e.target.value }
-                    }))}
-                    rows={3}
-                  />
+                  <Textarea id="contact-address" placeholder="123 Main St, City, State 12345" value={siteSettings.contactInfo.address} onChange={e => setSiteSettings(prev => ({
+                  ...prev,
+                  contactInfo: {
+                    ...prev.contactInfo,
+                    address: e.target.value
+                  }
+                }))} rows={3} />
                 </div>
               </CardContent>
             </Card>
@@ -3793,8 +3727,6 @@ const HomePageManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePageManagement;
