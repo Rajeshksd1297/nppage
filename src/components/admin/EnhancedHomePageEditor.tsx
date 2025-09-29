@@ -3,7 +3,8 @@ import VisualPageEditor from './VisualPageEditor';
 import HeaderEditorVisual from './HeaderEditorVisual';
 import FooterEditorVisual from './FooterEditorVisual';
 import AdditionalPagesEditor from './AdditionalPagesEditor';
-import PageSettings from './PageSettings';
+import { SEOAnalyzer } from '../seo/SEOAnalyzer';
+import { SchemaGenerator } from '../seo/SchemaGenerator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -65,7 +66,16 @@ import {
   Paintbrush,
   MousePointer,
   RefreshCw,
-  Menu
+  Menu,
+  Search,
+  Target,
+  Brain,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb,
+  TrendingUp,
+  Share2,
+  Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -272,6 +282,41 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
   const [currentTab, setCurrentTab] = useState<'editor' | 'seo' | 'visual' | 'header' | 'footer' | 'additional-pages'>('visual');
   const [liveSync, setLiveSync] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
+  
+  // SEO state
+  const [seoAnalysisContent, setSeoAnalysisContent] = useState('');
+  const [focusKeyword, setFocusKeyword] = useState('');
+  const [seoSettings, setSeoSettings] = useState({
+    siteTitle: 'Your Author Platform',
+    siteDescription: 'Professional author profiles and book showcase platform',
+    siteKeywords: 'author, books, publishing, writing, author platform',
+    siteLogo: '',
+    favicon: '',
+    ogImage: '',
+    twitterHandle: '',
+    canonicalUrl: '',
+    enableSitemap: true,
+    enableRobots: true,
+    metaAuthor: '',
+    metaLanguage: 'en',
+    structuredDataType: 'WebSite',
+    richSnippets: true,
+    aiOptimization: true,
+    contentStrategy: 'author-focused',
+    targetAudience: 'readers, publishers, book enthusiasts',
+    competitorKeywords: '',
+    xmlSitemap: true,
+    robotsTxt: true,
+    canonicalUrls: true,
+    openGraph: true,
+    twitterCards: true,
+    schemaMarkup: true,
+    breadcrumbs: true,
+    internalLinking: true,
+    author: '',
+    language: 'en'
+  });
+  
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -1358,7 +1403,517 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
           <AdditionalPagesEditor />
         </div>
       ) : currentTab === 'seo' ? (
-        <PageSettings />
+        <div className="flex-1 overflow-auto">
+          <div className="p-6">
+            <div className="flex items-center space-x-2 mb-6">
+              <Search className="h-6 w-6" />
+              <h1 className="text-2xl font-semibold">SEO Optimization</h1>
+              <Badge variant="outline">Enhanced</Badge>
+            </div>
+
+            <Tabs defaultValue="basics" className="w-full">
+              <TabsList className="grid w-full grid-cols-9">
+                <TabsTrigger value="basics">
+                  <Search className="h-4 w-4 mr-2" />
+                  SEO Basics
+                </TabsTrigger>
+                <TabsTrigger value="analysis">
+                  <Target className="h-4 w-4 mr-2" />
+                  Analysis
+                </TabsTrigger>
+                <TabsTrigger value="schema">
+                  <Code className="h-4 w-4 mr-2" />
+                  Schema
+                </TabsTrigger>
+                <TabsTrigger value="advanced">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Advanced
+                </TabsTrigger>
+                <TabsTrigger value="ai-seo">
+                  <Brain className="h-4 w-4 mr-2" />
+                  AI SEO
+                </TabsTrigger>
+                <TabsTrigger value="analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="social">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Social
+                </TabsTrigger>
+                <TabsTrigger value="performance">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Performance
+                </TabsTrigger>
+                <TabsTrigger value="technical">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Technical
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basics" className="space-y-6 mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Basic SEO Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Search className="h-5 w-5" />
+                        Basic SEO Settings
+                      </CardTitle>
+                      <CardDescription>
+                        Configure essential SEO metadata for your website
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="site-title">Site Title</Label>
+                        <Input
+                          id="site-title"
+                          placeholder="Your Website Title"
+                          value={seoSettings.siteTitle}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, siteTitle: e.target.value }))}
+                        />
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Recommended: 30-60 characters</span>
+                          <span className={seoSettings.siteTitle.length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
+                            {seoSettings.siteTitle.length}/60
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="site-description">Meta Description</Label>
+                        <Textarea
+                          id="site-description"
+                          placeholder="Brief description of your website..."
+                          value={seoSettings.siteDescription}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
+                          rows={3}
+                        />
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Recommended: 120-160 characters</span>
+                          <span className={seoSettings.siteDescription.length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
+                            {seoSettings.siteDescription.length}/160
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="focus-keyword">Focus Keyword</Label>
+                        <Input
+                          id="focus-keyword"
+                          placeholder="primary keyword"
+                          value={focusKeyword}
+                          onChange={(e) => setFocusKeyword(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Main keyword you want to rank for
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="keywords">Additional Keywords</Label>
+                        <Textarea
+                          id="keywords"
+                          placeholder="keyword1, keyword2, keyword3..."
+                          value={seoSettings.siteKeywords}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, siteKeywords: e.target.value }))}
+                          rows={2}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Separate with commas. Focus on 3-5 related keywords.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="author">Author</Label>
+                        <Input
+                          id="author"
+                          placeholder="Author Name"
+                          value={seoSettings.author}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, author: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="language">Language</Label>
+                        <Select value={seoSettings.language} onValueChange={(value) => setSeoSettings(prev => ({ ...prev, language: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="es">Spanish</SelectItem>
+                            <SelectItem value="fr">French</SelectItem>
+                            <SelectItem value="de">German</SelectItem>
+                            <SelectItem value="it">Italian</SelectItem>
+                            <SelectItem value="pt">Portuguese</SelectItem>
+                            <SelectItem value="zh">Chinese</SelectItem>
+                            <SelectItem value="ja">Japanese</SelectItem>
+                            <SelectItem value="ko">Korean</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* SEO Features */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        SEO Features
+                      </CardTitle>
+                      <CardDescription>
+                        Enable advanced SEO features for better ranking
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>XML Sitemap</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Auto-generate and submit sitemap to search engines
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.xmlSitemap}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, xmlSitemap: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Robots.txt</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Control search engine crawling
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.robotsTxt}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, robotsTxt: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Canonical URLs</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Prevent duplicate content issues
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.canonicalUrls}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, canonicalUrls: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Open Graph Tags</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Better social media sharing
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.openGraph}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, openGraph: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Twitter Cards</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Enhanced Twitter sharing
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.twitterCards}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, twitterCards: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Schema Markup</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Structured data for rich snippets
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.schemaMarkup}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, schemaMarkup: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Breadcrumbs</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Navigation breadcrumbs for better UX
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.breadcrumbs}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, breadcrumbs: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Internal Linking</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Auto-suggest internal links
+                          </p>
+                        </div>
+                        <Switch
+                          checked={seoSettings.internalLinking}
+                          onCheckedChange={(checked) => setSeoSettings(prev => ({ ...prev, internalLinking: checked }))}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* SEO Tips */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5" />
+                      SEO Best Practices
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Use descriptive titles</h4>
+                            <p className="text-sm text-muted-foreground">Include your main keyword naturally in the title</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Optimize meta descriptions</h4>
+                            <p className="text-sm text-muted-foreground">Write compelling descriptions that encourage clicks</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Use header tags properly</h4>
+                            <p className="text-sm text-muted-foreground">H1 for main title, H2-H6 for subheadings</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Create quality content</h4>
+                            <p className="text-sm text-muted-foreground">Write valuable, original content regularly</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Add alt text to images</h4>
+                            <p className="text-sm text-muted-foreground">Describe images for accessibility and SEO</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Improve page speed</h4>
+                            <p className="text-sm text-muted-foreground">Optimize images and minimize code</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Build quality backlinks</h4>
+                            <p className="text-sm text-muted-foreground">Get links from reputable websites</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium">Mobile optimization</h4>
+                            <p className="text-sm text-muted-foreground">Ensure your site works great on mobile</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="analysis" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      SEO Content Analysis
+                    </CardTitle>
+                    <CardDescription>
+                      Analyze your content for SEO optimization opportunities
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="analysis-content">Content to Analyze</Label>
+                      <Textarea
+                        id="analysis-content"
+                        placeholder="Paste your content here for SEO analysis..."
+                        value={seoAnalysisContent}
+                        onChange={(e) => setSeoAnalysisContent(e.target.value)}
+                        rows={6}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <SEOAnalyzer
+                  content={seoAnalysisContent}
+                  title={seoSettings.siteTitle}
+                  description={seoSettings.siteDescription}
+                  keywords={seoSettings.siteKeywords.split(',').map(k => k.trim()).filter(Boolean)}
+                  focusKeyword={focusKeyword}
+                />
+              </TabsContent>
+
+              <TabsContent value="schema" className="space-y-6 mt-6">
+                <SchemaGenerator />
+              </TabsContent>
+
+              <TabsContent value="advanced" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Advanced SEO Features</CardTitle>
+                    <CardDescription>Professional SEO optimization tools</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Advanced SEO Coming Soon</h3>
+                      <p className="text-muted-foreground">
+                        Advanced features like competitor analysis, keyword research, and ranking tracking will be available soon.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="ai-seo" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Brain className="h-5 w-5" />
+                      AI-Powered SEO
+                    </CardTitle>
+                    <CardDescription>Let AI optimize your content for search engines</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">AI SEO Optimization</h3>
+                      <p className="text-muted-foreground">
+                        AI-powered content optimization, keyword suggestions, and automated SEO improvements coming soon.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      SEO Analytics
+                    </CardTitle>
+                    <CardDescription>Track your SEO performance and rankings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">SEO Analytics Dashboard</h3>
+                      <p className="text-muted-foreground">
+                        Comprehensive analytics including keyword rankings, traffic analysis, and performance metrics.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="social" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Social Media SEO
+                    </CardTitle>
+                    <CardDescription>Optimize for social media sharing and engagement</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <Share2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Social SEO Features</h3>
+                      <p className="text-muted-foreground">
+                        Social media optimization tools, Open Graph settings, and social sharing analytics.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="performance" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-5 w-5" />
+                      Performance Optimization
+                    </CardTitle>
+                    <CardDescription>Improve your site's loading speed and Core Web Vitals</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Performance Tools</h3>
+                      <p className="text-muted-foreground">
+                        Site speed analysis, Core Web Vitals monitoring, and performance optimization recommendations.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="technical" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Technical SEO
+                    </CardTitle>
+                    <CardDescription>Advanced technical SEO settings and configurations</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Technical SEO Tools</h3>
+                      <p className="text-muted-foreground">
+                        robots.txt editor, htaccess configuration, crawl optimization, and technical audit tools.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       ) : (
         <div className="flex-1 flex items-center justify-center bg-muted/5">
           <div className="text-center max-w-md">
