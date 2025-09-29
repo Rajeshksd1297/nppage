@@ -20,9 +20,17 @@ import {
   Eye,
   Palette,
   Shield,
-  BarChart3
+  BarChart3,
+  Target,
+  Brain,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb,
+  TrendingUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
+import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
 
 interface GlobalSEOSettings {
   siteTitle: string;
@@ -83,6 +91,8 @@ interface PageSettingsProps {
 
 const PageSettings = ({ onSave }: PageSettingsProps) => {
   const [activeTab, setActiveTab] = useState('seo');
+  const [seoAnalysisContent, setSeoAnalysisContent] = useState('');
+  const [focusKeyword, setFocusKeyword] = useState('');
   const { toast } = useToast();
 
   const [seoSettings, setSeoSettings] = useState<GlobalSEOSettings>({
@@ -174,18 +184,26 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
-            <TabsList className="grid w-full grid-rows-8 h-auto gap-1">
+            <TabsList className="grid w-full grid-rows-9 h-auto gap-1">
               <TabsTrigger value="seo" className="flex items-center justify-start space-x-2 h-10">
                 <Search className="h-4 w-4" />
-                <span>Basic SEO</span>
+                <span>SEO Basics</span>
+              </TabsTrigger>
+              <TabsTrigger value="seo-analysis" className="flex items-center justify-start space-x-2 h-10">
+                <Target className="h-4 w-4" />
+                <span>SEO Analysis</span>
+              </TabsTrigger>
+              <TabsTrigger value="schema" className="flex items-center justify-start space-x-2 h-10">
+                <Code className="h-4 w-4" />
+                <span>Schema</span>
               </TabsTrigger>
               <TabsTrigger value="advanced-seo" className="flex items-center justify-start space-x-2 h-10">
-                <Globe className="h-4 w-4" />
-                <span>Advanced SEO</span>
+                <TrendingUp className="h-4 w-4" />
+                <span>Advanced</span>
               </TabsTrigger>
               <TabsTrigger value="ai-optimization" className="flex items-center justify-start space-x-2 h-10">
-                <Zap className="h-4 w-4" />
-                <span>AI Optimization</span>
+                <Brain className="h-4 w-4" />
+                <span>AI SEO</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center justify-start space-x-2 h-10">
                 <BarChart3 className="h-4 w-4" />
@@ -193,19 +211,15 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
               </TabsTrigger>
               <TabsTrigger value="social" className="flex items-center justify-start space-x-2 h-10">
                 <Share className="h-4 w-4" />
-                <span>Social Sharing</span>
+                <span>Social</span>
               </TabsTrigger>
               <TabsTrigger value="performance" className="flex items-center justify-start space-x-2 h-10">
                 <Zap className="h-4 w-4" />
                 <span>Performance</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center justify-start space-x-2 h-10">
-                <Shield className="h-4 w-4" />
-                <span>Security</span>
-              </TabsTrigger>
-              <TabsTrigger value="scripts" className="flex items-center justify-start space-x-2 h-10">
-                <Code className="h-4 w-4" />
-                <span>Custom Code</span>
+              <TabsTrigger value="technical" className="flex items-center justify-start space-x-2 h-10">
+                <Settings className="h-4 w-4" />
+                <span>Technical</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -391,6 +405,70 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* SEO Analysis Tab */}
+            <TabsContent value="seo-analysis" className="space-y-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Target className="h-5 w-5" />
+                <h2 className="text-xl font-semibold">SEO Content Analysis</h2>
+                <Badge variant="outline">Real-time</Badge>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    SEO Content Analysis
+                  </CardTitle>
+                  <CardDescription>
+                    Analyze your content for SEO optimization opportunities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="analysis-content">Content to Analyze</Label>
+                    <Textarea
+                      id="analysis-content"
+                      placeholder="Paste your content here for SEO analysis..."
+                      value={seoAnalysisContent}
+                      onChange={(e) => setSeoAnalysisContent(e.target.value)}
+                      rows={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="focus-keyword">Focus Keyword</Label>
+                    <Input
+                      id="focus-keyword"
+                      placeholder="primary keyword"
+                      value={focusKeyword}
+                      onChange={(e) => setFocusKeyword(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Main keyword you want to rank for
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <SEOAnalyzer
+                content={seoAnalysisContent}
+                title={seoSettings.siteTitle}
+                description={seoSettings.siteDescription}
+                keywords={seoSettings.siteKeywords.split(',').map(k => k.trim()).filter(Boolean)}
+                focusKeyword={focusKeyword}
+              />
+            </TabsContent>
+
+            {/* Schema Generator Tab */}
+            <TabsContent value="schema" className="space-y-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Code className="h-5 w-5" />
+                <h2 className="text-xl font-semibold">Schema Markup Generator</h2>
+                <Badge variant="outline">Professional</Badge>
+              </div>
+
+              <SchemaGenerator />
             </TabsContent>
 
             {/* Advanced SEO Settings */}
@@ -873,7 +951,7 @@ const PageSettings = ({ onSave }: PageSettingsProps) => {
             </TabsContent>
 
             {/* Security Settings */}
-            <TabsContent value="security" className="space-y-6">
+            <TabsContent value="technical" className="space-y-6">
               <div className="flex items-center space-x-2 mb-4">
                 <Shield className="h-5 w-5" />
                 <h2 className="text-xl font-semibold">Security Settings</h2>
