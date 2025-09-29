@@ -2,12 +2,25 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Activity, Users, BarChart3, Search, Cookie, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, Activity, Users, BarChart3, Search, Cookie, Shield, Eye, Save, Edit, Settings, Layout, Type, Monitor, Star, Palette, MousePointer, TrendingUp, Clock, Target, Zap, Heart, Home, Download, RefreshCw, AlertTriangle, Link, Share2, ExternalLink, MapPin, Plus, ImageIcon, Trash2, Tablet, Smartphone, CheckCircle, Award, Copy, EyeOff, Brain, Lightbulb, Code, Database, Globe, Gauge, Timer, RotateCcw, Upload, FileText, Filter, ThumbsUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import EnhancedCookieManagement from '@/components/admin/EnhancedCookieManagement';
+import HomePageEditor from '@/components/admin/HomePageEditor';
+import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
+import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
+import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
+import AISEOAssistant from '@/components/seo/AISEOAssistant';
 // Simplified version - removed heavy chart dependencies
 interface HeroBlock {
   id: string;
@@ -2159,7 +2172,9 @@ const HomePageManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Line data={analyticsData.visitors} options={chartOptions} />
+                <div className="h-80 flex items-center justify-center border rounded-lg bg-muted">
+                  <p className="text-muted-foreground">Analytics chart will be displayed here</p>
+                </div>
               </CardContent>
             </Card>
 
@@ -2176,7 +2191,9 @@ const HomePageManagement = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Bar data={analyticsData.pageViews} options={chartOptions} />
+                <div className="h-80 flex items-center justify-center border rounded-lg bg-muted">
+                  <p className="text-muted-foreground">Page views chart will be displayed here</p>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -2299,7 +2316,9 @@ const HomePageManagement = () => {
                 <CardDescription>Visitor device statistics</CardDescription>
               </CardHeader>
               <CardContent>
-                <Doughnut data={analyticsData.deviceStats} options={doughnutOptions} />
+                <div className="h-80 flex items-center justify-center border rounded-lg bg-muted">
+                  <p className="text-muted-foreground">Device statistics chart will be displayed here</p>
+                </div>
               </CardContent>
             </Card>
 
