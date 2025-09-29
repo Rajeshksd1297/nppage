@@ -1809,19 +1809,25 @@ const HomePageManagement = () => {
       const {
         error
       } = await (supabase as any).from('site_settings').upsert({
-        site_name: siteSettings.siteName,
+        site_title: siteSettings.siteName,
         site_description: siteSettings.siteDescription,
-        site_keywords: siteSettings.siteKeywords,
-        contact_email: siteSettings.contactEmail,
-        allow_registration: siteSettings.allowRegistration,
-        require_email_verification: siteSettings.requireEmailVerification,
-        default_theme: siteSettings.defaultTheme,
-        maintenance_mode: siteSettings.maintenanceMode,
-        max_file_size: siteSettings.maxFileSize,
-        allowed_file_types: siteSettings.allowedFileTypes,
-        timezone: siteSettings.timezone,
-        date_format: siteSettings.dateFormat,
-        language: siteSettings.language
+        logo_url: siteSettings.logo,
+        favicon_url: siteSettings.favicon,
+        primary_color: siteSettings.primaryColor,
+        secondary_color: siteSettings.secondaryColor,
+        enable_dark_mode: true, // Default value since not in interface
+        header_config: {
+          showLogo: true,
+          showLogin: true,
+          navigation: [],
+          showSearch: false
+        },
+        footer_config: {
+          copyright: "",
+          showPages: true,
+          customText: "",
+          showSocial: true
+        }
       });
       if (error) throw error;
       toast({
