@@ -455,6 +455,63 @@ export const BackupSecurityCenter: React.FC = () => {
     }
   };
 
+  const createEmergencyBackup = async () => {
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('backup-manager', {
+        body: { 
+          action: 'create',
+          backupType: 'emergency',
+          settings: {
+            ...backupSettings,
+            includeAWSInstructions: true,
+            includeFullSetup: true
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // The response should include the ZIP file data
+      if (data && data.zipBuffer) {
+        // Convert base64 to blob and download
+        const byteCharacters = atob(data.zipBuffer);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/zip' });
+        
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `emergency_backup_${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+
+      toast({
+        title: "Emergency backup created",
+        description: "Complete backup with AWS setup instructions is downloading..."
+      });
+
+      await loadBackupJobs();
+      await calculateStats();
+    } catch (error) {
+      console.error('Error creating emergency backup:', error);
+      toast({
+        title: "Emergency backup failed",
+        description: "Failed to create emergency backup.",
+        variant: "destructive"
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const testRestore = async (backupId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('backup-manager', {
@@ -999,7 +1056,7 @@ export const BackupSecurityCenter: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Manual Backup</CardTitle>
-                <CardDescription>Create instant backups of your data or upload backup files</CardDescription>
+                <CardDescription>Create instant backups of your data or emergency deployment packages</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
@@ -1028,6 +1085,15 @@ export const BackupSecurityCenter: React.FC = () => {
                   >
                     <HardDrive className="h-4 w-4" />
                     Full Backup (Database + Files)
+                  </Button>
+                  <Button 
+                    onClick={createEmergencyBackup} 
+                    disabled={creating}
+                    variant="destructive"
+                    className="gap-2 h-12 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700"
+                  >
+                    <Shield className="h-4 w-4" />
+                    🚨 Emergency Backup + AWS Setup
                   </Button>
                 </div>
 
