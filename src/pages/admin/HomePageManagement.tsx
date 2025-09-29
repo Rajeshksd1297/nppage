@@ -2530,8 +2530,8 @@ const HomePageManagement = () => {
                   </CardTitle>
                   <CardDescription>Choose from pre-designed templates or create custom blocks</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[
                       {
                         id: 'modern-minimal',
@@ -2576,27 +2576,40 @@ const HomePageManagement = () => {
                         config: { layout: 'intro', style: 'professional' }
                       }
                     ].map((template) => (
-                      <Card key={template.id} className="group hover:shadow-md transition-all cursor-pointer">
-                        <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                      <Card key={template.id} className="group hover:shadow-md transition-all cursor-pointer overflow-hidden">
+                        <div className="aspect-video relative overflow-hidden rounded-t-lg bg-muted">
                           <img 
                             src={template.preview} 
                             alt={template.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                           />
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                         </div>
                         <CardContent className="p-4">
-                          <h3 className="font-semibold mb-1">{template.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => previewTemplate(template)}>
-                              <Eye className="h-3 w-3 mr-1" />
-                              Preview
-                            </Button>
-                            <Button size="sm" onClick={() => createHeroFromTemplate(template)}>
-                              <Plus className="h-3 w-3 mr-1" />
-                              Use Template
-                            </Button>
+                          <div className="space-y-3">
+                            <div>
+                              <h3 className="font-semibold text-base mb-1 truncate">{template.name}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">{template.description}</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => previewTemplate(template)}
+                                className="flex-1 min-w-0"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                <span className="truncate">Preview</span>
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                onClick={() => createHeroFromTemplate(template)}
+                                className="flex-1 min-w-0"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                <span className="truncate">Use Template</span>
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
