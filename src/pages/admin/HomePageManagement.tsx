@@ -7,6 +7,7 @@ import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout } fro
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
+import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,7 +30,7 @@ interface HomePageStats {
 }
 
 const HomePageManagement = () => {
-  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'settings'>('overview');
+  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'settings' | 'enhanced-editor'>('overview');
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [stats, setStats] = useState<HomePageStats>({
     totalVisitors: 0,
@@ -101,7 +102,7 @@ const HomePageManagement = () => {
   };
 
   const handleEditHomePage = () => {
-    navigate('/admin/home-page-editor');
+    setCurrentView('enhanced-editor');
   };
 
   const handleEditHeroBlock = (blockId: string) => {
@@ -152,6 +153,14 @@ const HomePageManagement = () => {
     }
   };
 
+  if (currentView === 'enhanced-editor') {
+    return (
+      <EnhancedHomePageEditor
+        onBack={() => setCurrentView('overview')}
+      />
+    );
+  }
+
   if (currentView === 'hero-blocks') {
     // Create a temporary hero block for demonstration
     const demoHeroBlocks = [{
@@ -191,7 +200,7 @@ const HomePageManagement = () => {
           </Button>
           <Button onClick={handleEditHomePage}>
             <Layout className="h-4 w-4 mr-2" />
-            Edit Home Page
+            Enhanced Editor
           </Button>
           <Button onClick={handleCreateHeroBlock}>
             <Plus className="h-4 w-4 mr-2" />
