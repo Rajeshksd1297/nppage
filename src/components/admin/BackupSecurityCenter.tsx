@@ -154,18 +154,17 @@ export const BackupSecurityCenter: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        loadBackupSettings(),
-        loadSecuritySettings(),
-        loadBackupJobs(),
-        loadSecurityLogs(),
-        calculateStats(),
-      ]);
+      // Load data sequentially to avoid overwhelming the database
+      await loadBackupSettings();
+      await loadSecuritySettings();
+      await loadSecurityLogs();
+      await loadBackupJobs();
+      await calculateStats();
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
         title: "Error loading data",
-        description: "Failed to load backup and security data.",
+        description: "Some data may not be available due to database timeouts.",
         variant: "destructive"
       });
     } finally {
@@ -204,13 +203,24 @@ export const BackupSecurityCenter: React.FC = () => {
   };
 
   const loadBackupJobs = async () => {
-    const { data } = await (supabase as any)
-      .from('backup_jobs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20);
-    
-    setBackupJobs(data || []);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('backup_jobs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) {
+        console.error('Error loading backup jobs:', error);
+        setBackupJobs([]);
+        return;
+      }
+      
+      setBackupJobs(data || []);
+    } catch (error) {
+      console.error('Failed to load backup jobs:', error);
+      setBackupJobs([]);
+    }
   };
 
   const loadSecurityLogs = async () => {
@@ -224,48 +234,71 @@ export const BackupSecurityCenter: React.FC = () => {
   };
 
   const calculateStats = async () => {
-    const { data: jobs } = await (supabase as any)
-      .from('backup_jobs')
-      .select('*');
-    
-    const { data: logs } = await (supabase as any)
-      .from('security_logs')
-      .select('*')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+    try {
+      // Use a smaller query to avoid timeouts
+      const { data: jobs, error: jobsError } = await (supabase as any)
+        .from('backup_jobs')
+        .select('status, file_size')
+        .limit(100);
+      
+      const { data: logs, error: logsError } = await (supabase as any)
+        .from('security_logs')
+        .select('severity, resolved')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
-    const successful = jobs?.filter((j: any) => j.status === 'completed').length || 0;
-    const failed = jobs?.filter((j: any) => j.status === 'failed').length || 0;
-    const total = jobs?.length || 0;
-    const storage = jobs?.reduce((sum: number, j: any) => sum + (j.file_size || 0), 0) || 0;
-    
-    const criticalEvents = logs?.filter((l: any) => l.severity === 'critical' && !l.resolved).length || 0;
-    const activeThreats = logs?.filter((l: any) => l.severity === 'high' && !l.resolved).length || 0;
-    
-    // Calculate security score based on enabled features
-    let securityScore = 0;
-    const securityFeatures = [
-      securitySettings.ssl_enforcement,
-      securitySettings.https_redirect,
-      securitySettings.two_factor_enabled,
-      securitySettings.firewall_enabled,
-      securitySettings.malware_scanning,
-      securitySettings.auto_updates,
-      securitySettings.ddos_protection,
-      securitySettings.log_monitoring,
-      securitySettings.data_encryption,
-      securitySettings.security_alerts,
-    ];
-    securityScore = Math.round((securityFeatures.filter(Boolean).length / securityFeatures.length) * 100);
+      if (jobsError) {
+        console.error('Error loading job stats:', jobsError);
+      }
+      
+      if (logsError) {
+        console.error('Error loading log stats:', logsError);
+      }
 
-    setStats({
-      totalBackups: total,
-      successfulBackups: successful,
-      failedBackups: failed,
-      totalStorageUsed: storage,
-      securityScore,
-      activeThreats,
-      criticalEvents,
-    });
+      const successful = jobs?.filter((j: any) => j.status === 'completed').length || 0;
+      const failed = jobs?.filter((j: any) => j.status === 'failed').length || 0;
+      const total = jobs?.length || 0;
+      const storage = jobs?.reduce((sum: number, j: any) => sum + (j.file_size || 0), 0) || 0;
+    
+      const criticalEvents = logs?.filter((l: any) => l.severity === 'critical' && !l.resolved).length || 0;
+      const activeThreats = logs?.filter((l: any) => l.severity === 'high' && !l.resolved).length || 0;
+      
+      // Calculate security score based on enabled features
+      let securityScore = 0;
+      const securityFeatures = [
+        securitySettings.ssl_enforcement,
+        securitySettings.https_redirect,
+        securitySettings.two_factor_enabled,
+        securitySettings.firewall_enabled,
+        securitySettings.malware_scanning,
+        securitySettings.auto_updates,
+        securitySettings.ddos_protection,
+        securitySettings.log_monitoring,
+        securitySettings.data_encryption,
+        securitySettings.security_alerts,
+      ];
+      securityScore = Math.round((securityFeatures.filter(Boolean).length / securityFeatures.length) * 100);
+
+      setStats({
+        totalBackups: total,
+        successfulBackups: successful,
+        failedBackups: failed,
+        totalStorageUsed: storage,
+        securityScore,
+        activeThreats,
+        criticalEvents,
+      });
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      setStats({
+        totalBackups: 0,
+        successfulBackups: 0,
+        failedBackups: 0,
+        totalStorageUsed: 0,
+        securityScore: 0,
+        activeThreats: 0,
+        criticalEvents: 0,
+      });
+    }
   };
 
   const saveBackupSettings = async () => {
