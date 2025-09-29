@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
@@ -158,6 +158,15 @@ const HomePageManagement = () => {
     visitors: { labels: [], datasets: [] },
     pageViews: { labels: [], datasets: [] },
     deviceStats: { labels: [], datasets: [] }
+  });
+  const [allContent, setAllContent] = useState({
+    books: [],
+    blogPosts: [],
+    events: [],
+    additionalPages: [],
+    faqs: [],
+    awards: [],
+    galleryItems: []
   });
 
   // Fetch real analytics data from database
@@ -404,10 +413,228 @@ const HomePageManagement = () => {
     fetchSEOSettings();
     fetchCookieSettings();
     checkBackupStatus();
+    fetchAllContent();
     setupRealtimeTracking();
     fetchAnalyticsData(selectedPeriod);
     setupAutoRefresh();
   }, []);
+
+  // Fetch all content from across the portal
+  const fetchAllContent = async () => {
+    try {
+      // Fetch books
+      const { data: books, error: booksError } = await supabase
+        .from('books')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (booksError) throw booksError;
+
+      // Fetch blog posts
+      const { data: blogPosts, error: blogError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (blogError) throw blogError;
+
+      // Fetch events
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .gte('event_date', new Date().toISOString())
+        .order('event_date', { ascending: true });
+
+      if (eventsError) throw eventsError;
+
+      // Fetch additional pages - handle potential type issues
+      let additionalPages: any[] = [];
+      try {
+        const pagesQuery = await (supabase as any)
+          .from('additional_pages')
+          .select('*')
+          .eq('is_published', true)
+          .order('created_at', { ascending: false });
+        
+        if (pagesQuery.error && pagesQuery.error.code !== 'PGRST116') {
+          console.warn('Additional pages error:', pagesQuery.error);
+        } else {
+          additionalPages = pagesQuery.data || [];
+        }
+      } catch (error) {
+        console.warn('Additional pages table not available:', error);
+      }
+
+      // Fetch FAQs
+      const { data: faqs, error: faqsError } = await supabase
+        .from('faqs')
+        .select('*')
+        .eq('is_published', true)
+        .order('sort_order', { ascending: true });
+
+      if (faqsError && faqsError.code !== 'PGRST116') {
+        console.warn('FAQs table error:', faqsError);
+      }
+
+      // Fetch awards
+      const { data: awards, error: awardsError } = await supabase
+        .from('awards')
+        .select('*')
+        .order('award_date', { ascending: false });
+
+      if (awardsError && awardsError.code !== 'PGRST116') {
+        console.warn('Awards table error:', awardsError);
+      }
+
+      // Fetch gallery items
+      const { data: galleryItems, error: galleryError } = await supabase
+        .from('gallery_items')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (galleryError && galleryError.code !== 'PGRST116') {
+        console.warn('Gallery items table error:', galleryError);
+      }
+
+      setAllContent({
+        books: books || [],
+        blogPosts: blogPosts || [],
+        events: events || [],
+        additionalPages: additionalPages || [],
+        faqs: faqs || [],
+        awards: awards || [],
+        galleryItems: galleryItems || []
+      });
+
+      toast({
+        title: "Content Synced",
+        description: "All portal content has been synchronized successfully",
+      });
+
+    } catch (error) {
+      console.error('Error fetching all content:', error);
+      toast({
+        title: "Sync Error",
+        description: "Failed to sync some content from the portal",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Add content section to home page
+  const addContentSection = async (sectionType: string, contentData: any) => {
+    try {
+      const newSection = {
+        type: sectionType,
+        title: `${sectionType.charAt(0).toUpperCase() + sectionType.slice(1)} Section`,
+        enabled: true,
+        order_index: homeSections.length,
+        config: {
+          contentId: contentData.id,
+          contentType: sectionType,
+          data: contentData,
+          title: contentData.title || `New ${sectionType} Section`,
+          subtitle: contentData.subtitle || contentData.excerpt || contentData.description,
+          backgroundColor: 'background',
+          animation: 'fade-in'
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('home_page_sections')
+        .insert([newSection])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setHomeSections(prev => [...prev, data]);
+      
+      toast({
+        title: "Section Added",
+        description: `${sectionType} section has been added to your home page`,
+      });
+
+    } catch (error) {
+      console.error('Error adding content section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add section to home page",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Edit section
+  const editSection = (section: any) => {
+    // Navigate to section editor or open modal
+    setActiveTab('hero'); // For now, switch to hero tab for editing
+  };
+
+  // Toggle section visibility
+  const toggleSection = async (sectionId: string) => {
+    try {
+      const section = homeSections.find((s: any) => s.id === sectionId);
+      if (!section) return;
+
+      const { error } = await supabase
+        .from('home_page_sections')
+        .update({ enabled: !section.enabled })
+        .eq('id', sectionId);
+
+      if (error) throw error;
+
+      setHomeSections(prev => 
+        prev.map((s: any) => 
+          s.id === sectionId ? { ...s, enabled: !s.enabled } : s
+        )
+      );
+
+      toast({
+        title: "Section Updated",
+        description: `Section ${section.enabled ? 'disabled' : 'enabled'} successfully`,
+      });
+
+    } catch (error) {
+      console.error('Error toggling section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Delete section
+  const deleteSection = async (sectionId: string) => {
+    if (!confirm('Are you sure you want to delete this section?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('home_page_sections')
+        .delete()
+        .eq('id', sectionId);
+
+      if (error) throw error;
+
+      setHomeSections(prev => prev.filter((s: any) => s.id !== sectionId));
+      
+      toast({
+        title: "Section Deleted",
+        description: "Section has been removed from your home page",
+      });
+
+    } catch (error) {
+      console.error('Error deleting section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete section",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Fetch analytics data when period changes
   useEffect(() => {
@@ -560,6 +787,7 @@ const HomePageManagement = () => {
     // Refresh real analytics data from database
     fetchAnalyticsData(selectedPeriod);
     fetchHomeSections();
+    fetchAllContent();
     checkBackupStatus();
     
     toast({
@@ -577,7 +805,6 @@ const HomePageManagement = () => {
         table: 'page_analytics'
       }, (payload) => {
         console.log('Analytics updated:', payload);
-        // Refresh analytics when new data comes in
         fetchAnalyticsData(selectedPeriod);
       })
       .on('postgres_changes', {
@@ -595,6 +822,38 @@ const HomePageManagement = () => {
       }, (payload) => {
         console.log('Hero blocks updated:', payload);
         fetchHeroBlocks();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'books'
+      }, (payload) => {
+        console.log('Books updated:', payload);
+        fetchAllContent();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'blog_posts'
+      }, (payload) => {
+        console.log('Blog posts updated:', payload);
+        fetchAllContent();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'events'
+      }, (payload) => {
+        console.log('Events updated:', payload);
+        fetchAllContent();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'additional_pages'
+      }, (payload) => {
+        console.log('Additional pages updated:', payload);
+        fetchAllContent();
       })
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
