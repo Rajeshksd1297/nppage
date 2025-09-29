@@ -445,19 +445,35 @@ const HomePageManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="hero">Hero Blocks</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="design">Design</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="cookies">Cookie Analytics</TabsTrigger>
           <TabsTrigger value="backup">Backup & Security</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Overview & Analytics Dashboard</h2>
+              <p className="text-muted-foreground">Comprehensive view of your website's performance and management</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+              <Button>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, index) => (
               <Card key={index}>
@@ -481,7 +497,7 @@ const HomePageManagement = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Visitor Trends</CardTitle>
-                <CardDescription>Monthly visitor statistics</CardDescription>
+                <CardDescription>Daily visitor statistics over the last 6 months</CardDescription>
               </CardHeader>
               <CardContent>
                 <Line data={analyticsData.visitors} options={chartOptions} />
@@ -490,11 +506,104 @@ const HomePageManagement = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Device Usage</CardTitle>
-                <CardDescription>Visitor device breakdown</CardDescription>
+                <CardTitle>Top Pages</CardTitle>
+                <CardDescription>Most visited pages on your website</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Bar data={analyticsData.pageViews} options={chartOptions} />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Device Breakdown</CardTitle>
+                <CardDescription>Visitor device statistics</CardDescription>
               </CardHeader>
               <CardContent>
                 <Doughnut data={analyticsData.deviceStats} options={doughnutOptions} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Traffic Sources</CardTitle>
+                <CardDescription>Where your visitors come from</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">Organic Search</span>
+                  </div>
+                  <span className="text-sm font-medium">45%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Direct</span>
+                  </div>
+                  <span className="text-sm font-medium">30%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">Social Media</span>
+                  </div>
+                  <span className="text-sm font-medium">15%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Link className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm">Referral</span>
+                  </div>
+                  <span className="text-sm font-medium">10%</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Geographic Data</CardTitle>
+                <CardDescription>Top visitor locations</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">United States</span>
+                  </div>
+                  <span className="text-sm font-medium">35%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">United Kingdom</span>
+                  </div>
+                  <span className="text-sm font-medium">20%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Canada</span>
+                  </div>
+                  <span className="text-sm font-medium">15%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Australia</span>
+                  </div>
+                  <span className="text-sm font-medium">12%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Germany</span>
+                  </div>
+                  <span className="text-sm font-medium">10%</span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -521,6 +630,14 @@ const HomePageManagement = () => {
                 <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('design')}>
                   <Settings className="h-4 w-4 mr-2" />
                   Design Settings
+                </Button>
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('backup')}>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Backup & Security
+                </Button>
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('cookies')}>
+                  <Cookie className="h-4 w-4 mr-2" />
+                  Cookie Analytics
                 </Button>
               </CardContent>
             </Card>
@@ -2501,159 +2618,6 @@ const HomePageManagement = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-              <p className="text-muted-foreground">Monitor your website's performance and visitor behavior</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-              <Button>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Data
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className={`text-xs ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                        {stat.change} from last month
-                      </p>
-                    </div>
-                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Visitor Trends</CardTitle>
-                <CardDescription>Daily visitor statistics over the last 6 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Line data={analyticsData.visitors} options={chartOptions} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Pages</CardTitle>
-                <CardDescription>Most visited pages on your website</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Bar data={analyticsData.pageViews} options={chartOptions} />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Device Breakdown</CardTitle>
-                <CardDescription>Visitor device statistics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Doughnut data={analyticsData.deviceStats} options={doughnutOptions} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Traffic Sources</CardTitle>
-                <CardDescription>Where your visitors come from</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Search className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm">Organic Search</span>
-                  </div>
-                  <span className="text-sm font-medium">45%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Direct</span>
-                  </div>
-                  <span className="text-sm font-medium">30%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Share2 className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm">Social Media</span>
-                  </div>
-                  <span className="text-sm font-medium">15%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Link className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm">Referral</span>
-                  </div>
-                  <span className="text-sm font-medium">10%</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Geographic Data</CardTitle>
-                <CardDescription>Top visitor locations</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">United States</span>
-                  </div>
-                  <span className="text-sm font-medium">35%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">United Kingdom</span>
-                  </div>
-                  <span className="text-sm font-medium">20%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">Canada</span>
-                  </div>
-                  <span className="text-sm font-medium">15%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">Australia</span>
-                  </div>
-                  <span className="text-sm font-medium">12%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">Germany</span>
-                  </div>
-                  <span className="text-sm font-medium">10%</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="backup" className="space-y-6">
