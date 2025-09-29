@@ -12,7 +12,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import { DatabaseSEOManager } from '@/components/admin/DatabaseSEOManager';
 import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
@@ -2737,7 +2736,1636 @@ const HomePageManagement = () => {
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
-          <DatabaseSEOManager />
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Search className="h-6 w-6" />
+                SEO Management
+              </h2>
+              <p className="text-muted-foreground">Optimize your site for search engines</p>
+            </div>
+            <Button onClick={handleSaveSiteSettings} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save SEO Settings'}
+            </Button>
+          </div>
+
+          <Tabs defaultValue="basics" className="w-full">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="basics">SEO Basics</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
+              <TabsTrigger value="schema">Schema</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="ai-seo">AI SEO</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="social">Social</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="basics" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Basic SEO Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Search className="h-5 w-5" />
+                      Basic SEO Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure essential SEO metadata for your website
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="site-title">Site Title</Label>
+                      <Input id="site-title" placeholder="Your Website Title" value={siteSettings.siteName} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteName: e.target.value
+                    }))} />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Recommended: 30-60 characters</span>
+                        <span className={siteSettings.siteName.length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {siteSettings.siteName.length}/60
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="site-description">Meta Description</Label>
+                      <Textarea id="site-description" placeholder="Brief description of your website..." value={siteSettings.siteDescription} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteDescription: e.target.value
+                    }))} rows={3} />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Recommended: 120-160 characters</span>
+                        <span className={siteSettings.siteDescription.length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {siteSettings.siteDescription.length}/160
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="keywords">SEO Keywords</Label>
+                      <Textarea id="keywords" placeholder="keyword1, keyword2, keyword3..." value={siteSettings.siteKeywords} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      siteKeywords: e.target.value
+                    }))} rows={2} />
+                      <p className="text-xs text-muted-foreground">
+                        Separate with commas. Focus on 3-5 related keywords.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language</Label>
+                      <Select value={siteSettings.language} onValueChange={value => setSiteSettings(prev => ({
+                      ...prev,
+                      language: value
+                    }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                          <SelectItem value="de">German</SelectItem>
+                          <SelectItem value="it">Italian</SelectItem>
+                          <SelectItem value="pt">Portuguese</SelectItem>
+                          <SelectItem value="zh">Chinese</SelectItem>
+                          <SelectItem value="ja">Japanese</SelectItem>
+                          <SelectItem value="ko">Korean</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                      <Input id="canonicalUrl" placeholder="https://yoursite.com/" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* SEO Features */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      SEO Features
+                    </CardTitle>
+                    <CardDescription>
+                      Enable advanced SEO features for better ranking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>XML Sitemap</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Auto-generate and submit sitemap to search engines
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Robots.txt</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Control search engine crawling
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Canonical URLs</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Prevent duplicate content issues
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Open Graph Tags</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Better social media sharing
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Twitter Cards</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Enhanced Twitter sharing
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Schema Markup</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Structured data for rich snippets
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Breadcrumbs</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Navigation breadcrumbs for better UX
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Internal Linking</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Auto-suggest internal links
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* SEO Tips */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    SEO Best Practices
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Use descriptive titles</h4>
+                          <p className="text-sm text-muted-foreground">Include your main keyword naturally in the title</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Optimize meta descriptions</h4>
+                          <p className="text-sm text-muted-foreground">Write compelling descriptions that encourage clicks</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Use header tags properly</h4>
+                          <p className="text-sm text-muted-foreground">H1 for main title, H2-H6 for subheadings</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Create quality content</h4>
+                          <p className="text-sm text-muted-foreground">Write valuable, original content regularly</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Add alt text to images</h4>
+                          <p className="text-sm text-muted-foreground">Describe images for accessibility and SEO</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Improve page speed</h4>
+                          <p className="text-sm text-muted-foreground">Optimize images and minimize code</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Build quality backlinks</h4>
+                          <p className="text-sm text-muted-foreground">Get links from reputable websites</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Mobile optimization</h4>
+                          <p className="text-sm text-muted-foreground">Ensure your site works great on mobile</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analysis" className="space-y-6 mt-6">
+              <SEOAnalyzer content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform." title={siteSettings.siteName || 'Your Website'} description={siteSettings.siteDescription || 'Website description'} keywords={siteSettings.siteKeywords ? siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k) : []} />
+            </TabsContent>
+
+            <TabsContent value="schema" className="space-y-6 mt-6">
+              <SchemaGenerator />
+            </TabsContent>
+
+            <TabsContent value="advanced" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      Advanced SEO Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure advanced SEO options
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="robots-meta">Robots Meta Tag</Label>
+                      <Select defaultValue="index,follow">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="index,follow">Index, Follow</SelectItem>
+                          <SelectItem value="noindex,follow">No Index, Follow</SelectItem>
+                          <SelectItem value="index,nofollow">Index, No Follow</SelectItem>
+                          <SelectItem value="noindex,nofollow">No Index, No Follow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-robots">Custom Robots.txt</Label>
+                      <Textarea id="custom-robots" placeholder="User-agent: *&#10;Disallow: /admin/&#10;Sitemap: https://yoursite.com/sitemap.xml" rows={6} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="htaccess">Custom .htaccess Rules</Label>
+                      <Textarea id="htaccess" placeholder="RewriteEngine On&#10;RewriteCond %{HTTPS} off&#10;RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]" rows={4} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Structured Data
+                    </CardTitle>
+                    <CardDescription>
+                      Configure structured data markup
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Organization Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add organization information
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Website Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add website metadata
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Breadcrumb Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add breadcrumb navigation
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Local Business Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add local business information
+                        </p>
+                      </div>
+                      <Switch />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-schema">Custom Schema JSON-LD</Label>
+                      <Textarea id="custom-schema" placeholder='{"@context": "https://schema.org", "@type": "Organization", "name": "Your Company"}' rows={4} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ai-seo" className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    AI-Powered SEO Assistant
+                  </CardTitle>
+                  <CardDescription>
+                    Get AI-powered suggestions to improve your SEO
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button className="h-auto p-4 flex-col items-start">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-5 w-5" />
+                        <span className="font-medium">Keyword Research</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Find high-impact keywords for your content
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="h-5 w-5" />
+                        <span className="font-medium">Content Optimization</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Optimize existing content for better rankings
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="h-5 w-5" />
+                        <span className="font-medium">Competitor Analysis</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Analyze competitor SEO strategies
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-5 w-5" />
+                        <span className="font-medium">SEO Recommendations</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Get personalized SEO improvement tips
+                      </p>
+                    </Button>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Recent AI Suggestions</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Add "web design services" to your meta description</p>
+                          <p className="text-xs text-muted-foreground">This keyword has high search volume and low competition</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Your page title is too long (67 characters)</p>
+                          <p className="text-xs text-muted-foreground">Consider shortening to 50-60 characters for better display</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Add internal links to your services pages</p>
+                          <p className="text-xs text-muted-foreground">This will help distribute page authority and improve navigation</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      SEO Analytics Integration
+                    </CardTitle>
+                    <CardDescription>
+                      Connect your analytics tools for comprehensive tracking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="google-analytics">Google Analytics ID</Label>
+                      <Input id="google-analytics" placeholder="G-XXXXXXXXXX" value={siteSettings.analytics.googleAnalytics} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        googleAnalytics: e.target.value
+                      }
+                    }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="gtm">Google Tag Manager</Label>
+                      <Input id="gtm" placeholder="GTM-XXXXXXX" value={siteSettings.analytics.googleTagManager} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        googleTagManager: e.target.value
+                      }
+                    }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="facebook-pixel">Facebook Pixel</Label>
+                      <Input id="facebook-pixel" placeholder="Facebook Pixel ID" value={siteSettings.analytics.facebookPixel} onChange={e => setSiteSettings(prev => ({
+                      ...prev,
+                      analytics: {
+                        ...prev.analytics,
+                        facebookPixel: e.target.value
+                      }
+                    }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="hotjar">Hotjar Tracking Code</Label>
+                      <Input id="hotjar" placeholder="Hotjar Site ID" />
+                    </div>
+
+                    <Button className="w-full">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Connect Analytics
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Search Console Integration
+                    </CardTitle>
+                    <CardDescription>
+                      Connect to search engines worldwide for comprehensive SEO tracking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Google Search Console */}
+                    <div className="space-y-2">
+                      <Label htmlFor="google-search-console" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-500"></div>
+                        Google Search Console
+                      </Label>
+                      <Input id="google-search-console" placeholder="google-site-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Dominant in US, EU, most global markets</p>
+                    </div>
+
+                    {/* Bing Webmaster Tools */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bing-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-orange-500"></div>
+                        Bing Webmaster Tools
+                      </Label>
+                      <Input id="bing-webmaster" placeholder="msvalidate.01=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Important for US market, ~6% search share</p>
+                    </div>
+
+                    {/* Yandex Webmaster */}
+                    <div className="space-y-2">
+                      <Label htmlFor="yandex-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-500"></div>
+                        Yandex Webmaster
+                      </Label>
+                      <Input id="yandex-webmaster" placeholder="yandex-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Dominant in Russia, CIS countries (~65% in Russia)</p>
+                    </div>
+
+                    {/* Baidu Webmaster */}
+                    <div className="space-y-2">
+                      <Label htmlFor="baidu-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-600"></div>
+                        Baidu Webmaster Tools
+                      </Label>
+                      <Input id="baidu-webmaster" placeholder="baidu-site-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Dominant in China (~76% market share)</p>
+                    </div>
+
+                    <Button className="w-full">
+                      <Globe className="h-4 w-4 mr-2" />
+                      Verify All Search Consoles
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Additional Search Engines by Region */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Regional Search Engines
+                    </CardTitle>
+                    <CardDescription>
+                      Connect to regional search engines for local market optimization
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Naver - South Korea */}
+                    <div className="space-y-2">
+                      <Label htmlFor="naver-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-green-500"></div>
+                        Naver Search Advisor (Korea)
+                      </Label>
+                      <Input id="naver-webmaster" placeholder="naver-site-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">~75% market share in South Korea</p>
+                    </div>
+
+                    {/* Seznam - Czech Republic */}
+                    <div className="space-y-2">
+                      <Label htmlFor="seznam-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-600"></div>
+                        Seznam Webmaster (Czech Republic)
+                      </Label>
+                      <Input id="seznam-webmaster" placeholder="seznam-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">~50% market share in Czech Republic</p>
+                    </div>
+
+                    {/* DuckDuckGo */}
+                    <div className="space-y-2">
+                      <Label htmlFor="duckduckgo" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-orange-600"></div>
+                        DuckDuckGo (Privacy-focused)
+                      </Label>
+                      <Input id="duckduckgo" placeholder="duckduckgo-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Growing privacy-conscious user base</p>
+                    </div>
+
+                    {/* Qwant - France */}
+                    <div className="space-y-2">
+                      <Label htmlFor="qwant" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-700"></div>
+                        Qwant (France)
+                      </Label>
+                      <Input id="qwant" placeholder="qwant-verification=xxxxx" />
+                      <p className="text-xs text-muted-foreground">Popular privacy-focused search in France</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      SEO Performance Metrics
+                    </CardTitle>
+                    <CardDescription>
+                      Track your SEO progress across all search engines
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-green-600">85</p>
+                        <p className="text-sm text-muted-foreground">SEO Score</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-blue-600">142</p>
+                        <p className="text-sm text-muted-foreground">Keywords Ranking</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-purple-600">23</p>
+                        <p className="text-sm text-muted-foreground">Top 10 Rankings</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-orange-600">1.2k</p>
+                        <p className="text-sm text-muted-foreground">Organic Clicks</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Search Engine Performance</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-blue-500"></div>
+                            Google
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">892 clicks</span>
+                            <p className="text-xs text-green-600">+12%</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-orange-500"></div>
+                            Bing
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">124 clicks</span>
+                            <p className="text-xs text-green-600">+8%</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-red-500"></div>
+                            Yandex
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">67 clicks</span>
+                            <p className="text-xs text-yellow-600">+2%</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-blue-600"></div>
+                            Baidu
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">45 clicks</span>
+                            <p className="text-xs text-green-600">+15%</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button className="w-full" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      View Detailed Analytics
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Search Engine Market Share Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Global Search Engine Market Share by Region
+                  </CardTitle>
+                  <CardDescription>
+                    Understanding search engine dominance by geographic region
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🌍 Global Average</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">91.9%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">3.0%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Yahoo</span>
+                          <span className="font-medium">1.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">3.9%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇷🇺 Russia</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Yandex</span>
+                          <span className="font-medium">65.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">32.3%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mail.ru</span>
+                          <span className="font-medium">1.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">0.7%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇨🇳 China</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Baidu</span>
+                          <span className="font-medium">76.1%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sogou</span>
+                          <span className="font-medium">15.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Shenma</span>
+                          <span className="font-medium">4.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">3.9%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇰🇷 South Korea</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Naver</span>
+                          <span className="font-medium">74.7%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">20.9%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Daum</span>
+                          <span className="font-medium">3.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">1.2%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇨🇿 Czech Republic</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Seznam</span>
+                          <span className="font-medium">49.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">47.1%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">1.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">1.3%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇺🇸 United States</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">87.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">6.4%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Yahoo</span>
+                          <span className="font-medium">2.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>DuckDuckGo</span>
+                          <span className="font-medium">2.3%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="social" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Open Graph Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure how your site appears on social media
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="og-title">Open Graph Title</Label>
+                      <Input id="og-title" placeholder="Your Site Title" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-description">Open Graph Description</Label>
+                      <Textarea id="og-description" placeholder="Description for social sharing..." rows={3} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-image">Open Graph Image</Label>
+                      <Input id="og-image" placeholder="https://yoursite.com/og-image.jpg" />
+                      <p className="text-xs text-muted-foreground">
+                        Recommended size: 1200x630 pixels
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-type">Content Type</Label>
+                      <Select defaultValue="website">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="website">Website</SelectItem>
+                          <SelectItem value="article">Article</SelectItem>
+                          <SelectItem value="product">Product</SelectItem>
+                          <SelectItem value="profile">Profile</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Twitter Card Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure Twitter card appearance
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-card">Card Type</Label>
+                      <Select defaultValue="summary_large_image">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="summary">Summary</SelectItem>
+                          <SelectItem value="summary_large_image">Summary Large Image</SelectItem>
+                          <SelectItem value="app">App</SelectItem>
+                          <SelectItem value="player">Player</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-site">Twitter Site Handle</Label>
+                      <Input id="twitter-site" placeholder="@yoursite" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-creator">Twitter Creator Handle</Label>
+                      <Input id="twitter-creator" placeholder="@creator" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-title">Twitter Title</Label>
+                      <Input id="twitter-title" placeholder="Your Site Title" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-description">Twitter Description</Label>
+                      <Textarea id="twitter-description" placeholder="Description for Twitter..." rows={2} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-image">Twitter Image</Label>
+                      <Input id="twitter-image" placeholder="https://yoursite.com/twitter-image.jpg" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="performance" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gauge className="h-5 w-5" />
+                      Page Speed Optimization
+                    </CardTitle>
+                    <CardDescription>
+                      Improve your site's loading speed
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-green-600">92</p>
+                        <p className="text-sm text-muted-foreground">Desktop Score</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-yellow-600">78</p>
+                        <p className="text-sm text-muted-foreground">Mobile Score</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Image Compression</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Automatically compress images
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>CSS Minification</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Minify CSS files
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>JavaScript Minification</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Minify JavaScript files
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Browser Caching</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Enable browser caching
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>GZIP Compression</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Enable GZIP compression
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+                    </div>
+
+                    <Button className="w-full">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Run Speed Test
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Monitor className="h-5 w-5" />
+                      Core Web Vitals
+                    </CardTitle>
+                    <CardDescription>
+                      Monitor user experience metrics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Largest Contentful Paint</p>
+                          <p className="text-sm text-muted-foreground">Loading performance</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">1.2s</p>
+                          <p className="text-xs text-green-600">Good</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">First Input Delay</p>
+                          <p className="text-sm text-muted-foreground">Interactivity</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">45ms</p>
+                          <p className="text-xs text-green-600">Good</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Cumulative Layout Shift</p>
+                          <p className="text-sm text-muted-foreground">Visual stability</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-yellow-600">0.15</p>
+                          <p className="text-xs text-yellow-600">Needs Improvement</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Optimization Suggestions</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
+                          <p className="text-sm">Reduce layout shifts by setting image dimensions</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                          <p className="text-sm">Loading performance is excellent</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                          <p className="text-sm">Interactivity is within good range</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="cookies" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Cookie className="h-6 w-6" />
+                Cookie Analytics & Consent
+              </h2>
+              <p className="text-muted-foreground">Monitor cookie consent rates and GDPR compliance</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <a href="/admin/cookie-consent">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage Cookie Settings
+                </a>
+              </Button>
+              <Button>
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          </div>
+
+          {/* Cookie Consent Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Visitors</p>
+                    <p className="text-2xl font-bold">2,847</p>
+                    <p className="text-xs text-green-600">+15% from last month</p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Consent Rate</p>
+                    <p className="text-2xl font-bold text-green-600">78.5%</p>
+                    <p className="text-xs text-green-600">+3.2% improvement</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Rejected Consent</p>
+                    <p className="text-2xl font-bold text-red-600">612</p>
+                    <p className="text-xs text-red-600">21.5% of visitors</p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">GDPR Compliant</p>
+                    <p className="text-2xl font-bold text-green-600">100%</p>
+                    <p className="text-xs text-green-600">All visitors covered</p>
+                  </div>
+                  <Shield className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cookie Categories Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cookie className="h-5 w-5" />
+                  Cookie Category Consent Rates
+                </CardTitle>
+                <CardDescription>
+                  Breakdown of consent by cookie category
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-green-500"></div>
+                      <div>
+                        <p className="font-medium">Necessary Cookies</p>
+                        <p className="text-sm text-muted-foreground">Essential functionality</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-green-600">100%</p>
+                      <p className="text-xs text-muted-foreground">Required</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-blue-500"></div>
+                      <div>
+                        <p className="font-medium">Analytics Cookies</p>
+                        <p className="text-sm text-muted-foreground">Usage tracking</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">65.3%</p>
+                      <p className="text-xs text-green-600">+2.1%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-purple-500"></div>
+                      <div>
+                        <p className="font-medium">Marketing Cookies</p>
+                        <p className="text-sm text-muted-foreground">Advertising & remarketing</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">42.8%</p>
+                      <p className="text-xs text-red-600">-1.5%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-orange-500"></div>
+                      <div>
+                        <p className="font-medium">Functional Cookies</p>
+                        <p className="text-sm text-muted-foreground">Enhanced features</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">58.7%</p>
+                      <p className="text-xs text-green-600">+0.8%</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Consent Trends
+                </CardTitle>
+                <CardDescription>
+                  Cookie consent patterns over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>This Week</span>
+                      <span className="font-medium">76.2%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{
+                      width: '76.2%'
+                    }}></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Last Week</span>
+                      <span className="font-medium">74.8%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{
+                      width: '74.8%'
+                    }}></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Last Month</span>
+                      <span className="font-medium">72.1%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-purple-500 h-2 rounded-full" style={{
+                      width: '72.1%'
+                    }}></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Recent Activity</h4>
+                    <ScrollArea className="h-32">
+                      <div className="space-y-2">
+                        {Array.from({
+                        length: 8
+                      }).map((_, i) => <div key={i} className="flex items-center justify-between text-sm p-2 rounded border">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                              <span>User accepted all cookies</span>
+                            </div>
+                            <span className="text-muted-foreground">{i + 2}m ago</span>
+                          </div>)}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Geographic & Device Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Consent by Region
+                </CardTitle>
+                <CardDescription>
+                  Geographic breakdown of cookie consent
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇺🇸 United States</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">82.3%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{
+                        width: '82.3%'
+                      }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇪🇺 European Union</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">68.7%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{
+                        width: '68.7%'
+                      }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇬🇧 United Kingdom</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">71.2%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{
+                        width: '71.2%'
+                      }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇨🇦 Canada</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">79.1%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-orange-500 h-2 rounded-full" style={{
+                        width: '79.1%'
+                      }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇦🇺 Australia</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">75.8%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-cyan-500 h-2 rounded-full" style={{
+                        width: '75.8%'
+                      }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" />
+                  Device & Browser Analysis
+                </CardTitle>
+                <CardDescription>
+                  Consent patterns by device and browser type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-3">By Device Type</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Monitor className="h-4 w-4" />
+                          Desktop
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">84.2%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{
+                            width: '84.2%'
+                          }}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Smartphone className="h-4 w-4" />
+                          Mobile
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">72.1%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-blue-500 h-2 rounded-full" style={{
+                            width: '72.1%'
+                          }}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Tablet className="h-4 w-4" />
+                          Tablet
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">76.8%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-purple-500 h-2 rounded-full" style={{
+                            width: '76.8%'
+                          }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h4 className="font-medium mb-3">Top Browsers</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Chrome</span>
+                        <span className="font-medium">78.9%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Safari</span>
+                        <span className="font-medium">73.2%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Firefox</span>
+                        <span className="font-medium">81.5%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Edge</span>
+                        <span className="font-medium">76.3%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* GDPR Compliance Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                GDPR Compliance Status
+              </CardTitle>
+              <CardDescription>
+                Current compliance status and recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Cookie Banner</div>
+                      <div className="text-sm text-muted-foreground">Active and compliant</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Compliant</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Consent Recording</div>
+                      <div className="text-sm text-muted-foreground">All consents logged</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Active</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Privacy Policy</div>
+                      <div className="text-sm text-muted-foreground">Linked and accessible</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Updated</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertTriangle className="h-6 w-6 text-yellow-500" />
+                    <div>
+                      <div className="font-medium">Data Retention</div>
+                      <div className="text-sm text-muted-foreground">Review settings</div>
+                    </div>
+                  </div>
+                  <Badge variant="outline">Review Needed</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Cookie Blocking</div>
+                      <div className="text-sm text-muted-foreground">Auto-blocking enabled</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Active</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Withdrawal Rights</div>
+                      <div className="text-sm text-muted-foreground">Easy opt-out available</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Compliant</Badge>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-800 dark:text-green-200">GDPR Compliant</span>
+                </div>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Your cookie consent implementation meets GDPR requirements. Continue monitoring consent rates and update policies as needed.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="design" className="space-y-6">
