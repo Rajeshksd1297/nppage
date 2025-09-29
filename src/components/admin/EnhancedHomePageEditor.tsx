@@ -268,7 +268,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages'>('visual');
+  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages' | 'site-settings'>('visual');
   const [liveSync, setLiveSync] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const { toast } = useToast();
@@ -1303,13 +1303,17 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
           <div className="w-80 border-r bg-muted/10 flex flex-col">
-            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages')} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-5 m-4">
+            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages' | 'site-settings')} className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 m-4">
                 <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
                 <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
+                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
+              </TabsList>
+              
+              <TabsList className="grid w-full grid-cols-3 mx-4 mb-4">
                 <TabsTrigger value="header-footer" className="text-xs">Header/Footer</TabsTrigger>
                 <TabsTrigger value="pages" className="text-xs">Pages</TabsTrigger>
-                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
+                <TabsTrigger value="site-settings" className="text-xs">Site Settings</TabsTrigger>
               </TabsList>
 
             <TabsContent value="sections" className="flex-1 overflow-hidden">
@@ -1479,6 +1483,12 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
             <TabsContent value="pages" className="flex-1 overflow-hidden">
               <div className="p-4">
                 <AdditionalPagesManager />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="site-settings" className="flex-1 overflow-hidden">
+              <div className="p-4">
+                <SiteSettingsEditor />
               </div>
             </TabsContent>
 
