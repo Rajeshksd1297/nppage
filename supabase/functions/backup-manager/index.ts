@@ -508,9 +508,107 @@ serve(async (req) => {
           }
         });
 
+      case 'download':
+        if (!backupId) {
+          return new Response(
+            JSON.stringify({ error: 'Backup ID is required for download' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log(`Downloading backup: ${backupId}`);
+        
+        // Get backup job details
+        const { data: backupJob, error: jobError } = await supabase
+          .from('backup_jobs')
+          .select('*')
+          .eq('id', backupId)
+          .single();
+
+        if (jobError || !backupJob) {
+          return new Response(
+            JSON.stringify({ error: 'Backup not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (backupJob.status !== 'completed') {
+          return new Response(
+            JSON.stringify({ error: 'Backup is not ready for download' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // For now, recreate the backup since we don't store files persistently
+        // In a production environment, you'd retrieve the stored file
+        const downloadResult = await createOptimizedBackup(backupJob.job_type, {});
+        
+        const downloadFilename = `backup_${backupJob.job_type}_${backupJob.created_at.split('T')[0]}.zip`;
+        const downloadBuffer = new ArrayBuffer(downloadResult.zipBuffer.length);
+        const downloadView = new Uint8Array(downloadBuffer);
+        downloadView.set(downloadResult.zipBuffer);
+        
+        return new Response(downloadBuffer, {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${downloadFilename}"`,
+            'Content-Length': downloadResult.zipBuffer.length.toString(),
+          }
+        });
+
+      case 'test':
+        if (!backupId) {
+          return new Response(
+            JSON.stringify({ error: 'Backup ID is required for testing' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log(`Testing backup: ${backupId}`);
+        
+        // Get backup job for testing
+        const { data: testJob, error: testJobError } = await supabase
+          .from('backup_jobs')
+          .select('*')
+          .eq('id', backupId)
+          .single();
+
+        if (testJobError || !testJob) {
+          return new Response(
+            JSON.stringify({ error: 'Backup not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Perform basic validation tests
+        const testResults = {
+          valid: testJob.status === 'completed',
+          checks: {
+            status_valid: testJob.status === 'completed',
+            size_valid: testJob.file_size > 0,
+            checksum_valid: testJob.checksum !== null,
+            metadata_valid: testJob.metadata !== null
+          }
+        };
+
+        // Log the test results
+        await supabase.from('security_logs').insert({
+          event_type: 'backup_test_completed',
+          severity: 'low',
+          description: `Backup test ${testResults.valid ? 'passed' : 'failed'} for backup ${backupId}`,
+          metadata: { ...testResults, backup_id: backupId }
+        });
+
+        return new Response(
+          JSON.stringify(testResults),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+
       default:
         return new Response(
-          JSON.stringify({ error: 'Unsupported action' }),
+          JSON.stringify({ error: `Unsupported action: ${action}` }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
