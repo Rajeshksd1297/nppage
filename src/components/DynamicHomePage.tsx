@@ -245,11 +245,7 @@ export const DynamicHomePage: React.FC = () => {
       />
 
       {/* Dynamic Header */}
-      <DynamicHeader 
-        config={siteSettings?.header_config} 
-        siteTitle={siteSettings?.site_title}
-        logoUrl={siteSettings?.logo_url}
-      />
+      <DynamicHeader />
 
       {/* Hero Blocks */}
       {heroBlocks.map((heroBlock) => (

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
+import { useDynamicHeader } from '@/hooks/useDynamicHeader';
 import { 
   Menu, 
   Sun, 
@@ -38,20 +39,46 @@ interface DynamicHeaderProps {
 }
 
 export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
-  config,
-  siteTitle = "AuthorPage",
-  logoUrl
+  config: propConfig,
+  siteTitle: propSiteTitle,
+  logoUrl: propLogoUrl
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-
-  // Only use navigation from config if provided, otherwise show minimal navigation
-  const navigation = config?.navigation || [
-    { label: 'Home', url: '/', external: false }
-  ];
   
+  // Load dynamic configuration from database
+  const { headerConfig, siteTitle: dbSiteTitle, logoUrl: dbLogoUrl, loading } = useDynamicHeader();
+  
+  // Use prop config if provided, otherwise use database config
+  const config = propConfig || headerConfig;
+  const siteTitle = propSiteTitle || dbSiteTitle;
+  const logoUrl = propLogoUrl || dbLogoUrl;
+
+  // Show loading skeleton if still loading and no prop config provided
+  if (loading && !propConfig) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
+              <div className="h-6 w-32 bg-muted rounded animate-pulse"></div>
+            </div>
+            <div className="hidden md:flex space-x-4">
+              <div className="h-4 w-16 bg-muted rounded animate-pulse"></div>
+              <div className="h-4 w-16 bg-muted rounded animate-pulse"></div>
+            </div>
+            <div className="h-9 w-20 bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Only show navigation items that are configured in the database
+  const navigation = config?.navigation || [];
   const showLogo = config?.showLogo !== false;
   const showLogin = config?.showLogin !== false;
   const showSearch = config?.showSearch || false;
@@ -112,21 +139,23 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
           )}
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-      {navigation.map((item, index) => (
-        <button
-          key={index}
-          onClick={() => handleNavigation(item.url, item.external)}
-          className="text-sm font-medium transition-colors hover:text-primary relative group"
-        >
-                <span className="flex items-center space-x-1">
-                  {getNavIcon(item.label)}
-                  <span>{item.label}</span>
-                </span>
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-              </button>
-            ))}
-          </nav>
+          {navigation.length > 0 && (
+            <nav className="hidden md:flex items-center space-x-6">
+              {navigation.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleNavigation(item.url, item.external)}
+                  className="text-sm font-medium transition-colors hover:text-primary relative group"
+                >
+                  <span className="flex items-center space-x-1">
+                    {getNavIcon(item.label)}
+                    <span>{item.label}</span>
+                  </span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+                </button>
+              ))}
+            </nav>
+          )}
 
           {/* Search, Dark Mode, Auth Controls */}
           <div className="flex items-center space-x-4">
@@ -209,18 +238,20 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
                   )}
 
                   {/* Mobile Navigation */}
-                  <nav className="flex flex-col space-y-2">
-                    {navigation.map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleNavigation(item.url, item.external)}
-                        className="flex items-center space-x-3 text-left p-3 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        {getNavIcon(item.label)}
-                        <span className="font-medium">{item.label}</span>
-                      </button>
-                    ))}
-                  </nav>
+                  {navigation.length > 0 && (
+                    <nav className="flex flex-col space-y-2">
+                      {navigation.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleNavigation(item.url, item.external)}
+                          className="flex items-center space-x-3 text-left p-3 rounded-lg hover:bg-muted transition-colors"
+                        >
+                          {getNavIcon(item.label)}
+                          <span className="font-medium">{item.label}</span>
+                        </button>
+                      ))}
+                    </nav>
+                  )}
 
                   {/* Mobile Auth Buttons */}
                   {showLogin && (
