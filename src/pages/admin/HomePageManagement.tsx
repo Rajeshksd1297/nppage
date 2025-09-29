@@ -17,7 +17,9 @@ import {
   Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, 
   Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb,
   Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw,
-  Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar
+  Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar,
+  Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash,
+  RotateCcw, HardDrive, Cpu
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
@@ -29,7 +31,7 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
+  PointElement, 
   LineElement,
   BarElement,
   Title,
@@ -53,91 +55,176 @@ ChartJS.register(
 
 interface HeroBlock {
   id: string;
-  name: string;
+  title: string;
+  subtitle: string;
   description: string;
-  preview_image_url?: string;
-  enabled: boolean;
-  config: any;
-  created_at: string;
-  updated_at: string;
-}
-
-interface HomePageStats {
-  totalVisitors: number;
-  signups: number;
-  newsletterSignups: number;
-  conversionRate: number;
-  liveUsers: number;
-  bounceRate: number;
-  avgSessionDuration: number;
-  dailyVisits: number[];
-  countryStats: { country: string; visits: number; percentage: number }[];
-  deviceStats: { device: string; visits: number; percentage: number }[];
-  topPages: { page: string; visits: number; percentage: number }[];
+  image: string;
+  ctaText: string;
+  ctaLink: string;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
 }
 
 interface SiteSettings {
   siteName: string;
   siteDescription: string;
   siteKeywords: string;
-  contactEmail: string;
-  allowRegistration: boolean;
-  requireEmailVerification: boolean;
-  defaultTheme: string;
-  maintenanceMode: boolean;
-  maxFileSize: string;
-  allowedFileTypes: string;
-  timezone: string;
-  dateFormat: string;
   language: string;
+  favicon: string;
+  logo: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  headerLayout: string;
+  footerLayout: string;
+  socialLinks: {
+    facebook: string;
+    twitter: string;
+    instagram: string;
+    linkedin: string;
+    youtube: string;
+  };
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+  };
+  analytics: {
+    googleAnalytics: string;
+    facebookPixel: string;
+    googleTagManager: string;
+  };
+  seo: {
+    enableSitemap: boolean;
+    enableRobots: boolean;
+    enableOpenGraph: boolean;
+    enableTwitterCards: boolean;
+    enableSchemaMarkup: boolean;
+  };
 }
 
 const HomePageManagement = () => {
-  const [currentView, setCurrentView] = useState<'overview' | 'hero-blocks' | 'settings' | 'enhanced-editor' | 'site-settings' | 'seo'>('overview');
-  const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
-  const [timeRange, setTimeRange] = useState<'1d' | '15d' | '30d' | '1y' | 'lifetime'>('30d');
-  const [stats, setStats] = useState<HomePageStats>({
-    totalVisitors: 0,
-    signups: 0,
-    newsletterSignups: 0,
-    conversionRate: 0,
-    liveUsers: 12,
-    bounceRate: 34.5,
-    avgSessionDuration: 245,
-    dailyVisits: [],
-    countryStats: [],
-    deviceStats: [],
-    topPages: []
-  });
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
-    siteName: "AuthorPage Platform",
-    siteDescription: "Professional author profiles and book showcases",
-    siteKeywords: "authors, books, publishing, profiles",
-    contactEmail: "support@authorpage.com",
-    allowRegistration: true,
-    requireEmailVerification: true,
-    defaultTheme: "minimal",
-    maintenanceMode: false,
-    maxFileSize: "10",
-    allowedFileTypes: "jpg,jpeg,png,gif,pdf",
-    timezone: "UTC",
-    dateFormat: "MM/dd/yyyy",
-    language: "en"
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    siteName: '',
+    siteDescription: '',
+    siteKeywords: '',
+    language: 'en',
+    favicon: '',
+    logo: '',
+    primaryColor: '#3b82f6',
+    secondaryColor: '#64748b',
+    fontFamily: 'Inter',
+    headerLayout: 'default',
+    footerLayout: 'default',
+    socialLinks: {
+      facebook: '',
+      twitter: '',
+      instagram: '',
+      linkedin: '',
+      youtube: ''
+    },
+    contactInfo: {
+      email: '',
+      phone: '',
+      address: ''
+    },
+    analytics: {
+      googleAnalytics: '',
+      facebookPixel: '',
+      googleTagManager: ''
+    },
+    seo: {
+      enableSitemap: true,
+      enableRobots: true,
+      enableOpenGraph: true,
+      enableTwitterCards: true,
+      enableSchemaMarkup: true
+    }
+  });
+
+  // Mock data for analytics
+  const analyticsData = {
+    visitors: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Visitors',
+        data: [1200, 1900, 3000, 5000, 2000, 3000],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
+      }]
+    },
+    pageViews: {
+      labels: ['Home', 'About', 'Services', 'Contact', 'Blog'],
+      datasets: [{
+        label: 'Page Views',
+        data: [4500, 2300, 3200, 1800, 2800],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)'
+        ]
+      }]
+    },
+    deviceStats: {
+      labels: ['Desktop', 'Mobile', 'Tablet'],
+      datasets: [{
+        data: [65, 30, 5],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)'
+        ]
+      }]
+    }
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+      },
+    },
+  };
 
   useEffect(() => {
     fetchHeroBlocks();
-    fetchHomePageStats();
+    fetchSiteSettings();
   }, []);
 
   const fetchHeroBlocks = async () => {
     try {
-      // For now, set empty array since table was just created
-      setHeroBlocks([]);
+      const { data, error } = await supabase
+        .from('hero_blocks')
+        .select('*')
+        .order('order', { ascending: true });
+
+      if (error) throw error;
+      setHeroBlocks(data || []);
     } catch (error) {
       console.error('Error fetching hero blocks:', error);
       toast({
@@ -150,174 +237,45 @@ const HomePageManagement = () => {
     }
   };
 
-  const fetchHomePageStats = async () => {
+  const fetchSiteSettings = async () => {
     try {
-      const timeRangeMap = {
-        '1d': 1,
-        '15d': 15,
-        '30d': 30,
-        '1y': 365,
-        'lifetime': 3650 // 10 years as "lifetime"
-      };
-      
-      const days = timeRangeMap[timeRange];
-      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-
-      // Get homepage analytics
-      const { count: visitorsCount } = await supabase
-        .from('page_analytics')
-        .select('*', { count: 'exact', head: true })
-        .eq('page_type', 'homepage')
-        .gte('created_at', startDate);
-
-      // Get recent signups
-      const { count: signupsCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startDate);
-
-      // Get newsletter signups
-      const { count: newsletterCount } = await supabase
-        .from('newsletter_subscribers')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startDate);
-
-      // Get analytics data for charts
-      const { data: analyticsData } = await supabase
-        .from('page_analytics')
+      const { data, error } = await supabase
+        .from('site_settings')
         .select('*')
-        .gte('created_at', startDate)
-        .order('created_at', { ascending: true });
+        .single();
 
-      // Process data for charts
-      const dailyVisits = processDailyVisits(analyticsData || [], days);
-      const countryStats = processCountryStats(analyticsData || []);
-      const deviceStats = processDeviceStats(analyticsData || []);
-      const topPages = processTopPages(analyticsData || []);
-
-      const conversionRate = visitorsCount ? (signupsCount || 0) / visitorsCount * 100 : 0;
-
-      setStats({
-        totalVisitors: visitorsCount || 2547,
-        signups: signupsCount || 187,
-        newsletterSignups: newsletterCount || 451,
-        conversionRate: parseFloat(conversionRate.toFixed(2)) || 7.3,
-        liveUsers: Math.floor(Math.random() * 20) + 5,
-        bounceRate: 34.5,
-        avgSessionDuration: 245,
-        dailyVisits,
-        countryStats,
-        deviceStats,
-        topPages
-      });
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setSiteSettings(prev => ({
+          ...prev,
+          ...data.settings
+        }));
+      }
     } catch (error) {
-      console.error('Error fetching homepage stats:', error);
-    }
-  };
-
-  const processDailyVisits = (data: any[], days: number) => {
-    const visits = new Array(Math.min(days, 30)).fill(0);
-    // Generate mock data for demonstration
-    for (let i = 0; i < visits.length; i++) {
-      visits[i] = Math.floor(Math.random() * 100) + 20;
-    }
-    return visits;
-  };
-
-  const processCountryStats = (data: any[]) => {
-    return [
-      { country: 'United States', visits: 1245, percentage: 48.9 },
-      { country: 'United Kingdom', visits: 432, percentage: 17.0 },
-      { country: 'Canada', visits: 287, percentage: 11.3 },
-      { country: 'Australia', visits: 156, percentage: 6.1 },
-      { country: 'Germany', visits: 234, percentage: 9.2 },
-      { country: 'Other', visits: 193, percentage: 7.5 }
-    ];
-  };
-
-  const processDeviceStats = (data: any[]) => {
-    return [
-      { device: 'Desktop', visits: 1432, percentage: 56.2 },
-      { device: 'Mobile', visits: 894, percentage: 35.1 },
-      { device: 'Tablet', visits: 221, percentage: 8.7 }
-    ];
-  };
-
-  const processTopPages = (data: any[]) => {
-    return [
-      { page: '/home', visits: 2145, percentage: 45.3 },
-      { page: '/about', visits: 876, percentage: 18.5 },
-      { page: '/books', visits: 654, percentage: 13.8 },
-      { page: '/contact', visits: 432, percentage: 9.1 },
-      { page: '/blog', visits: 321, percentage: 6.8 }
-    ];
-  };
-
-  const handleCreateHeroBlock = () => {
-    setCurrentView('hero-blocks');
-  };
-
-  const handleEditHomePage = () => {
-    setCurrentView('enhanced-editor');
-  };
-
-  const handleEditHeroBlock = (blockId: string) => {
-    // Navigate to hero block editor
-    setCurrentView('hero-blocks');
-  };
-
-  const handleToggleHeroBlock = async (blockId: string, enabled: boolean) => {
-    try {
-      // For now, just update local state since we're working with demo data
-      setHeroBlocks(blocks =>
-        blocks.map(block =>
-          block.id === blockId ? { ...block, enabled: !enabled } : block
-        )
-      );
-
-      toast({
-        title: "Success",
-        description: `Hero block ${!enabled ? 'enabled' : 'disabled'} successfully`,
-      });
-    } catch (error) {
-      console.error('Error toggling hero block:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update hero block",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteHeroBlock = async (blockId: string) => {
-    if (!confirm('Are you sure you want to delete this hero block?')) return;
-
-    try {
-      setHeroBlocks(blocks => blocks.filter(block => block.id !== blockId));
-
-      toast({
-        title: "Success",
-        description: "Hero block deleted successfully",
-      });
-    } catch (error) {
-      console.error('Error deleting hero block:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete hero block",
-        variant: "destructive",
-      });
+      console.error('Error fetching site settings:', error);
     }
   };
 
   const handleSaveSiteSettings = async () => {
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+          id: 1,
+          settings: siteSettings,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Site settings saved successfully",
       });
     } catch (error) {
+      console.error('Error saving site settings:', error);
       toast({
         title: "Error",
         description: "Failed to save site settings",
@@ -328,38 +286,54 @@ const HomePageManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchHomePageStats();
-  }, [timeRange]);
+  const stats = [
+    {
+      title: "Total Visitors",
+      value: "12,345",
+      change: "+12%",
+      trend: "up",
+      icon: Users,
+      color: "text-blue-600"
+    },
+    {
+      title: "Page Views",
+      value: "45,678",
+      change: "+8%",
+      trend: "up",
+      icon: Eye,
+      color: "text-green-600"
+    },
+    {
+      title: "Bounce Rate",
+      value: "32%",
+      change: "-5%",
+      trend: "down",
+      icon: TrendingUp,
+      color: "text-orange-600"
+    },
+    {
+      title: "Avg. Session",
+      value: "2m 34s",
+      change: "+15%",
+      trend: "up",
+      icon: Clock,
+      color: "text-purple-600"
+    }
+  ];
 
-  if (currentView === 'enhanced-editor') {
+  const recentActivities = [
+    { action: "Hero block updated", time: "2 minutes ago", user: "Admin" },
+    { action: "New page created", time: "1 hour ago", user: "Editor" },
+    { action: "SEO settings modified", time: "3 hours ago", user: "Admin" },
+    { action: "Contact form submission", time: "5 hours ago", user: "Visitor" },
+    { action: "Blog post published", time: "1 day ago", user: "Author" }
+  ];
+
+  if (loading) {
     return (
-      <EnhancedHomePageEditor
-        onBack={() => setCurrentView('overview')}
-      />
-    );
-  }
-
-  if (currentView === 'hero-blocks') {
-    // Create a temporary hero block for demonstration
-    const demoHeroBlocks = [{
-      id: '1',
-      name: 'Welcome Hero',
-      description: 'Main welcome section',
-      enabled: true,
-      config: {},
-      preview_image: '',
-      enabled_for_authors: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }];
-
-    return (
-      <HeroBlockManager
-        heroBlocks={demoHeroBlocks}
-        onBack={() => setCurrentView('overview')}
-        onUpdate={fetchHeroBlocks}
-      />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
@@ -367,563 +341,157 @@ const HomePageManagement = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Home Page Management</h1>
-          <p className="text-muted-foreground">
-            Manage your home page content, hero blocks, and analytics
-          </p>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Home className="h-8 w-8" />
+            Home Page Management
+          </h1>
+          <p className="text-muted-foreground">Manage your website's homepage content and settings</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => window.open('/', '_blank')}>
+          <Button variant="outline" onClick={() => navigate('/admin')}>
+            <Settings className="h-4 w-4 mr-2" />
+            Admin Dashboard
+          </Button>
+          <Button onClick={() => window.open('/', '_blank')}>
             <Eye className="h-4 w-4 mr-2" />
-            Preview Home Page
-          </Button>
-          <Button onClick={handleEditHomePage}>
-            <Layout className="h-4 w-4 mr-2" />
-            Enhanced Editor
-          </Button>
-          <Button onClick={handleCreateHeroBlock}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Hero Block
+            Preview Site
           </Button>
         </div>
       </div>
 
-      <Tabs value={currentView} onValueChange={(value: any) => setCurrentView(value)}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Analytics</TabsTrigger>
-          <TabsTrigger value="site-settings">Site Settings</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="hero">Hero Blocks</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="settings">Hero Blocks</TabsTrigger>
+          <TabsTrigger value="design">Design</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Time Range Selector */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Website Analytics</h2>
-              <p className="text-muted-foreground">Monitor your site's performance and user engagement</p>
-            </div>
-            <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1d">1 Day</SelectItem>
-                <SelectItem value="15d">15 Days</SelectItem>
-                <SelectItem value="30d">30 Days</SelectItem>
-                <SelectItem value="1y">1 Year</SelectItem>
-                <SelectItem value="lifetime">Lifetime</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Live Users</CardTitle>
-                <Activity className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats.liveUsers}</div>
-                <p className="text-xs text-muted-foreground">Currently online</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalVisitors.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">{timeRange === '1d' ? 'Today' : `Last ${timeRange === '15d' ? '15' : timeRange === '30d' ? '30' : timeRange === '1y' ? '365' : ''} days`}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Signups</CardTitle>
-                <Home className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.signups.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">+12% from last period</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.bounceRate}%</div>
-                <p className="text-xs text-muted-foreground">-2.1% from last period</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg. Session</CardTitle>
-                <Timer className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{Math.floor(stats.avgSessionDuration / 60)}m {stats.avgSessionDuration % 60}s</div>
-                <p className="text-xs text-muted-foreground">+5.3% from last period</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.conversionRate}%</div>
-                <p className="text-xs text-muted-foreground">+0.8% from last period</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Daily Visits Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Daily Visits Trend
-                </CardTitle>
-                <CardDescription>Visitor traffic over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <Line 
-                    data={{
-                      labels: Array.from({ length: stats.dailyVisits.length }, (_, i) => {
-                        const date = new Date();
-                        date.setDate(date.getDate() - (stats.dailyVisits.length - 1 - i));
-                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                      }),
-                      datasets: [{
-                        label: 'Daily Visits',
-                        data: stats.dailyVisits,
-                        borderColor: 'hsl(var(--primary))',
-                        backgroundColor: 'hsl(var(--primary) / 0.1)',
-                        fill: true,
-                        tension: 0.4
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: { legend: { display: false } },
-                      scales: {
-                        y: { beginAtZero: true },
-                        x: { display: true }
-                      }
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Device Stats Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
-                  Device Breakdown
-                </CardTitle>
-                <CardDescription>How users access your site</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <Doughnut 
-                    data={{
-                      labels: stats.deviceStats.map(d => d.device),
-                      datasets: [{
-                        data: stats.deviceStats.map(d => d.visits),
-                        backgroundColor: [
-                          'hsl(var(--primary))',
-                          'hsl(var(--secondary))',
-                          'hsl(var(--accent))'
-                        ],
-                        borderWidth: 0
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: { position: 'bottom' }
-                      }
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Geographic and Page Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Countries */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Top Countries
-                </CardTitle>
-                <CardDescription>Visitor locations by country</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.countryStats.map((country, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-6 bg-muted rounded flex items-center justify-center text-xs font-mono">
-                          {country.country.slice(0, 2).toUpperCase()}
-                        </div>
-                        <span className="font-medium">{country.country}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-16 bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${country.percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{country.visits}</span>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                      <p className={`text-xs ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                        {stat.change} from last month
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Visitor Trends</CardTitle>
+                <CardDescription>Monthly visitor statistics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Line data={analyticsData.visitors} options={chartOptions} />
               </CardContent>
             </Card>
 
-            {/* Top Pages */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Top Pages
-                </CardTitle>
-                <CardDescription>Most visited pages</CardDescription>
+                <CardTitle>Device Usage</CardTitle>
+                <CardDescription>Visitor device breakdown</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {stats.topPages.map((page, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="outline">{index + 1}</Badge>
-                        <span className="font-mono text-sm">{page.page}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-16 bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${page.percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{page.visits}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Doughnut data={analyticsData.deviceStats} options={doughnutOptions} />
               </CardContent>
             </Card>
           </div>
 
-          {/* Hero Blocks Management */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Hero Blocks</CardTitle>
-                  <CardDescription>
-                    Manage the hero sections displayed on your home page
-                  </CardDescription>
-                </div>
-                <Button onClick={handleCreateHeroBlock}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Hero Block
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common homepage management tasks</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('content')}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Homepage Content
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8">Loading hero blocks...</div>
-              ) : heroBlocks.length === 0 ? (
-                <div className="text-center py-8">
-                  <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hero blocks yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first hero block to customize your home page
-                  </p>
-                  <Button onClick={handleCreateHeroBlock}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Hero Block
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {heroBlocks.map((block) => (
-                    <div key={block.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        {block.preview_image_url && (
-                          <img
-                            src={block.preview_image_url}
-                            alt={block.name}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                        )}
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('hero')}>
+                  <Layout className="h-4 w-4 mr-2" />
+                  Manage Hero Blocks
+                </Button>
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('seo')}>
+                  <Search className="h-4 w-4 mr-2" />
+                  SEO Optimization
+                </Button>
+                <Button className="w-full justify-start" variant="outline" onClick={() => setActiveTab('design')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Design Settings
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest changes and updates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-64">
+                  <div className="space-y-3">
+                    {recentActivities.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                         <div>
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-semibold">{block.name}</h4>
-                            <Badge variant={block.enabled ? 'default' : 'secondary'}>
-                              {block.enabled ? 'Enabled' : 'Disabled'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{block.description}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Created {new Date(block.created_at).toLocaleDateString()}
-                          </p>
+                          <p className="text-sm font-medium">{activity.action}</p>
+                          <p className="text-xs text-muted-foreground">by {activity.user}</p>
                         </div>
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditHeroBlock(block.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleToggleHeroBlock(block.id, block.enabled)}
-                        >
-                          {block.enabled ? 'Disable' : 'Enable'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteHeroBlock(block.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="site-settings" className="space-y-6">
+        <TabsContent value="content" className="space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Settings className="h-6 w-6" />
-                Site Settings
-              </h2>
-              <p className="text-muted-foreground">Configure basic site settings and preferences</p>
+              <h2 className="text-2xl font-bold">Content Management</h2>
+              <p className="text-muted-foreground">Edit your homepage content and layout</p>
             </div>
-            <Button onClick={handleSaveSiteSettings} disabled={saving}>
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+              <Button>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
           </div>
+          
+          <EnhancedHomePageEditor />
+        </TabsContent>
 
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>General site information and branding</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="siteName">Site Name</Label>
-                  <Input
-                    id="siteName"
-                    value={siteSettings.siteName}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                    placeholder="Your site name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contactEmail">Contact Email</Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    value={siteSettings.contactEmail}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, contactEmail: e.target.value }))}
-                    placeholder="support@yoursite.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="siteDescription">Site Description</Label>
-                <Textarea
-                  id="siteDescription"
-                  value={siteSettings.siteDescription}
-                  onChange={(e) => setSiteSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
-                  rows={3}
-                  placeholder="Describe what your site is about"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="siteKeywords">SEO Keywords</Label>
-                <Input
-                  id="siteKeywords"
-                  value={siteSettings.siteKeywords}
-                  onChange={(e) => setSiteSettings(prev => ({ ...prev, siteKeywords: e.target.value }))}
-                  placeholder="keyword1, keyword2, keyword3"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* User Registration */}
-          <Card>
-            <CardHeader>
-              <CardTitle>User Registration</CardTitle>
-              <CardDescription>Control how new users can join your platform</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="allowRegistration"
-                  checked={siteSettings.allowRegistration}
-                  onCheckedChange={(checked) => setSiteSettings(prev => ({ ...prev, allowRegistration: checked }))}
-                />
-                <Label htmlFor="allowRegistration">Allow new user registration</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="requireEmailVerification"
-                  checked={siteSettings.requireEmailVerification}
-                  onCheckedChange={(checked) => setSiteSettings(prev => ({ ...prev, requireEmailVerification: checked }))}
-                />
-                <Label htmlFor="requireEmailVerification">Require email verification</Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* File Upload Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>File Upload Settings</CardTitle>
-              <CardDescription>Configure file upload limits and restrictions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="maxFileSize">Max File Size (MB)</Label>
-                  <Input
-                    id="maxFileSize"
-                    type="number"
-                    value={siteSettings.maxFileSize}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, maxFileSize: e.target.value }))}
-                    min="1"
-                    max="100"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="allowedFileTypes">Allowed File Types</Label>
-                  <Input
-                    id="allowedFileTypes"
-                    value={siteSettings.allowedFileTypes}
-                    onChange={(e) => setSiteSettings(prev => ({ ...prev, allowedFileTypes: e.target.value }))}
-                    placeholder="jpg,png,pdf"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* System Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>System Settings</CardTitle>
-              <CardDescription>Advanced system configuration options</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="maintenanceMode"
-                  checked={siteSettings.maintenanceMode}
-                  onCheckedChange={(checked) => setSiteSettings(prev => ({ ...prev, maintenanceMode: checked }))}
-                />
-                <Label htmlFor="maintenanceMode">Maintenance mode</Label>
-              </div>
-              
-              {siteSettings.maintenanceMode && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 text-sm">
-                    ⚠️ Maintenance mode is enabled. Only administrators can access the site.
-                  </p>
-                </div>
-              )}
-
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select value={siteSettings.timezone} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, timezone: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                      <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                      <SelectItem value="America/Chicago">Central Time</SelectItem>
-                      <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                      <SelectItem value="Europe/London">London</SelectItem>
-                      <SelectItem value="Europe/Paris">Paris</SelectItem>
-                      <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="dateFormat">Date Format</Label>
-                  <Select value={siteSettings.dateFormat} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, dateFormat: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MM/dd/yyyy">MM/dd/yyyy</SelectItem>
-                      <SelectItem value="dd/MM/yyyy">dd/MM/yyyy</SelectItem>
-                      <SelectItem value="yyyy-MM-dd">yyyy-MM-dd</SelectItem>
-                      <SelectItem value="MMM dd, yyyy">MMM dd, yyyy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="language">Default Language</Label>
-                  <Select value={siteSettings.language} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, language: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                      <SelectItem value="it">Italian</SelectItem>
-                      <SelectItem value="pt">Portuguese</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="hero" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Hero Block Management</h2>
+              <p className="text-muted-foreground">Create and manage hero sections for your homepage</p>
+            </div>
+          </div>
+          
+          <HeroBlockManager />
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
@@ -935,42 +503,277 @@ const HomePageManagement = () => {
               </h2>
               <p className="text-muted-foreground">Optimize your site for search engines</p>
             </div>
+            <Button onClick={handleSaveSiteSettings} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save SEO Settings'}
+            </Button>
           </div>
 
           <Tabs defaultValue="basics" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="basics">SEO Basics</TabsTrigger>
               <TabsTrigger value="analysis">Analysis</TabsTrigger>
               <TabsTrigger value="schema">Schema</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              <TabsTrigger value="ai-seo">AI SEO</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="social">Social</TabsTrigger>
-              <TabsTrigger value="technical">Technical</TabsTrigger>
               <TabsTrigger value="performance">Performance</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basics" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Basic SEO Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Search className="h-5 w-5" />
+                      Basic SEO Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure essential SEO metadata for your website
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="site-title">Site Title</Label>
+                      <Input
+                        id="site-title"
+                        placeholder="Your Website Title"
+                        value={siteSettings.siteName}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteName: e.target.value }))}
+                      />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Recommended: 30-60 characters</span>
+                        <span className={siteSettings.siteName.length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {siteSettings.siteName.length}/60
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="site-description">Meta Description</Label>
+                      <Textarea
+                        id="site-description"
+                        placeholder="Brief description of your website..."
+                        value={siteSettings.siteDescription}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
+                        rows={3}
+                      />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Recommended: 120-160 characters</span>
+                        <span className={siteSettings.siteDescription.length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {siteSettings.siteDescription.length}/160
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="keywords">SEO Keywords</Label>
+                      <Textarea
+                        id="keywords"
+                        placeholder="keyword1, keyword2, keyword3..."
+                        value={siteSettings.siteKeywords}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, siteKeywords: e.target.value }))}
+                        rows={2}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Separate with commas. Focus on 3-5 related keywords.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language</Label>
+                      <Select value={siteSettings.language} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, language: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                          <SelectItem value="de">German</SelectItem>
+                          <SelectItem value="it">Italian</SelectItem>
+                          <SelectItem value="pt">Portuguese</SelectItem>
+                          <SelectItem value="zh">Chinese</SelectItem>
+                          <SelectItem value="ja">Japanese</SelectItem>
+                          <SelectItem value="ko">Korean</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                      <Input id="canonicalUrl" placeholder="https://yoursite.com/" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* SEO Features */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      SEO Features
+                    </CardTitle>
+                    <CardDescription>
+                      Enable advanced SEO features for better ranking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>XML Sitemap</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Auto-generate and submit sitemap to search engines
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Robots.txt</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Control search engine crawling
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Canonical URLs</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Prevent duplicate content issues
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Open Graph Tags</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Better social media sharing
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Twitter Cards</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Enhanced Twitter sharing
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Schema Markup</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Structured data for rich snippets
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Breadcrumbs</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Navigation breadcrumbs for better UX
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Internal Linking</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Auto-suggest internal links
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* SEO Tips */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic SEO Settings</CardTitle>
-                  <CardDescription>Configure essential SEO elements for your homepage</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    SEO Best Practices
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="seoTitle">Meta Title</Label>
-                    <Input id="seoTitle" placeholder="Your homepage title (50-60 characters)" maxLength={60} />
-                    <p className="text-xs text-muted-foreground mt-1">0/60 characters</p>
-                  </div>
-                  <div>
-                    <Label htmlFor="seoDescription">Meta Description</Label>
-                    <Textarea id="seoDescription" placeholder="Brief description of your homepage (150-160 characters)" maxLength={160} rows={3} />
-                    <p className="text-xs text-muted-foreground mt-1">0/160 characters</p>
-                  </div>
-                  <div>
-                    <Label htmlFor="seoKeywords">Focus Keywords</Label>
-                    <Input id="seoKeywords" placeholder="main keyword, secondary keyword, brand name" />
-                  </div>
-                  <div>
-                    <Label htmlFor="canonicalUrl">Canonical URL</Label>
-                    <Input id="canonicalUrl" placeholder="https://yoursite.com/" />
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Use descriptive titles</h4>
+                          <p className="text-sm text-muted-foreground">Include your main keyword naturally in the title</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Optimize meta descriptions</h4>
+                          <p className="text-sm text-muted-foreground">Write compelling descriptions that encourage clicks</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Use header tags properly</h4>
+                          <p className="text-sm text-muted-foreground">H1 for main title, H2-H6 for subheadings</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Create quality content</h4>
+                          <p className="text-sm text-muted-foreground">Write valuable, original content regularly</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Add alt text to images</h4>
+                          <p className="text-sm text-muted-foreground">Describe images for accessibility and SEO</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Improve page speed</h4>
+                          <p className="text-sm text-muted-foreground">Optimize images and minimize code</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Build quality backlinks</h4>
+                          <p className="text-sm text-muted-foreground">Get links from reputable websites</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Mobile optimization</h4>
+                          <p className="text-sm text-muted-foreground">Ensure your site works great on mobile</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -989,53 +792,197 @@ const HomePageManagement = () => {
               <SchemaGenerator />
             </TabsContent>
 
-            <TabsContent value="social" className="space-y-6 mt-6">
+            <TabsContent value="advanced" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      Advanced SEO Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure advanced SEO options
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="robots-meta">Robots Meta Tag</Label>
+                      <Select defaultValue="index,follow">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="index,follow">Index, Follow</SelectItem>
+                          <SelectItem value="noindex,follow">No Index, Follow</SelectItem>
+                          <SelectItem value="index,nofollow">Index, No Follow</SelectItem>
+                          <SelectItem value="noindex,nofollow">No Index, No Follow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-robots">Custom Robots.txt</Label>
+                      <Textarea
+                        id="custom-robots"
+                        placeholder="User-agent: *&#10;Disallow: /admin/&#10;Sitemap: https://yoursite.com/sitemap.xml"
+                        rows={6}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="htaccess">Custom .htaccess Rules</Label>
+                      <Textarea
+                        id="htaccess"
+                        placeholder="RewriteEngine On&#10;RewriteCond %{HTTPS} off&#10;RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]"
+                        rows={4}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Structured Data
+                    </CardTitle>
+                    <CardDescription>
+                      Configure structured data markup
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Organization Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add organization information
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Website Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add website metadata
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Breadcrumb Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add breadcrumb navigation
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Local Business Schema</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add local business information
+                        </p>
+                      </div>
+                      <Switch />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-schema">Custom Schema JSON-LD</Label>
+                      <Textarea
+                        id="custom-schema"
+                        placeholder='{"@context": "https://schema.org", "@type": "Organization", "name": "Your Company"}'
+                        rows={4}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ai-seo" className="space-y-6 mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Social Media SEO</CardTitle>
-                  <CardDescription>Configure how your site appears on social platforms</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    AI-Powered SEO Assistant
+                  </CardTitle>
+                  <CardDescription>
+                    Get AI-powered suggestions to improve your SEO
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Open Graph Settings</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <Label htmlFor="ogTitle">OG Title</Label>
-                        <Input id="ogTitle" placeholder="Social media title" />
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button className="h-auto p-4 flex-col items-start">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-5 w-5" />
+                        <span className="font-medium">Keyword Research</span>
                       </div>
-                      <div>
-                        <Label htmlFor="ogImage">OG Image URL</Label>
-                        <Input id="ogImage" placeholder="https://yoursite.com/og-image.jpg" />
+                      <p className="text-sm text-muted-foreground text-left">
+                        Find high-impact keywords for your content
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="h-5 w-5" />
+                        <span className="font-medium">Content Optimization</span>
                       </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="ogDescription">OG Description</Label>
-                      <Textarea id="ogDescription" placeholder="Description for social media sharing" rows={2} />
-                    </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Optimize existing content for better rankings
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="h-5 w-5" />
+                        <span className="font-medium">Competitor Analysis</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Analyze competitor SEO strategies
+                      </p>
+                    </Button>
+
+                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-5 w-5" />
+                        <span className="font-medium">SEO Recommendations</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-left">
+                        Get personalized SEO improvement tips
+                      </p>
+                    </Button>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="space-y-4">
-                    <h4 className="font-medium">Twitter Card Settings</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <Label htmlFor="twitterCard">Card Type</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select card type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="summary">Summary</SelectItem>
-                            <SelectItem value="summary_large_image">Summary Large Image</SelectItem>
-                            <SelectItem value="app">App</SelectItem>
-                            <SelectItem value="player">Player</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <h4 className="font-medium">Recent AI Suggestions</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Add "web design services" to your meta description</p>
+                          <p className="text-xs text-muted-foreground">This keyword has high search volume and low competition</p>
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="twitterSite">Twitter Handle</Label>
-                        <Input id="twitterSite" placeholder="@yourhandle" />
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Your page title is too long (67 characters)</p>
+                          <p className="text-xs text-muted-foreground">Consider shortening to 50-60 characters for better display</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Add internal links to your services pages</p>
+                          <p className="text-xs text-muted-foreground">This will help distribute page authority and improve navigation</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1043,192 +990,965 @@ const HomePageManagement = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="technical" className="space-y-6 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Technical SEO</CardTitle>
-                  <CardDescription>Advanced technical optimization settings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">XML Sitemap</h4>
-                        <p className="text-sm text-muted-foreground">Generate and submit sitemap to search engines</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Robots.txt</h4>
-                        <p className="text-sm text-muted-foreground">Control search engine crawling</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
+            <TabsContent value="analytics" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      SEO Analytics Integration
+                    </CardTitle>
+                    <CardDescription>
+                      Connect your analytics tools
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="google-analytics">Google Analytics ID</Label>
+                      <Input
+                        id="google-analytics"
+                        placeholder="G-XXXXXXXXXX"
+                        value={siteSettings.analytics.googleAnalytics}
+                        onChange={(e) => setSiteSettings(prev => ({
+                          ...prev,
+                          analytics: { ...prev.analytics, googleAnalytics: e.target.value }
+                        }))}
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Switch id="sslEnabled" defaultChecked />
-                        <Label htmlFor="sslEnabled">SSL Certificate Enabled</Label>
+                      <Label htmlFor="search-console">Google Search Console</Label>
+                      <Input id="search-console" placeholder="Verification code" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="gtm">Google Tag Manager</Label>
+                      <Input
+                        id="gtm"
+                        placeholder="GTM-XXXXXXX"
+                        value={siteSettings.analytics.googleTagManager}
+                        onChange={(e) => setSiteSettings(prev => ({
+                          ...prev,
+                          analytics: { ...prev.analytics, googleTagManager: e.target.value }
+                        }))}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="facebook-pixel">Facebook Pixel</Label>
+                      <Input
+                        id="facebook-pixel"
+                        placeholder="Facebook Pixel ID"
+                        value={siteSettings.analytics.facebookPixel}
+                        onChange={(e) => setSiteSettings(prev => ({
+                          ...prev,
+                          analytics: { ...prev.analytics, facebookPixel: e.target.value }
+                        }))}
+                      />
+                    </div>
+
+                    <Button className="w-full">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Connect Analytics
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      SEO Performance Metrics
+                    </CardTitle>
+                    <CardDescription>
+                      Track your SEO progress
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-green-600">85</p>
+                        <p className="text-sm text-muted-foreground">SEO Score</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="hsts" defaultChecked />
-                        <Label htmlFor="hsts">HTTP Strict Transport Security</Label>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-blue-600">142</p>
+                        <p className="text-sm text-muted-foreground">Keywords Ranking</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="compress" defaultChecked />
-                        <Label htmlFor="compress">GZIP Compression</Label>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-purple-600">23</p>
+                        <p className="text-sm text-muted-foreground">Top 10 Rankings</p>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-orange-600">1.2k</p>
+                        <p className="text-sm text-muted-foreground">Organic Clicks</p>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Top Performing Keywords</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">web design</span>
+                          <Badge variant="secondary">#3</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">responsive design</span>
+                          <Badge variant="secondary">#7</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">ui ux design</span>
+                          <Badge variant="secondary">#12</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="social" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Open Graph Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure how your site appears on social media
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="og-title">Open Graph Title</Label>
+                      <Input id="og-title" placeholder="Your Site Title" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-description">Open Graph Description</Label>
+                      <Textarea id="og-description" placeholder="Description for social sharing..." rows={3} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-image">Open Graph Image</Label>
+                      <Input id="og-image" placeholder="https://yoursite.com/og-image.jpg" />
+                      <p className="text-xs text-muted-foreground">
+                        Recommended size: 1200x630 pixels
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="og-type">Content Type</Label>
+                      <Select defaultValue="website">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="website">Website</SelectItem>
+                          <SelectItem value="article">Article</SelectItem>
+                          <SelectItem value="product">Product</SelectItem>
+                          <SelectItem value="profile">Profile</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Twitter Card Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure Twitter card appearance
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-card">Card Type</Label>
+                      <Select defaultValue="summary_large_image">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="summary">Summary</SelectItem>
+                          <SelectItem value="summary_large_image">Summary Large Image</SelectItem>
+                          <SelectItem value="app">App</SelectItem>
+                          <SelectItem value="player">Player</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-site">Twitter Site Handle</Label>
+                      <Input id="twitter-site" placeholder="@yoursite" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-creator">Twitter Creator Handle</Label>
+                      <Input id="twitter-creator" placeholder="@creator" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-title">Twitter Title</Label>
+                      <Input id="twitter-title" placeholder="Your Site Title" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-description">Twitter Description</Label>
+                      <Textarea id="twitter-description" placeholder="Description for Twitter..." rows={2} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter-image">Twitter Image</Label>
+                      <Input id="twitter-image" placeholder="https://yoursite.com/twitter-image.jpg" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="performance" className="space-y-6 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Optimization</CardTitle>
-                  <CardDescription>Monitor and improve site performance</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">95</div>
-                      <div className="text-sm font-medium">Performance Score</div>
-                      <div className="text-xs text-muted-foreground">Google PageSpeed</div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">0.8s</div>
-                      <div className="text-sm font-medium">Load Time</div>
-                      <div className="text-xs text-muted-foreground">First Contentful Paint</div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">2.1s</div>
-                      <div className="text-sm font-medium">Interactive</div>
-                      <div className="text-xs text-muted-foreground">Time to Interactive</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Optimization Settings</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Switch id="imageOptim" defaultChecked />
-                        <Label htmlFor="imageOptim">Automatic Image Optimization</Label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gauge className="h-5 w-5" />
+                      Page Speed Optimization
+                    </CardTitle>
+                    <CardDescription>
+                      Improve your site's loading speed
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-green-600">92</p>
+                        <p className="text-sm text-muted-foreground">Desktop Score</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="lazyLoad" defaultChecked />
-                        <Label htmlFor="lazyLoad">Lazy Loading</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="minify" defaultChecked />
-                        <Label htmlFor="minify">Minify CSS/JS</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch id="caching" defaultChecked />
-                        <Label htmlFor="caching">Browser Caching</Label>
+                      <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <p className="text-2xl font-bold text-yellow-600">78</p>
+                        <p className="text-sm text-muted-foreground">Mobile Score</p>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Image Compression</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Automatically compress images
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>CSS Minification</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Minify CSS files
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>JavaScript Minification</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Minify JavaScript files
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Browser Caching</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Enable browser caching
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>GZIP Compression</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Enable GZIP compression
+                          </p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+                    </div>
+
+                    <Button className="w-full">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Run Speed Test
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Monitor className="h-5 w-5" />
+                      Core Web Vitals
+                    </CardTitle>
+                    <CardDescription>
+                      Monitor user experience metrics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Largest Contentful Paint</p>
+                          <p className="text-sm text-muted-foreground">Loading performance</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">1.2s</p>
+                          <p className="text-xs text-green-600">Good</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">First Input Delay</p>
+                          <p className="text-sm text-muted-foreground">Interactivity</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">45ms</p>
+                          <p className="text-xs text-green-600">Good</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Cumulative Layout Shift</p>
+                          <p className="text-sm text-muted-foreground">Visual stability</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-yellow-600">0.15</p>
+                          <p className="text-xs text-yellow-600">Needs Improvement</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Optimization Suggestions</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
+                          <p className="text-sm">Reduce layout shifts by setting image dimensions</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                          <p className="text-sm">Loading performance is excellent</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                          <p className="text-sm">Interactivity is within good range</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-6">
+        <TabsContent value="design" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Design Settings</h2>
+              <p className="text-muted-foreground">Customize your website's appearance and branding</p>
+            </div>
+            <Button onClick={handleSaveSiteSettings} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Design Settings'}
+            </Button>
+          </div>
 
-          {/* Hero Blocks Management */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Brand Identity</CardTitle>
+                <CardDescription>Configure your brand colors, logo, and typography</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="logo">Logo URL</Label>
+                  <Input
+                    id="logo"
+                    placeholder="https://yoursite.com/logo.png"
+                    value={siteSettings.logo}
+                    onChange={(e) => setSiteSettings(prev => ({ ...prev, logo: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="favicon">Favicon URL</Label>
+                  <Input
+                    id="favicon"
+                    placeholder="https://yoursite.com/favicon.ico"
+                    value={siteSettings.favicon}
+                    onChange={(e) => setSiteSettings(prev => ({ ...prev, favicon: e.target.value }))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="primary-color">Primary Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="primary-color"
+                        type="color"
+                        value={siteSettings.primaryColor}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={siteSettings.primaryColor}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                        placeholder="#3b82f6"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="secondary-color">Secondary Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="secondary-color"
+                        type="color"
+                        value={siteSettings.secondaryColor}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={siteSettings.secondaryColor}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                        placeholder="#64748b"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="font-family">Font Family</Label>
+                  <Select value={siteSettings.fontFamily} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, fontFamily: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Inter">Inter</SelectItem>
+                      <SelectItem value="Roboto">Roboto</SelectItem>
+                      <SelectItem value="Open Sans">Open Sans</SelectItem>
+                      <SelectItem value="Lato">Lato</SelectItem>
+                      <SelectItem value="Montserrat">Montserrat</SelectItem>
+                      <SelectItem value="Poppins">Poppins</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Layout Settings</CardTitle>
+                <CardDescription>Configure header and footer layouts</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="header-layout">Header Layout</Label>
+                  <Select value={siteSettings.headerLayout} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, headerLayout: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="centered">Centered</SelectItem>
+                      <SelectItem value="minimal">Minimal</SelectItem>
+                      <SelectItem value="full-width">Full Width</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footer-layout">Footer Layout</Label>
+                  <Select value={siteSettings.footerLayout} onValueChange={(value) => setSiteSettings(prev => ({ ...prev, footerLayout: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="minimal">Minimal</SelectItem>
+                      <SelectItem value="expanded">Expanded</SelectItem>
+                      <SelectItem value="newsletter">With Newsletter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Design Features</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Dark Mode Support</Label>
+                        <p className="text-xs text-muted-foreground">Enable dark/light theme toggle</p>
+                      </div>
+                      <Switch />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Animations</Label>
+                        <p className="text-xs text-muted-foreground">Enable page animations and transitions</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Sticky Header</Label>
+                        <p className="text-xs text-muted-foreground">Keep header visible when scrolling</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Back to Top Button</Label>
+                        <p className="text-xs text-muted-foreground">Show scroll to top button</p>
+                      </div>
+                      <Switch defaultChecked />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Hero Blocks</CardTitle>
-                  <CardDescription>
-                    Manage the hero sections displayed on your home page
-                  </CardDescription>
-                </div>
-                <Button onClick={handleCreateHeroBlock}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Hero Block
-                </Button>
-              </div>
+              <CardTitle>Social Media Links</CardTitle>
+              <CardDescription>Add your social media profiles</CardDescription>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="text-center py-8">Loading hero blocks...</div>
-              ) : heroBlocks.length === 0 ? (
-                <div className="text-center py-8">
-                  <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hero blocks yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first hero block to customize your home page
-                  </p>
-                  <Button onClick={handleCreateHeroBlock}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Hero Block
-                  </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="facebook">Facebook</Label>
+                  <Input
+                    id="facebook"
+                    placeholder="https://facebook.com/yourpage"
+                    value={siteSettings.socialLinks.facebook}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      socialLinks: { ...prev.socialLinks, facebook: e.target.value }
+                    }))}
+                  />
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {heroBlocks.map((block) => (
-                    <div key={block.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        {block.preview_image_url && (
-                          <img
-                            src={block.preview_image_url}
-                            alt={block.name}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                        )}
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-semibold">{block.name}</h4>
-                            <Badge variant={block.enabled ? 'default' : 'secondary'}>
-                              {block.enabled ? 'Enabled' : 'Disabled'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{block.description}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Created {new Date(block.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditHeroBlock(block.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleToggleHeroBlock(block.id, block.enabled)}
-                        >
-                          {block.enabled ? 'Disable' : 'Enable'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteHeroBlock(block.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="twitter">Twitter</Label>
+                  <Input
+                    id="twitter"
+                    placeholder="https://twitter.com/youraccount"
+                    value={siteSettings.socialLinks.twitter}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      socialLinks: { ...prev.socialLinks, twitter: e.target.value }
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    placeholder="https://instagram.com/youraccount"
+                    value={siteSettings.socialLinks.instagram}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      socialLinks: { ...prev.socialLinks, instagram: e.target.value }
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin">LinkedIn</Label>
+                  <Input
+                    id="linkedin"
+                    placeholder="https://linkedin.com/company/yourcompany"
+                    value={siteSettings.socialLinks.linkedin}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      socialLinks: { ...prev.socialLinks, linkedin: e.target.value }
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="youtube">YouTube</Label>
+                  <Input
+                    id="youtube"
+                    placeholder="https://youtube.com/yourchannel"
+                    value={siteSettings.socialLinks.youtube}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      socialLinks: { ...prev.socialLinks, youtube: e.target.value }
+                    }))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+              <p className="text-muted-foreground">Monitor your website's performance and visitor behavior</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+              <Button>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                      <p className={`text-xs ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                        {stat.change} from last month
+                      </p>
                     </div>
-                  ))}
+                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Visitor Trends</CardTitle>
+                <CardDescription>Daily visitor statistics over the last 6 months</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Line data={analyticsData.visitors} options={chartOptions} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Pages</CardTitle>
+                <CardDescription>Most visited pages on your website</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Bar data={analyticsData.pageViews} options={chartOptions} />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Device Breakdown</CardTitle>
+                <CardDescription>Visitor device statistics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Doughnut data={analyticsData.deviceStats} options={doughnutOptions} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Traffic Sources</CardTitle>
+                <CardDescription>Where your visitors come from</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">Organic Search</span>
+                  </div>
+                  <span className="text-sm font-medium">45%</span>
                 </div>
-              )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Direct</span>
+                  </div>
+                  <span className="text-sm font-medium">30%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">Social Media</span>
+                  </div>
+                  <span className="text-sm font-medium">15%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Link className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm">Referral</span>
+                  </div>
+                  <span className="text-sm font-medium">10%</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Geographic Data</CardTitle>
+                <CardDescription>Top visitor locations</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">United States</span>
+                  </div>
+                  <span className="text-sm font-medium">35%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">United Kingdom</span>
+                  </div>
+                  <span className="text-sm font-medium">20%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Canada</span>
+                  </div>
+                  <span className="text-sm font-medium">15%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Australia</span>
+                  </div>
+                  <span className="text-sm font-medium">12%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">Germany</span>
+                  </div>
+                  <span className="text-sm font-medium">10%</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">General Settings</h2>
+              <p className="text-muted-foreground">Configure general website settings and preferences</p>
+            </div>
+            <Button onClick={handleSaveSiteSettings} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+                <CardDescription>Business contact details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact-email">Email Address</Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="contact@yoursite.com"
+                    value={siteSettings.contactInfo.email}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      contactInfo: { ...prev.contactInfo, email: e.target.value }
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contact-phone">Phone Number</Label>
+                  <Input
+                    id="contact-phone"
+                    placeholder="+1 (555) 123-4567"
+                    value={siteSettings.contactInfo.phone}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      contactInfo: { ...prev.contactInfo, phone: e.target.value }
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contact-address">Business Address</Label>
+                  <Textarea
+                    id="contact-address"
+                    placeholder="123 Main St, City, State 12345"
+                    value={siteSettings.contactInfo.address}
+                    onChange={(e) => setSiteSettings(prev => ({
+                      ...prev,
+                      contactInfo: { ...prev.contactInfo, address: e.target.value }
+                    }))}
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Site Preferences</CardTitle>
+                <CardDescription>General website preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Maintenance Mode</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Show maintenance page to visitors
+                    </p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>User Registration</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Allow new user registrations
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Comments</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Enable comments on blog posts
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Newsletter Signup</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Show newsletter signup forms
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Cookie Consent</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Show cookie consent banner
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Backup & Security</CardTitle>
+              <CardDescription>Manage backups and security settings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-auto p-4 flex-col">
+                  <Download className="h-6 w-6 mb-2" />
+                  <span className="font-medium">Create Backup</span>
+                  <span className="text-xs text-muted-foreground">Export site data</span>
+                </Button>
+
+                <Button variant="outline" className="h-auto p-4 flex-col">
+                  <Upload className="h-6 w-6 mb-2" />
+                  <span className="font-medium">Restore Backup</span>
+                  <span className="text-xs text-muted-foreground">Import site data</span>
+                </Button>
+
+                <Button variant="outline" className="h-auto p-4 flex-col">
+                  <Settings className="h-6 w-6 mb-2" />
+                  <span className="font-medium">Security Scan</span>
+                  <span className="text-xs text-muted-foreground">Check for issues</span>
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Automatic Backups</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Create daily automatic backups
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Require 2FA for admin access
+                    </p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Login Attempts Limit</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Limit failed login attempts
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
