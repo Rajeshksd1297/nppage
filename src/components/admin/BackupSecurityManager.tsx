@@ -458,40 +458,119 @@ export const BackupSecurityManager: React.FC = () => {
   };
 
   if (loading) {
-    return (
+      return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-        Loading backup and security data...
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-muted-foreground">Loading backup and security data...</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6" />
-            Backup & Security Management
+          <h2 className="text-3xl font-bold flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            Backup & Security Center
           </h2>
-          <p className="text-muted-foreground">
-            Comprehensive backup and security management for your website
+          <p className="text-muted-foreground mt-2">
+            Protect your website with automated backups and comprehensive security monitoring
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchAllData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button variant="outline" onClick={fetchAllData} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Data
+          </Button>
+          <Button onClick={() => createBackup('database')} disabled={creating} className="gap-2">
+            <Database className="h-4 w-4" />
+            {creating ? 'Creating...' : 'Quick Backup'}
           </Button>
         </div>
       </div>
 
+      {/* Quick Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Backups</p>
+                <p className="text-2xl font-bold">{backupStats?.total_backups || 0}</p>
+              </div>
+              <Database className="h-8 w-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {backupStats?.total_backups > 0 
+                    ? Math.round((backupStats.successful_backups / backupStats.total_backups) * 100)
+                    : 0}%
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Storage Used</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatFileSize(backupStats?.total_storage_used || 0)}
+                </p>
+              </div>
+              <HardDrive className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-l-4 border-l-orange-500">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Security Score</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {securityReport?.score || 'N/A'}
+                </p>
+              </div>
+              <Shield className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="backup">Backup Management</TabsTrigger>
-          <TabsTrigger value="security">Security Settings</TabsTrigger>
-          <TabsTrigger value="monitoring">Security Monitoring</TabsTrigger>
-          <TabsTrigger value="logs">Activity Logs</TabsTrigger>
+          <TabsTrigger value="backup" className="gap-2">
+            <Database className="h-4 w-4" />
+            Backup Management
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Lock className="h-4 w-4" />
+            Security Settings
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="gap-2">
+            <Activity className="h-4 w-4" />
+            Security Monitoring
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="gap-2">
+            <Eye className="h-4 w-4" />
+            Activity Logs
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="backup" className="space-y-6">
