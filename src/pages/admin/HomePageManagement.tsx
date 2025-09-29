@@ -55,15 +55,13 @@ ChartJS.register(
 
 interface HeroBlock {
   id: string;
-  title: string;
-  subtitle: string;
+  name: string;
   description: string;
-  image: string;
-  ctaText: string;
-  ctaLink: string;
-  isActive: boolean;
-  order: number;
-  createdAt: string;
+  preview_image_url?: string;
+  enabled: boolean;
+  config: any;
+  created_at: string;
+  updated_at: string;
 }
 
 interface SiteSettings {
@@ -239,18 +237,30 @@ const HomePageManagement = () => {
 
   const fetchSiteSettings = async () => {
     try {
-      const { data, error } = await supabase
+      // Use any to bypass TypeScript issues with the new table
+      const { data, error } = await (supabase as any)
         .from('site_settings')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        setSiteSettings(prev => ({
-          ...prev,
-          ...data.settings
-        }));
+        setSiteSettings({
+          siteName: data.site_name,
+          siteDescription: data.site_description,
+          siteKeywords: data.site_keywords,
+          contactEmail: data.contact_email,
+          allowRegistration: data.allow_registration,
+          requireEmailVerification: data.require_email_verification,
+          defaultTheme: data.default_theme,
+          maintenanceMode: data.maintenance_mode,
+          maxFileSize: data.max_file_size,
+          allowedFileTypes: data.allowed_file_types,
+          timezone: data.timezone,
+          dateFormat: data.date_format,
+          language: data.language
+        });
       }
     } catch (error) {
       console.error('Error fetching site settings:', error);
@@ -260,12 +270,22 @@ const HomePageManagement = () => {
   const handleSaveSiteSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('site_settings')
         .upsert({
-          id: 1,
-          settings: siteSettings,
-          updated_at: new Date().toISOString()
+          site_name: siteSettings.siteName,
+          site_description: siteSettings.siteDescription,
+          site_keywords: siteSettings.siteKeywords,
+          contact_email: siteSettings.contactEmail,
+          allow_registration: siteSettings.allowRegistration,
+          require_email_verification: siteSettings.requireEmailVerification,
+          default_theme: siteSettings.defaultTheme,
+          maintenance_mode: siteSettings.maintenanceMode,
+          max_file_size: siteSettings.maxFileSize,
+          allowed_file_types: siteSettings.allowedFileTypes,
+          timezone: siteSettings.timezone,
+          date_format: siteSettings.dateFormat,
+          language: siteSettings.language
         });
 
       if (error) throw error;
@@ -491,7 +511,15 @@ const HomePageManagement = () => {
             </div>
           </div>
           
-          <HeroBlockManager />
+          <HeroBlockManager
+            heroBlocks={heroBlocks.map(block => ({
+              ...block,
+              preview_image: block.preview_image_url || '',
+              enabled_for_authors: block.enabled
+            }))}
+            onBack={() => setCurrentView('overview')}
+            onUpdate={fetchHeroBlocks}
+          />
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
