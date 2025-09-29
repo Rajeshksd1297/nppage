@@ -68,8 +68,8 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
         throw new Error(functionError.message || 'Failed to generate suggestions');
       }
 
-      if (data.error) {
-        if (data.error.includes('API key not configured')) {
+      if (data?.error) {
+        if (data.error.includes('API key not configured') || data.error.includes('OpenAI API key not configured')) {
           setError('OpenAI API key not configured. Please contact your administrator to set up AI features.');
         } else {
           setError(data.error);
@@ -139,12 +139,32 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
         )}
 
         {error && (
-          <div className="flex items-start gap-2 p-4 border border-destructive/20 rounded-md bg-destructive/5">
-            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-            <div>
-              <p className="font-medium text-destructive">Error</p>
-              <p className="text-sm text-destructive/80">{error}</p>
+          <div className="space-y-4">
+            <div className="flex items-start gap-2 p-4 border border-destructive/20 rounded-md bg-destructive/5">
+              <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+              <div>
+                <p className="font-medium text-destructive">Error</p>
+                <p className="text-sm text-destructive/80">{error}</p>
+              </div>
             </div>
+            
+            {error.includes('API key not configured') && (
+              <div className="p-4 border border-blue-200 rounded-md bg-blue-50">
+                <h4 className="font-medium text-blue-900 mb-2">Setting Up AI Features</h4>
+                <p className="text-sm text-blue-800 mb-3">
+                  To use AI-powered SEO suggestions, you need to configure an OpenAI API key.
+                </p>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p><strong>Steps to set up:</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Get an API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Platform</a></li>
+                    <li>Go to your <a href="https://supabase.com/dashboard/project/kovlbxzqasqhigygfiyj/settings/functions" target="_blank" rel="noopener noreferrer" className="underline">Supabase Functions Settings</a></li>
+                    <li>Add a new secret named <code className="bg-blue-100 px-1 rounded">OPENAI_API_KEY</code></li>
+                    <li>Paste your OpenAI API key as the value</li>
+                  </ol>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
