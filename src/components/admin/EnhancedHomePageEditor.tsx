@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import VisualPageEditor from './VisualPageEditor';
-import HeaderEditor from './HeaderEditor';
-import FooterEditor from './FooterEditor';
+import HeaderEditorVisual from './HeaderEditorVisual';
+import FooterEditorVisual from './FooterEditorVisual';
 import AdditionalPagesEditor from './AdditionalPagesEditor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1529,13 +1529,9 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
           {currentTab === 'preview' ? (
             renderPreview()
           ) : currentTab === 'header' ? (
-            <div className="h-full overflow-auto p-6">
-              <HeaderEditor />
-            </div>
+            <HeaderEditorVisual onBack={onBack} />
           ) : currentTab === 'footer' ? (
-            <div className="h-full overflow-auto p-6">
-              <FooterEditor />
-            </div>
+            <FooterEditorVisual onBack={onBack} />
           ) : currentTab === 'additional-pages' ? (
             <div className="h-full overflow-auto p-6">
               <AdditionalPagesEditor />
