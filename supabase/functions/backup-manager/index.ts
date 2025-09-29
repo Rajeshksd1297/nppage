@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { compress } from "https://deno.land/x/zip@v1.2.5/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -649,15 +650,9 @@ const handler = async (req: Request): Promise<Response> => {
           throw new Error('Backup not found or not completed');
         }
 
-        let backupContent = '';
-        let filename = '';
-        let contentType = '';
-        let encoding = 'text';
-
         // Generate filename with date and numbering
-        const backupDate = backup.created_at.split('T')[0]; // YYYY-MM-DD format
+        const backupDate = backup.created_at.split('T')[0];
         
-        // Check for existing backups on the same date to add numbering
         const { data: sameDateBackups } = await supabase
           .from('backup_jobs')
           .select('id, created_at')
@@ -675,78 +670,164 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const numberSuffix = sameDateBackups && sameDateBackups.length > 1 ? `_${backupNumber}` : '';
+        const filename = `${backup.job_type}_backup_${backupDate}${numberSuffix}.zip`;
 
-        if (backup.job_type === 'full') {
-          // For full backups, create a ZIP-like structure as text
-          filename = `full_backup_${backupDate}${numberSuffix}.txt`;
-          contentType = 'text/plain';
-          
-          // Get database content
-          let databaseContent = '';
-          if (backup.metadata?.backup_content) {
-            databaseContent = backup.metadata.backup_content;
-          } else {
-            databaseContent = await regenerateBackupContent('database', backupId);
-          }
+        // Create files for ZIP
+        const files: Array<{ name: string; content: Uint8Array | string }> = [];
+        
+        // Add README file
+        const readmeContent = `WEBSITE BACKUP - ${backup.job_type.toUpperCase()}
+Generated: ${backup.created_at}
+Backup ID: ${backupId}
+Type: ${backup.job_type}
+Size: ${backup.file_size} bytes
 
-          // Create a structured backup file
-          backupContent = `=== FULL WEBSITE BACKUP ===\n`;
-          backupContent += `Backup ID: ${backupId}\n`;
-          backupContent += `Created: ${backup.created_at}\n`;
-          backupContent += `Type: Full Backup (Database + Files)\n`;
-          backupContent += `Size: ${backup.file_size} bytes\n\n`;
-          
-          backupContent += `=== FILE STRUCTURE ===\n`;
-          backupContent += `Project Root/\n`;
-          backupContent += `├── database/\n`;
-          backupContent += `│   └── backup.sql (included below)\n`;
-          backupContent += `├── storage/\n`;
-          backupContent += `│   ├── avatars/\n`;
-          backupContent += `│   └── user-uploads/\n`;
-          backupContent += `├── src/\n`;
-          backupContent += `│   ├── components/\n`;
-          backupContent += `│   ├── pages/\n`;
-          backupContent += `│   └── assets/\n`;
-          backupContent += `└── public/\n\n`;
-          
-          backupContent += `=== DATABASE BACKUP CONTENT ===\n`;
-          backupContent += databaseContent;
-          
-          backupContent += `\n\n=== STORAGE FILES METADATA ===\n`;
-          backupContent += `-- Note: File contents are referenced in database backup\n`;
-          backupContent += `-- For complete restoration, use this backup with file restoration tools\n\n`;
-          
-        } else if (backup.job_type === 'database') {
-          filename = `database_backup_${backupDate}${numberSuffix}.sql`;
-          contentType = 'application/sql';
-          
-          if (backup.metadata?.backup_content) {
-            backupContent = backup.metadata.backup_content;
-          } else {
-            backupContent = await regenerateBackupContent('database', backupId);
-          }
-        } else if (backup.job_type === 'files') {
-          filename = `files_backup_${backupDate}${numberSuffix}.txt`;
-          contentType = 'text/plain';
-          
-          if (backup.metadata?.backup_content) {
-            backupContent = backup.metadata.backup_content;
-          } else {
-            backupContent = await regenerateBackupContent('files', backupId);
+FOLDER STRUCTURE:
+├── database/
+│   └── backup.sql (Complete database backup)
+├── storage/
+│   ├── avatars/ (User profile images)
+│   └── user-uploads/ (User uploaded files)
+├── config/
+│   └── backup-info.json (Backup metadata)
+└── README.txt (This file)
+
+RESTORATION INSTRUCTIONS:
+1. Import database/backup.sql into your PostgreSQL database
+2. Upload files from storage/ folders to your storage buckets
+3. Verify all data has been restored correctly
+
+Project: kovlbxzqasqhigygfiyj
+Supabase URL: https://kovlbxzqasqhigygfiyj.supabase.co
+`;
+        files.push({ name: "README.txt", content: readmeContent });
+
+        // Add database backup
+        let databaseContent = '';
+        if (backup.metadata?.backup_content) {
+          databaseContent = backup.metadata.backup_content;
+        } else {
+          databaseContent = await regenerateBackupContent('database', backupId);
+        }
+        files.push({ name: "database/backup.sql", content: databaseContent });
+
+        // Add storage files if it's a full backup or files backup
+        if (backup.job_type === 'full' || backup.job_type === 'files') {
+          try {
+            const { data: buckets } = await supabase.storage.listBuckets();
+            
+            if (buckets && buckets.length > 0) {
+              for (const bucket of buckets) {
+                try {
+                  const { data: filesList } = await supabase.storage
+                    .from(bucket.name)
+                    .list('', { limit: 50 }); // Limit files to prevent timeout
+
+                  if (filesList && filesList.length > 0) {
+                    for (const file of filesList.slice(0, 10)) { // Limit to first 10 files
+                      try {
+                        const { data: fileData } = await supabase.storage
+                          .from(bucket.name)
+                          .download(file.name);
+
+                        if (fileData) {
+                          const arrayBuffer = await fileData.arrayBuffer();
+                          files.push({ 
+                            name: `storage/${bucket.name}/${file.name}`, 
+                            content: new Uint8Array(arrayBuffer) 
+                          });
+                        }
+                      } catch (fileError) {
+                        // Add error info file instead
+                        const errorContent = `File could not be downloaded: ${file.name}\nError: ${(fileError as Error).message}\nSize: ${file.metadata?.size || 'unknown'} bytes\nLast modified: ${file.updated_at || file.created_at}`;
+                        files.push({ 
+                          name: `storage/${bucket.name}/${file.name}.error.txt`, 
+                          content: errorContent 
+                        });
+                      }
+                    }
+                  }
+                } catch (bucketError) {
+                  const errorContent = `Bucket listing failed: ${bucket.name}\nError: ${(bucketError as Error).message}`;
+                  files.push({ 
+                    name: `storage/${bucket.name}/bucket-error.txt`, 
+                    content: errorContent 
+                  });
+                }
+              }
+            }
+          } catch (storageError) {
+            const errorContent = `Storage backup failed\nError: ${(storageError as Error).message}`;
+            files.push({ name: `storage/storage-error.txt`, content: errorContent });
           }
         }
 
-        result = {
-          success: true,
-          content: backupContent,
-          filename: filename,
-          contentType: contentType,
+        // Add backup metadata
+        const backupInfo = {
+          id: backup.id,
+          type: backup.job_type,
+          created_at: backup.created_at,
+          completed_at: backup.completed_at,
           file_size: backup.file_size,
-          encoding: encoding,
-          backup_type: backup.job_type,
-          created_date: backupDate,
-          backup_number: backupNumber
+          checksum: backup.checksum,
+          metadata: backup.metadata,
+          backup_date: backupDate,
+          backup_number: backupNumber,
+          project_id: 'kovlbxzqasqhigygfiyj',
+          restoration_notes: 'Follow README.txt for restoration instructions'
         };
+        files.push({ 
+          name: "config/backup-info.json", 
+          content: JSON.stringify(backupInfo, null, 2) 
+        });
+
+        // Create temporary directory and files for compression
+        const tempDir = await Deno.makeTempDir({ prefix: "backup_" });
+        
+        try {
+          // Write files to temp directory
+          for (const file of files) {
+            const filePath = `${tempDir}/${file.name}`;
+            const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+            
+            // Ensure directory exists
+            await Deno.mkdir(dirPath, { recursive: true });
+            
+            // Write file content
+            if (typeof file.content === 'string') {
+              await Deno.writeTextFile(filePath, file.content);
+            } else {
+              await Deno.writeFile(filePath, file.content);
+            }
+          }
+
+          // Compress the directory
+          const zipData = await compress(tempDir);
+          
+          // Check if compression was successful
+          if (!zipData || typeof zipData === 'boolean') {
+            throw new Error('Failed to create ZIP file');
+          }
+
+          result = {
+            success: true,
+            content: Array.from(zipData as Uint8Array), // Convert Uint8Array to array for JSON
+            filename: filename,
+            contentType: 'application/zip',
+            file_size: (zipData as Uint8Array).length,
+            encoding: 'binary',
+            backup_type: backup.job_type,
+            created_date: backupDate,
+            backup_number: backupNumber
+          };
+        } finally {
+          // Clean up temp directory
+          try {
+            await Deno.remove(tempDir, { recursive: true });
+          } catch (cleanupError) {
+            console.warn('Failed to cleanup temp directory:', cleanupError);
+          }
+        }
         break;
 
       case 'schedule':
