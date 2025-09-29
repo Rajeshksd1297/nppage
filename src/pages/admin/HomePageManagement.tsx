@@ -294,61 +294,6 @@ const HomePageManagement = () => {
       description: "Analytics data has been updated successfully",
     });
   };
-
-  // Handle data export functionality
-  const handleExportData = (period: string) => {
-    const exportData = {
-      period: period,
-      exportDate: new Date().toISOString(),
-      stats: getStatsByPeriod(period),
-      analytics: getAnalyticsDataByPeriod(period),
-      metadata: {
-        totalRecords: getStatsByPeriod(period).length,
-        exportedBy: 'Admin',
-        serverLoad: 'Optimized for minimal impact'
-      }
-    };
-
-    // Create CSV content
-    const csvContent = [
-      'Metric,Value,Change,Period',
-      ...getStatsByPeriod(period).map(stat => 
-        `"${stat.title}","${stat.value}","${stat.change}","${period}"`
-      )
-    ].join('\n');
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    const periodLabels = {
-      'hours': 'Last 6 Hours',
-      'day': 'Today',
-      'month': 'This Month', 
-      'year': 'This Year',
-      'lifetime': 'All Time',
-      'current-month': 'Current Month',
-      'last-month': 'Last Month',
-      'current-year': 'Current Year',
-      'last-year': 'Last Year',
-      'q1': 'Q1 Data',
-      'q2': 'Q2 Data',
-      'q3': 'Q3 Data',
-      'q4': 'Q4 Data'
-    };
-
-    toast({
-      title: "Export Completed",
-      description: `${periodLabels[period] || period} analytics data exported successfully`,
-    });
-  };
   
   // Setup realtime tracking for analytics
   const setupRealtimeTracking = () => {
@@ -571,6 +516,61 @@ const HomePageManagement = () => {
         description: "User engagement level"
       }
     ];
+  };
+
+  // Handle data export functionality
+  const handleExportData = (period: string) => {
+    const exportData = {
+      period: period,
+      exportDate: new Date().toISOString(),
+      stats: getStatsByPeriod(period),
+      analytics: getAnalyticsDataByPeriod(period),
+      metadata: {
+        totalRecords: getStatsByPeriod(period).length,
+        exportedBy: 'Admin',
+        serverLoad: 'Optimized for minimal impact'
+      }
+    };
+
+    // Create CSV content
+    const csvContent = [
+      'Metric,Value,Change,Period',
+      ...getStatsByPeriod(period).map(stat => 
+        `"${stat.title}","${stat.value}","${stat.change}","${period}"`
+      )
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    const periodLabels = {
+      'hours': 'Last 6 Hours',
+      'day': 'Today',
+      'month': 'This Month', 
+      'year': 'This Year',
+      'lifetime': 'All Time',
+      'current-month': 'Current Month',
+      'last-month': 'Last Month',
+      'current-year': 'Current Year',
+      'last-year': 'Last Year',
+      'q1': 'Q1 Data',
+      'q2': 'Q2 Data',
+      'q3': 'Q3 Data',
+      'q4': 'Q4 Data'
+    };
+
+    toast({
+      title: "Export Completed",
+      description: `${periodLabels[period] || period} analytics data exported successfully`,
+    });
   };
 
   const stats = getStatsByPeriod(selectedPeriod);
