@@ -29,14 +29,14 @@ export const BackupSecurityTab: React.FC = () => {
     setLoading(true);
     try {
       // Fetch backup settings
-      const { data: backup } = await supabase
+      const { data: backup } = await (supabase as any)
         .from('backup_settings')
         .select('*')
         .single();
       setBackupSettings(backup);
 
       // Fetch security settings
-      const { data: security } = await supabase
+      const { data: security } = await (supabase as any)
         .from('security_settings')
         .select('*')
         .single();

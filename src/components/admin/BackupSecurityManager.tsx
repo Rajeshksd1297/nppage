@@ -128,7 +128,7 @@ export const BackupSecurityManager: React.FC = () => {
   };
 
   const fetchBackupSettings = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('backup_settings')
       .select('*')
       .single();
@@ -141,7 +141,7 @@ export const BackupSecurityManager: React.FC = () => {
   };
 
   const fetchSecuritySettings = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('security_settings')
       .select('*')
       .single();
@@ -154,7 +154,7 @@ export const BackupSecurityManager: React.FC = () => {
   };
 
   const fetchBackupJobs = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('backup_jobs')
       .select('*')
       .order('created_at', { ascending: false })
@@ -168,7 +168,7 @@ export const BackupSecurityManager: React.FC = () => {
   };
 
   const fetchSecurityLogs = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('security_logs')
       .select('*')
       .order('created_at', { ascending: false })
@@ -184,15 +184,15 @@ export const BackupSecurityManager: React.FC = () => {
   const fetchBackupStats = async () => {
     try {
       // For now, calculate basic stats from backup jobs
-      const { data: jobs } = await supabase
+      const { data: jobs } = await (supabase as any)
         .from('backup_jobs')
         .select('*');
       
       const stats = {
         total_backups: jobs?.length || 0,
-        successful_backups: jobs?.filter(j => j.status === 'completed').length || 0,
-        failed_backups: jobs?.filter(j => j.status === 'failed').length || 0,
-        total_storage_used: jobs?.reduce((sum, j) => sum + (j.file_size || 0), 0) || 0
+        successful_backups: jobs?.filter((j: any) => j.status === 'completed').length || 0,
+        failed_backups: jobs?.filter((j: any) => j.status === 'failed').length || 0,
+        total_storage_used: jobs?.reduce((sum: number, j: any) => sum + (j.file_size || 0), 0) || 0
       };
       setBackupStats(stats);
     } catch (error) {
@@ -217,7 +217,7 @@ export const BackupSecurityManager: React.FC = () => {
     if (!backupSettings) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('backup_settings')
         .upsert(backupSettings);
 
@@ -404,7 +404,7 @@ export const BackupSecurityManager: React.FC = () => {
 
   const resolveSecurityLog = async (logId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('security_logs')
         .update({
           resolved: true,
