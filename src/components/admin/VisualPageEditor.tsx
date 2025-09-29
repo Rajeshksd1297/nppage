@@ -57,6 +57,9 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showAddPanel, setShowAddPanel] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [draggedSection, setDraggedSection] = useState<string | null>(null);
   const { toast } = useToast();
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -163,6 +166,154 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
     }
   };
 
+  const addSection = async (type: HomeSection['type']) => {
+    const newSection = {
+      type,
+      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)} Section`,
+      enabled: true,
+      order_index: sections.length + 1,
+      config: getDefaultConfig(type)
+    };
+
+    try {
+      setSaving(true);
+      const { data, error } = await supabase
+        .from('home_page_sections')
+        .insert(newSection)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setSections(prev => [...prev, data as HomeSection]);
+        setShowAddPanel(false);
+        toast({
+          title: "Success",
+          description: "Section added successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add section",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const duplicateSection = async (section: HomeSection) => {
+    const duplicatedSection = {
+      ...section,
+      id: undefined,
+      title: `${section.title} (Copy)`,
+      order_index: sections.length + 1
+    };
+
+    try {
+      setSaving(true);
+      const { data, error } = await supabase
+        .from('home_page_sections')
+        .insert(duplicatedSection)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setSections(prev => [...prev, data as HomeSection]);
+        toast({
+          title: "Success",
+          description: "Section duplicated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error duplicating section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate section",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteSection = async (id: string) => {
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('home_page_sections')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setSections(prev => prev.filter(s => s.id !== id));
+      if (editingSection?.id === id) {
+        setEditingSection(null);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Section deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete section",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getDefaultConfig = (type: HomeSection['type']) => {
+    switch (type) {
+      case 'hero':
+      case 'interactive_hero':
+        return {
+          title: 'Hero Title',
+          subtitle: 'Hero subtitle description',
+          buttons: [{ text: 'Get Started', url: '/auth', variant: 'primary' }],
+          backgroundColor: 'primary'
+        };
+      case 'stats':
+        return {
+          title: 'Statistics',
+          items: [
+            { label: 'Users', value: '10,000+' },
+            { label: 'Projects', value: '5,000+' }
+          ]
+        };
+      case 'features':
+        return {
+          title: 'Features',
+          subtitle: 'Amazing features',
+          items: [
+            { title: 'Feature 1', description: 'Description 1', icon: 'check' },
+            { title: 'Feature 2', description: 'Description 2', icon: 'check' }
+          ]
+        };
+      case 'pricing':
+        return {
+          title: 'Pricing Plans',
+          plans: [
+            { name: 'Free', price: 0, features: ['Basic features'] },
+            { name: 'Pro', price: 19, features: ['All features'] }
+          ]
+        };
+      default:
+        return {
+          title: 'Section Title',
+          subtitle: 'Section description'
+        };
+    }
+  };
+
   const getSectionIcon = (type: string) => {
     switch (type) {
       case 'hero':
@@ -215,13 +366,14 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
         {/* Overlay Controls */}
         {(isHovered || isEditing) && (
           <div className="absolute inset-0 bg-primary/5 pointer-events-none">
-            <div className="absolute top-4 right-4 flex space-x-2 pointer-events-auto">
+            <div className="absolute top-4 right-4 flex space-x-1 pointer-events-auto">
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={() => moveSection(section.id, 'up')}
                 disabled={sections.findIndex(s => s.id === section.id) === 0}
-                className="h-8 w-8 p-0 shadow-md"
+                className="h-7 w-7 p-0 shadow-md"
+                title="Move Up"
               >
                 <ArrowUp className="h-3 w-3" />
               </Button>
@@ -230,15 +382,26 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
                 variant="secondary"
                 onClick={() => moveSection(section.id, 'down')}
                 disabled={sections.findIndex(s => s.id === section.id) === sections.length - 1}
-                className="h-8 w-8 p-0 shadow-md"
+                className="h-7 w-7 p-0 shadow-md"
+                title="Move Down"
               >
                 <ArrowDown className="h-3 w-3" />
               </Button>
               <Button
                 size="sm"
                 variant="secondary"
+                onClick={() => duplicateSection(section)}
+                className="h-7 w-7 p-0 shadow-md"
+                title="Duplicate"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={() => toggleSection(section.id)}
-                className="h-8 w-8 p-0 shadow-md"
+                className="h-7 w-7 p-0 shadow-md"
+                title={section.enabled ? 'Hide' : 'Show'}
               >
                 {section.enabled ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
               </Button>
@@ -246,9 +409,19 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
                 size="sm"
                 variant="secondary"
                 onClick={() => setEditingSection(section)}
-                className="h-8 w-8 p-0 shadow-md"
+                className="h-7 w-7 p-0 shadow-md"
+                title="Edit"
               >
                 <Edit className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => deleteSection(section.id)}
+                className="h-7 w-7 p-0 shadow-md"
+                title="Delete"
+              >
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
             
@@ -259,6 +432,130 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
             </div>
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderAddPanel = () => {
+    const sectionTypes = [
+      { type: 'hero' as const, name: 'Hero Section', icon: <Star className="h-4 w-4" />, description: 'Main banner with title and CTA' },
+      { type: 'interactive_hero' as const, name: 'Interactive Hero', icon: <Zap className="h-4 w-4" />, description: 'Enhanced hero with animations' },
+      { type: 'stats' as const, name: 'Statistics', icon: <BarChart3 className="h-4 w-4" />, description: 'Display key metrics' },
+      { type: 'features' as const, name: 'Features', icon: <Layout className="h-4 w-4" />, description: 'Showcase product features' },
+      { type: 'pricing' as const, name: 'Pricing', icon: <Users className="h-4 w-4" />, description: 'Pricing plans display' },
+      { type: 'testimonials' as const, name: 'Testimonials', icon: <Star className="h-4 w-4" />, description: 'Customer reviews' },
+      { type: 'premium_showcase' as const, name: 'Premium Showcase', icon: <Zap className="h-4 w-4" />, description: 'Highlight premium features' },
+      { type: 'free_vs_pro' as const, name: 'Free vs Pro', icon: <Users className="h-4 w-4" />, description: 'Plan comparison' },
+      { type: 'faq' as const, name: 'FAQ', icon: <Type className="h-4 w-4" />, description: 'Frequently asked questions' },
+      { type: 'newsletter' as const, name: 'Newsletter', icon: <Type className="h-4 w-4" />, description: 'Email signup form' },
+      { type: 'trial_cta' as const, name: 'Trial CTA', icon: <MousePointer className="h-4 w-4" />, description: 'Trial call-to-action' },
+      { type: 'final_cta' as const, name: 'Final CTA', icon: <MousePointer className="h-4 w-4" />, description: 'Final call-to-action' }
+    ];
+
+    return (
+      <div className="w-80 border-l bg-background p-6 overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold">Add New Section</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAddPanel(false)}
+          >
+            Close
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          {sectionTypes.map((sectionType) => (
+            <Card key={sectionType.type} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => addSection(sectionType.type)}>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 mt-1">
+                  {sectionType.icon}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm">{sectionType.name}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{sectionType.description}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSettingsPanel = () => {
+    return (
+      <div className="w-80 border-l bg-background p-6 overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold">Page Settings</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettings(false)}
+          >
+            Close
+          </Button>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <Label className="text-sm font-medium">Page Layout</Label>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <Button variant="outline" size="sm" className="h-20 flex flex-col">
+                <Layout className="h-6 w-6 mb-1" />
+                <span className="text-xs">Standard</span>
+              </Button>
+              <Button variant="outline" size="sm" className="h-20 flex flex-col">
+                <Layers className="h-6 w-6 mb-1" />
+                <span className="text-xs">Full Width</span>
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Section Spacing</Label>
+            <Select defaultValue="normal">
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tight">Tight</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="loose">Loose</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Animation Style</Label>
+            <Select defaultValue="fade">
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="fade">Fade In</SelectItem>
+                <SelectItem value="slide">Slide In</SelectItem>
+                <SelectItem value="bounce">Bounce</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch defaultChecked />
+            <Label className="text-sm">Enable smooth scrolling</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch defaultChecked />
+            <Label className="text-sm">Show section borders</Label>
+          </div>
+
+          <Button className="w-full" disabled={saving}>
+            {saving ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -382,12 +679,32 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
         </div>
         
         <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => setShowAddPanel(true)}
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Section</span>
+          </Button>
+          
+          <Button
+            onClick={() => setShowSettings(!showSettings)}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <Settings className="h-4 w-4" />
+            <span>Settings</span>
+          </Button>
+
           <div className="flex items-center border rounded-lg p-1">
             <Button
               variant={previewMode === 'desktop' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setPreviewMode('desktop')}
               className="h-8 w-8 p-0"
+              title="Desktop View"
             >
               <Monitor className="h-4 w-4" />
             </Button>
@@ -396,6 +713,7 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
               size="sm"
               onClick={() => setPreviewMode('tablet')}
               className="h-8 w-8 p-0"
+              title="Tablet View"
             >
               <Tablet className="h-4 w-4" />
             </Button>
@@ -404,6 +722,7 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
               size="sm"
               onClick={() => setPreviewMode('mobile')}
               className="h-8 w-8 p-0"
+              title="Mobile View"
             >
               <Smartphone className="h-4 w-4" />
             </Button>
@@ -436,6 +755,12 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
           </div>
         </div>
 
+        {/* Add Section Panel */}
+        {showAddPanel && renderAddPanel()}
+        
+        {/* Settings Panel */}
+        {showSettings && renderSettingsPanel()}
+        
         {/* Edit Panel */}
         {editingSection && renderEditPanel()}
       </div>
