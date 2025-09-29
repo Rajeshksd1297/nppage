@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
+import { AISEOAssistant } from '@/components/seo/AISEOAssistant';
 import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
@@ -3459,89 +3460,22 @@ const HomePageManagement = () => {
             </TabsContent>
 
             <TabsContent value="ai-seo" className="space-y-6 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5" />
-                    AI-Powered SEO Assistant
-                  </CardTitle>
-                  <CardDescription>
-                    Get AI-powered suggestions to improve your SEO
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button className="h-auto p-4 flex-col items-start">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Target className="h-5 w-5" />
-                        <span className="font-medium">Keyword Research</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground text-left">
-                        Find high-impact keywords for your content
-                      </p>
-                    </Button>
-
-                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="h-5 w-5" />
-                        <span className="font-medium">Content Optimization</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground text-left">
-                        Optimize existing content for better rankings
-                      </p>
-                    </Button>
-
-                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-5 w-5" />
-                        <span className="font-medium">Competitor Analysis</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground text-left">
-                        Analyze competitor SEO strategies
-                      </p>
-                    </Button>
-
-                    <Button className="h-auto p-4 flex-col items-start" variant="outline">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lightbulb className="h-5 w-5" />
-                        <span className="font-medium">SEO Recommendations</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground text-left">
-                        Get personalized SEO improvement tips
-                      </p>
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Recent AI Suggestions</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Add "web design services" to your meta description</p>
-                          <p className="text-xs text-muted-foreground">This keyword has high search volume and low competition</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Your page title is too long (67 characters)</p>
-                          <p className="text-xs text-muted-foreground">Consider shortening to 50-60 characters for better display</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Add internal links to your services pages</p>
-                          <p className="text-xs text-muted-foreground">This will help distribute page authority and improve navigation</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <AISEOAssistant
+                content={`${seoSettings.site_title} - ${seoSettings.site_description}`}
+                currentTitle={seoSettings.site_title}
+                currentDescription={seoSettings.site_description}
+                currentKeywords={seoSettings.site_keywords}
+                contentType="page"
+                recordId="homepage"
+                onApplySuggestions={(suggestions) => {
+                  setSeoSettings(prev => ({
+                    ...prev,
+                    site_title: suggestions.title,
+                    site_description: suggestions.description,
+                    site_keywords: suggestions.keywords
+                  }));
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6 mt-6">
