@@ -1222,6 +1222,11 @@ const HomePageManagement = () => {
     fetchAnalyticsData(selectedPeriod);
   }, [selectedPeriod]);
 
+  // Validate SEO data when it changes
+  useEffect(() => {
+    validateSEOData(seoSettings);
+  }, [seoSettings.site_title, seoSettings.site_description, seoSettings.site_keywords, siteSettings.siteName, siteSettings.siteDescription, siteSettings.siteKeywords]);
+
   // Fetch home page sections from database
   const fetchHomeSections = async () => {
     try {
@@ -1252,21 +1257,32 @@ const HomePageManagement = () => {
   // Fetch SEO settings from database
   const fetchSEOSettings = async () => {
     try {
-      // Try to load from localStorage first for immediate display
+      // Initialize from current siteSettings
+      const initialSEO = {
+        site_title: siteSettings.siteName,
+        site_description: siteSettings.siteDescription,
+        site_keywords: siteSettings.siteKeywords,
+        google_analytics_id: siteSettings.analytics?.googleAnalytics || '',
+        google_site_verification: '',
+        bing_site_verification: '',
+        facebook_app_id: '',
+        twitter_handle: '',
+        default_og_image: '',
+        enable_sitemap: true,
+        enable_robots: true,
+        enable_schema: true
+      };
+
+      // Try to load from localStorage for persistent settings
       const savedSEO = localStorage.getItem('seo_settings');
       if (savedSEO) {
         const parsed = JSON.parse(savedSEO);
-        setSeoSettings(parsed);
-        validateSEOData(parsed);
+        setSeoSettings({ ...initialSEO, ...parsed });
+        validateSEOData({ ...initialSEO, ...parsed });
+      } else {
+        setSeoSettings(initialSEO);
+        validateSEOData(initialSEO);
       }
-      
-      // Sync siteSettings with existing values
-      setSeoSettings(prev => ({
-        ...prev,
-        site_title: prev.site_title || siteSettings.siteName,
-        site_description: prev.site_description || siteSettings.siteDescription,
-        site_keywords: prev.site_keywords || siteSettings.siteKeywords
-      }));
       
     } catch (error) {
       console.error('Error loading SEO settings:', error);
@@ -3017,16 +3033,31 @@ const HomePageManagement = () => {
               </h2>
               <p className="text-muted-foreground">Optimize your site for search engines</p>
             </div>
-            <Button onClick={handleSaveSiteSettings} disabled={saving}>
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Save SEO Settings'}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={autoGenerateSEO} 
+                disabled={autoGenerating}
+                variant="outline"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                {autoGenerating ? 'Generating...' : 'Auto Generate SEO'}
+              </Button>
+              <Button onClick={saveSEOSettings} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? 'Saving...' : 'Save SEO Settings'}
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="basics" className="w-full">
             <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="basics">SEO Basics</TabsTrigger>
-              <TabsTrigger value="analysis">Analysis</TabsTrigger>
+              <TabsTrigger value="analysis" className="relative">
+                Analysis
+                {seoValidation && (seoValidation.title.valid === false || seoValidation.description.valid === false || seoValidation.keywords.valid === false) && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="schema">Schema</TabsTrigger>
               <TabsTrigger value="advanced">Advanced</TabsTrigger>
               <TabsTrigger value="ai-seo">AI SEO</TabsTrigger>
@@ -3050,42 +3081,83 @@ const HomePageManagement = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="site-title">Site Title</Label>
-                      <Input id="site-title" placeholder="Your Website Title" value={siteSettings.siteName} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      siteName: e.target.value
-                    }))} />
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="site-title">Site Title</Label>
+                        {seoValidation?.title && !seoValidation.title.valid && (
+                          <Badge variant="destructive" className="text-xs">Issues</Badge>
+                        )}
+                      </div>
+                      <Input 
+                        id="site-title" 
+                        placeholder="Your Website Title" 
+                        value={seoSettings.site_title || siteSettings.siteName} 
+                        onChange={e => {
+                          setSeoSettings(prev => ({ ...prev, site_title: e.target.value }));
+                          setSiteSettings(prev => ({ ...prev, siteName: e.target.value }));
+                        }} 
+                      />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 30-60 characters</span>
-                        <span className={siteSettings.siteName.length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
-                          {siteSettings.siteName.length}/60
+                        <span className={(seoSettings.site_title || siteSettings.siteName).length > 60 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {(seoSettings.site_title || siteSettings.siteName).length}/60
                         </span>
                       </div>
+                      {seoValidation?.title && !seoValidation.title.valid && (
+                        <p className="text-xs text-red-500">{seoValidation.title.message}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="site-description">Meta Description</Label>
-                      <Textarea id="site-description" placeholder="Brief description of your website..." value={siteSettings.siteDescription} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      siteDescription: e.target.value
-                    }))} rows={3} />
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="site-description">Meta Description</Label>
+                        {seoValidation?.description && !seoValidation.description.valid && (
+                          <Badge variant="destructive" className="text-xs">Issues</Badge>
+                        )}
+                      </div>
+                      <Textarea 
+                        id="site-description" 
+                        placeholder="Brief description of your website..." 
+                        value={seoSettings.site_description || siteSettings.siteDescription} 
+                        onChange={e => {
+                          setSeoSettings(prev => ({ ...prev, site_description: e.target.value }));
+                          setSiteSettings(prev => ({ ...prev, siteDescription: e.target.value }));
+                        }} 
+                        rows={3} 
+                      />
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Recommended: 120-160 characters</span>
-                        <span className={siteSettings.siteDescription.length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
-                          {siteSettings.siteDescription.length}/160
+                        <span className={(seoSettings.site_description || siteSettings.siteDescription).length > 160 ? 'text-red-500' : 'text-muted-foreground'}>
+                          {(seoSettings.site_description || siteSettings.siteDescription).length}/160
                         </span>
                       </div>
+                      {seoValidation?.description && !seoValidation.description.valid && (
+                        <p className="text-xs text-red-500">{seoValidation.description.message}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="keywords">SEO Keywords</Label>
-                      <Textarea id="keywords" placeholder="keyword1, keyword2, keyword3..." value={siteSettings.siteKeywords} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      siteKeywords: e.target.value
-                    }))} rows={2} />
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="keywords">SEO Keywords</Label>
+                        {seoValidation?.keywords && !seoValidation.keywords.valid && (
+                          <Badge variant="destructive" className="text-xs">Issues</Badge>
+                        )}
+                      </div>
+                      <Textarea 
+                        id="keywords" 
+                        placeholder="keyword1, keyword2, keyword3..." 
+                        value={seoSettings.site_keywords || siteSettings.siteKeywords} 
+                        onChange={e => {
+                          setSeoSettings(prev => ({ ...prev, site_keywords: e.target.value }));
+                          setSiteSettings(prev => ({ ...prev, siteKeywords: e.target.value }));
+                        }} 
+                        rows={2} 
+                      />
                       <p className="text-xs text-muted-foreground">
                         Separate with commas. Focus on 3-5 related keywords.
                       </p>
+                      {seoValidation?.keywords && !seoValidation.keywords.valid && (
+                        <p className="text-xs text-red-500">{seoValidation.keywords.message}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -3289,7 +3361,119 @@ const HomePageManagement = () => {
             </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6 mt-6">
-              <SEOAnalyzer content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform." title={siteSettings.siteName || 'Your Website'} description={siteSettings.siteDescription || 'Website description'} keywords={siteSettings.siteKeywords ? siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k) : []} />
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Live SEO Analysis
+                    </CardTitle>
+                    <CardDescription>
+                      Real-time analysis of your current SEO settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* SEO Score */}
+                    <div className="p-4 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">Overall SEO Score</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          {seoValidation ? (
+                            Math.round(
+                              (Object.values(seoValidation).filter(v => v.valid).length / Object.keys(seoValidation).length) * 100
+                            )
+                          ) : 0}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                          style={{ 
+                            width: `${seoValidation ? Math.round(
+                              (Object.values(seoValidation).filter(v => v.valid).length / Object.keys(seoValidation).length) * 100
+                            ) : 0}%` 
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Issues */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium">SEO Issues & Recommendations</h4>
+                      
+                      {seoValidation?.title && !seoValidation.title.valid && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-red-700">Title Issue</p>
+                            <p className="text-xs text-red-600">{seoValidation.title.message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {seoValidation?.description && !seoValidation.description.valid && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-red-700">Description Issue</p>
+                            <p className="text-xs text-red-600">{seoValidation.description.message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {seoValidation?.keywords && !seoValidation.keywords.valid && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-red-700">Keywords Issue</p>
+                            <p className="text-xs text-red-600">{seoValidation.keywords.message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {seoValidation && Object.values(seoValidation).every(v => v.valid) && (
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-green-700">Great Job!</p>
+                            <p className="text-xs text-green-600">Your SEO settings look optimized</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {(seoSettings.site_title || siteSettings.siteName).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Title Length</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {(seoSettings.site_description || siteSettings.siteDescription).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Description Length</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {(seoSettings.site_keywords || siteSettings.siteKeywords).split(',').filter(k => k.trim()).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Keywords Count</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* SEO Analyzer Component */}
+                <SEOAnalyzer 
+                  content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform." 
+                  title={seoSettings.site_title || siteSettings.siteName || 'Your Website'} 
+                  description={seoSettings.site_description || siteSettings.siteDescription || 'Website description'} 
+                  keywords={(seoSettings.site_keywords || siteSettings.siteKeywords) ? (seoSettings.site_keywords || siteSettings.siteKeywords).split(',').map(k => k.trim()).filter(k => k) : []} 
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="schema" className="space-y-6 mt-6">
