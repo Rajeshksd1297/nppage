@@ -71,6 +71,30 @@ export const useDynamicFooter = () => {
 
       if (data) {
         const footerConfigData = data.footer_config as FooterConfig || {};
+        
+        // Load additional pages for footer navigation if showPages is true
+        if (footerConfigData.showPages) {
+          try {
+            const { data: pagesData, error: pagesError } = await supabase
+              .from('additional_pages')
+              .select('title, slug')
+              .eq('is_published', true)
+              .eq('show_in_footer', true)
+              .order('created_at', { ascending: true });
+
+            if (!pagesError && pagesData) {
+              // Add pages to navigation
+              footerConfigData.navigation = pagesData.map(page => ({
+                label: page.title,
+                url: `/page/${page.slug}`,
+                external: false
+              }));
+            }
+          } catch (pagesError) {
+            console.warn('Could not load additional pages for footer:', pagesError);
+          }
+        }
+        
         setFooterConfig(footerConfigData);
         setSiteTitle(data.site_title || "AuthorPage");
       } else {
@@ -108,6 +132,17 @@ export const useDynamicFooter = () => {
           event: '*',
           schema: 'public',
           table: 'site_settings'
+        },
+        () => {
+          loadFooterConfig();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'additional_pages'
         },
         () => {
           loadFooterConfig();

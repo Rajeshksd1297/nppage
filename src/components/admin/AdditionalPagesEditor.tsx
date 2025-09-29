@@ -96,6 +96,25 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
 
   const handleSavePage = async (pageData: Partial<AdditionalPage>) => {
     try {
+      // Validate slug uniqueness
+      if (pageData.slug) {
+        const { data: existingPage } = await supabase
+          .from('additional_pages')
+          .select('id')
+          .eq('slug', pageData.slug)
+          .neq('id', editingPage?.id || '')
+          .maybeSingle();
+
+        if (existingPage) {
+          toast({
+            title: "Error",
+            description: "A page with this URL slug already exists. Please use a different slug.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       if (editingPage?.id) {
         // Update existing page - preserve current published status if not explicitly changed
         const updateData = {
@@ -145,11 +164,21 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
       onSave?.(pages);
     } catch (error) {
       console.error('Error saving page:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save page",
-        variant: "destructive",
-      });
+      
+      // Handle specific database errors
+      if (error.code === '23505') {
+        toast({
+          title: "Error",
+          description: "A page with this URL slug already exists. Please use a different slug.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save page",
+          variant: "destructive",
+        });
+      }
     }
   };
 
