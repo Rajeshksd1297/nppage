@@ -87,6 +87,7 @@ import UserNewsletterEdit from "./pages/UserNewsletterEdit";
 
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { AdminAccessGuard } from "./components/AdminAccessGuard";
+import CookieConsentSettings from "./pages/CookieConsentSettings";
 import { TestEmailSender } from "./components/TestEmailSender";
 
 const queryClient = new QueryClient();
@@ -415,6 +416,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <HomePageEditor />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/cookie-consent" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <CookieConsentSettings />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

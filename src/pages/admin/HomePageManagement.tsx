@@ -12,14 +12,59 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import { 
-  Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, 
-  Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, 
-  Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb,
-  Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw,
-  Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar,
-  Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash,
-  RotateCcw, HardDrive, Cpu
+import {
+  Plus,
+  Edit,
+  Eye,
+  Trash2,
+  Settings,
+  Home,
+  Users,
+  BarChart3,
+  Layout,
+  Globe,
+  TrendingUp,
+  Clock,
+  MapPin,
+  Activity,
+  Monitor,
+  Smartphone,
+  Target,
+  Search,
+  Brain,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb,
+  Share2,
+  ExternalLink,
+  Database,
+  FileText,
+  Code,
+  Save,
+  RefreshCw,
+  Timer,
+  Signal,
+  Wifi,
+  Gauge,
+  Download,
+  Upload,
+  Filter,
+  Calendar,
+  Type,
+  ImageIcon,
+  Hash,
+  Link,
+  Star,
+  Award,
+  Bookmark,
+  Copy,
+  Trash,
+  RotateCcw,
+  HardDrive,
+  Cpu,
+  Cookie,
+  Shield,
+  Tablet
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
@@ -400,13 +445,14 @@ const HomePageManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="hero">Hero Blocks</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="design">Design</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="cookies">Cookie Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -1736,6 +1782,474 @@ const HomePageManagement = () => {
               </div>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        <TabsContent value="cookies" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Cookie className="h-6 w-6" />
+                Cookie Analytics & Consent
+              </h2>
+              <p className="text-muted-foreground">Monitor cookie consent rates and GDPR compliance</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => window.open('/admin/cookie-consent', '_blank')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Cookie Settings
+              </Button>
+              <Button>
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          </div>
+
+          {/* Cookie Consent Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Visitors</p>
+                    <p className="text-2xl font-bold">2,847</p>
+                    <p className="text-xs text-green-600">+15% from last month</p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Consent Rate</p>
+                    <p className="text-2xl font-bold text-green-600">78.5%</p>
+                    <p className="text-xs text-green-600">+3.2% improvement</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Rejected Consent</p>
+                    <p className="text-2xl font-bold text-red-600">612</p>
+                    <p className="text-xs text-red-600">21.5% of visitors</p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">GDPR Compliant</p>
+                    <p className="text-2xl font-bold text-green-600">100%</p>
+                    <p className="text-xs text-green-600">All visitors covered</p>
+                  </div>
+                  <Shield className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cookie Categories Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cookie className="h-5 w-5" />
+                  Cookie Category Consent Rates
+                </CardTitle>
+                <CardDescription>
+                  Breakdown of consent by cookie category
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-green-500"></div>
+                      <div>
+                        <p className="font-medium">Necessary Cookies</p>
+                        <p className="text-sm text-muted-foreground">Essential functionality</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-green-600">100%</p>
+                      <p className="text-xs text-muted-foreground">Required</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-blue-500"></div>
+                      <div>
+                        <p className="font-medium">Analytics Cookies</p>
+                        <p className="text-sm text-muted-foreground">Usage tracking</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">65.3%</p>
+                      <p className="text-xs text-green-600">+2.1%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-purple-500"></div>
+                      <div>
+                        <p className="font-medium">Marketing Cookies</p>
+                        <p className="text-sm text-muted-foreground">Advertising & remarketing</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">42.8%</p>
+                      <p className="text-xs text-red-600">-1.5%</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-orange-500"></div>
+                      <div>
+                        <p className="font-medium">Functional Cookies</p>
+                        <p className="text-sm text-muted-foreground">Enhanced features</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">58.7%</p>
+                      <p className="text-xs text-green-600">+0.8%</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Consent Trends
+                </CardTitle>
+                <CardDescription>
+                  Cookie consent patterns over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>This Week</span>
+                      <span className="font-medium">76.2%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{width: '76.2%'}}></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Last Week</span>
+                      <span className="font-medium">74.8%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{width: '74.8%'}}></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Last Month</span>
+                      <span className="font-medium">72.1%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '72.1%'}}></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Recent Activity</h4>
+                    <ScrollArea className="h-32">
+                      <div className="space-y-2">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-between text-sm p-2 rounded border">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                              <span>User accepted all cookies</span>
+                            </div>
+                            <span className="text-muted-foreground">{i + 2}m ago</span>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Geographic & Device Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Consent by Region
+                </CardTitle>
+                <CardDescription>
+                  Geographic breakdown of cookie consent
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇺🇸 United States</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">82.3%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{width: '82.3%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇪🇺 European Union</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">68.7%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{width: '68.7%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇬🇧 United Kingdom</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">71.2%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{width: '71.2%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇨🇦 Canada</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">79.1%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-orange-500 h-2 rounded-full" style={{width: '79.1%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🇦🇺 Australia</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">75.8%</span>
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div className="bg-cyan-500 h-2 rounded-full" style={{width: '75.8%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" />
+                  Device & Browser Analysis
+                </CardTitle>
+                <CardDescription>
+                  Consent patterns by device and browser type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-3">By Device Type</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Monitor className="h-4 w-4" />
+                          Desktop
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">84.2%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{width: '84.2%'}}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Smartphone className="h-4 w-4" />
+                          Mobile
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">72.1%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-blue-500 h-2 rounded-full" style={{width: '72.1%'}}></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2">
+                        <span className="text-sm flex items-center gap-2">
+                          <Tablet className="h-4 w-4" />
+                          Tablet
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">76.8%</span>
+                          <div className="w-12 bg-muted rounded-full h-2">
+                            <div className="bg-purple-500 h-2 rounded-full" style={{width: '76.8%'}}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h4 className="font-medium mb-3">Top Browsers</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Chrome</span>
+                        <span className="font-medium">78.9%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Safari</span>
+                        <span className="font-medium">73.2%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Firefox</span>
+                        <span className="font-medium">81.5%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Edge</span>
+                        <span className="font-medium">76.3%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* GDPR Compliance Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                GDPR Compliance Status
+              </CardTitle>
+              <CardDescription>
+                Current compliance status and recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Cookie Banner</div>
+                      <div className="text-sm text-muted-foreground">Active and compliant</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Compliant</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Consent Recording</div>
+                      <div className="text-sm text-muted-foreground">All consents logged</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Active</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Privacy Policy</div>
+                      <div className="text-sm text-muted-foreground">Linked and accessible</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Updated</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertTriangle className="h-6 w-6 text-yellow-500" />
+                    <div>
+                      <div className="font-medium">Data Retention</div>
+                      <div className="text-sm text-muted-foreground">Review settings</div>
+                    </div>
+                  </div>
+                  <Badge variant="outline">Review Needed</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Cookie Blocking</div>
+                      <div className="text-sm text-muted-foreground">Auto-blocking enabled</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Active</Badge>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    <div>
+                      <div className="font-medium">Withdrawal Rights</div>
+                      <div className="text-sm text-muted-foreground">Easy opt-out available</div>
+                    </div>
+                  </div>
+                  <Badge variant="default">Compliant</Badge>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-800 dark:text-green-200">GDPR Compliant</span>
+                </div>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Your cookie consent implementation meets GDPR requirements. Continue monitoring consent rates and update policies as needed.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="design" className="space-y-6">

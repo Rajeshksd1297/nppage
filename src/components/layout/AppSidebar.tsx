@@ -28,7 +28,8 @@ import {
   Image,
   Calendar,
   Award,
-  HelpCircle
+  HelpCircle,
+  Cookie
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -130,12 +131,12 @@ const bookManagementItems = [
 const contentManagementItems = [
   { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
   { title: "Events Management", url: "/admin/events-management", icon: Calendar },
-  
   { title: "Awards Management", url: "/admin/awards-management", icon: Award },
   { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
   { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
   { title: "Contact Management", url: "/admin/contact-management", icon: MessageSquare },
   { title: "Contact Form Settings", url: "/admin/contact-form-settings", icon: Settings },
+  { title: "Cookie Consent", url: "/admin/cookie-consent", icon: Cookie },
 ];
 
 // Business Management
