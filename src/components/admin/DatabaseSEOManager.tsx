@@ -26,7 +26,8 @@ import {
   Monitor,
   Smartphone,
   Brain,
-  Lightbulb
+  Lightbulb,
+  Edit
 } from 'lucide-react';
 
 interface SEOData {
@@ -110,19 +111,26 @@ export const DatabaseSEOManager = () => {
       setLoading(true);
       
       // Fetch all SEO data from multiple tables
-      const [
-        { data: homePageSEO },
-        { data: booksSEO },
-        { data: blogsSEO },
-        { data: pagesSEO },
-        { data: profilesSEO }
-      ] = await Promise.all([
-        supabase.from('home_page_sections').select('*').eq('type', 'seo'),
-        supabase.from('books').select('id, title, seo_title, seo_description, seo_keywords, slug'),
-        supabase.from('blog_posts').select('id, title, meta_title, meta_description, slug'),
-        supabase.from('additional_pages').select('id, title, meta_title, meta_description, slug'),
-        supabase.from('profiles').select('id, full_name, seo_title, seo_description, seo_keywords, slug')
-      ]);
+      const { data: homePageSEO } = await supabase
+        .from('home_page_sections')
+        .select('*')
+        .eq('type', 'seo');
+
+      const { data: booksSEO } = await supabase
+        .from('books')
+        .select('id, title, seo_title, seo_description, seo_keywords, slug');
+
+      const { data: blogsSEO } = await supabase
+        .from('blog_posts')
+        .select('id, title, meta_title, meta_description, slug');
+
+      const { data: pagesSEO } = await supabase
+        .from('additional_pages')
+        .select('id, title, meta_title, meta_description, slug');
+
+      const { data: profilesSEO } = await supabase
+        .from('profiles')
+        .select('id, full_name, seo_title, seo_description, seo_keywords, slug');
 
       // Transform and combine all SEO data
       const combinedSEO: SEOData[] = [
@@ -130,12 +138,12 @@ export const DatabaseSEOManager = () => {
         {
           page_type: 'home',
           page_id: 'home',
-          title: homePageSEO?.[0]?.config?.title || 'Home',
-          description: homePageSEO?.[0]?.config?.description || '',
-          keywords: homePageSEO?.[0]?.config?.keywords || ''
+          title: (homePageSEO?.[0]?.config as any)?.title || 'Home',
+          description: (homePageSEO?.[0]?.config as any)?.description || '',
+          keywords: (homePageSEO?.[0]?.config as any)?.keywords || ''
         },
         // Books
-        ...(booksSEO || []).map(book => ({
+        ...(booksSEO || []).map((book: any) => ({
           page_type: 'book',
           page_id: book.id,
           title: book.seo_title || book.title,
@@ -144,7 +152,7 @@ export const DatabaseSEOManager = () => {
           canonical_url: `/books/${book.slug}`
         })),
         // Blog posts
-        ...(blogsSEO || []).map(post => ({
+        ...(blogsSEO || []).map((post: any) => ({
           page_type: 'blog',
           page_id: post.id,
           title: post.meta_title || post.title,
@@ -153,7 +161,7 @@ export const DatabaseSEOManager = () => {
           canonical_url: `/blog/${post.slug}`
         })),
         // Additional pages
-        ...(pagesSEO || []).map(page => ({
+        ...(pagesSEO || []).map((page: any) => ({
           page_type: 'page',
           page_id: page.id,
           title: page.meta_title || page.title,
@@ -162,7 +170,7 @@ export const DatabaseSEOManager = () => {
           canonical_url: `/${page.slug}`
         })),
         // Profiles
-        ...(profilesSEO || []).map(profile => ({
+        ...(profilesSEO || []).map((profile: any) => ({
           page_type: 'profile',
           page_id: profile.id,
           title: profile.seo_title || profile.full_name,
@@ -190,14 +198,26 @@ export const DatabaseSEOManager = () => {
   const loadGlobalSettings = async () => {
     try {
       // Try to load from a global settings table or use defaults
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from('global_seo_settings')
         .select('*')
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (settings) {
-        setGlobalSettings(settings);
+      if (settings && !error) {
+        setGlobalSettings({
+          site_title: settings.site_title || '',
+          site_description: settings.site_description || '',
+          site_keywords: settings.site_keywords || '',
+          default_og_image: settings.default_og_image || '',
+          enable_schema: settings.enable_schema ?? true,
+          enable_sitemap: settings.enable_sitemap ?? true,
+          enable_robots: settings.enable_robots ?? true,
+          google_site_verification: settings.google_site_verification || '',
+          bing_site_verification: settings.bing_site_verification || '',
+          facebook_app_id: settings.facebook_app_id || '',
+          twitter_handle: settings.twitter_handle || ''
+        });
       }
     } catch (error) {
       // Table might not exist, use defaults
@@ -211,7 +231,7 @@ export const DatabaseSEOManager = () => {
       
       const { error } = await supabase
         .from('global_seo_settings')
-        .upsert(globalSettings, { onConflict: 'id' });
+        .upsert(globalSettings);
 
       if (error) throw error;
 
