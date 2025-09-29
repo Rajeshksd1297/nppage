@@ -2023,10 +2023,9 @@ const HomePageManagement = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="flex w-full flex-wrap justify-start gap-1 h-auto p-1 bg-muted">
           <TabsTrigger value="overview" className="flex-shrink-0 text-xs sm:text-sm">Overview</TabsTrigger>
-          <TabsTrigger value="content" className="flex-shrink-0 text-xs sm:text-sm">Content</TabsTrigger>
+          <TabsTrigger value="content" className="flex-shrink-0 text-xs sm:text-sm">Content & Design</TabsTrigger>
           <TabsTrigger value="hero" className="flex-shrink-0 text-xs sm:text-sm">Hero Blocks</TabsTrigger>
           <TabsTrigger value="seo" className="flex-shrink-0 text-xs sm:text-sm">SEO</TabsTrigger>
-          <TabsTrigger value="design" className="flex-shrink-0 text-xs sm:text-sm">Design</TabsTrigger>
           <TabsTrigger value="cookies" className="flex-shrink-0 text-xs sm:text-sm">Cookie Analytics</TabsTrigger>
           <TabsTrigger value="backup" className="flex-shrink-0 text-xs sm:text-sm">Backup & Security</TabsTrigger>
           <TabsTrigger value="settings" className="flex-shrink-0 text-xs sm:text-sm">Settings</TabsTrigger>
@@ -2459,22 +2458,263 @@ const HomePageManagement = () => {
         <TabsContent value="content" className="space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold">Content Management</h2>
-              <p className="text-muted-foreground">Edit your homepage content and layout</p>
+              <h2 className="text-2xl font-bold">Content & Design Management</h2>
+              <p className="text-muted-foreground">Edit your homepage content, layout, and design settings</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline">
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button>
-              <Button>
+              <Button onClick={handleSaveSiteSettings} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
-                Save Changes
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
           
-          <EnhancedHomePageEditor />
+          <Tabs defaultValue="content-editor" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="content-editor">Content Editor</TabsTrigger>
+              <TabsTrigger value="brand-identity">Brand Identity</TabsTrigger>
+              <TabsTrigger value="layout-settings">Layout Settings</TabsTrigger>
+              <TabsTrigger value="social-media">Social Media</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="content-editor" className="space-y-6 mt-6">
+              <EnhancedHomePageEditor />
+            </TabsContent>
+
+            <TabsContent value="brand-identity" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Brand Identity</CardTitle>
+                    <CardDescription>Configure your brand colors, logo, and typography</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="logo">Logo URL</Label>
+                      <Input id="logo" placeholder="https://yoursite.com/logo.png" value={siteSettings.logo} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        logo: e.target.value
+                      }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="favicon">Favicon URL</Label>
+                      <Input id="favicon" placeholder="https://yoursite.com/favicon.ico" value={siteSettings.favicon} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        favicon: e.target.value
+                      }))} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="primary-color">Primary Color</Label>
+                        <div className="flex gap-2">
+                          <Input id="primary-color" type="color" value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
+                            ...prev,
+                            primaryColor: e.target.value
+                          }))} className="w-16 h-10 p-1" />
+                          <Input value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
+                            ...prev,
+                            primaryColor: e.target.value
+                          }))} placeholder="#3b82f6" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="secondary-color">Secondary Color</Label>
+                        <div className="flex gap-2">
+                          <Input id="secondary-color" type="color" value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
+                            ...prev,
+                            secondaryColor: e.target.value
+                          }))} className="w-16 h-10 p-1" />
+                          <Input value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
+                            ...prev,
+                            secondaryColor: e.target.value
+                          }))} placeholder="#64748b" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="font-family">Font Family</Label>
+                      <Select value={siteSettings.fontFamily} onValueChange={value => setSiteSettings(prev => ({
+                        ...prev,
+                        fontFamily: value
+                      }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Inter">Inter</SelectItem>
+                          <SelectItem value="Roboto">Roboto</SelectItem>
+                          <SelectItem value="Open Sans">Open Sans</SelectItem>
+                          <SelectItem value="Lato">Lato</SelectItem>
+                          <SelectItem value="Montserrat">Montserrat</SelectItem>
+                          <SelectItem value="Poppins">Poppins</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="layout-settings" className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Layout Settings</CardTitle>
+                    <CardDescription>Configure header and footer layouts</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="header-layout">Header Layout</Label>
+                      <Select value={siteSettings.headerLayout} onValueChange={value => setSiteSettings(prev => ({
+                        ...prev,
+                        headerLayout: value
+                      }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="centered">Centered</SelectItem>
+                          <SelectItem value="minimal">Minimal</SelectItem>
+                          <SelectItem value="full-width">Full Width</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="footer-layout">Footer Layout</Label>
+                      <Select value={siteSettings.footerLayout} onValueChange={value => setSiteSettings(prev => ({
+                        ...prev,
+                        footerLayout: value
+                      }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="minimal">Minimal</SelectItem>
+                          <SelectItem value="expanded">Expanded</SelectItem>
+                          <SelectItem value="newsletter">With Newsletter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Design Features</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Dark Mode Support</Label>
+                            <p className="text-xs text-muted-foreground">Enable dark/light theme toggle</p>
+                          </div>
+                          <Switch />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Animations</Label>
+                            <p className="text-xs text-muted-foreground">Enable page animations and transitions</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Sticky Header</Label>
+                            <p className="text-xs text-muted-foreground">Keep header visible when scrolling</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Back to Top Button</Label>
+                            <p className="text-xs text-muted-foreground">Show scroll to top button</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="social-media" className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Social Media Links</CardTitle>
+                  <CardDescription>Add your social media profiles</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="facebook">Facebook</Label>
+                      <Input id="facebook" placeholder="https://facebook.com/yourpage" value={siteSettings.socialLinks.facebook} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        socialLinks: {
+                          ...prev.socialLinks,
+                          facebook: e.target.value
+                        }
+                      }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter">Twitter</Label>
+                      <Input id="twitter" placeholder="https://twitter.com/youraccount" value={siteSettings.socialLinks.twitter} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        socialLinks: {
+                          ...prev.socialLinks,
+                          twitter: e.target.value
+                        }
+                      }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="instagram">Instagram</Label>
+                      <Input id="instagram" placeholder="https://instagram.com/youraccount" value={siteSettings.socialLinks.instagram} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        socialLinks: {
+                          ...prev.socialLinks,
+                          instagram: e.target.value
+                        }
+                      }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin">LinkedIn</Label>
+                      <Input id="linkedin" placeholder="https://linkedin.com/company/yourcompany" value={siteSettings.socialLinks.linkedin} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        socialLinks: {
+                          ...prev.socialLinks,
+                          linkedin: e.target.value
+                        }
+                      }))} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="youtube">YouTube</Label>
+                      <Input id="youtube" placeholder="https://youtube.com/yourchannel" value={siteSettings.socialLinks.youtube} onChange={e => setSiteSettings(prev => ({
+                        ...prev,
+                        socialLinks: {
+                          ...prev.socialLinks,
+                          youtube: e.target.value
+                        }
+                      }))} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="hero" className="space-y-6">
@@ -4637,240 +4877,6 @@ const HomePageManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="design" className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">Design Settings</h2>
-              <p className="text-muted-foreground">Customize your website's appearance and branding</p>
-            </div>
-            <Button onClick={handleSaveSiteSettings} disabled={saving}>
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Design Settings'}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Brand Identity</CardTitle>
-                <CardDescription>Configure your brand colors, logo, and typography</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="logo">Logo URL</Label>
-                  <Input id="logo" placeholder="https://yoursite.com/logo.png" value={siteSettings.logo} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  logo: e.target.value
-                }))} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="favicon">Favicon URL</Label>
-                  <Input id="favicon" placeholder="https://yoursite.com/favicon.ico" value={siteSettings.favicon} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  favicon: e.target.value
-                }))} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="primary-color">Primary Color</Label>
-                    <div className="flex gap-2">
-                      <Input id="primary-color" type="color" value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      primaryColor: e.target.value
-                    }))} className="w-16 h-10 p-1" />
-                      <Input value={siteSettings.primaryColor} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      primaryColor: e.target.value
-                    }))} placeholder="#3b82f6" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="secondary-color">Secondary Color</Label>
-                    <div className="flex gap-2">
-                      <Input id="secondary-color" type="color" value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      secondaryColor: e.target.value
-                    }))} className="w-16 h-10 p-1" />
-                      <Input value={siteSettings.secondaryColor} onChange={e => setSiteSettings(prev => ({
-                      ...prev,
-                      secondaryColor: e.target.value
-                    }))} placeholder="#64748b" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="font-family">Font Family</Label>
-                  <Select value={siteSettings.fontFamily} onValueChange={value => setSiteSettings(prev => ({
-                  ...prev,
-                  fontFamily: value
-                }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Inter">Inter</SelectItem>
-                      <SelectItem value="Roboto">Roboto</SelectItem>
-                      <SelectItem value="Open Sans">Open Sans</SelectItem>
-                      <SelectItem value="Lato">Lato</SelectItem>
-                      <SelectItem value="Montserrat">Montserrat</SelectItem>
-                      <SelectItem value="Poppins">Poppins</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Layout Settings</CardTitle>
-                <CardDescription>Configure header and footer layouts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="header-layout">Header Layout</Label>
-                  <Select value={siteSettings.headerLayout} onValueChange={value => setSiteSettings(prev => ({
-                  ...prev,
-                  headerLayout: value
-                }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="centered">Centered</SelectItem>
-                      <SelectItem value="minimal">Minimal</SelectItem>
-                      <SelectItem value="full-width">Full Width</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="footer-layout">Footer Layout</Label>
-                  <Select value={siteSettings.footerLayout} onValueChange={value => setSiteSettings(prev => ({
-                  ...prev,
-                  footerLayout: value
-                }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="minimal">Minimal</SelectItem>
-                      <SelectItem value="expanded">Expanded</SelectItem>
-                      <SelectItem value="newsletter">With Newsletter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Design Features</Label>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Dark Mode Support</Label>
-                        <p className="text-xs text-muted-foreground">Enable dark/light theme toggle</p>
-                      </div>
-                      <Switch />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Animations</Label>
-                        <p className="text-xs text-muted-foreground">Enable page animations and transitions</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Sticky Header</Label>
-                        <p className="text-xs text-muted-foreground">Keep header visible when scrolling</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Back to Top Button</Label>
-                        <p className="text-xs text-muted-foreground">Show scroll to top button</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Social Media Links</CardTitle>
-              <CardDescription>Add your social media profiles</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facebook">Facebook</Label>
-                  <Input id="facebook" placeholder="https://facebook.com/yourpage" value={siteSettings.socialLinks.facebook} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  socialLinks: {
-                    ...prev.socialLinks,
-                    facebook: e.target.value
-                  }
-                }))} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="twitter">Twitter</Label>
-                  <Input id="twitter" placeholder="https://twitter.com/youraccount" value={siteSettings.socialLinks.twitter} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  socialLinks: {
-                    ...prev.socialLinks,
-                    twitter: e.target.value
-                  }
-                }))} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input id="instagram" placeholder="https://instagram.com/youraccount" value={siteSettings.socialLinks.instagram} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  socialLinks: {
-                    ...prev.socialLinks,
-                    instagram: e.target.value
-                  }
-                }))} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin">LinkedIn</Label>
-                  <Input id="linkedin" placeholder="https://linkedin.com/company/yourcompany" value={siteSettings.socialLinks.linkedin} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  socialLinks: {
-                    ...prev.socialLinks,
-                    linkedin: e.target.value
-                  }
-                }))} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="youtube">YouTube</Label>
-                  <Input id="youtube" placeholder="https://youtube.com/yourchannel" value={siteSettings.socialLinks.youtube} onChange={e => setSiteSettings(prev => ({
-                  ...prev,
-                  socialLinks: {
-                    ...prev.socialLinks,
-                    youtube: e.target.value
-                  }
-                }))} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="backup" className="space-y-6">
           <div className="flex items-center justify-between mb-6">
