@@ -495,27 +495,18 @@ export const BackupSecurityCenter: React.FC = () => {
 
       // Create a blob from the response data
       let blob;
-      let filename = `backup-${backupJob.job_type}-${new Date().toISOString().split('T')[0]}.${backupJob.job_type === 'database' ? 'sql' : 'zip'}`;
+      let filename = data.filename || `backup-${backupJob.job_type}-${new Date().toISOString().split('T')[0]}.txt`;
       
       if (data.content) {
-        // If we get base64 content, decode it
-        if (data.encoding === 'base64') {
-          const binaryString = atob(data.content);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          blob = new Blob([bytes], { type: data.contentType || 'application/octet-stream' });
-        } else {
-          // Plain text content
-          blob = new Blob([data.content], { type: data.contentType || 'text/plain' });
-        }
+        // Create blob with proper content type
+        const contentType = data.contentType || 'text/plain';
+        blob = new Blob([data.content], { type: contentType });
         
         if (data.filename) {
           filename = data.filename;
         }
       } else {
-        // Fallback: create a simple backup info file
+        // Fallback: create a backup info file
         const backupInfo = {
           id: backupJob.id,
           type: backupJob.job_type,
@@ -523,7 +514,8 @@ export const BackupSecurityCenter: React.FC = () => {
           file_size: backupJob.file_size,
           file_path: backupJob.file_path,
           checksum: backupJob.checksum,
-          metadata: backupJob.metadata
+          metadata: backupJob.metadata,
+          download_info: 'This is a backup information file. The actual backup content was not available.'
         };
         blob = new Blob([JSON.stringify(backupInfo, null, 2)], { type: 'application/json' });
         filename = `backup-info-${backupJob.id}.json`;
@@ -540,8 +532,8 @@ export const BackupSecurityCenter: React.FC = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Download started",
-        description: `Backup file "${filename}" is being downloaded.`
+        title: "Download completed",
+        description: `${data.backup_type === 'full' ? 'Full backup' : `${data.backup_type} backup`} "${filename}" downloaded successfully.`
       });
     } catch (error) {
       console.error('Error downloading backup:', error);
