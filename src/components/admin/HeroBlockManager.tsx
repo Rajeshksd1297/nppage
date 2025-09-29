@@ -3,18 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft,
   Plus, 
   Edit, 
   Trash2, 
-  Eye, 
-  Copy,
-  Settings,
+  Eye,
   Image,
   Video,
   Layout,
@@ -22,10 +18,11 @@ import {
   Monitor,
   Tablet,
   Smartphone,
-  Palette,
   Type,
   Move,
-  Save
+  Save,
+  Settings,
+  Star
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -105,11 +102,11 @@ function SortableHeroElement({ element, onUpdate, onRemove }: {
     <div
       ref={setNodeRef}
       style={style}
-      className="border rounded-lg p-3 bg-card"
+      className="border rounded-lg p-3 bg-card hover:shadow-md transition-shadow"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div {...attributes} {...listeners} className="cursor-grab">
+          <div {...attributes} {...listeners} className="cursor-grab hover:cursor-grabbing">
             <Move className="h-4 w-4 text-muted-foreground" />
           </div>
           {getElementIcon(element.type)}
@@ -120,7 +117,7 @@ function SortableHeroElement({ element, onUpdate, onRemove }: {
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm">
-            <Settings className="h-3 h-3" />
+            <Settings className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
@@ -131,7 +128,7 @@ function SortableHeroElement({ element, onUpdate, onRemove }: {
           </Button>
         </div>
       </div>
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground truncate">
         {element.content.substring(0, 50)}...
       </div>
     </div>
@@ -140,9 +137,9 @@ function SortableHeroElement({ element, onUpdate, onRemove }: {
 
 export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }: HeroBlockManagerProps) {
   const { toast } = useToast();
-  const [currentView, setCurrentView] = useState<'list' | 'designer'>(selectedBlock ? 'designer' : 'list');
   const [selectedBlockState, setSelectedBlockState] = useState<HeroBlock | null>(selectedBlock || null);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isCreating, setIsCreating] = useState(false);
   
   const [heroElements, setHeroElements] = useState<HeroElement[]>([
     {
@@ -156,7 +153,7 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
       id: '2',
       type: 'text',
       content: 'Discover my latest books and writing journey',
-      styles: { fontSize: 'lg', textAlign: 'center', color: 'muted' },
+      styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground' },
       order: 1
     },
     {
@@ -177,42 +174,40 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
 
   const handleCreateBlock = () => {
     setSelectedBlockState(null);
-    setCurrentView('designer');
+    setIsCreating(true);
+    setHeroElements([
+      {
+        id: '1',
+        type: 'text',
+        content: 'New Hero Title',
+        styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' },
+        order: 0
+      }
+    ]);
   };
 
   const handleEditBlock = (block: HeroBlock) => {
     setSelectedBlockState(block);
-    setCurrentView('designer');
-  };
-
-  const handleDeleteBlock = (blockId: string) => {
-    if (window.confirm('Are you sure you want to delete this hero block?')) {
-      const updatedBlocks = heroBlocks.filter(b => b.id !== blockId);
-      onUpdate(updatedBlocks);
-      toast({
-        title: "Success",
-        description: "Hero block deleted successfully",
-      });
+    setIsCreating(false);
+    // Load elements from block config
+    if (block.config?.elements) {
+      setHeroElements(block.config.elements);
     }
   };
 
-  const handleToggleEnabled = (blockId: string) => {
-    const updatedBlocks = heroBlocks.map(block =>
-      block.id === blockId
-        ? { ...block, enabled: !block.enabled }
-        : block
-    );
-    onUpdate(updatedBlocks);
-    toast({
-      title: "Success",
-      description: "Hero block settings updated",
-    });
-  };
-
   const handleSaveBlock = () => {
+    if (!selectedBlockState?.name) {
+      toast({
+        title: "Error",
+        description: "Please enter a block name",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const blockData = {
       id: selectedBlockState?.id || Date.now().toString(),
-      name: selectedBlockState?.name || 'New Hero Block',
+      name: selectedBlockState.name,
       description: selectedBlockState?.description || 'Custom hero block',
       preview_image_url: '/api/placeholder/400/200',
       enabled: selectedBlockState?.enabled ?? true,
@@ -222,14 +217,15 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
     };
 
     let updatedBlocks;
-    if (selectedBlockState) {
+    if (selectedBlockState && !isCreating) {
       updatedBlocks = heroBlocks.map(b => b.id === blockData.id ? blockData : b);
     } else {
       updatedBlocks = [...heroBlocks, blockData];
     }
 
     onUpdate(updatedBlocks);
-    setCurrentView('list');
+    setSelectedBlockState(null);
+    setIsCreating(false);
     toast({
       title: "Success",
       description: "Hero block saved successfully",
@@ -293,55 +289,87 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
     }
   };
 
-  if (currentView === 'designer') {
-    return (
-      <div className="container mx-auto p-6 max-w-7xl space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => setCurrentView('list')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Blocks
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Hero Block Designer</h1>
-              <p className="text-muted-foreground">
-                {selectedBlockState ? `Editing: ${selectedBlockState.name}` : 'Create a new hero block'}
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleSaveBlock}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Block
+  return (
+    <div className="container mx-auto p-6 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home Management
           </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Hero Block Designer</h1>
+            <p className="text-muted-foreground">Design and manage hero sections with live preview</p>
+          </div>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleCreateBlock}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Block
+          </Button>
+          {(selectedBlockState || isCreating) && (
+            <>
+              <Button variant="outline" onClick={() => {
+                setSelectedBlockState(null);
+                setIsCreating(false);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveBlock}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Block
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Design Panel */}
-          <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Hero Blocks List + Editor */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Create Form */}
+          {(isCreating || selectedBlockState) && (
             <Card>
               <CardHeader>
-                <CardTitle>Block Information</CardTitle>
+                <CardTitle>
+                  {isCreating ? 'Create New Hero Block' : `Edit: ${selectedBlockState?.name}`}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="blockName">Block Name</Label>
-                  <Input
-                    id="blockName"
-                    value={selectedBlockState?.name || ''}
-                    onChange={(e) => setSelectedBlockState(prev => prev ? { ...prev, name: e.target.value } : null)}
-                    placeholder="Enter block name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="blockDescription">Description</Label>
-                  <Textarea
-                    id="blockDescription"
-                    value={selectedBlockState?.description || ''}
-                    onChange={(e) => setSelectedBlockState(prev => prev ? { ...prev, description: e.target.value } : null)}
-                    placeholder="Enter block description"
-                    rows={2}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="blockName">Block Name</Label>
+                    <Input
+                      id="blockName"
+                      value={selectedBlockState?.name || ''}
+                      onChange={(e) => {
+                        if (isCreating) {
+                          setSelectedBlockState({ 
+                            id: Date.now().toString(),
+                            name: e.target.value,
+                            description: '',
+                            enabled: true,
+                            config: {},
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                          });
+                        } else {
+                          setSelectedBlockState(prev => prev ? { ...prev, name: e.target.value } : null);
+                        }
+                      }}
+                      placeholder="Enter block name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="blockDescription">Description</Label>
+                    <Input
+                      id="blockDescription"
+                      value={selectedBlockState?.description || ''}
+                      onChange={(e) => setSelectedBlockState(prev => prev ? { ...prev, description: e.target.value } : null)}
+                      placeholder="Brief description"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -352,505 +380,263 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            <Tabs defaultValue="elements" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="elements">Elements</TabsTrigger>
-                <TabsTrigger value="design">Design</TabsTrigger>
-                <TabsTrigger value="animation">Animation</TabsTrigger>
-                <TabsTrigger value="background">Background</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="elements" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hero Elements</CardTitle>
-                    <CardDescription>
-                      Drag and drop elements to build your hero section
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex gap-2 flex-wrap">
-                        <Button size="sm" onClick={() => addHeroElement('text')}>
-                          <Type className="h-4 w-4 mr-1" />
-                          Text
-                        </Button>
-                        <Button size="sm" onClick={() => addHeroElement('image')}>
-                          <Image className="h-4 w-4 mr-1" />
-                          Image
-                        </Button>
-                        <Button size="sm" onClick={() => addHeroElement('button')}>
-                          <Blocks className="h-4 w-4 mr-1" />
-                          Button
-                        </Button>
-                        <Button size="sm" onClick={() => addHeroElement('video')}>
-                          <Video className="h-4 w-4 mr-1" />
-                          Video
-                        </Button>
-                        <Button size="sm" onClick={() => addHeroElement('spacer')}>
-                          <Layout className="h-4 w-4 mr-1" />
-                          Spacer
-                        </Button>
-                      </div>
-                      
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <SortableContext
-                          items={heroElements.map(e => e.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="space-y-3">
-                            {heroElements.map((element) => (
-                              <SortableHeroElement
-                                key={element.id}
-                                element={element}
-                                onUpdate={updateHeroElement}
-                                onRemove={removeHeroElement}
-                              />
-                            ))}
-                          </div>
-                        </SortableContext>
-                      </DndContext>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="design" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Typography & Colors</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Font Family</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Inter</option>
-                          <option>Playfair Display</option>
-                          <option>Roboto</option>
-                          <option>Georgia</option>
-                          <option>Times New Roman</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Text Size</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Small</option>
-                          <option>Medium</option>
-                          <option>Large</option>
-                          <option>Extra Large</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label>Primary Color</Label>
-                        <input type="color" className="w-full h-10 border rounded" defaultValue="#3b82f6" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Secondary Color</Label>
-                        <input type="color" className="w-full h-10 border rounded" defaultValue="#64748b" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Accent Color</Label>
-                        <input type="color" className="w-full h-10 border rounded" defaultValue="#f59e0b" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Text Shadow</Label>
-                      <div className="flex items-center space-x-2">
-                        <Switch />
-                        <span className="text-sm">Enable text shadow</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Layout Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Text Alignment</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Left</option>
-                          <option>Center</option>
-                          <option>Right</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Vertical Alignment</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Top</option>
-                          <option>Center</option>
-                          <option>Bottom</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Padding</Label>
-                        <input type="range" min="0" max="100" defaultValue="50" className="w-full" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Margin</Label>
-                        <input type="range" min="0" max="100" defaultValue="25" className="w-full" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="animation" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Entrance Animations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Animation Type</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Fade In</option>
-                          <option>Slide In Left</option>
-                          <option>Slide In Right</option>
-                          <option>Slide In Up</option>
-                          <option>Slide In Down</option>
-                          <option>Scale In</option>
-                          <option>Bounce In</option>
-                          <option>Rotate In</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Animation Duration</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>0.3s (Fast)</option>
-                          <option>0.6s (Normal)</option>
-                          <option>1s (Slow)</option>
-                          <option>1.5s (Very Slow)</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Animation Delay</Label>
-                      <input type="range" min="0" max="2" step="0.1" defaultValue="0" className="w-full" />
-                      <div className="text-sm text-muted-foreground">0s delay</div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <Switch />
-                        <Label>Stagger child animations</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch />
-                        <Label>Repeat animation on scroll</Label>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hover Effects</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Hover Animation</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>None</option>
-                          <option>Scale</option>
-                          <option>Tilt</option>
-                          <option>Glow</option>
-                          <option>Bounce</option>
-                          <option>Pulse</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Transition Speed</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>0.2s (Fast)</option>
-                          <option>0.3s (Normal)</option>
-                          <option>0.5s (Slow)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="background" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Background Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Background Type</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Solid Color</option>
-                          <option>Gradient</option>
-                          <option>Image</option>
-                          <option>Video</option>
-                          <option>Pattern</option>
-                        </select>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Background Color 1</Label>
-                          <input type="color" className="w-full h-10 border rounded" defaultValue="#3b82f6" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Background Color 2</Label>
-                          <input type="color" className="w-full h-10 border rounded" defaultValue="#8b5cf6" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Gradient Direction</Label>
-                        <select className="w-full p-2 border rounded">
-                          <option>Left to Right</option>
-                          <option>Top to Bottom</option>
-                          <option>Diagonal (↘)</option>
-                          <option>Diagonal (↙)</option>
-                          <option>Radial</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Background Image URL</Label>
-                        <Input placeholder="https://example.com/image.jpg" />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Image Position</Label>
-                          <select className="w-full p-2 border rounded">
-                            <option>Center</option>
-                            <option>Top</option>
-                            <option>Bottom</option>
-                            <option>Left</option>
-                            <option>Right</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Image Size</Label>
-                          <select className="w-full p-2 border rounded">
-                            <option>Cover</option>
-                            <option>Contain</option>
-                            <option>Auto</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
-                          <Switch />
-                          <Label>Parallax Effect</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch />
-                          <Label>Overlay</Label>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Overlay Opacity</Label>
-                        <input type="range" min="0" max="100" defaultValue="30" className="w-full" />
-                        <div className="text-sm text-muted-foreground">30% opacity</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Preview Panel */}
-          <div className="space-y-6">
+          {/* Elements Editor */}
+          {(isCreating || selectedBlockState) && (
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Live Preview</CardTitle>
-                  <div className="flex gap-1">
-                    <Button
-                      variant={previewMode === 'desktop' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPreviewMode('desktop')}
-                    >
-                      <Monitor className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={previewMode === 'tablet' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPreviewMode('tablet')}
-                    >
-                      <Tablet className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={previewMode === 'mobile' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPreviewMode('mobile')}
-                    >
-                      <Smartphone className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                <CardTitle>Hero Elements</CardTitle>
+                <CardDescription>Add and arrange elements for your hero section</CardDescription>
               </CardHeader>
               <CardContent>
-                <div 
-                  className={`border rounded-lg overflow-hidden bg-white transition-all duration-300 ${
-                    previewMode === 'mobile' ? 'max-w-sm mx-auto' :
-                    previewMode === 'tablet' ? 'max-w-md mx-auto' : 'w-full'
-                  }`}
-                  style={{
-                    height: previewMode === 'mobile' ? '300px' : 
-                           previewMode === 'tablet' ? '250px' : '200px'
-                  }}
-                >
-                  <div className="p-6 h-full flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                    {heroElements.map((element) => (
-                      <div key={element.id} className="mb-4">
-                        {element.type === 'text' && (
-                          <div className={`text-${element.styles.fontSize} font-${element.styles.fontWeight} text-${element.styles.textAlign}`}>
-                            {element.content}
+                <div className="space-y-4">
+                  {/* Element Buttons */}
+                  <div className="flex gap-2 flex-wrap p-4 bg-muted rounded-lg">
+                    <Button size="sm" variant="outline" onClick={() => addHeroElement('text')}>
+                      <Type className="h-4 w-4 mr-1" />
+                      Add Text
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => addHeroElement('image')}>
+                      <Image className="h-4 w-4 mr-1" />
+                      Add Image
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => addHeroElement('button')}>
+                      <Blocks className="h-4 w-4 mr-1" />
+                      Add Button
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => addHeroElement('video')}>
+                      <Video className="h-4 w-4 mr-1" />
+                      Add Video
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => addHeroElement('spacer')}>
+                      <Layout className="h-4 w-4 mr-1" />
+                      Add Spacer
+                    </Button>
+                  </div>
+                  
+                  {/* Sortable Elements */}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={heroElements.map(e => e.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {heroElements.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <p>No elements added yet. Click the buttons above to add elements.</p>
                           </div>
-                        )}
-                        {element.type === 'button' && (
-                          <button className="px-6 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                            {element.content}
-                          </button>
-                        )}
-                        {element.type === 'image' && (
-                          <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
-                            <Image className="h-8 w-8" />
-                          </div>
+                        ) : (
+                          heroElements.map((element) => (
+                            <SortableHeroElement
+                              key={element.id}
+                              element={element}
+                              onUpdate={updateHeroElement}
+                              onRemove={removeHeroElement}
+                            />
+                          ))
                         )}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+          )}
 
-  return (
-    <div className="container mx-auto p-6 max-w-7xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Overview
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Hero Block Manager</h1>
-            <p className="text-muted-foreground">Create and manage hero sections for author profiles</p>
-          </div>
-        </div>
-        <Button onClick={handleCreateBlock}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Hero Block
-        </Button>
-      </div>
-
-      {/* Hero Blocks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {heroBlocks.map((block) => (
-          <Card key={block.id} className="group hover:shadow-lg transition-shadow">
-            <div className="aspect-video relative overflow-hidden rounded-t-lg bg-gradient-to-r from-blue-500 to-purple-600">
-              <div className="absolute inset-0 flex items-center justify-center text-white">
-                <div className="text-center">
-                  <h3 className="text-lg font-bold mb-2">Hero Preview</h3>
-                  <p className="text-sm opacity-90">Dynamic content preview</p>
-                  <div className="mt-4">
-                    <div className="px-4 py-2 bg-white/20 rounded-lg">
-                      Call to Action
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Existing Hero Blocks */}
+          <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">{block.name}</CardTitle>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant={block.enabled ? 'default' : 'secondary'}>
-                      {block.enabled ? 'Enabled' : 'Disabled'}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleEditBlock(block)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleDeleteBlock(block.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <CardDescription>{block.description}</CardDescription>
+              <CardTitle>Existing Hero Blocks</CardTitle>
+              <CardDescription>Click on a block to edit or manage it</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={block.enabled}
-                    onCheckedChange={() => handleToggleEnabled(block.id)}
-                  />
-                  <Label className="text-sm">Enable for authors</Label>
+              {heroBlocks.length === 0 ? (
+                <div className="text-center py-8">
+                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
+                  <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
+                  <Button onClick={handleCreateBlock}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Block
+                  </Button>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {new Date(block.updated_at).toLocaleDateString()}
-                </span>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {heroBlocks.map((block) => (
+                    <Card 
+                      key={block.id} 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedBlockState?.id === block.id ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => handleEditBlock(block)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                              <Layout className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold">{block.name}</h3>
+                              <p className="text-sm text-muted-foreground">{block.description}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant={block.enabled ? "default" : "secondary"} className="text-xs">
+                                  {block.enabled ? 'Active' : 'Inactive'}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(block.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditBlock(block)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                const updatedBlocks = heroBlocks.filter(b => b.id !== block.id);
+                                onUpdate(updatedBlocks);
+                                toast({
+                                  title: "Success",
+                                  description: "Hero block deleted",
+                                });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Live Preview Panel */}
+        <div className="lg:col-span-1">
+          <Card className="sticky top-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Live Preview</CardTitle>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={previewMode === 'desktop' ? 'default' : 'outline'}
+                    onClick={() => setPreviewMode('desktop')}
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewMode === 'tablet' ? 'default' : 'outline'}
+                    onClick={() => setPreviewMode('tablet')}
+                  >
+                    <Tablet className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewMode === 'mobile' ? 'default' : 'outline'}
+                    onClick={() => setPreviewMode('mobile')}
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div 
+                className={`
+                  border rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950 dark:via-background dark:to-purple-950 min-h-[400px] transition-all duration-300
+                  ${previewMode === 'desktop' ? 'w-full' : previewMode === 'tablet' ? 'w-80 mx-auto' : 'w-64 mx-auto'}
+                `}
+              >
+                <div className="p-6 space-y-4">
+                  {heroElements.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Preview will appear here</p>
+                      <p className="text-sm mt-2">Add elements to see the preview</p>
+                    </div>
+                  ) : (
+                    heroElements.map((element, index) => (
+                      <div key={element.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                        {element.type === 'text' && (
+                          <div 
+                            className={`
+                              ${element.styles.fontSize === '4xl' ? 'text-4xl' : element.styles.fontSize === '3xl' ? 'text-3xl' : element.styles.fontSize === 'lg' ? 'text-lg' : 'text-base'}
+                              ${element.styles.fontWeight === 'bold' ? 'font-bold' : 'font-normal'}
+                              ${element.styles.textAlign === 'center' ? 'text-center' : element.styles.textAlign === 'right' ? 'text-right' : 'text-left'}
+                              ${element.styles.color === 'muted-foreground' ? 'text-muted-foreground' : 'text-foreground'}
+                              ${element.styles.marginBottom ? `mb-${element.styles.marginBottom}` : ''}
+                            `}
+                          >
+                            {element.content}
+                          </div>
+                        )}
+                        {element.type === 'image' && (
+                          <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
+                            <Image className="h-8 w-8 text-muted-foreground" />
+                            <span className="ml-2 text-sm text-muted-foreground">Image</span>
+                          </div>
+                        )}
+                        {element.type === 'button' && (
+                          <div className={element.styles.textAlign === 'center' ? 'text-center' : ''}>
+                            <Button 
+                              variant={element.styles.variant || 'default'}
+                              size={element.styles.size || 'default'}
+                              className="animate-scale-in"
+                            >
+                              {element.content}
+                            </Button>
+                          </div>
+                        )}
+                        {element.type === 'video' && (
+                          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                            <Video className="h-8 w-8 text-muted-foreground" />
+                            <span className="ml-2 text-sm text-muted-foreground">Video</span>
+                          </div>
+                        )}
+                        {element.type === 'spacer' && (
+                          <div className="h-8" />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              {/* Preview Info */}
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {previewMode === 'desktop' ? 'Desktop View' : previewMode === 'tablet' ? 'Tablet View' : 'Mobile View'}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {heroElements.length} element{heroElements.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {heroBlocks.length === 0 && (
-        <div className="text-center py-12">
-          <Blocks className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No hero blocks yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first hero block to get started
-          </p>
-          <Button onClick={handleCreateBlock}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Hero Block
-          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
