@@ -64,6 +64,7 @@ export const DynamicHomePage: React.FC = () => {
 
   const loadAllData = async () => {
     try {
+      console.log('Starting to load all data...');
       setLoading(true);
       await Promise.all([
         loadSiteSettings(),
@@ -71,6 +72,7 @@ export const DynamicHomePage: React.FC = () => {
         loadSections(),
         loadBooks()
       ]);
+      console.log('All data loaded successfully');
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -84,22 +86,58 @@ export const DynamicHomePage: React.FC = () => {
   };
 
   const loadSiteSettings = async () => {
+    console.log('Loading site settings...');
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .maybeSingle();
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading site settings:', error);
       return;
     }
 
-    if (data) {
-      setSiteSettings(data);
+    console.log('Site settings loaded:', data);
+    if (data && data.length > 0) {
+      // Find the first record that has a valid site_title, or use the most recent one
+      let settings = data.find(s => s.site_title && s.site_title.trim() !== '') || data[0];
+      
+      // Ensure we have valid values, use defaults if needed
+      if (!settings.site_title || settings.site_title.trim() === '') {
+        settings.site_title = 'AuthorPage';
+      }
+      if (!settings.site_description || settings.site_description.trim() === '') {
+        settings.site_description = 'Professional author profiles and book showcases';
+      }
+      if (!settings.primary_color) {
+        settings.primary_color = '#3b82f6';
+      }
+      if (!settings.secondary_color) {
+        settings.secondary_color = '#64748b';
+      }
+      
+      console.log('Using site settings:', settings);
+      setSiteSettings(settings);
+    } else {
+      console.log('No site settings found, creating defaults');
+      // Create default settings if none exist
+      setSiteSettings({
+        id: 'default',
+        site_title: 'AuthorPage',
+        site_description: 'Professional author profiles and book showcases',
+        logo_url: null,
+        favicon_url: null,
+        primary_color: '#3b82f6',
+        secondary_color: '#64748b',
+        enable_dark_mode: true,
+        header_config: { showLogo: true, showLogin: true, navigation: [], showSearch: false },
+        footer_config: { copyright: '© 2024 AuthorPage. All rights reserved.', showPages: true, customText: 'Built with AuthorPage', showSocial: true }
+      });
     }
   };
 
   const loadHeroBlocks = async () => {
+    console.log('Loading hero blocks...');
     const { data, error } = await supabase
       .from('hero_blocks')
       .select('*')
@@ -111,10 +149,12 @@ export const DynamicHomePage: React.FC = () => {
       return;
     }
 
+    console.log('Hero blocks loaded:', data);
     setHeroBlocks(data || []);
   };
 
   const loadSections = async () => {
+    console.log('Loading home page sections...');
     const { data, error } = await supabase
       .from('home_page_sections')
       .select('*')
@@ -126,6 +166,7 @@ export const DynamicHomePage: React.FC = () => {
       return;
     }
 
+    console.log('Sections loaded:', data);
     setSections(data || []);
   };
 
@@ -278,6 +319,14 @@ export const DynamicHomePage: React.FC = () => {
 
   const pageTitle = siteSettings?.site_title || "AuthorPage - Professional Author Profiles & Book Showcases";
   const pageDescription = siteSettings?.site_description || "Create stunning author profiles, showcase your books, and grow your readership with our professional author platform.";
+
+  console.log('Rendering DynamicHomePage with data:', {
+    siteSettings: !!siteSettings,
+    heroBlocks: heroBlocks.length,
+    sections: sections.length,
+    books: books.length,
+    loading
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/10" 
