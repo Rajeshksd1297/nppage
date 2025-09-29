@@ -51,8 +51,13 @@ import {
   ChevronDown,
   Code,
   FileText,
-  Gift
+  Gift,
+  Menu,
+  User,
+  Moon,
+  Sun
 } from 'lucide-react';
+import AdditionalPagesManager from './AdditionalPagesManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -130,6 +135,22 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSiteSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      if (data) {
+        setSiteSettings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching site settings:', error);
     }
   };
 

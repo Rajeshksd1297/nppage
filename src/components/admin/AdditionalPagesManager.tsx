@@ -82,15 +82,20 @@ const AdditionalPagesManager = () => {
         
         if (error) throw error;
       } else {
-        // Create new page
+        // Create new page - ensure all required fields are provided
+        const newPage = {
+          title: pageData.title || '',
+          slug: pageData.slug || '',
+          content: pageData.content || '',
+          meta_title: pageData.meta_title,
+          meta_description: pageData.meta_description,
+          is_published: pageData.is_published ?? true,
+          show_in_footer: pageData.show_in_footer ?? true
+        };
+        
         const { error } = await supabase
           .from('additional_pages')
-          .insert([{
-            ...pageData,
-            id: crypto.randomUUID(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }]);
+          .insert([newPage]);
         
         if (error) throw error;
       }
@@ -144,14 +149,13 @@ const AdditionalPagesManager = () => {
     try {
       setSaving(true);
       const pagesToCreate = defaultPages.map(page => ({
-        id: crypto.randomUUID(),
-        ...page,
+        title: page.title,
+        slug: page.slug,
+        content: page.content,
         meta_title: page.title,
         meta_description: `${page.title} page`,
         is_published: true,
-        show_in_footer: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        show_in_footer: true
       }));
 
       const { error } = await supabase
