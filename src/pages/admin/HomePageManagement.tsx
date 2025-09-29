@@ -352,15 +352,15 @@ const HomePageManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="hero">Hero Blocks</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="design">Design</TabsTrigger>
-          <TabsTrigger value="cookies">Cookie Analytics</TabsTrigger>
-          <TabsTrigger value="backup">Backup & Security</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="flex w-full flex-wrap justify-start gap-1 h-auto p-1 bg-muted">
+          <TabsTrigger value="overview" className="flex-shrink-0 text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="content" className="flex-shrink-0 text-xs sm:text-sm">Content</TabsTrigger>
+          <TabsTrigger value="hero" className="flex-shrink-0 text-xs sm:text-sm">Hero Blocks</TabsTrigger>
+          <TabsTrigger value="seo" className="flex-shrink-0 text-xs sm:text-sm">SEO</TabsTrigger>
+          <TabsTrigger value="design" className="flex-shrink-0 text-xs sm:text-sm">Design</TabsTrigger>
+          <TabsTrigger value="cookies" className="flex-shrink-0 text-xs sm:text-sm">Cookie Analytics</TabsTrigger>
+          <TabsTrigger value="backup" className="flex-shrink-0 text-xs sm:text-sm">Backup & Security</TabsTrigger>
+          <TabsTrigger value="settings" className="flex-shrink-0 text-xs sm:text-sm">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
