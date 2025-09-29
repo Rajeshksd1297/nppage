@@ -196,3 +196,5 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
     </Card>
   );
 };
+
+export default AISEOAssistant;
