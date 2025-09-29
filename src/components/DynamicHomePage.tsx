@@ -57,6 +57,9 @@ export const DynamicHomePage: React.FC = () => {
     console.log('Current URL:', window.location.href);
     console.log('Current pathname:', window.location.pathname);
   }
+
+  // Force public access - don't require authentication for home page
+  console.log('Rendering public home page without auth check');
   
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
