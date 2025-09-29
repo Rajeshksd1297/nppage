@@ -137,6 +137,7 @@ const HomePageManagement = () => {
   
   // Real-time analytics state
   const [onlineVisitors, setOnlineVisitors] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState('day');
   const [realtimeStats, setRealtimeStats] = useState({
     pageViews: 1247,
     uniqueVisitors: 892,
@@ -146,34 +147,69 @@ const HomePageManagement = () => {
     pageLoadTime: 1.8
   });
 
-  // Mock data for analytics
-  const analyticsData = {
-    visitors: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [{
-        label: 'Visitors',
-        data: [1200, 1900, 3000, 5000, 2000, 3000],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.4
-      }]
-    },
-    pageViews: {
-      labels: ['Home', 'About', 'Services', 'Contact', 'Blog'],
-      datasets: [{
-        label: 'Page Views',
-        data: [4500, 2300, 3200, 1800, 2800],
-        backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)']
-      }]
-    },
-    deviceStats: {
-      labels: ['Desktop', 'Mobile', 'Tablet'],
-      datasets: [{
-        data: [65, 30, 5],
-        backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)']
-      }]
-    }
+  // Mock data for analytics with different time periods
+  const getAnalyticsDataByPeriod = (period: string) => {
+    const periodMultipliers = {
+      hours: { visitors: 0.1, pageViews: 0.15, conversion: 0.8 },
+      day: { visitors: 1, pageViews: 1, conversion: 1 },
+      month: { visitors: 30, pageViews: 25, conversion: 1.2 },
+      year: { visitors: 365, pageViews: 300, conversion: 1.5 },
+      lifetime: { visitors: 1000, pageViews: 800, conversion: 2 }
+    };
+    
+    const multiplier = periodMultipliers[period] || periodMultipliers.day;
+    
+    return {
+      visitors: {
+        labels: period === 'hours' ? 
+          ['1h ago', '2h ago', '3h ago', '4h ago', '5h ago', '6h ago'] :
+          period === 'day' ? 
+          ['6h ago', '12h ago', '18h ago', '1d ago'] :
+          period === 'month' ?
+          ['Week 1', 'Week 2', 'Week 3', 'Week 4'] :
+          period === 'year' ?
+          ['Q1', 'Q2', 'Q3', 'Q4'] :
+          ['2020', '2021', '2022', '2023', '2024', '2025'],
+        datasets: [{
+          label: 'Visitors',
+          data: [
+            Math.round(1200 * multiplier.visitors), 
+            Math.round(1900 * multiplier.visitors), 
+            Math.round(3000 * multiplier.visitors), 
+            Math.round(5000 * multiplier.visitors), 
+            Math.round(2000 * multiplier.visitors), 
+            Math.round(3000 * multiplier.visitors)
+          ],
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4
+        }]
+      },
+      pageViews: {
+        labels: ['Home', 'About', 'Services', 'Contact', 'Blog'],
+        datasets: [{
+          label: 'Page Views',
+          data: [
+            Math.round(4500 * multiplier.pageViews), 
+            Math.round(2300 * multiplier.pageViews), 
+            Math.round(3200 * multiplier.pageViews), 
+            Math.round(1800 * multiplier.pageViews), 
+            Math.round(2800 * multiplier.pageViews)
+          ],
+          backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)']
+        }]
+      },
+      deviceStats: {
+        labels: ['Desktop', 'Mobile', 'Tablet'],
+        datasets: [{
+          data: [65, 30, 5],
+          backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)']
+        }]
+      }
+    };
   };
+
+  const analyticsData = getAnalyticsDataByPeriod(selectedPeriod);
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -336,71 +372,96 @@ const HomePageManagement = () => {
       setSaving(false);
     }
   };
-  const stats = [{
-    title: "Online Visitors",
-    value: onlineVisitors.toString(),
-    change: "Live",
-    trend: "live",
-    icon: Activity,
-    color: "text-green-500",
-    description: "Currently active users"
-  }, {
-    title: "Total Visitors",
-    value: realtimeStats.uniqueVisitors.toLocaleString(),
-    change: "+12%",
-    trend: "up",
-    icon: Users,
-    color: "text-blue-600",
-    description: "Today's unique visitors"
-  }, {
-    title: "Page Views",
-    value: realtimeStats.pageViews.toLocaleString(),
-    change: "+8%",
-    trend: "up",
-    icon: Eye,
-    color: "text-purple-600",
-    description: "Total page impressions"
-  }, {
-    title: "Bounce Rate",
-    value: `${realtimeStats.bounceRate}%`,
-    change: "-5%",
-    trend: "down",
-    icon: TrendingUp,
-    color: "text-orange-600",
-    description: "Single page sessions"
-  }, {
-    title: "Avg. Session",
-    value: `${Math.floor(realtimeStats.avgSessionTime / 60)}m ${realtimeStats.avgSessionTime % 60}s`,
-    change: "+15%",
-    trend: "up",
-    icon: Clock,
-    color: "text-indigo-600",
-    description: "Average session duration"
-  }, {
-    title: "Conversion Rate",
-    value: `${realtimeStats.conversionRate}%`,
-    change: "+0.3%",
-    trend: "up",
-    icon: Target,
-    color: "text-emerald-600",
-    description: "Goal completion rate"
-  }, {
-    title: "Page Load Time",
-    value: `${realtimeStats.pageLoadTime}s`,
-    change: "-0.2s",
-    trend: "down",
-    icon: Zap,
-    color: "text-yellow-600",
-    description: "Average load speed"
-  }, {
-    title: "Engagement Score",
-    value: "94%",
-    change: "+2%",
-    trend: "up",
-    icon: Heart,
-    color: "text-rose-600",
-    description: "User engagement level"
-  }];
+  // Generate stats based on selected period with proper formatting
+  const getStatsByPeriod = (period: string) => {
+    const periodMultipliers = {
+      hours: { visitors: 0.05, pageViews: 0.08, bounceRate: 1.2, sessionTime: 0.8, conversion: 0.6 },
+      day: { visitors: 1, pageViews: 1, bounceRate: 1, sessionTime: 1, conversion: 1 },
+      month: { visitors: 25, pageViews: 30, bounceRate: 0.9, sessionTime: 1.1, conversion: 1.3 },
+      year: { visitors: 300, pageViews: 350, bounceRate: 0.85, sessionTime: 1.2, conversion: 1.8 },
+      lifetime: { visitors: 1200, pageViews: 1500, bounceRate: 0.8, sessionTime: 1.4, conversion: 2.5 }
+    };
+    
+    const multiplier = periodMultipliers[period] || periodMultipliers.day;
+    const baseStats = realtimeStats;
+    
+    return [
+      {
+        title: "Online Visitors",
+        value: onlineVisitors.toString(),
+        change: "Live",
+        trend: "live",
+        icon: Activity,
+        color: "text-green-500",
+        description: "Currently active users"
+      },
+      {
+        title: "Total Visitors",
+        value: Math.round(baseStats.uniqueVisitors * multiplier.visitors).toLocaleString(),
+        change: "+12.50%",
+        trend: "up",
+        icon: Users,
+        color: "text-blue-600",
+        description: `${period === 'hours' ? 'Last 6 hours' : period === 'day' ? 'Today' : period === 'month' ? 'This month' : period === 'year' ? 'This year' : 'All time'} unique visitors`
+      },
+      {
+        title: "Page Views",
+        value: Math.round(baseStats.pageViews * multiplier.pageViews).toLocaleString(),
+        change: "+8.75%",
+        trend: "up",
+        icon: Eye,
+        color: "text-purple-600",
+        description: "Total page impressions"
+      },
+      {
+        title: "Bounce Rate",
+        value: `${(baseStats.bounceRate * multiplier.bounceRate).toFixed(2)}%`,
+        change: "-5.25%",
+        trend: "down",
+        icon: TrendingUp,
+        color: "text-orange-600",
+        description: "Single page sessions"
+      },
+      {
+        title: "Avg. Session",
+        value: `${Math.floor((baseStats.avgSessionTime * multiplier.sessionTime) / 60)}m ${Math.round((baseStats.avgSessionTime * multiplier.sessionTime) % 60)}s`,
+        change: "+15.30%",
+        trend: "up",
+        icon: Clock,
+        color: "text-indigo-600",
+        description: "Average session duration"
+      },
+      {
+        title: "Conversion Rate",
+        value: `${(baseStats.conversionRate * multiplier.conversion).toFixed(2)}%`,
+        change: "+0.35%",
+        trend: "up",
+        icon: Target,
+        color: "text-emerald-600",
+        description: "Goal completion rate"
+      },
+      {
+        title: "Page Load Time",
+        value: `${baseStats.pageLoadTime.toFixed(2)}s`,
+        change: "-0.20s",
+        trend: "down",
+        icon: Zap,
+        color: "text-yellow-600",
+        description: "Average load speed"
+      },
+      {
+        title: "Engagement Score",
+        value: `${(94.0 + (multiplier.conversion - 1) * 5).toFixed(2)}%`,
+        change: "+2.15%",
+        trend: "up",
+        icon: Heart,
+        color: "text-rose-600",
+        description: "User engagement level"
+      }
+    ];
+  };
+
+  const stats = getStatsByPeriod(selectedPeriod);
   const recentActivities = [{
     action: "Hero block updated",
     time: "2 minutes ago",
@@ -478,6 +539,33 @@ const HomePageManagement = () => {
             </div>
           </div>
 
+          {/* Time Period Selector */}
+          <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg">
+            <div>
+              <h3 className="font-medium text-sm">Analytics Time Period</h3>
+              <p className="text-xs text-muted-foreground">Choose the time range for your analytics data</p>
+            </div>
+            <div className="flex items-center gap-1 bg-background rounded-md p-1">
+              {[
+                { key: 'hours', label: 'Hours', desc: 'Last 6 hours' },
+                { key: 'day', label: 'Day', desc: 'Today' },
+                { key: 'month', label: 'Month', desc: 'This month' },
+                { key: 'year', label: 'Year', desc: 'This year' },
+                { key: 'lifetime', label: 'Lifetime', desc: 'All time' }
+              ].map((period) => (
+                <Button
+                  key={period.key}
+                  variant={selectedPeriod === period.key ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedPeriod(period.key)}
+                  className="text-xs px-3 py-1 h-8"
+                >
+                  {period.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
               <Card key={index} className="relative overflow-hidden">
@@ -519,7 +607,13 @@ const HomePageManagement = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Visitor Trends</CardTitle>
-                <CardDescription>Daily visitor statistics over the last 6 months</CardDescription>
+                <CardDescription>
+                  {selectedPeriod === 'hours' ? 'Hourly visitor statistics for the last 6 hours' :
+                   selectedPeriod === 'day' ? 'Hourly visitor statistics for today' :
+                   selectedPeriod === 'month' ? 'Weekly visitor statistics for this month' :
+                   selectedPeriod === 'year' ? 'Quarterly visitor statistics for this year' :
+                   'Yearly visitor statistics over time'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Line data={analyticsData.visitors} options={chartOptions} />
@@ -529,7 +623,14 @@ const HomePageManagement = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Top Pages</CardTitle>
-                <CardDescription>Most visited pages on your website</CardDescription>
+                <CardDescription>
+                  Most visited pages on your website
+                  {selectedPeriod === 'hours' ? ' in the last 6 hours' :
+                   selectedPeriod === 'day' ? ' today' :
+                   selectedPeriod === 'month' ? ' this month' :
+                   selectedPeriod === 'year' ? ' this year' :
+                   ' of all time'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Bar data={analyticsData.pageViews} options={chartOptions} />
