@@ -98,6 +98,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_platform_settings: {
+        Row: {
+          api_key_encrypted: string | null
+          created_at: string
+          created_by: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          model_name: string | null
+          platform_name: string
+          rate_limit_per_minute: number | null
+          updated_at: string
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          model_name?: string | null
+          platform_name: string
+          rate_limit_per_minute?: number | null
+          updated_at?: string
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          model_name?: string | null
+          platform_name?: string
+          rate_limit_per_minute?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           content: string

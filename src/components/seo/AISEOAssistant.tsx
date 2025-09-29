@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, AlertCircle, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import AIPlatformSettings from '@/components/admin/AIPlatformSettings';
 
 interface AISEOSuggestion {
   title: string;
@@ -37,6 +38,9 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<AISEOSuggestion | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPlatformSettings, setShowPlatformSettings] = useState(false);
+  const [platformUsed, setPlatformUsed] = useState<string | null>(null);
+  const [modelUsed, setModelUsed] = useState<string | null>(null);
   const { toast } = useToast();
 
   const generateSuggestions = async () => {
@@ -53,7 +57,7 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
     setError(null);
 
     try {
-      const { data, error: functionError } = await supabase.functions.invoke('ai-seo-suggestions', {
+      const { data, error: functionError } = await supabase.functions.invoke('ai-seo-suggestions-multi', {
         body: {
           content,
           currentTitle,
@@ -69,10 +73,11 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
       }
 
       if (data?.error) {
-        if (data.error.includes('API key not configured') || data.error.includes('OpenAI API key not configured')) {
-          setError('OpenAI API key not configured. Please contact your administrator to set up AI features.');
+        if (data.error.includes('No AI platforms configured') || data.showConfigButton) {
+          setError(data.error);
+          setShowPlatformSettings(true);
         } else if (data.error.includes('insufficient_quota') || data.error.includes('exceeded your current quota')) {
-          setError('OpenAI quota exceeded. Please check your OpenAI billing and usage limits.');
+          setError('AI quota exceeded. Please check your billing and usage limits.');
         } else {
           setError(data.error);
         }
@@ -80,9 +85,11 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
       }
 
       setSuggestions(data.suggestions);
+      setPlatformUsed(data.platform_used);
+      setModelUsed(data.model_used);
       toast({
         title: "SEO suggestions generated!",
-        description: "AI has analyzed your content and provided optimization suggestions.",
+        description: `AI has analyzed your content using ${data.platform_used}.`,
       });
 
     } catch (err) {
@@ -108,15 +115,57 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
     }
   };
 
+  if (showPlatformSettings) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold">AI Platform Configuration Required</h3>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowPlatformSettings(false)}
+          >
+            Hide Settings
+          </Button>
+        </div>
+        <AIPlatformSettings />
+        <Button 
+          onClick={() => {
+            setShowPlatformSettings(false);
+            setError(null);
+          }}
+          className="w-full"
+        >
+          Back to SEO Assistant
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
           AI SEO Assistant
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPlatformSettings(true)}
+            className="ml-auto"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </CardTitle>
         <CardDescription>
           Get AI-powered SEO suggestions to optimize your {contentType} for search engines.
+          {platformUsed && modelUsed && (
+            <div className="mt-2">
+              <Badge variant="outline" className="text-xs">
+                Last used: {platformUsed} ({modelUsed})
+              </Badge>
+            </div>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -150,41 +199,32 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
               </div>
             </div>
             
-            {error.includes('API key not configured') && (
-              <div className="p-4 border border-blue-200 rounded-md bg-blue-50">
-                <h4 className="font-medium text-blue-900 mb-2">Setting Up AI Features</h4>
-                <p className="text-sm text-blue-800 mb-3">
-                  To use AI-powered SEO suggestions, you need to configure an OpenAI API key.
-                </p>
-                <div className="text-sm text-blue-700 space-y-2">
-                  <p><strong>Steps to set up:</strong></p>
-                  <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Get an API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Platform</a></li>
-                    <li>Go to your <a href="https://supabase.com/dashboard/project/kovlbxzqasqhigygfiyj/settings/functions" target="_blank" rel="noopener noreferrer" className="underline">Supabase Functions Settings</a></li>
-                    <li>Add a new secret named <code className="bg-blue-100 px-1 rounded">OPENAI_API_KEY</code></li>
-                    <li>Paste your OpenAI API key as the value</li>
-                  </ol>
-                </div>
-              </div>
-            )}
-            
             {error.includes('quota exceeded') && (
               <div className="p-4 border border-orange-200 rounded-md bg-orange-50">
-                <h4 className="font-medium text-orange-900 mb-2">OpenAI Usage Limit Reached</h4>
+                <h4 className="font-medium text-orange-900 mb-2">AI Usage Limit Reached</h4>
                 <p className="text-sm text-orange-800 mb-3">
-                  You've exceeded your OpenAI API usage quota. This is managed through your OpenAI account.
+                  You've exceeded your AI API usage quota. This is managed through your AI provider account.
                 </p>
                 <div className="text-sm text-orange-700 space-y-2">
                   <p><strong>To resolve this:</strong></p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Check your usage at <a href="https://platform.openai.com/usage" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Usage Dashboard</a></li>
-                    <li>Review your billing at <a href="https://platform.openai.com/account/billing" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Billing</a></li>
-                    <li>Add credits or upgrade your plan if needed</li>
-                    <li>Wait for your quota to reset (monthly limits)</li>
+                    <li>Check your usage in your AI provider's dashboard</li>
+                    <li>Review your billing and add credits if needed</li>
+                    <li>Wait for your quota to reset</li>
+                    <li>Or configure a different AI platform in settings</li>
                   </ol>
                 </div>
               </div>
             )}
+
+            <Button
+              variant="outline"
+              onClick={() => setShowPlatformSettings(true)}
+              className="w-full"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Configure AI Platforms
+            </Button>
           </div>
         )}
 
