@@ -294,6 +294,61 @@ const HomePageManagement = () => {
       description: "Analytics data has been updated successfully",
     });
   };
+
+  // Handle data export functionality
+  const handleExportData = (period: string) => {
+    const exportData = {
+      period: period,
+      exportDate: new Date().toISOString(),
+      stats: getStatsByPeriod(period),
+      analytics: getAnalyticsDataByPeriod(period),
+      metadata: {
+        totalRecords: getStatsByPeriod(period).length,
+        exportedBy: 'Admin',
+        serverLoad: 'Optimized for minimal impact'
+      }
+    };
+
+    // Create CSV content
+    const csvContent = [
+      'Metric,Value,Change,Period',
+      ...getStatsByPeriod(period).map(stat => 
+        `"${stat.title}","${stat.value}","${stat.change}","${period}"`
+      )
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    const periodLabels = {
+      'hours': 'Last 6 Hours',
+      'day': 'Today',
+      'month': 'This Month', 
+      'year': 'This Year',
+      'lifetime': 'All Time',
+      'current-month': 'Current Month',
+      'last-month': 'Last Month',
+      'current-year': 'Current Year',
+      'last-year': 'Last Year',
+      'q1': 'Q1 Data',
+      'q2': 'Q2 Data',
+      'q3': 'Q3 Data',
+      'q4': 'Q4 Data'
+    };
+
+    toast({
+      title: "Export Completed",
+      description: `${periodLabels[period] || period} analytics data exported successfully`,
+    });
+  };
   
   // Setup realtime tracking for analytics
   const setupRealtimeTracking = () => {
@@ -666,30 +721,62 @@ const HomePageManagement = () => {
             </div>
           </div>
 
-          {/* Time Period Selector */}
+          {/* Time Period Selector & Export */}
           <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg">
             <div>
               <h3 className="font-medium text-sm">Analytics Time Period</h3>
               <p className="text-xs text-muted-foreground">Choose the time range for your analytics data</p>
             </div>
-            <div className="flex items-center gap-1 bg-background rounded-md p-1">
-              {[
-                { key: 'hours', label: 'Hours', desc: 'Last 6 hours' },
-                { key: 'day', label: 'Day', desc: 'Today' },
-                { key: 'month', label: 'Month', desc: 'This month' },
-                { key: 'year', label: 'Year', desc: 'This year' },
-                { key: 'lifetime', label: 'Lifetime', desc: 'All time' }
-              ].map((period) => (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground">Period:</Label>
+                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                  <SelectTrigger className="w-32 h-9 bg-background border shadow-sm">
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    <SelectItem value="hours">Last 6 Hours</SelectItem>
+                    <SelectItem value="day">Today</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="year">This Year</SelectItem>
+                    <SelectItem value="lifetime">All Time</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Separator orientation="vertical" className="h-6" />
+              
+              <div className="flex items-center gap-2">
                 <Button
-                  key={period.key}
-                  variant={selectedPeriod === period.key ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setSelectedPeriod(period.key)}
-                  className="text-xs px-3 py-1 h-8"
+                  onClick={() => handleExportData(selectedPeriod)}
+                  className="h-9 text-xs"
                 >
-                  {period.label}
+                  <Download className="h-3 w-3 mr-2" />
+                  Export {selectedPeriod === 'hours' ? '6H' : 
+                          selectedPeriod === 'day' ? 'Today' :
+                          selectedPeriod === 'month' ? 'Month' :
+                          selectedPeriod === 'year' ? 'Year' : 'All'} Data
                 </Button>
-              ))}
+                
+                <Select onValueChange={(value) => handleExportData(value)}>
+                  <SelectTrigger className="w-36 h-9 bg-background border shadow-sm">
+                    <SelectValue placeholder="Export specific..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    <SelectItem value="current-month">Current Month</SelectItem>
+                    <SelectItem value="last-month">Last Month</SelectItem>
+                    <SelectItem value="current-year">Current Year</SelectItem>
+                    <SelectItem value="last-year">Last Year</SelectItem>
+                    <SelectItem value="q1">Q1 {new Date().getFullYear()}</SelectItem>
+                    <SelectItem value="q2">Q2 {new Date().getFullYear()}</SelectItem>
+                    <SelectItem value="q3">Q3 {new Date().getFullYear()}</SelectItem>
+                    <SelectItem value="q4">Q4 {new Date().getFullYear()}</SelectItem>
+                    <SelectItem value="custom">Custom Range...</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
