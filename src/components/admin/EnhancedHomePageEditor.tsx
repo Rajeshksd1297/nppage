@@ -1251,322 +1251,315 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center space-x-4">
-          {onBack && (
-            <Button variant="outline" size="sm" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          )}
-          <div>
-            <h1 className="text-xl font-semibold">Home Page Editor</h1>
-            <p className="text-sm text-muted-foreground">Build and customize your home page</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-2 mr-4">
-            <Switch
-              checked={autoSave}
-              onCheckedChange={setAutoSave}
-              id="auto-save"
-            />
-            <Label htmlFor="auto-save" className="text-sm">Auto-save</Label>
+      <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        {/* Top Controls */}
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-4">
+            {onBack && (
+              <Button variant="outline" size="sm" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            )}
+            <div>
+              <h1 className="text-xl font-semibold">Home Page Editor</h1>
+              <p className="text-sm text-muted-foreground">Build and customize your home page</p>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-2 mr-4">
-            <Switch
-              checked={liveSync}
-              onCheckedChange={setLiveSync}
-              id="live-sync"
-            />
-            <Label htmlFor="live-sync" className="text-sm">Live Sync</Label>
-          </div>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mr-4">
+              <Switch
+                checked={autoSave}
+                onCheckedChange={setAutoSave}
+                id="auto-save"
+              />
+              <Label htmlFor="auto-save" className="text-sm">Auto-save</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2 mr-4">
+              <Switch
+                checked={liveSync}
+                onCheckedChange={setLiveSync}
+                id="live-sync"
+              />
+              <Label htmlFor="live-sync" className="text-sm">Live Sync</Label>
+            </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => saveSections()}
-            disabled={saving}
-          >
-            {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => saveSections()}
+              disabled={saving}
+            >
+              {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center space-x-1 bg-muted/30 p-1 rounded-lg w-fit">
+            <Button
+              variant={currentTab === 'visual' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('visual')}
+              className="text-xs h-8"
+            >
+              Visual
+            </Button>
+            <Button
+              variant={currentTab === 'sections' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('sections')}
+              className="text-xs h-8"
+            >
+              Sections
+            </Button>
+            <Button
+              variant={currentTab === 'header' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('header')}
+              className="text-xs h-8"
+            >
+              Header
+            </Button>
+            <Button
+              variant={currentTab === 'footer' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('footer')}
+              className="text-xs h-8"
+            >
+              Footer
+            </Button>
+            <Button
+              variant={currentTab === 'additional-pages' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('additional-pages')}
+              className="text-xs h-8"
+            >
+              Pages
+            </Button>
+            <Button
+              variant={currentTab === 'settings' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('settings')}
+              className="text-xs h-8"
+            >
+              Settings
+            </Button>
+            <Button
+              variant={currentTab === 'preview' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCurrentTab('preview')}
+              className="text-xs h-8"
+            >
+              Preview
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       {currentTab === 'visual' ? (
+        <VisualPageEditor onBack={onBack} />
+      ) : currentTab === 'header' ? (
+        <HeaderEditorVisual onBack={onBack} />
+      ) : currentTab === 'footer' ? (
+        <FooterEditorVisual onBack={onBack} />
+      ) : currentTab === 'additional-pages' ? (
+        <div className="flex-1 overflow-auto p-6">
+          <AdditionalPagesEditor />
+        </div>
+      ) : currentTab === 'sections' ? (
         <div className="flex flex-1 overflow-hidden">
-          {/* Visual Editor with integrated tabs */}
-          <div className="flex-1">
-            <div className="border-b bg-background p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <h2 className="text-lg font-semibold">Visual Page Editor</h2>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setCurrentTab('header')}
-                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Header
-                    </button>
-                    <button
-                      onClick={() => setCurrentTab('footer')}
-                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Footer
-                    </button>
-                    <button
-                      onClick={() => setCurrentTab('additional-pages')}
-                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Additional Pages
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setCurrentTab('sections')}
-                    className="px-3 py-1 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+          {/* Sidebar for Sections */}
+          <div className="w-80 border-r bg-muted/10 flex flex-col overflow-auto">
+            <div className="p-4 space-y-4">
+              <div>
+                <h3 className="font-medium mb-3">Add Section</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('header')}
+                    className="flex items-center justify-start"
                   >
-                    Manage Sections
-                  </button>
-                  <button
-                    onClick={() => setCurrentTab('settings')}
-                    className="px-3 py-1 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                    <Navigation className="h-4 w-4 mr-2" />
+                    Header
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('interactive_hero')}
+                    className="flex items-center justify-start"
                   >
-                    Settings
-                  </button>
+                    <Star className="h-4 w-4 mr-2" />
+                    Hero
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('features')}
+                    className="flex items-center justify-start"
+                  >
+                    <Layout className="h-4 w-4 mr-2" />
+                    Features
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('stats')}
+                    className="flex items-center justify-start"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Stats
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('premium_showcase')}
+                    className="flex items-center justify-start"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Showcase
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('free_vs_pro')}
+                    className="flex items-center justify-start"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Pricing
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('faq')}
+                    className="flex items-center justify-start"
+                  >
+                    <Type className="h-4 w-4 mr-2" />
+                    FAQ
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('success_stories')}
+                    className="flex items-center justify-start"
+                  >
+                    <Star className="h-4 w-4 mr-2" />
+                    Testimonials
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('trial_cta')}
+                    className="flex items-center justify-start"
+                  >
+                    <MousePointer className="h-4 w-4 mr-2" />
+                    CTA
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSection('footer')}
+                    className="flex items-center justify-start"
+                  >
+                    <Box className="h-4 w-4 mr-2" />
+                    Footer
+                  </Button>
                 </div>
               </div>
+
+              <Separator />
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium">Page Structure</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {sections.length} sections
+                  </Badge>
+                </div>
+                <ScrollArea className="h-[400px]">
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={sections}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {sections.length > 0 ? (
+                        sections.map((section) => (
+                          <SortableItem
+                            key={section.id}
+                            section={section}
+                            onEdit={(section) => {
+                              setEditingSection(section);
+                              setCurrentTab('editor');
+                            }}
+                            onDelete={handleDeleteSection}
+                            onToggle={handleToggleSection}
+                            onDuplicate={handleDuplicateSection}
+                          />
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <Layout className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No sections found</p>
+                          <p className="text-xs text-muted-foreground mt-1">Add sections using the buttons above</p>
+                        </div>
+                      )}
+                    </SortableContext>
+                  </DndContext>
+                </ScrollArea>
+              </div>
             </div>
-            <VisualPageEditor onBack={onBack} />
+          </div>
+
+          {/* Main Editor Area for Sections */}
+          <div className="flex-1 overflow-hidden">
+            {editingSection ? (
+              renderSectionEditor()
+            ) : (
+              <div className="h-full flex items-center justify-center bg-muted/5">
+                <div className="text-center max-w-md">
+                  <Layout className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Section Editor</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Select a section from the sidebar to edit its content and settings.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      ) : (
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-80 border-r bg-muted/10 flex flex-col">
-            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as typeof currentTab)} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-7 m-4 gap-1">
-                <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
-                <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
-                <TabsTrigger value="header" className="text-xs">Header</TabsTrigger>
-                <TabsTrigger value="footer" className="text-xs">Footer</TabsTrigger>
-                <TabsTrigger value="additional-pages" className="text-xs">Pages</TabsTrigger>
-                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
-                <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
-              </TabsList>
-
-            <TabsContent value="sections" className="flex-1 overflow-hidden">
-              <div className="p-4 space-y-4">
-                <div>
-                  <h3 className="font-medium mb-3">Add Section</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('header')}
-                      className="flex items-center justify-start"
-                    >
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Header
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('interactive_hero')}
-                      className="flex items-center justify-start"
-                    >
-                      <Star className="h-4 w-4 mr-2" />
-                      Hero
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('features')}
-                      className="flex items-center justify-start"
-                    >
-                      <Layout className="h-4 w-4 mr-2" />
-                      Features
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('stats')}
-                      className="flex items-center justify-start"
-                    >
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Stats
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('premium_showcase')}
-                      className="flex items-center justify-start"
-                    >
-                      <Zap className="h-4 w-4 mr-2" />
-                      Showcase
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('free_vs_pro')}
-                      className="flex items-center justify-start"
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Pricing
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('faq')}
-                      className="flex items-center justify-start"
-                    >
-                      <Type className="h-4 w-4 mr-2" />
-                      FAQ
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('success_stories')}
-                      className="flex items-center justify-start"
-                    >
-                      <Star className="h-4 w-4 mr-2" />
-                      Testimonials
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('trial_cta')}
-                      className="flex items-center justify-start"
-                    >
-                      <MousePointer className="h-4 w-4 mr-2" />
-                      CTA
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddSection('footer')}
-                      className="flex items-center justify-start"
-                    >
-                      <Box className="h-4 w-4 mr-2" />
-                      Footer
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium">Page Structure</h3>
-                    <Badge variant="outline" className="text-xs">
-                      {sections.length} sections
-                    </Badge>
-                  </div>
-                  <ScrollArea className="h-[400px]">
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={sections}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {sections.length > 0 ? (
-                          sections.map((section) => (
-                            <SortableItem
-                              key={section.id}
-                              section={section}
-                              onEdit={(section) => {
-                                setEditingSection(section);
-                                setCurrentTab('editor');
-                              }}
-                              onDelete={handleDeleteSection}
-                              onToggle={handleToggleSection}
-                              onDuplicate={handleDuplicateSection}
-                            />
-                          ))
-                        ) : (
-                          <div className="text-center py-8">
-                            <Layout className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-sm text-muted-foreground">No sections found</p>
-                            <p className="text-xs text-muted-foreground mt-1">Add sections using the buttons above</p>
-                          </div>
-                        )}
-                      </SortableContext>
-                    </DndContext>
-                  </ScrollArea>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="editor" className="flex-1">
-              {renderSectionEditor()}
-            </TabsContent>
-
-            <TabsContent value="settings" className="flex-1 p-4">
-              <div className="space-y-4">
-                <h3 className="font-medium">Page Settings</h3>
-                <div className="text-sm text-muted-foreground">
-                  Global page settings and configurations will be available here.
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="preview" className="flex-1">
-              {renderPreview()}
-            </TabsContent>
-          </Tabs>
+      ) : currentTab === 'settings' ? (
+        <div className="flex-1 overflow-auto p-6">
+          <div className="space-y-4">
+            <h3 className="font-medium">Page Settings</h3>
+            <div className="text-sm text-muted-foreground">
+              Global page settings and configurations will be available here.
+            </div>
+          </div>
         </div>
-
-        {/* Main Editor Area */}
+      ) : currentTab === 'preview' ? (
         <div className="flex-1 overflow-hidden">
-          {currentTab === 'preview' ? (
-            renderPreview()
-          ) : currentTab === 'header' ? (
-            <HeaderEditorVisual onBack={onBack} />
-          ) : currentTab === 'footer' ? (
-            <FooterEditorVisual onBack={onBack} />
-          ) : currentTab === 'additional-pages' ? (
-            <div className="h-full overflow-auto p-6">
-              <AdditionalPagesEditor />
-            </div>
-          ) : (
-            <div className="h-full flex items-center justify-center bg-muted/5">
-              <div className="text-center max-w-md">
-                <MousePointer className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Visual Editor</h3>
-                <p className="text-muted-foreground mb-4">
-                  Select sections from the sidebar to edit them, or use the preview tab to see your changes live.
-                </p>
-                <div className="flex items-center justify-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentTab('preview')}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview Changes
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('/', '_blank')}
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    Live Site
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          {renderPreview()}
         </div>
-      </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center bg-muted/5">
+          <div className="text-center max-w-md">
+            <MousePointer className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Select a Tab</h3>
+            <p className="text-muted-foreground mb-4">
+              Choose a tab from the navigation above to start editing your page.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
