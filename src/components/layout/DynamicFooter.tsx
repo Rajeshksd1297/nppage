@@ -213,10 +213,7 @@ export const DynamicFooter: React.FC<DynamicFooterProps> = ({
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                <Globe className="h-3 w-3" />
-                <span>Built with AuthorPage Platform</span>
-              </div>
+              {/* Branding removed */}
             </div>
           </div>
         </div>
