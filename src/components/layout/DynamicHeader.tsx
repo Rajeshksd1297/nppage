@@ -47,15 +47,11 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
-  const defaultNavigation = [
-    { label: 'Home', url: '/', external: false },
-    { label: 'Authors', url: '/authors', external: false },
-    { label: 'Books', url: '/books', external: false },
-    { label: 'About', url: '/about', external: false },
-    { label: 'Contact', url: '/contact', external: false }
+  // Only use navigation from config if provided, otherwise show minimal navigation
+  const navigation = config?.navigation || [
+    { label: 'Home', url: '/', external: false }
   ];
-
-  const navigation = config?.navigation || defaultNavigation;
+  
   const showLogo = config?.showLogo !== false;
   const showLogin = config?.showLogin !== false;
   const showSearch = config?.showSearch || false;
