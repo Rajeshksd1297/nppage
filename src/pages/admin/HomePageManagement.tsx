@@ -76,6 +76,15 @@ interface SiteSettings {
   fontFamily: string;
   headerLayout: string;
   footerLayout: string;
+  contactEmail: string;
+  allowRegistration: boolean;
+  requireEmailVerification: boolean;
+  defaultTheme: string;
+  maintenanceMode: boolean;
+  maxFileSize: number;
+  allowedFileTypes: string[];
+  timezone: string;
+  dateFormat: string;
   socialLinks: {
     facebook: string;
     twitter: string;
@@ -109,6 +118,7 @@ const HomePageManagement = () => {
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [currentView, setCurrentView] = useState('overview');
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: '',
     siteDescription: '',
@@ -121,6 +131,15 @@ const HomePageManagement = () => {
     fontFamily: 'Inter',
     headerLayout: 'default',
     footerLayout: 'default',
+    contactEmail: '',
+    allowRegistration: true,
+    requireEmailVerification: true,
+    defaultTheme: 'default',
+    maintenanceMode: false,
+    maxFileSize: 10,
+    allowedFileTypes: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    timezone: 'UTC',
+    dateFormat: 'YYYY-MM-DD',
     socialLinks: {
       facebook: '',
       twitter: '',
@@ -246,21 +265,22 @@ const HomePageManagement = () => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        setSiteSettings({
-          siteName: data.site_name,
-          siteDescription: data.site_description,
-          siteKeywords: data.site_keywords,
-          contactEmail: data.contact_email,
-          allowRegistration: data.allow_registration,
-          requireEmailVerification: data.require_email_verification,
-          defaultTheme: data.default_theme,
-          maintenanceMode: data.maintenance_mode,
-          maxFileSize: data.max_file_size,
-          allowedFileTypes: data.allowed_file_types,
-          timezone: data.timezone,
-          dateFormat: data.date_format,
-          language: data.language
-        });
+        setSiteSettings(prev => ({
+          ...prev,
+          siteName: data.site_name || prev.siteName,
+          siteDescription: data.site_description || prev.siteDescription,
+          siteKeywords: data.site_keywords || prev.siteKeywords,
+          contactEmail: data.contact_email || prev.contactEmail,
+          allowRegistration: data.allow_registration ?? prev.allowRegistration,
+          requireEmailVerification: data.require_email_verification ?? prev.requireEmailVerification,
+          defaultTheme: data.default_theme || prev.defaultTheme,
+          maintenanceMode: data.maintenance_mode ?? prev.maintenanceMode,
+          maxFileSize: data.max_file_size || prev.maxFileSize,
+          allowedFileTypes: data.allowed_file_types || prev.allowedFileTypes,
+          timezone: data.timezone || prev.timezone,
+          dateFormat: data.date_format || prev.dateFormat,
+          language: data.language || prev.language
+        }));
       }
     } catch (error) {
       console.error('Error fetching site settings:', error);
@@ -810,9 +830,9 @@ const HomePageManagement = () => {
             <TabsContent value="analysis" className="space-y-6 mt-6">
               <SEOAnalyzer 
                 content="Welcome to your professional author homepage where you can showcase your books, connect with readers, and grow your author platform."
-                title={siteSettings.siteName}
-                description={siteSettings.siteDescription}
-                keywords={siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k)}
+                title={siteSettings.siteName || 'Your Website'}
+                description={siteSettings.siteDescription || 'Website description'}
+                keywords={siteSettings.siteKeywords ? siteSettings.siteKeywords.split(',').map(k => k.trim()).filter(k => k) : []}
               />
             </TabsContent>
 
