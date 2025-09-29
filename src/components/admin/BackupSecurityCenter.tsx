@@ -517,48 +517,32 @@ export const BackupSecurityCenter: React.FC = () => {
           checksum: backupJob.checksum,
           metadata: backupJob.metadata,
           download_info: 'This is a backup information file. The actual backup content was not available.'
-  };
+        };
+        blob = new Blob([JSON.stringify(backupInfo, null, 2)], { type: 'application/json' });
+        filename = `backup-info-${backupJob.id}.json`;
+      }
 
-  const deleteBackup = async (backupId: string) => {
-    try {
-      const { error } = await supabase
-        .from('backup_jobs' as any)
-        .delete()
-        .eq('id', backupId);
-
-      if (error) throw error;
-
-      // Remove from local state
-      setBackupJobs(prev => prev.filter(job => job.id !== backupId));
-
-      // Log security event
-      await supabase.from('security_logs' as any).insert({
-        event_type: 'backup_deleted',
-        severity: 'medium',
-        description: `Backup deleted: ${backupId}`,
-        metadata: { backup_id: backupId }
-      });
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Backup deleted",
-        description: "Backup has been successfully removed.",
+        title: "Download completed",
+        description: `${data.backup_type === 'full' ? 'Full backup' : `${data.backup_type} backup`} "${filename}" downloaded successfully.`
       });
-
-      // Recalculate stats
-      loadData();
     } catch (error) {
-      console.error('Error deleting backup:', error);
+      console.error('Error downloading backup:', error);
       toast({
-        title: "Delete failed",
-        description: "Failed to delete backup.",
+        title: "Download failed",
+        description: "Failed to download backup file.",
         variant: "destructive"
       });
-    }
-  };
-
-  const confirmDeleteBackup = (backupId: string, jobType: string) => {
-    if (window.confirm(`Are you sure you want to delete this ${jobType} backup? This action cannot be undone and will free up storage space.`)) {
-      deleteBackup(backupId);
     }
   };
 
