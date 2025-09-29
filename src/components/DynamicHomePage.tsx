@@ -50,12 +50,35 @@ interface Book {
 }
 
 export const DynamicHomePage: React.FC = () => {
+  console.log('DynamicHomePage component started rendering');
+  console.log('Current URL:', window.location.href);
+  console.log('Current pathname:', window.location.pathname);
+  
+  // Early return test to ensure component renders
+  if (typeof window !== 'undefined') {
+    console.log('Window is available');
+    console.log('Current URL:', window.location.href);
+    console.log('Current pathname:', window.location.pathname);
+  }
+
+  // Force public access - don't require authentication for home page
+  console.log('Rendering public home page without auth check');
+  
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  console.log('DynamicHomePage state:', { 
+    siteSettings: !!siteSettings, 
+    loading, 
+    error,
+    heroBlocksCount: heroBlocks.length,
+    sectionsCount: sections.length 
+  });
 
   useEffect(() => {
     loadAllData();
@@ -66,6 +89,7 @@ export const DynamicHomePage: React.FC = () => {
     try {
       console.log('Starting to load all data...');
       setLoading(true);
+      setError(null);
       await Promise.all([
         loadSiteSettings(),
         loadHeroBlocks(),
@@ -75,6 +99,7 @@ export const DynamicHomePage: React.FC = () => {
       console.log('All data loaded successfully');
     } catch (error) {
       console.error('Error loading data:', error);
+      setError('Failed to load website data');
       toast({
         title: "Loading Error",
         description: "Some content may not display correctly.",
@@ -90,8 +115,7 @@ export const DynamicHomePage: React.FC = () => {
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error loading site settings:', error);
@@ -100,16 +124,32 @@ export const DynamicHomePage: React.FC = () => {
 
     console.log('Site settings loaded:', data);
     if (data && data.length > 0) {
-      const settings = data[0];
+      // Find the first record that has a valid site_title, or use the most recent one
+      let settings = data.find(s => s.site_title && s.site_title.trim() !== '') || data[0];
+      
+      // Ensure we have valid values, use defaults if needed
+      if (!settings.site_title || settings.site_title.trim() === '') {
+        settings.site_title = 'AuthorPage';
+      }
+      if (!settings.site_description || settings.site_description.trim() === '') {
+        settings.site_description = 'Professional author profiles and book showcases';
+      }
+      if (!settings.primary_color) {
+        settings.primary_color = '#3b82f6';
+      }
+      if (!settings.secondary_color) {
+        settings.secondary_color = '#64748b';
+      }
+      
       console.log('Using site settings:', settings);
       setSiteSettings(settings);
     } else {
-      console.log('No site settings found, using defaults');
-      // Use defaults if no settings exist
+      console.log('No site settings found, creating defaults');
+      // Create default settings if none exist
       setSiteSettings({
         id: 'default',
-        site_title: 'AuthorPage - Professional Author Platform',
-        site_description: 'Create stunning author profiles, showcase your books, and grow your readership with our professional author platform.',
+        site_title: 'AuthorPage',
+        site_description: 'Professional author profiles and book showcases',
         logo_url: null,
         favicon_url: null,
         primary_color: '#3b82f6',
@@ -246,6 +286,7 @@ export const DynamicHomePage: React.FC = () => {
   };
 
   if (loading) {
+    console.log('Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center p-4">
         <div className="text-center space-y-6 max-w-sm mx-auto">
@@ -257,6 +298,24 @@ export const DynamicHomePage: React.FC = () => {
             <p className="text-lg font-medium text-foreground">Loading your website...</p>
             <p className="text-sm text-muted-foreground">Fetching brand settings and content</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.log('Showing error state:', error);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md mx-auto">
+          <h1 className="text-2xl font-bold text-destructive">Website Error</h1>
+          <p className="text-muted-foreground">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Reload Page
+          </button>
         </div>
       </div>
     );

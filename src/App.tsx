@@ -66,6 +66,8 @@ import FaqSettings from "./pages/admin/FaqSettings";
 import HomePageManagement from "./pages/admin/HomePageManagement";
 import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
+import PublicHome from "./pages/PublicHome";
+import TestPublic from "./pages/TestPublic";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -102,9 +104,23 @@ function App() {
         
           <ThemeProvider>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Public Routes - No Authentication Required */}
+            <Route 
+              path="/" 
+              element={
+                <>
+                  {(() => console.log('Rendering root route with PublicHome'))()}
+                  <PublicHome />
+                </>
+              } 
+            />
+            <Route path="/home" element={<PublicHome />} />
+            <Route path="/public" element={<PublicHome />} />
+            <Route path="/test-public" element={<TestPublic />} />
             <Route path="/landing" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Protected Routes */}
             <Route path="/dashboard" element={
               <DashboardLayout>
                 <Dashboard />
