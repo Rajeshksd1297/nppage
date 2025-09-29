@@ -51,13 +51,8 @@ import {
   ChevronDown,
   Code,
   FileText,
-  Gift,
-  Menu,
-  User,
-  Moon,
-  Sun
+  Gift
 } from 'lucide-react';
-import AdditionalPagesManager from './AdditionalPagesManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,21 +64,6 @@ interface HomeSection {
   enabled: boolean;
   order_index: number;
   config: any;
-}
-
-interface SiteSettings {
-  id: string;
-  site_title: string;
-  site_description: string;
-  logo_url?: string;
-  favicon_url?: string;
-  primary_color: string;
-  secondary_color: string;
-  enable_dark_mode: boolean;
-  header_config: any;
-  footer_config: any;
-  created_at: string;
-  updated_at: string;
 }
 
 interface VisualPageEditorProps {
@@ -99,15 +79,12 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
   const [saving, setSaving] = useState(false);
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showPagesManager, setShowPagesManager] = useState(false);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const { toast } = useToast();
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchSections();
-    fetchSiteSettings();
   }, []);
 
   const fetchSections = async () => {
@@ -135,22 +112,6 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSiteSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      if (data) {
-        setSiteSettings(data);
-      }
-    } catch (error) {
-      console.error('Error fetching site settings:', error);
     }
   };
 

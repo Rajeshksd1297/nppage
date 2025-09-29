@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      additional_pages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          is_published: boolean
-          meta_description: string | null
-          meta_title: string | null
-          show_in_footer: boolean
-          slug: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          content?: string
-          created_at?: string
-          id?: string
-          is_published?: boolean
-          meta_description?: string | null
-          meta_title?: string | null
-          show_in_footer?: boolean
-          slug: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          is_published?: boolean
-          meta_description?: string | null
-          meta_title?: string | null
-          show_in_footer?: boolean
-          slug?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       admin_contact_form_settings: {
         Row: {
           allow_attachments: boolean | null
@@ -1674,51 +1635,6 @@ export type Database = {
           site_keywords?: string | null
           site_title?: string
           twitter_handle?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      site_settings: {
-        Row: {
-          created_at: string
-          enable_dark_mode: boolean
-          favicon_url: string | null
-          footer_config: Json
-          header_config: Json
-          id: string
-          logo_url: string | null
-          primary_color: string
-          secondary_color: string
-          site_description: string
-          site_title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          enable_dark_mode?: boolean
-          favicon_url?: string | null
-          footer_config?: Json
-          header_config?: Json
-          id?: string
-          logo_url?: string | null
-          primary_color?: string
-          secondary_color?: string
-          site_description?: string
-          site_title?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          enable_dark_mode?: boolean
-          favicon_url?: string | null
-          footer_config?: Json
-          header_config?: Json
-          id?: string
-          logo_url?: string | null
-          primary_color?: string
-          secondary_color?: string
-          site_description?: string
-          site_title?: string
           updated_at?: string
         }
         Relationships: []

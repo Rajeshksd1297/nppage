@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
 import VisualPageEditor from './VisualPageEditor';
-import AdditionalPagesManager from './AdditionalPagesManager';
-import HeaderFooterEditor from './HeaderFooterEditor';
-import SiteSettingsEditor from './SiteSettingsEditor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -268,7 +265,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages' | 'site-settings'>('visual');
+  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual'>('visual');
   const [liveSync, setLiveSync] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const { toast } = useToast();
@@ -1297,36 +1294,20 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-80 border-r bg-muted/10 flex flex-col">
-          <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header-footer' | 'pages' | 'site-settings')} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 m-4">
-              <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
-              <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
-              <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
-            </TabsList>
-            
-            <TabsList className="grid w-full grid-cols-3 mx-4 mb-4">
-              <TabsTrigger value="header-footer" className="text-xs">Header/Footer</TabsTrigger>
-              <TabsTrigger value="pages" className="text-xs">Pages</TabsTrigger>
-              <TabsTrigger value="site-settings" className="text-xs">Site Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="visual" className="flex-1 overflow-hidden">
-              <div className="p-4">
-                <h3 className="font-medium mb-3">Visual Editor</h3>
-                <p className="text-sm text-muted-foreground mb-4">Use the main editor area for visual editing</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => window.open('/', '_blank')}
-                  className="w-full"
-                >
-                  <Globe className="h-4 w-4 mr-2" />
-                  Open Live Site
-                </Button>
-              </div>
-            </TabsContent>
+      {currentTab === 'visual' ? (
+        <VisualPageEditor onBack={onBack} />
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar */}
+          <div className="w-80 border-r bg-muted/10 flex flex-col">
+            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'sections' | 'editor' | 'settings' | 'preview' | 'visual')} className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-5 m-4">
+                <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
+                <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
+                <TabsTrigger value="editor" className="text-xs">Editor</TabsTrigger>
+                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
+                <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
+              </TabsList>
 
             <TabsContent value="sections" className="flex-1 overflow-hidden">
               <div className="p-4 space-y-4">
@@ -1486,24 +1467,6 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="header-footer" className="flex-1 overflow-hidden">
-              <div className="p-4">
-                <HeaderFooterEditor />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pages" className="flex-1 overflow-hidden">
-              <div className="p-4">
-                <AdditionalPagesManager />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="site-settings" className="flex-1 overflow-hidden">
-              <div className="p-4">
-                <SiteSettingsEditor />
-              </div>
-            </TabsContent>
-
             <TabsContent value="preview" className="flex-1">
               {renderPreview()}
             </TabsContent>
@@ -1512,26 +1475,24 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
 
         {/* Main Editor Area */}
         <div className="flex-1 overflow-hidden">
-          {currentTab === 'visual' ? (
-            <VisualPageEditor onBack={onBack} />
-          ) : currentTab === 'preview' ? (
+          {currentTab === 'preview' ? (
             renderPreview()
           ) : (
             <div className="h-full flex items-center justify-center bg-muted/5">
               <div className="text-center max-w-md">
                 <MousePointer className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Editor</h3>
+                <h3 className="text-lg font-semibold mb-2">Visual Editor</h3>
                 <p className="text-muted-foreground mb-4">
-                  Select sections from the sidebar to edit them, or use the visual tab for drag-and-drop editing.
+                  Select sections from the sidebar to edit them, or use the preview tab to see your changes live.
                 </p>
                 <div className="flex items-center justify-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentTab('visual')}
+                    onClick={() => setCurrentTab('preview')}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Visual Editor
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview Changes
                   </Button>
                   <Button
                     variant="outline"
@@ -1547,6 +1508,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };
