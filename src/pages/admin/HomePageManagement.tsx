@@ -3052,12 +3052,7 @@ const HomePageManagement = () => {
           <Tabs defaultValue="basics" className="w-full">
             <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="basics">SEO Basics</TabsTrigger>
-              <TabsTrigger value="analysis" className="relative">
-                Analysis
-                {seoValidation && (seoValidation.title.valid === false || seoValidation.description.valid === false || seoValidation.keywords.valid === false) && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                )}
-              </TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
               <TabsTrigger value="schema">Schema</TabsTrigger>
               <TabsTrigger value="advanced">Advanced</TabsTrigger>
               <TabsTrigger value="ai-seo">AI SEO</TabsTrigger>
