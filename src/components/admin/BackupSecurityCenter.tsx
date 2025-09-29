@@ -495,16 +495,16 @@ export const BackupSecurityCenter: React.FC = () => {
 
       // Create a blob from the response data
       let blob;
-      let filename = data.filename || `backup-${backupJob.job_type}-${new Date().toISOString().split('T')[0]}.zip`;
+      let filename = data.filename || `backup-${backupJob.job_type}-${new Date().toISOString().split('T')[0]}.txt`;
       
-      if (data.content && data.encoding === 'binary') {
-        // Handle binary ZIP content
-        const uint8Array = new Uint8Array(data.content);
-        blob = new Blob([uint8Array], { type: data.contentType || 'application/zip' });
-      } else if (data.content) {
-        // Handle text content
+      if (data.content) {
+        // Handle text content (comprehensive backup file)
         const contentType = data.contentType || 'text/plain';
         blob = new Blob([data.content], { type: contentType });
+        
+        if (data.filename) {
+          filename = data.filename;
+        }
       } else {
         // Fallback: create a backup info file
         const backupInfo = {
