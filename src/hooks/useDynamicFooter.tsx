@@ -82,17 +82,24 @@ export const useDynamicFooter = () => {
               .eq('show_in_footer', true)
               .order('created_at', { ascending: true });
 
-            if (!pagesError && pagesData) {
+            if (!pagesError && pagesData && pagesData.length > 0) {
               // Add pages to navigation
               footerConfigData.navigation = pagesData.map(page => ({
                 label: page.title,
                 url: `/page/${page.slug}`,
                 external: false
               }));
+              console.log('Footer pages loaded:', footerConfigData.navigation);
+            } else {
+              console.log('No footer pages found or error:', pagesError);
+              footerConfigData.navigation = [];
             }
           } catch (pagesError) {
             console.warn('Could not load additional pages for footer:', pagesError);
+            footerConfigData.navigation = [];
           }
+        } else {
+          footerConfigData.navigation = [];
         }
         
         setFooterConfig(footerConfigData);
