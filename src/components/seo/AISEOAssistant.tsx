@@ -71,6 +71,8 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
       if (data?.error) {
         if (data.error.includes('API key not configured') || data.error.includes('OpenAI API key not configured')) {
           setError('OpenAI API key not configured. Please contact your administrator to set up AI features.');
+        } else if (data.error.includes('insufficient_quota') || data.error.includes('exceeded your current quota')) {
+          setError('OpenAI quota exceeded. Please check your OpenAI billing and usage limits.');
         } else {
           setError(data.error);
         }
@@ -161,6 +163,24 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
                     <li>Go to your <a href="https://supabase.com/dashboard/project/kovlbxzqasqhigygfiyj/settings/functions" target="_blank" rel="noopener noreferrer" className="underline">Supabase Functions Settings</a></li>
                     <li>Add a new secret named <code className="bg-blue-100 px-1 rounded">OPENAI_API_KEY</code></li>
                     <li>Paste your OpenAI API key as the value</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+            
+            {error.includes('quota exceeded') && (
+              <div className="p-4 border border-orange-200 rounded-md bg-orange-50">
+                <h4 className="font-medium text-orange-900 mb-2">OpenAI Usage Limit Reached</h4>
+                <p className="text-sm text-orange-800 mb-3">
+                  You've exceeded your OpenAI API usage quota. This is managed through your OpenAI account.
+                </p>
+                <div className="text-sm text-orange-700 space-y-2">
+                  <p><strong>To resolve this:</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Check your usage at <a href="https://platform.openai.com/usage" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Usage Dashboard</a></li>
+                    <li>Review your billing at <a href="https://platform.openai.com/account/billing" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Billing</a></li>
+                    <li>Add credits or upgrade your plan if needed</li>
+                    <li>Wait for your quota to reset (monthly limits)</li>
                   </ol>
                 </div>
               </div>
