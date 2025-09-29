@@ -1047,7 +1047,7 @@ const HomePageManagement = () => {
                       SEO Analytics Integration
                     </CardTitle>
                     <CardDescription>
-                      Connect your analytics tools
+                      Connect your analytics tools for comprehensive tracking
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1062,11 +1062,6 @@ const HomePageManagement = () => {
                           analytics: { ...prev.analytics, googleAnalytics: e.target.value }
                         }))}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="search-console">Google Search Console</Label>
-                      <Input id="search-console" placeholder="Verification code" />
                     </div>
 
                     <div className="space-y-2">
@@ -1095,6 +1090,14 @@ const HomePageManagement = () => {
                       />
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="hotjar">Hotjar Tracking Code</Label>
+                      <Input
+                        id="hotjar"
+                        placeholder="Hotjar Site ID"
+                      />
+                    </div>
+
                     <Button className="w-full">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Connect Analytics
@@ -1105,11 +1108,149 @@ const HomePageManagement = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Search Console Integration
+                    </CardTitle>
+                    <CardDescription>
+                      Connect to search engines worldwide for comprehensive SEO tracking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Google Search Console */}
+                    <div className="space-y-2">
+                      <Label htmlFor="google-search-console" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-500"></div>
+                        Google Search Console
+                      </Label>
+                      <Input 
+                        id="google-search-console" 
+                        placeholder="google-site-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Dominant in US, EU, most global markets</p>
+                    </div>
+
+                    {/* Bing Webmaster Tools */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bing-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-orange-500"></div>
+                        Bing Webmaster Tools
+                      </Label>
+                      <Input 
+                        id="bing-webmaster" 
+                        placeholder="msvalidate.01=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Important for US market, ~6% search share</p>
+                    </div>
+
+                    {/* Yandex Webmaster */}
+                    <div className="space-y-2">
+                      <Label htmlFor="yandex-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-500"></div>
+                        Yandex Webmaster
+                      </Label>
+                      <Input 
+                        id="yandex-webmaster" 
+                        placeholder="yandex-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Dominant in Russia, CIS countries (~65% in Russia)</p>
+                    </div>
+
+                    {/* Baidu Webmaster */}
+                    <div className="space-y-2">
+                      <Label htmlFor="baidu-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-600"></div>
+                        Baidu Webmaster Tools
+                      </Label>
+                      <Input 
+                        id="baidu-webmaster" 
+                        placeholder="baidu-site-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Dominant in China (~76% market share)</p>
+                    </div>
+
+                    <Button className="w-full">
+                      <Globe className="h-4 w-4 mr-2" />
+                      Verify All Search Consoles
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Additional Search Engines by Region */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Regional Search Engines
+                    </CardTitle>
+                    <CardDescription>
+                      Connect to regional search engines for local market optimization
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Naver - South Korea */}
+                    <div className="space-y-2">
+                      <Label htmlFor="naver-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-green-500"></div>
+                        Naver Search Advisor (Korea)
+                      </Label>
+                      <Input 
+                        id="naver-webmaster" 
+                        placeholder="naver-site-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">~75% market share in South Korea</p>
+                    </div>
+
+                    {/* Seznam - Czech Republic */}
+                    <div className="space-y-2">
+                      <Label htmlFor="seznam-webmaster" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-600"></div>
+                        Seznam Webmaster (Czech Republic)
+                      </Label>
+                      <Input 
+                        id="seznam-webmaster" 
+                        placeholder="seznam-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">~50% market share in Czech Republic</p>
+                    </div>
+
+                    {/* DuckDuckGo */}
+                    <div className="space-y-2">
+                      <Label htmlFor="duckduckgo" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-orange-600"></div>
+                        DuckDuckGo (Privacy-focused)
+                      </Label>
+                      <Input 
+                        id="duckduckgo" 
+                        placeholder="duckduckgo-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Growing privacy-conscious user base</p>
+                    </div>
+
+                    {/* Qwant - France */}
+                    <div className="space-y-2">
+                      <Label htmlFor="qwant" className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-700"></div>
+                        Qwant (France)
+                      </Label>
+                      <Input 
+                        id="qwant" 
+                        placeholder="qwant-verification=xxxxx" 
+                      />
+                      <p className="text-xs text-muted-foreground">Popular privacy-focused search in France</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5" />
                       SEO Performance Metrics
                     </CardTitle>
                     <CardDescription>
-                      Track your SEO progress
+                      Track your SEO progress across all search engines
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1135,25 +1276,206 @@ const HomePageManagement = () => {
                     <Separator />
 
                     <div className="space-y-3">
-                      <h4 className="font-medium">Top Performing Keywords</h4>
+                      <h4 className="font-medium">Search Engine Performance</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">web design</span>
-                          <Badge variant="secondary">#3</Badge>
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-blue-500"></div>
+                            Google
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">892 clicks</span>
+                            <p className="text-xs text-green-600">+12%</p>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">responsive design</span>
-                          <Badge variant="secondary">#7</Badge>
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-orange-500"></div>
+                            Bing
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">124 clicks</span>
+                            <p className="text-xs text-green-600">+8%</p>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">ui ux design</span>
-                          <Badge variant="secondary">#12</Badge>
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-red-500"></div>
+                            Yandex
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">67 clicks</span>
+                            <p className="text-xs text-yellow-600">+2%</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 rounded bg-blue-600"></div>
+                            Baidu
+                          </span>
+                          <div className="text-right">
+                            <span className="text-sm font-medium">45 clicks</span>
+                            <p className="text-xs text-green-600">+15%</p>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    <Button className="w-full" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      View Detailed Analytics
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Search Engine Market Share Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Global Search Engine Market Share by Region
+                  </CardTitle>
+                  <CardDescription>
+                    Understanding search engine dominance by geographic region
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🌍 Global Average</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">91.9%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">3.0%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Yahoo</span>
+                          <span className="font-medium">1.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">3.9%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇷🇺 Russia</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Yandex</span>
+                          <span className="font-medium">65.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">32.3%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mail.ru</span>
+                          <span className="font-medium">1.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">0.7%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇨🇳 China</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Baidu</span>
+                          <span className="font-medium">76.1%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sogou</span>
+                          <span className="font-medium">15.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Shenma</span>
+                          <span className="font-medium">4.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">3.9%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇰🇷 South Korea</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Naver</span>
+                          <span className="font-medium">74.7%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">20.9%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Daum</span>
+                          <span className="font-medium">3.2%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">1.2%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇨🇿 Czech Republic</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Seznam</span>
+                          <span className="font-medium">49.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">47.1%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">1.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Others</span>
+                          <span className="font-medium">1.3%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">🇺🇸 United States</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Google</span>
+                          <span className="font-medium">87.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bing</span>
+                          <span className="font-medium">6.4%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Yahoo</span>
+                          <span className="font-medium">2.8%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>DuckDuckGo</span>
+                          <span className="font-medium">2.3%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="social" className="space-y-6 mt-6">
