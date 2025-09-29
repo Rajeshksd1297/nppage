@@ -727,7 +727,7 @@ const HomePageManagement = () => {
               <h3 className="font-medium text-sm">Analytics Time Period</h3>
               <p className="text-xs text-muted-foreground">Choose the time range for your analytics data</p>
             </div>
-            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <Label className="text-sm text-muted-foreground">Period:</Label>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -740,6 +740,7 @@ const HomePageManagement = () => {
                     <SelectItem value="month">This Month</SelectItem>
                     <SelectItem value="year">This Year</SelectItem>
                     <SelectItem value="lifetime">All Time</SelectItem>
+                    <SelectItem value="custom-date">📅 Custom Date Range</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -757,25 +758,9 @@ const HomePageManagement = () => {
                   Export {selectedPeriod === 'hours' ? '6H' : 
                           selectedPeriod === 'day' ? 'Today' :
                           selectedPeriod === 'month' ? 'Month' :
-                          selectedPeriod === 'year' ? 'Year' : 'All'} Data
+                          selectedPeriod === 'year' ? 'Year' : 
+                          selectedPeriod === 'custom-date' ? 'Custom' : 'All'} Data
                 </Button>
-                
-                <Select onValueChange={(value) => handleExportData(value)}>
-                  <SelectTrigger className="w-36 h-9 bg-background border shadow-sm">
-                    <SelectValue placeholder="Export specific..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border shadow-lg z-50">
-                    <SelectItem value="current-month">Current Month</SelectItem>
-                    <SelectItem value="last-month">Last Month</SelectItem>
-                    <SelectItem value="current-year">Current Year</SelectItem>
-                    <SelectItem value="last-year">Last Year</SelectItem>
-                    <SelectItem value="q1">Q1 {new Date().getFullYear()}</SelectItem>
-                    <SelectItem value="q2">Q2 {new Date().getFullYear()}</SelectItem>
-                    <SelectItem value="q3">Q3 {new Date().getFullYear()}</SelectItem>
-                    <SelectItem value="q4">Q4 {new Date().getFullYear()}</SelectItem>
-                    <SelectItem value="custom">Custom Range...</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
