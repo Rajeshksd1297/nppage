@@ -150,6 +150,10 @@ const HomePageManagement = () => {
     conversionRate: 3.2,
     pageLoadTime: 1.8
   });
+  const [homeSections, setHomeSections] = useState([]);
+  const [seoSettings, setSeoSettings] = useState({});
+  const [cookieSettings, setCookieSettings] = useState({});
+  const [backupStatus, setBackupStatus] = useState('up-to-date');
 
   // Mock data for analytics with different time periods
   const getAnalyticsDataByPeriod = (period: string) => {
@@ -238,10 +242,71 @@ const HomePageManagement = () => {
   useEffect(() => {
     fetchHeroBlocks();
     fetchSiteSettings();
+    fetchHomeSections();
     setupRealtimeTracking();
     simulateOnlineVisitors();
     setupAutoRefresh();
   }, []);
+
+  // Fetch home page sections from database
+  const fetchHomeSections = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('home_page_sections')
+        .select('*')
+        .order('order_index', { ascending: true });
+      
+      if (error) throw error;
+      setHomeSections(data || []);
+    } catch (error) {
+      console.error('Error fetching home sections:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch home page sections",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Save home page sections to database
+  const saveHomeSections = async (sections: any[]) => {
+    try {
+      // Clear existing sections first
+      const { error: deleteError } = await supabase
+        .from('home_page_sections')
+        .delete()
+        .neq('id', 'never-match');
+      
+      if (deleteError) throw deleteError;
+
+      // Insert new sections
+      const { error: insertError } = await supabase
+        .from('home_page_sections')
+        .insert(sections.map((section, index) => ({
+          type: section.type,
+          title: section.title,
+          enabled: section.enabled,
+          order_index: index,
+          config: section.config
+        })));
+
+      if (insertError) throw insertError;
+      
+      toast({
+        title: "Success",
+        description: "Home page sections saved successfully"
+      });
+      
+      fetchHomeSections();
+    } catch (error) {
+      console.error('Error saving home sections:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to save home page sections",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Setup auto-refresh functionality
   useEffect(() => {
@@ -347,7 +412,7 @@ const HomePageManagement = () => {
       const {
         data,
         error
-      } = await supabase.from('hero_blocks').select('*').order('order', {
+      } = await supabase.from('hero_blocks').select('*').order('created_at', {
         ascending: true
       });
       if (error) throw error;

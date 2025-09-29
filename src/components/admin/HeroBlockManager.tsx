@@ -51,8 +51,8 @@ interface HeroBlock {
   id: string;
   name: string;
   description: string;
-  preview_image: string;
-  enabled_for_authors: boolean;
+  preview_image_url?: string;
+  enabled: boolean;
   config: any;
   created_at: string;
   updated_at: string;
@@ -198,7 +198,7 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
   const handleToggleEnabled = (blockId: string) => {
     const updatedBlocks = heroBlocks.map(block =>
       block.id === blockId
-        ? { ...block, enabled_for_authors: !block.enabled_for_authors }
+        ? { ...block, enabled: !block.enabled }
         : block
     );
     onUpdate(updatedBlocks);
@@ -213,8 +213,8 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
       id: selectedBlock?.id || Date.now().toString(),
       name: selectedBlock?.name || 'New Hero Block',
       description: selectedBlock?.description || 'Custom hero block',
-      preview_image: '/api/placeholder/400/200',
-      enabled_for_authors: selectedBlock?.enabled_for_authors ?? true,
+      preview_image_url: '/api/placeholder/400/200',
+      enabled: selectedBlock?.enabled ?? true,
       config: { elements: heroElements },
       created_at: selectedBlock?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -344,8 +344,8 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
-                    checked={selectedBlock?.enabled_for_authors ?? true}
-                    onCheckedChange={(checked) => setSelectedBlock(prev => prev ? { ...prev, enabled_for_authors: checked } : null)}
+                    checked={selectedBlock?.enabled ?? true}
+                    onCheckedChange={(checked) => setSelectedBlock(prev => prev ? { ...prev, enabled: checked } : null)}
                   />
                   <Label>Enable for authors</Label>
                 </div>
@@ -793,8 +793,8 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
                 <div>
                   <CardTitle className="text-lg">{block.name}</CardTitle>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant={block.enabled_for_authors ? 'default' : 'secondary'}>
-                      {block.enabled_for_authors ? 'Enabled' : 'Disabled'}
+                    <Badge variant={block.enabled ? 'default' : 'secondary'}>
+                      {block.enabled ? 'Enabled' : 'Disabled'}
                     </Badge>
                   </div>
                 </div>
@@ -823,7 +823,7 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Switch
-                    checked={block.enabled_for_authors}
+                    checked={block.enabled}
                     onCheckedChange={() => handleToggleEnabled(block.id)}
                   />
                   <Label className="text-sm">Enable for authors</Label>

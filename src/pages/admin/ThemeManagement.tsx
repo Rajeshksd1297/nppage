@@ -68,8 +68,8 @@ interface HeroBlock {
   id: string;
   name: string;
   description: string;
-  preview_image: string;
-  enabled_for_authors: boolean;
+  preview_image_url?: string;
+  enabled: boolean;
   config: any;
   created_at: string;
   updated_at: string;
@@ -195,8 +195,8 @@ export default function ThemeManagement() {
         id: '1',
         name: 'Minimal Hero',
         description: 'Clean and simple hero section with centered text',
-        preview_image: '/api/placeholder/400/200',
-        enabled_for_authors: true,
+        preview_image_url: '/api/placeholder/400/200',
+        enabled: true,
         config: {
           layout: 'centered',
           background: 'gradient',
@@ -210,8 +210,8 @@ export default function ThemeManagement() {
         id: '2',
         name: 'Split Screen Hero',
         description: 'Hero with image on one side and content on the other',
-        preview_image: '/api/placeholder/400/200',
-        enabled_for_authors: false,
+        preview_image_url: '/api/placeholder/400/200',
+        enabled: false,
         config: {
           layout: 'split',
           background: 'image',
@@ -225,8 +225,8 @@ export default function ThemeManagement() {
         id: '3',
         name: 'Video Background Hero',
         description: 'Hero section with video background and overlay text',
-        preview_image: '/api/placeholder/400/200',
-        enabled_for_authors: true,
+        preview_image_url: '/api/placeholder/400/200',
+        enabled: true,
         config: {
           layout: 'fullscreen',
           background: 'video',
@@ -444,7 +444,7 @@ export default function ThemeManagement() {
               <CardContent>
                 <div className="text-2xl font-bold">{heroBlocks.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {heroBlocks.filter(h => h.enabled_for_authors).length} enabled for authors
+                  {heroBlocks.filter(h => h.enabled).length} enabled for authors
                 </p>
               </CardContent>
             </Card>
