@@ -221,20 +221,70 @@ export const DynamicHomePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-          <p className="text-muted-foreground">Loading your website...</p>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-6 p-8">
+          <div className="relative">
+            <div className="animate-spin h-12 w-12 border-3 border-primary/30 border-t-primary rounded-full mx-auto"></div>
+            <div className="absolute inset-0 animate-ping h-12 w-12 border border-primary/20 rounded-full mx-auto"></div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-foreground">Loading your website...</p>
+            <p className="text-sm text-muted-foreground">Fetching brand settings and content</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Apply brand colors to CSS variables
+  useEffect(() => {
+    if (siteSettings) {
+      const root = document.documentElement;
+      // Convert hex to HSL for CSS variables
+      const hexToHsl = (hex: string) => {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+          h = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+            default: h = 0;
+          }
+          h /= 6;
+        }
+        
+        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+      };
+      
+      if (siteSettings.primary_color) {
+        root.style.setProperty('--primary', hexToHsl(siteSettings.primary_color));
+      }
+      if (siteSettings.secondary_color) {
+        root.style.setProperty('--secondary', hexToHsl(siteSettings.secondary_color));
+      }
+    }
+  }, [siteSettings]);
+
   const pageTitle = siteSettings?.site_title || "AuthorPage - Professional Author Profiles & Book Showcases";
   const pageDescription = siteSettings?.site_description || "Create stunning author profiles, showcase your books, and grow your readership with our professional author platform.";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/10" 
+         style={{
+           '--brand-primary': siteSettings?.primary_color,
+           '--brand-secondary': siteSettings?.secondary_color
+         } as React.CSSProperties}>
       <SEOHead
         title={pageTitle}
         description={pageDescription}
@@ -244,14 +294,14 @@ export const DynamicHomePage: React.FC = () => {
         image={siteSettings?.logo_url || "/hero-authors-workspace.jpg"}
       />
 
-      {/* Dynamic Header */}
+      {/* Dynamic Header with Brand Identity */}
       <DynamicHeader 
         config={siteSettings?.header_config} 
         siteTitle={siteSettings?.site_title}
         logoUrl={siteSettings?.logo_url}
       />
 
-      {/* Hero Blocks */}
+      {/* Hero Blocks with Enhanced Styling */}
       {heroBlocks.map((heroBlock) => (
         <DynamicHeroBlock
           key={heroBlock.id}
@@ -261,28 +311,48 @@ export const DynamicHomePage: React.FC = () => {
         />
       ))}
 
-      {/* Dynamic Sections */}
-      {sections.map((section) => (
-        <DynamicSection
-          key={section.id}
-          type={section.type}
-          title={section.title}
-          config={section.config}
-          books={section.type === 'book_showcase' ? books : undefined}
-        />
-      ))}
+      {/* Dynamic Sections with Brand Theming */}
+      <main className="relative">
+        {sections.map((section, index) => (
+          <DynamicSection
+            key={section.id}
+            type={section.type}
+            title={section.title}
+            config={section.config}
+            books={section.type === 'book_showcase' ? books : undefined}
+          />
+        ))}
 
-      {/* Default content if no sections exist */}
-      {sections.length === 0 && (
-        <div className="container mx-auto px-6 py-24 text-center">
-          <h2 className="text-3xl font-bold mb-4">Welcome to Your Author Platform</h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Your home page is ready to be customized. Visit the admin dashboard to add sections and content.
-          </p>
-        </div>
-      )}
+        {/* Default Welcome Section if no sections exist */}
+        {sections.length === 0 && (
+          <section className="py-24 px-6">
+            <div className="container mx-auto text-center max-w-4xl">
+              <div className="space-y-8 animate-fade-in">
+                <div className="space-y-4">
+                  <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Welcome to Your Author Platform
+                  </h1>
+                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Your professional author website is ready to showcase your work. 
+                    Customize your brand identity and add compelling content through the admin dashboard.
+                  </p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <div className="px-6 py-3 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20">
+                    🎨 Brand Identity Ready
+                  </div>
+                  <div className="px-6 py-3 bg-muted text-muted-foreground rounded-full text-sm font-medium">
+                    📝 Add Content to Get Started
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
 
-      {/* Dynamic Footer */}
+      {/* Dynamic Footer with Brand Integration */}
       <DynamicFooter 
         config={siteSettings?.footer_config}
         siteTitle={siteSettings?.site_title}
