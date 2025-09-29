@@ -60,6 +60,7 @@ interface HeroBlock {
 
 interface HeroBlockManagerProps {
   heroBlocks: HeroBlock[];
+  selectedBlock?: HeroBlock | null;
   onBack: () => void;
   onUpdate: (blocks: HeroBlock[]) => void;
 }
@@ -137,10 +138,10 @@ function SortableHeroElement({ element, onUpdate, onRemove }: {
   );
 }
 
-export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockManagerProps) {
+export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }: HeroBlockManagerProps) {
   const { toast } = useToast();
-  const [currentView, setCurrentView] = useState<'list' | 'designer'>('list');
-  const [selectedBlock, setSelectedBlock] = useState<HeroBlock | null>(null);
+  const [currentView, setCurrentView] = useState<'list' | 'designer'>(selectedBlock ? 'designer' : 'list');
+  const [selectedBlockState, setSelectedBlockState] = useState<HeroBlock | null>(selectedBlock || null);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   
   const [heroElements, setHeroElements] = useState<HeroElement[]>([
@@ -175,12 +176,12 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
   );
 
   const handleCreateBlock = () => {
-    setSelectedBlock(null);
+    setSelectedBlockState(null);
     setCurrentView('designer');
   };
 
   const handleEditBlock = (block: HeroBlock) => {
-    setSelectedBlock(block);
+    setSelectedBlockState(block);
     setCurrentView('designer');
   };
 
@@ -210,18 +211,18 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
 
   const handleSaveBlock = () => {
     const blockData = {
-      id: selectedBlock?.id || Date.now().toString(),
-      name: selectedBlock?.name || 'New Hero Block',
-      description: selectedBlock?.description || 'Custom hero block',
+      id: selectedBlockState?.id || Date.now().toString(),
+      name: selectedBlockState?.name || 'New Hero Block',
+      description: selectedBlockState?.description || 'Custom hero block',
       preview_image_url: '/api/placeholder/400/200',
-      enabled: selectedBlock?.enabled ?? true,
+      enabled: selectedBlockState?.enabled ?? true,
       config: { elements: heroElements },
-      created_at: selectedBlock?.created_at || new Date().toISOString(),
+      created_at: selectedBlockState?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     let updatedBlocks;
-    if (selectedBlock) {
+    if (selectedBlockState) {
       updatedBlocks = heroBlocks.map(b => b.id === blockData.id ? blockData : b);
     } else {
       updatedBlocks = [...heroBlocks, blockData];
@@ -305,7 +306,7 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
             <div>
               <h1 className="text-2xl font-bold">Hero Block Designer</h1>
               <p className="text-muted-foreground">
-                {selectedBlock ? `Editing: ${selectedBlock.name}` : 'Create a new hero block'}
+                {selectedBlockState ? `Editing: ${selectedBlockState.name}` : 'Create a new hero block'}
               </p>
             </div>
           </div>
@@ -327,8 +328,8 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
                   <Label htmlFor="blockName">Block Name</Label>
                   <Input
                     id="blockName"
-                    value={selectedBlock?.name || ''}
-                    onChange={(e) => setSelectedBlock(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    value={selectedBlockState?.name || ''}
+                    onChange={(e) => setSelectedBlockState(prev => prev ? { ...prev, name: e.target.value } : null)}
                     placeholder="Enter block name"
                   />
                 </div>
@@ -344,8 +345,8 @@ export function HeroBlockManager({ heroBlocks, onBack, onUpdate }: HeroBlockMana
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
-                    checked={selectedBlock?.enabled ?? true}
-                    onCheckedChange={(checked) => setSelectedBlock(prev => prev ? { ...prev, enabled: checked } : null)}
+                    checked={selectedBlockState?.enabled ?? true}
+                    onCheckedChange={(checked) => setSelectedBlockState(prev => prev ? { ...prev, enabled: checked } : null)}
                   />
                   <Label>Enable for authors</Label>
                 </div>

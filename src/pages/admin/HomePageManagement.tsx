@@ -88,6 +88,8 @@ const HomePageManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentView, setCurrentView] = useState('overview');
+  const [heroManagerView, setHeroManagerView] = useState<'list' | 'editor'>('list');
+  const [selectedHeroBlock, setSelectedHeroBlock] = useState<HeroBlock | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: '',
     siteDescription: '',
@@ -736,7 +738,9 @@ const HomePageManagement = () => {
       });
 
       // Navigate to editor
-      setCurrentView('hero-designer');
+      setSelectedHeroBlock(data);
+      setHeroManagerView('editor');
+      setActiveTab('hero');
 
     } catch (error) {
       console.error('Error creating hero from template:', error);
@@ -852,8 +856,10 @@ const HomePageManagement = () => {
   };
 
   const editHeroBlock = (block: any) => {
-    // Navigate to hero block designer with this block
-    setCurrentView('hero-designer');
+    // Set the selected block and switch to editor view
+    setSelectedHeroBlock(block);
+    setHeroManagerView('editor');
+    setActiveTab('hero'); // Ensure we're on the hero tab
     toast({
       title: "Editing Hero Block",
       description: `Opening editor for ${block.name}`,
@@ -2019,305 +2025,285 @@ const HomePageManagement = () => {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Sync Blocks
               </Button>
-              <Button onClick={() => setCurrentView('hero-designer')}>
+              <Button onClick={() => {
+                setSelectedHeroBlock(null);
+                setHeroManagerView('editor');
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Hero Block
               </Button>
             </div>
           </div>
 
-          {/* Hero Block Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Blocks</CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{heroBlocks.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Hero blocks available
-                </p>
-              </CardContent>
-            </Card>
+          {heroManagerView === 'editor' ? (
+            <HeroBlockManager
+              heroBlocks={heroBlocks}
+              selectedBlock={selectedHeroBlock}
+              onBack={() => {
+                setHeroManagerView('list');
+                setSelectedHeroBlock(null);
+              }}
+              onUpdate={(updatedBlocks) => {
+                setHeroBlocks(updatedBlocks);
+                setHeroManagerView('list');
+                setSelectedHeroBlock(null);
+              }}
+            />
+          ) : (
+            <>
+              {/* Hero Block Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Hero Blocks</CardTitle>
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{heroBlocks.length}</div>
+                    <p className="text-xs text-muted-foreground">+2 from last week</p>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Blocks</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{heroBlocks.filter(h => h.enabled).length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Currently enabled
-                </p>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Blocks</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{heroBlocks.filter(b => b.enabled).length}</div>
+                    <p className="text-xs text-muted-foreground">Currently enabled</p>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Templates</CardTitle>
-                <Layout className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{heroTemplates.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Available templates
-                </p>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Usage Count</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {heroBlocks.reduce((acc, block) => acc + (block.config?.usage_count || 0), 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Total uses</p>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Performance</CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">98%</div>
-                <p className="text-xs text-muted-foreground">
-                  Loading speed score
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Hero Block Templates */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Hero Block Templates
-              </CardTitle>
-              <CardDescription>
-                Choose from pre-designed templates or create custom blocks
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {heroTemplates.map((template) => (
-                  <Card key={template.id} className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/50">
-                    <CardContent className="p-0">
-                      {/* Preview Image */}
-                      <div className="relative h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-t-lg overflow-hidden">
-                        {template.preview_image_url ? (
-                          <img 
-                            src={template.preview_image_url} 
-                            alt={template.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full">
-                            <template.icon className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="absolute top-2 right-2">
-                          <Badge variant={template.category === 'premium' ? 'default' : 'secondary'} className="text-xs">
-                            {template.category}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      {/* Template Info */}
-                      <div className="p-4">
-                        <h4 className="font-semibold mb-1">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
-                        
-                        {/* Features */}
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {template.features.map((feature, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => createHeroFromTemplate(template)}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Use Template
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => previewTemplate(template)}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Default Block</CardTitle>
+                    <Award className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {heroBlocks.filter(b => b.config?.isDefault).length > 0 ? '1' : '0'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Default set</p>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Existing Hero Blocks */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Your Hero Blocks
-              </CardTitle>
-              <CardDescription>
-                Manage your custom hero blocks
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-24 bg-muted animate-pulse rounded" />
-                  ))}
-                </div>
-              ) : heroBlocks.length === 0 ? (
-                <div className="text-center py-12">
-                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
-                  <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
-                  <Button onClick={() => setCurrentView('hero-designer')}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Hero Block
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {heroBlocks.map((block) => (
-                    <Card key={block.id} className="group hover:shadow-md transition-all duration-200">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-4 flex-1">
-                            {/* Block Preview */}
-                            <div className="w-20 h-16 bg-gradient-to-br from-primary/10 to-accent/10 rounded flex items-center justify-center flex-shrink-0">
-                              {block.preview_image_url ? (
-                                <img 
-                                  src={block.preview_image_url} 
-                                  alt={block.name}
-                                  className="w-full h-full object-cover rounded"
-                                />
-                              ) : (
-                                <Star className="h-6 w-6 text-muted-foreground" />
-                              )}
-                            </div>
-                            
-                            {/* Block Info */}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h4 className="font-semibold">{block.name}</h4>
-                                <Badge variant={block.enabled ? 'default' : 'secondary'} className="text-xs">
-                                  {block.enabled ? 'Active' : 'Disabled'}
-                                </Badge>
-                                {block.config?.isDefault && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Default
-                                  </Badge>
-                                )}
+              {/* Hero Block Templates */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layout className="h-5 w-5" />
+                    Hero Block Templates
+                  </CardTitle>
+                  <CardDescription>Choose from pre-designed templates or create custom blocks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      {
+                        id: 'modern-minimal',
+                        name: 'Modern Minimal',
+                        description: 'Clean, minimal design with centered content',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'centered', style: 'minimal' }
+                      },
+                      {
+                        id: 'split-screen',
+                        name: 'Split Screen Hero',
+                        description: 'Text on one side, image on the other',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'split', style: 'modern' }
+                      },
+                      {
+                        id: 'video-background',
+                        name: 'Video Background',
+                        description: 'Hero with background video and overlay text',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'overlay', style: 'video' }
+                      },
+                      {
+                        id: 'carousel-hero',
+                        name: 'Carousel Hero',
+                        description: 'Multiple slides with navigation',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'carousel', style: 'dynamic' }
+                      },
+                      {
+                        id: 'book-showcase',
+                        name: 'Book Showcase',
+                        description: 'Perfect for displaying featured books',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'showcase', style: 'book-focused' }
+                      },
+                      {
+                        id: 'author-intro',
+                        name: 'Author Introduction',
+                        description: 'Professional author presentation',
+                        preview: '/api/placeholder/300/180',
+                        config: { layout: 'intro', style: 'professional' }
+                      }
+                    ].map((template) => (
+                      <Card key={template.id} className="group hover:shadow-md transition-all cursor-pointer">
+                        <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                          <img 
+                            src={template.preview} 
+                            alt={template.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold mb-1">{template.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => previewTemplate(template)}>
+                              <Eye className="h-3 w-3 mr-1" />
+                              Preview
+                            </Button>
+                            <Button size="sm" onClick={() => createHeroFromTemplate(template)}>
+                              <Plus className="h-3 w-3 mr-1" />
+                              Use Template
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Existing Hero Blocks */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Existing Hero Blocks
+                  </CardTitle>
+                  <CardDescription>Manage your current hero blocks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="grid grid-cols-1 gap-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+                      ))}
+                    </div>
+                  ) : heroBlocks.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
+                      <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
+                      <Button onClick={() => {
+                        setSelectedHeroBlock(null);
+                        setHeroManagerView('editor');
+                      }}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create First Hero Block
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {heroBlocks.map((block) => (
+                        <Card key={block.id} className="group hover:shadow-md transition-all duration-200">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                                  <Layout className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-lg">{block.name}</h3>
+                                  <p className="text-muted-foreground text-sm">{block.description}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant={block.enabled ? "default" : "secondary"}>
+                                      {block.enabled ? 'Active' : 'Inactive'}
+                                    </Badge>
+                                    {block.config?.isDefault && (
+                                      <Badge variant="outline">Default</Badge>
+                                    )}
+                                    <span className="text-xs text-muted-foreground">
+                                      Created {new Date(block.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">{block.description}</p>
                               
-                              {/* Block Stats */}
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>Created: {new Date(block.created_at).toLocaleDateString()}</span>
-                                <span>Updated: {new Date(block.updated_at).toLocaleDateString()}</span>
-                                {block.config?.usage_count && (
-                                  <span>Used: {block.config.usage_count} times</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Block Actions */}
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => previewHeroBlock(block)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => editHeroBlock(block)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => duplicateHeroBlock(block)}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => toggleHeroBlock(block.id)}
-                            >
-                              {block.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => deleteHeroBlock(block.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Advanced Controls */}
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
                               <div className="flex items-center gap-2">
-                                <Switch 
-                                  checked={block.enabled}
-                                  onCheckedChange={() => toggleHeroBlock(block.id)}
-                                  className="scale-75"
-                                />
-                                <span className="text-sm">Enable Block</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => previewHeroBlock(block)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => editHeroBlock(block)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => duplicateHeroBlock(block)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => toggleHeroBlock(block.id)}
+                                >
+                                  {block.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => deleteHeroBlock(block.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                
+                                {block.config?.usage_count && (
+                                  <div className="text-xs text-muted-foreground ml-2">
+                                    Used {block.config.usage_count} times
+                                  </div>
+                                )}
+                                
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setAsDefaultHero(block.id)}
+                                  disabled={block.config?.isDefault}
+                                >
+                                  {block.config?.isDefault ? 'Default' : 'Set as Default'}
+                                </Button>
                               </div>
-                              {block.config?.hasAnimation && (
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    <MousePointer className="h-3 w-3 mr-1" />
-                                    Animated
-                                  </Badge>
-                                </div>
-                              )}
-                              {block.config?.responsive && (
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    <Monitor className="h-3 w-3 mr-1" />
-                                    Responsive
-                                  </Badge>
-                                </div>
-                              )}
                             </div>
-                            
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setAsDefaultHero(block.id)}
-                              disabled={block.config?.isDefault}
-                            >
-                              {block.config?.isDefault ? 'Default' : 'Set as Default'}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
