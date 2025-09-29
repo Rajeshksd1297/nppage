@@ -3,6 +3,7 @@ import VisualPageEditor from './VisualPageEditor';
 import HeaderEditorVisual from './HeaderEditorVisual';
 import FooterEditorVisual from './FooterEditorVisual';
 import AdditionalPagesEditor from './AdditionalPagesEditor';
+import PageSettings from './PageSettings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -1538,14 +1539,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
           </div>
         </div>
       ) : currentTab === 'settings' ? (
-        <div className="flex-1 overflow-auto p-6">
-          <div className="space-y-4">
-            <h3 className="font-medium">Page Settings</h3>
-            <div className="text-sm text-muted-foreground">
-              Global page settings and configurations will be available here.
-            </div>
-          </div>
-        </div>
+        <PageSettings />
       ) : currentTab === 'preview' ? (
         <div className="flex-1 overflow-hidden">
           {renderPreview()}
