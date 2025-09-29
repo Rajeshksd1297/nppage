@@ -90,7 +90,8 @@ export const DynamicHomePage: React.FC = () => {
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     if (error) {
       console.error('Error loading site settings:', error);
@@ -99,32 +100,16 @@ export const DynamicHomePage: React.FC = () => {
 
     console.log('Site settings loaded:', data);
     if (data && data.length > 0) {
-      // Find the first record that has a valid site_title, or use the most recent one
-      let settings = data.find(s => s.site_title && s.site_title.trim() !== '') || data[0];
-      
-      // Ensure we have valid values, use defaults if needed
-      if (!settings.site_title || settings.site_title.trim() === '') {
-        settings.site_title = 'AuthorPage';
-      }
-      if (!settings.site_description || settings.site_description.trim() === '') {
-        settings.site_description = 'Professional author profiles and book showcases';
-      }
-      if (!settings.primary_color) {
-        settings.primary_color = '#3b82f6';
-      }
-      if (!settings.secondary_color) {
-        settings.secondary_color = '#64748b';
-      }
-      
+      const settings = data[0];
       console.log('Using site settings:', settings);
       setSiteSettings(settings);
     } else {
-      console.log('No site settings found, creating defaults');
-      // Create default settings if none exist
+      console.log('No site settings found, using defaults');
+      // Use defaults if no settings exist
       setSiteSettings({
         id: 'default',
-        site_title: 'AuthorPage',
-        site_description: 'Professional author profiles and book showcases',
+        site_title: 'AuthorPage - Professional Author Platform',
+        site_description: 'Create stunning author profiles, showcase your books, and grow your readership with our professional author platform.',
         logo_url: null,
         favicon_url: null,
         primary_color: '#3b82f6',
