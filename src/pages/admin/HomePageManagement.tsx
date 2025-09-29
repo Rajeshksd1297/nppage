@@ -21,6 +21,7 @@ import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
 import AISEOAssistant from '@/components/seo/AISEOAssistant';
+import { BackupSecurityTab } from '@/components/admin/BackupSecurityTab';
 // Import Chart.js components if needed in the future
 interface HeroBlock {
   id: string;
