@@ -39,13 +39,49 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
 
   useEffect(() => {
     fetchPages();
+    setupRealtimeListener();
   }, []);
+
+  const setupRealtimeListener = () => {
+    const channel = supabase
+      .channel('additional-pages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'additional_pages'
+        },
+        () => {
+          fetchPages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const fetchPages = async () => {
     try {
       setLoading(true);
-      // Using mock data for now since table doesn't exist yet
-      setPages([]);
+      const { data, error } = await supabase
+        .from('additional_pages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching pages:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load additional pages",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setPages(data || []);
     } catch (error) {
       console.error('Error fetching pages:', error);
       toast({
@@ -60,29 +96,49 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
 
   const handleSavePage = async (pageData: Partial<AdditionalPage>) => {
     try {
-      // Mock implementation - will be implemented with database
-      const newPage: AdditionalPage = {
-        id: Date.now().toString(),
-        title: pageData.title || '',
-        slug: pageData.slug || '',
-        content: pageData.content || '',
-        meta_title: pageData.meta_title,
-        meta_description: pageData.meta_description,
-        is_published: pageData.is_published || false,
-        show_in_footer: pageData.show_in_footer || true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
       if (editingPage?.id) {
-        setPages(prev => prev.map(page => 
-          page.id === editingPage.id ? { ...newPage, id: editingPage.id } : page
-        ));
+        // Update existing page - preserve current published status if not explicitly changed
+        const updateData = {
+          title: pageData.title || '',
+          slug: pageData.slug || '',
+          content: pageData.content || '',
+          meta_title: pageData.meta_title,
+          meta_description: pageData.meta_description,
+          is_published: pageData.is_published ?? editingPage.is_published, // Preserve existing status
+          show_in_footer: pageData.show_in_footer ?? true
+        };
+
+        const { error } = await supabase
+          .from('additional_pages')
+          .update(updateData)
+          .eq('id', editingPage.id);
+
+        if (error) throw error;
+
         toast({ title: "Success", description: "Page updated successfully" });
       } else {
-        setPages(prev => [newPage, ...prev]);
+        // Create new page
+        const insertData = {
+          title: pageData.title || '',
+          slug: pageData.slug || '',
+          content: pageData.content || '',
+          meta_title: pageData.meta_title,
+          meta_description: pageData.meta_description,
+          is_published: pageData.is_published || false,
+          show_in_footer: pageData.show_in_footer ?? true
+        };
+
+        const { error } = await supabase
+          .from('additional_pages')
+          .insert([insertData]);
+
+        if (error) throw error;
+
         toast({ title: "Success", description: "Page created successfully" });
       }
+      
+      // Refresh the pages list
+      await fetchPages();
       
       setEditingPage(null);
       setIsCreating(false);
@@ -101,7 +157,16 @@ const AdditionalPagesEditor = ({ onSave }: AdditionalPagesEditorProps) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
 
     try {
-      setPages(prev => prev.filter(page => page.id !== id));
+      const { error } = await supabase
+        .from('additional_pages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Refresh the pages list
+      await fetchPages();
+      
       toast({
         title: "Success",
         description: "Page deleted successfully",
@@ -293,7 +358,7 @@ const PageEditor = ({ page, onSave, onCancel, generateSlug }: PageEditorProps) =
     content: page?.content || '',
     meta_title: page?.meta_title || '',
     meta_description: page?.meta_description || '',
-    is_published: page?.is_published || false,
+    is_published: page?.is_published ?? false, // Use nullish coalescing to preserve false values
     show_in_footer: page?.show_in_footer ?? true
   });
 
