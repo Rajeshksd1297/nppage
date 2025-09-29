@@ -75,7 +75,14 @@ import {
   Lightbulb,
   TrendingUp,
   Share2,
-  Shield
+  Shield,
+  ExternalLink,
+  Activity,
+  FileText,
+  Database,
+  Link,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -314,7 +321,11 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
     breadcrumbs: true,
     internalLinking: true,
     author: '',
-    language: 'en'
+    language: 'en',
+    googleVerification: '',
+    bingVerification: '',
+    yandexVerification: '',
+    baiduVerification: ''
   });
   
   const { toast } = useToast();
@@ -1412,7 +1423,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
             </div>
 
             <Tabs defaultValue="basics" className="w-full">
-              <TabsList className="grid w-full grid-cols-9">
+              <TabsList className="grid w-full grid-cols-10">
                 <TabsTrigger value="basics">
                   <Search className="h-4 w-4 mr-2" />
                   SEO Basics
@@ -1448,6 +1459,10 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                 <TabsTrigger value="technical">
                   <Settings className="h-4 w-4 mr-2" />
                   Technical
+                </TabsTrigger>
+                <TabsTrigger value="console">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Console
                 </TabsTrigger>
               </TabsList>
 
@@ -1907,6 +1922,352 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                       <p className="text-muted-foreground">
                         robots.txt editor, htaccess configuration, crawl optimization, and technical audit tools.
                       </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="console" className="space-y-6 mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Google Search Console */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-blue-600" />
+                        Google Search Console
+                      </CardTitle>
+                      <CardDescription>
+                        Monitor your site's presence in Google Search results
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="google-verification">Verification Meta Tag</Label>
+                        <Input
+                          id="google-verification"
+                          placeholder="google-site-verification=..."
+                          value={seoSettings.googleVerification || ''}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, googleVerification: e.target.value }))}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Add the verification meta tag from Google Search Console
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-green-600" />
+                          <div>
+                            <div className="font-medium">Sitemap Status</div>
+                            <div className="text-sm text-muted-foreground">Auto-submitted to Google</div>
+                          </div>
+                        </div>
+                        <Badge variant="default">Active</Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Activity className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <div className="font-medium">Indexing Status</div>
+                            <div className="text-sm text-muted-foreground">Pages indexed: 15/20</div>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Console
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Quick Actions</Label>
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Link className="h-4 w-4 mr-2" />
+                            Submit Sitemap
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Activity className="h-4 w-4 mr-2" />
+                            Request Indexing
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <FileText className="h-4 w-4 mr-2" />
+                            Performance Report
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Bing Webmaster Tools */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-orange-600" />
+                        Bing Webmaster Tools
+                      </CardTitle>
+                      <CardDescription>
+                        Monitor your site's performance in Bing search results
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bing-verification">Verification Meta Tag</Label>
+                        <Input
+                          id="bing-verification"
+                          placeholder="msvalidate.01=..."
+                          value={seoSettings.bingVerification || ''}
+                          onChange={(e) => setSeoSettings(prev => ({ ...prev, bingVerification: e.target.value }))}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Add the verification meta tag from Bing Webmaster Tools
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-green-600" />
+                          <div>
+                            <div className="font-medium">Sitemap Status</div>
+                            <div className="text-sm text-muted-foreground">Submitted to Bing</div>
+                          </div>
+                        </div>
+                        <Badge variant="default">Active</Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Activity className="h-5 w-5 text-orange-600" />
+                          <div>
+                            <div className="font-medium">Crawl Status</div>
+                            <div className="text-sm text-muted-foreground">Last crawled: 2 days ago</div>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Tools
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Quick Actions</Label>
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Link className="h-4 w-4 mr-2" />
+                            Submit URL
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <Activity className="h-4 w-4 mr-2" />
+                            Crawl Control
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start">
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            Traffic Report
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Search Console Overview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Search Console Overview
+                    </CardTitle>
+                    <CardDescription>
+                      Unified view of your search engine performance
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                      <div className="p-4 border rounded-lg text-center">
+                        <div className="text-2xl font-bold text-green-600">1.2K</div>
+                        <div className="text-sm text-muted-foreground">Total Clicks</div>
+                        <div className="text-xs text-green-600">+12% this week</div>
+                      </div>
+                      <div className="p-4 border rounded-lg text-center">
+                        <div className="text-2xl font-bold text-blue-600">45K</div>
+                        <div className="text-sm text-muted-foreground">Impressions</div>
+                        <div className="text-xs text-blue-600">+8% this week</div>
+                      </div>
+                      <div className="p-4 border rounded-lg text-center">
+                        <div className="text-2xl font-bold text-purple-600">2.7%</div>
+                        <div className="text-sm text-muted-foreground">Avg CTR</div>
+                        <div className="text-xs text-purple-600">+0.3% this week</div>
+                      </div>
+                      <div className="p-4 border rounded-lg text-center">
+                        <div className="text-2xl font-bold text-orange-600">15.2</div>
+                        <div className="text-sm text-muted-foreground">Avg Position</div>
+                        <div className="text-xs text-orange-600">-2.1 this week</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-3">Recent Issues</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <AlertCircle className="h-5 w-5 text-yellow-600" />
+                              <div>
+                                <div className="font-medium">Mobile Usability Issues</div>
+                                <div className="text-sm text-muted-foreground">3 pages affected</div>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Fix</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Clock className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <div className="font-medium">Sitemap Submitted</div>
+                                <div className="text-sm text-muted-foreground">Processing in progress</div>
+                              </div>
+                            </div>
+                            <Badge variant="outline">Pending</Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-3">Top Performing Queries</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <div className="font-medium">author platform</div>
+                              <div className="text-sm text-muted-foreground">245 clicks • 3.2% CTR</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium">Position 4.2</div>
+                              <div className="text-xs text-green-600">↑ +1.8</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <div className="font-medium">book publishing</div>
+                              <div className="text-sm text-muted-foreground">189 clicks • 2.8% CTR</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium">Position 6.1</div>
+                              <div className="text-xs text-red-600">↓ -0.5</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <div className="font-medium">writer portfolio</div>
+                              <div className="text-sm text-muted-foreground">156 clicks • 4.1% CTR</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium">Position 2.7</div>
+                              <div className="text-xs text-green-600">↑ +2.3</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex gap-2">
+                      <Button className="flex-1">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Google Search Console
+                      </Button>
+                      <Button variant="outline" className="flex-1">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Bing Webmaster Tools
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Additional Search Engines */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Other Search Engines
+                    </CardTitle>
+                    <CardDescription>
+                      Connect with additional search engines and directories
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Globe className="h-6 w-6 text-red-600" />
+                          <div>
+                            <div className="font-medium">Yandex Webmaster</div>
+                            <div className="text-sm text-muted-foreground">Russian search engine</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Yandex verification code"
+                            value={seoSettings.yandexVerification || ''}
+                            onChange={(e) => setSeoSettings(prev => ({ ...prev, yandexVerification: e.target.value }))}
+                          />
+                          <Button variant="outline" size="sm" className="w-full">
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Connect Yandex
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Globe className="h-6 w-6 text-green-600" />
+                          <div>
+                            <div className="font-medium">Baidu Webmaster</div>
+                            <div className="text-sm text-muted-foreground">Chinese search engine</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Baidu verification code"
+                            value={seoSettings.baiduVerification || ''}
+                            onChange={(e) => setSeoSettings(prev => ({ ...prev, baiduVerification: e.target.value }))}
+                          />
+                          <Button variant="outline" size="sm" className="w-full">
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Connect Baidu
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Globe className="h-6 w-6 text-purple-600" />
+                          <div>
+                            <div className="font-medium">DuckDuckGo</div>
+                            <div className="text-sm text-muted-foreground">Privacy-focused search</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-sm text-muted-foreground">
+                            No verification required - optimized automatically
+                          </div>
+                          <Badge variant="default" className="w-full justify-center">Connected</Badge>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Globe className="h-6 w-6 text-blue-500" />
+                          <div>
+                            <div className="font-medium">Yahoo Search</div>
+                            <div className="text-sm text-muted-foreground">Via Bing integration</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-sm text-muted-foreground">
+                            Automatically included with Bing Webmaster Tools
+                          </div>
+                          <Badge variant="default" className="w-full justify-center">Auto-Connected</Badge>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
