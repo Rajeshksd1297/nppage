@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { PublicPagesList } from '@/components/PublicPagesList';
 import { 
   BookOpen, 
   User, 
@@ -118,6 +119,8 @@ export const DynamicSection: React.FC<DynamicSectionProps> = ({
         return renderTestimonials();
       case 'stats':
         return renderStats();
+      case 'public_pages':
+        return renderPublicPages();
       default:
         return renderGenericSection();
     }
@@ -448,6 +451,30 @@ export const DynamicSection: React.FC<DynamicSectionProps> = ({
       {config.content && (
         <div className="prose prose-lg mx-auto" dangerouslySetInnerHTML={{ __html: config.content }} />
       )}
+    </div>
+  );
+
+  const renderPublicPages = () => (
+    <div className="space-y-8">
+      {config.title && (
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
+            {config.title}
+          </h2>
+          {config.subtitle && (
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              {config.subtitle}
+            </p>
+          )}
+        </div>
+      )}
+      
+      <PublicPagesList 
+        maxPages={config.maxPages || 6}
+        showDescription={config.showDescription !== false}
+        layout={config.layout || 'grid'}
+        className="mt-12"
+      />
     </div>
   );
 

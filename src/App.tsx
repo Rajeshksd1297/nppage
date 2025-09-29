@@ -66,6 +66,7 @@ import FaqSettings from "./pages/admin/FaqSettings";
 import HomePageManagement from "./pages/admin/HomePageManagement";
 import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
+import PublicPage from "./pages/PublicPage";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -103,6 +104,7 @@ function App() {
           <ThemeProvider>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/page/:slug" element={<PublicPage />} />
             <Route path="/landing" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={
