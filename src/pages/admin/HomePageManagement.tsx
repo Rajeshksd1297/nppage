@@ -138,6 +138,10 @@ const HomePageManagement = () => {
   // Real-time analytics state
   const [onlineVisitors, setOnlineVisitors] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState('day');
+  const [refreshInterval, setRefreshInterval] = useState(5); // Default 5 minutes
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const [realtimeStats, setRealtimeStats] = useState({
     pageViews: 1247,
     uniqueVisitors: 892,
@@ -236,7 +240,60 @@ const HomePageManagement = () => {
     fetchSiteSettings();
     setupRealtimeTracking();
     simulateOnlineVisitors();
+    setupAutoRefresh();
   }, []);
+
+  // Setup auto-refresh functionality
+  useEffect(() => {
+    if (!isAutoRefreshing || refreshInterval === 0) return;
+
+    const intervalMs = refreshInterval * 60 * 1000; // Convert minutes to milliseconds
+    setNextRefresh(new Date(Date.now() + intervalMs));
+
+    const interval = setInterval(() => {
+      refreshAnalyticsData();
+      setLastRefresh(new Date());
+      setNextRefresh(new Date(Date.now() + intervalMs));
+    }, intervalMs);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [refreshInterval, isAutoRefreshing]);
+
+  // Update countdown display every second
+  useEffect(() => {
+    if (!isAutoRefreshing || !nextRefresh) return;
+
+    const updateCountdown = setInterval(() => {
+      // Force re-render to update countdown display
+      setLastRefresh(prev => new Date(prev.getTime()));
+    }, 1000);
+
+    return () => clearInterval(updateCountdown);
+  }, [isAutoRefreshing, nextRefresh]);
+
+  const setupAutoRefresh = () => {
+    const initialRefreshTime = new Date(Date.now() + refreshInterval * 60 * 1000);
+    setNextRefresh(initialRefreshTime);
+  };
+
+  const refreshAnalyticsData = () => {
+    // Simulate refreshing analytics data
+    setRealtimeStats(prev => ({
+      pageViews: prev.pageViews + Math.floor(Math.random() * 20) + 5,
+      uniqueVisitors: prev.uniqueVisitors + Math.floor(Math.random() * 10) + 2,
+      bounceRate: Math.max(20, Math.min(40, prev.bounceRate + (Math.random() - 0.5) * 3)),
+      avgSessionTime: Math.max(120, Math.min(200, prev.avgSessionTime + (Math.random() - 0.5) * 15)),
+      conversionRate: Math.max(2, Math.min(5, prev.conversionRate + (Math.random() - 0.5) * 0.3)),
+      pageLoadTime: Math.max(1.2, Math.min(2.5, prev.pageLoadTime + (Math.random() - 0.5) * 0.15))
+    }));
+    
+    toast({
+      title: "Data Refreshed",
+      description: "Analytics data has been updated successfully",
+    });
+  };
   
   // Setup realtime tracking for analytics
   const setupRealtimeTracking = () => {
@@ -528,14 +585,84 @@ const HomePageManagement = () => {
               <p className="text-muted-foreground">Comprehensive view of your website's performance and management</p>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={refreshAnalyticsData}
+                disabled={!isAutoRefreshing}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Now
+              </Button>
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
-              <Button>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Data
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {isAutoRefreshing && nextRefresh && (
+                  <>
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      Next refresh: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Auto-Refresh Configuration */}
+          <div className="flex items-center justify-between bg-background border rounded-lg p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={isAutoRefreshing}
+                  onCheckedChange={setIsAutoRefreshing}
+                  className="scale-90"
+                />
+                <span className="text-sm font-medium">Auto-refresh</span>
+              </div>
+              
+              {isAutoRefreshing && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-muted-foreground">Interval:</Label>
+                  <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
+                    <SelectTrigger className="w-28 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 min</SelectItem>
+                      <SelectItem value="5">5 min</SelectItem>
+                      <SelectItem value="15">15 min</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                      <SelectItem value="360">6 hours</SelectItem>
+                      <SelectItem value="720">12 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-green-500" />
+                <span>Last refresh: {lastRefresh.toLocaleTimeString()}</span>
+              </div>
+              
+              {isAutoRefreshing && nextRefresh && (
+                <div className="flex items-center gap-2">
+                  <Timer className="h-4 w-4 text-blue-500" />
+                  <span>
+                    Next in: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))} minutes
+                  </span>
+                </div>
+              )}
+              
+              {!isAutoRefreshing && (
+                <div className="flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Manual refresh only</span>
+                </div>
+              )}
             </div>
           </div>
 
