@@ -640,99 +640,57 @@ const HomePageManagement = () => {
               <p className="text-muted-foreground">Comprehensive view of your website's performance and management</p>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => handleExportData(selectedPeriod)}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
               <Button 
-                variant="outline" 
                 onClick={refreshAnalyticsData}
                 disabled={!isAutoRefreshing}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh Now
               </Button>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {isAutoRefreshing && nextRefresh && (
-                  <>
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      Next refresh: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m
-                    </span>
-                  </>
-                )}
-              </div>
             </div>
           </div>
 
-          {/* Auto-Refresh Configuration */}
-          <div className="flex items-center justify-between bg-background border rounded-lg p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+          {/* Unified Controls */}
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
+              
+              {/* Auto-refresh controls */}
+              <div className="flex items-center gap-3">
                 <Switch
                   checked={isAutoRefreshing}
                   onCheckedChange={setIsAutoRefreshing}
                   className="scale-90"
                 />
-                <span className="text-sm font-medium">Auto-refresh</span>
+                <div className="text-sm">
+                  <span className="font-medium">Auto-refresh</span>
+                  {isAutoRefreshing && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
+                        <SelectTrigger className="w-20 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          <SelectItem value="1">1m</SelectItem>
+                          <SelectItem value="5">5m</SelectItem>
+                          <SelectItem value="15">15m</SelectItem>
+                          <SelectItem value="60">1h</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              {isAutoRefreshing && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground">Interval:</Label>
-                  <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
-                    <SelectTrigger className="w-28 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 min</SelectItem>
-                      <SelectItem value="5">5 min</SelectItem>
-                      <SelectItem value="15">15 min</SelectItem>
-                      <SelectItem value="60">1 hour</SelectItem>
-                      <SelectItem value="360">6 hours</SelectItem>
-                      <SelectItem value="720">12 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-green-500" />
-                <span>Last refresh: {lastRefresh.toLocaleTimeString()}</span>
-              </div>
-              
-              {isAutoRefreshing && nextRefresh && (
-                <div className="flex items-center gap-2">
-                  <Timer className="h-4 w-4 text-blue-500" />
-                  <span>
-                    Next in: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))} minutes
-                  </span>
-                </div>
-              )}
-              
-              {!isAutoRefreshing && (
-                <div className="flex items-center gap-2 text-orange-600">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>Manual refresh only</span>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Time Period Selector & Export */}
-          <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg">
-            <div>
-              <h3 className="font-medium text-sm">Analytics Time Period</h3>
-              <p className="text-xs text-muted-foreground">Choose the time range for your analytics data</p>
-            </div>
-              <div className="flex items-center gap-3">
+              {/* Time period selector */}
               <div className="flex items-center gap-2">
                 <Label className="text-sm text-muted-foreground">Period:</Label>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger className="w-32 h-9 bg-background border shadow-sm">
-                    <SelectValue placeholder="Select period" />
+                  <SelectTrigger className="w-36 h-9 bg-background border shadow-sm">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="hours">Last 6 Hours</SelectItem>
@@ -740,27 +698,29 @@ const HomePageManagement = () => {
                     <SelectItem value="month">This Month</SelectItem>
                     <SelectItem value="year">This Year</SelectItem>
                     <SelectItem value="lifetime">All Time</SelectItem>
-                    <SelectItem value="custom-date">📅 Custom Date Range</SelectItem>
+                    <SelectItem value="custom-date">📅 Custom Range</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
-              <Separator orientation="vertical" className="h-6" />
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleExportData(selectedPeriod)}
-                  className="h-9 text-xs"
-                >
-                  <Download className="h-3 w-3 mr-2" />
-                  Export {selectedPeriod === 'hours' ? '6H' : 
-                          selectedPeriod === 'day' ? 'Today' :
-                          selectedPeriod === 'month' ? 'Month' :
-                          selectedPeriod === 'year' ? 'Year' : 
-                          selectedPeriod === 'custom-date' ? 'Custom' : 'All'} Data
-                </Button>
+
+              {/* Status info */}
+              <div className="text-sm text-muted-foreground">
+                {isAutoRefreshing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Last: {lastRefresh.toLocaleTimeString()}</span>
+                    {nextRefresh && (
+                      <span className="ml-2">
+                        Next: {Math.max(0, Math.ceil((nextRefresh.getTime() - Date.now()) / 1000 / 60))}m
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-orange-600">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Manual refresh only</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
