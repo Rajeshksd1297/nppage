@@ -58,11 +58,14 @@ export const useDynamicFooter = () => {
 
       if (error) {
         console.error('Error loading footer config:', error);
-        toast({
-          title: "Loading Error",
-          description: "Could not load footer configuration.",
-          variant: "destructive"
-        });
+        // Only show toast for actual errors, not missing data
+        if (error.code !== 'PGRST116') {
+          toast({
+            title: "Loading Error",
+            description: "Could not load footer configuration.",
+            variant: "destructive"
+          });
+        }
         return;
       }
 
@@ -71,7 +74,7 @@ export const useDynamicFooter = () => {
         setFooterConfig(footerConfigData);
         setSiteTitle(data.site_title || "AuthorPage");
       } else {
-        // Default configuration if no settings exist
+        // Default configuration if no settings exist - this is normal, not an error
         setFooterConfig({
           copyright: `© ${new Date().getFullYear()} AuthorPage. All rights reserved.`,
           showPages: false,
@@ -81,12 +84,14 @@ export const useDynamicFooter = () => {
           contact: {},
           navigation: []
         });
+        setSiteTitle("AuthorPage");
       }
     } catch (error) {
       console.error('Error loading footer config:', error);
+      // Only show toast for unexpected errors
       toast({
-        title: "Loading Error",
-        description: "Could not load footer configuration.",
+        title: "Loading Error", 
+        description: "An unexpected error occurred while loading footer settings.",
         variant: "destructive"
       });
     } finally {

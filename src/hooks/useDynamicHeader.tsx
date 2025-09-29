@@ -50,11 +50,14 @@ export const useDynamicHeader = () => {
 
       if (error) {
         console.error('Error loading header config:', error);
-        toast({
-          title: "Loading Error",
-          description: "Could not load header configuration.",
-          variant: "destructive"
-        });
+        // Only show toast for actual errors, not missing data
+        if (error.code !== 'PGRST116') {
+          toast({
+            title: "Loading Error",
+            description: "Could not load header configuration.",
+            variant: "destructive"
+          });
+        }
         return;
       }
 
@@ -64,7 +67,7 @@ export const useDynamicHeader = () => {
         setSiteTitle(data.site_title || "AuthorPage");
         setLogoUrl(data.logo_url);
       } else {
-        // Default configuration if no settings exist
+        // Default configuration if no settings exist - this is normal, not an error
         setHeaderConfig({
           showLogo: true,
           showLogin: true,
@@ -72,12 +75,14 @@ export const useDynamicHeader = () => {
           showSearch: false,
           showDarkMode: true
         });
+        setSiteTitle("AuthorPage");
       }
     } catch (error) {
       console.error('Error loading header config:', error);
+      // Only show toast for unexpected errors
       toast({
         title: "Loading Error",
-        description: "Could not load header configuration.",
+        description: "An unexpected error occurred while loading header settings.",
         variant: "destructive"
       });
     } finally {
