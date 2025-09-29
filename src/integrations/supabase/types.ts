@@ -668,6 +668,135 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_categories: {
+        Row: {
+          created_at: string
+          description: string
+          display_name: string
+          id: string
+          is_enabled: boolean | null
+          is_required: boolean | null
+          name: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_name: string
+          id?: string
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          name: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_name?: string
+          id?: string
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          name?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cookie_consent_log: {
+        Row: {
+          accepted_categories: Json | null
+          consent_action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          rejected_categories: Json | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accepted_categories?: Json | null
+          consent_action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          rejected_categories?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accepted_categories?: Json | null
+          consent_action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          rejected_categories?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      cookie_settings: {
+        Row: {
+          accept_all_button_text: string | null
+          auto_hide_after: number | null
+          banner_message: string | null
+          banner_position: string | null
+          banner_title: string | null
+          consent_mode: string | null
+          created_at: string
+          id: string
+          primary_color: string | null
+          privacy_policy_url: string | null
+          reject_all_button_text: string | null
+          save_preferences_text: string | null
+          settings_button_text: string | null
+          show_banner: boolean | null
+          theme: string | null
+          updated_at: string
+        }
+        Insert: {
+          accept_all_button_text?: string | null
+          auto_hide_after?: number | null
+          banner_message?: string | null
+          banner_position?: string | null
+          banner_title?: string | null
+          consent_mode?: string | null
+          created_at?: string
+          id?: string
+          primary_color?: string | null
+          privacy_policy_url?: string | null
+          reject_all_button_text?: string | null
+          save_preferences_text?: string | null
+          settings_button_text?: string | null
+          show_banner?: boolean | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accept_all_button_text?: string | null
+          auto_hide_after?: number | null
+          banner_message?: string | null
+          banner_position?: string | null
+          banner_title?: string | null
+          consent_mode?: string | null
+          created_at?: string
+          id?: string
+          primary_color?: string | null
+          privacy_policy_url?: string | null
+          reject_all_button_text?: string | null
+          save_preferences_text?: string | null
+          settings_button_text?: string | null
+          show_banner?: boolean | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_domains: {
         Row: {
           created_at: string
