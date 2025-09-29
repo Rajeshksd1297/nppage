@@ -337,8 +337,8 @@ export function HeroBlockManager({ heroBlocks, selectedBlock, onBack, onUpdate }
                   <Label htmlFor="blockDescription">Description</Label>
                   <Textarea
                     id="blockDescription"
-                    value={selectedBlock?.description || ''}
-                    onChange={(e) => setSelectedBlock(prev => prev ? { ...prev, description: e.target.value } : null)}
+                    value={selectedBlockState?.description || ''}
+                    onChange={(e) => setSelectedBlockState(prev => prev ? { ...prev, description: e.target.value } : null)}
                     placeholder="Enter block description"
                     rows={2}
                   />
