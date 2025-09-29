@@ -1886,7 +1886,9 @@ const HomePageManagement = () => {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>;
   }
-  return <div className="container mx-auto p-6 space-y-6">
+  return (
+    <>
+      <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-bold flex items-center gap-2 text-xl">
@@ -3268,24 +3270,6 @@ const HomePageManagement = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-                          <h4 className="font-medium">Build quality backlinks</h4>
-                          <p className="text-sm text-muted-foreground">Get links from reputable websites</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium">Mobile optimization</h4>
-                          <p className="text-sm text-muted-foreground">Ensure your site works great on mobile</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6 mt-6">
               <SEOAnalyzer 
@@ -6195,6 +6179,8 @@ const HomePageManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
+
 export default HomePageManagement;
