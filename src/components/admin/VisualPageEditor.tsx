@@ -68,12 +68,24 @@ interface HomeSection {
 
 interface VisualPageEditorProps {
   onBack?: () => void;
+  sections?: HomeSection[];
+  onAddSection?: (type: any) => void;
+  onEditSection?: (section: HomeSection) => void;
+  previewMode?: 'desktop' | 'tablet' | 'mobile';
+  onPreviewModeChange?: (mode: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
-const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
+const VisualPageEditor = ({ 
+  onBack, 
+  sections: externalSections, 
+  onAddSection, 
+  onEditSection, 
+  previewMode: externalPreviewMode = 'desktop',
+  onPreviewModeChange
+}: VisualPageEditorProps) => {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [editingSection, setEditingSection] = useState<HomeSection | null>(null);
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>(externalPreviewMode);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,8 +96,19 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchSections();
-  }, []);
+    if (externalSections) {
+      setSections(externalSections);
+      setLoading(false);
+    } else {
+      fetchSections();
+    }
+  }, [externalSections]);
+
+  useEffect(() => {
+    if (externalPreviewMode) {
+      setPreviewMode(externalPreviewMode);
+    }
+  }, [externalPreviewMode]);
 
   const fetchSections = async () => {
     try {
@@ -428,7 +451,7 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => setEditingSection(section)}
+                onClick={() => onEditSection ? onEditSection(section) : setEditingSection(section)}
                 className="h-7 w-7 p-0 shadow-md"
                 title="Edit"
               >
@@ -1101,7 +1124,7 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
         
         <div className="flex items-center space-x-2">
           <Button
-            onClick={() => setShowAddPanel(true)}
+            onClick={() => onAddSection ? onAddSection('hero') : setShowAddPanel(true)}
             size="sm"
             className="flex items-center space-x-2"
           >
@@ -1119,35 +1142,6 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
             <span>Settings</span>
           </Button>
 
-          <div className="flex items-center border rounded-lg p-1">
-            <Button
-              variant={previewMode === 'desktop' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setPreviewMode('desktop')}
-              className="h-8 w-8 p-0"
-              title="Desktop View"
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={previewMode === 'tablet' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setPreviewMode('tablet')}
-              className="h-8 w-8 p-0"
-              title="Tablet View"
-            >
-              <Tablet className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={previewMode === 'mobile' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setPreviewMode('mobile')}
-              className="h-8 w-8 p-0"
-              title="Mobile View"
-            >
-              <Smartphone className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
 
