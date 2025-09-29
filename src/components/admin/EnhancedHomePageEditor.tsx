@@ -1298,7 +1298,53 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
 
       {/* Main Content */}
       {currentTab === 'visual' ? (
-        <VisualPageEditor onBack={onBack} />
+        <div className="flex flex-1 overflow-hidden">
+          {/* Visual Editor with integrated tabs */}
+          <div className="flex-1">
+            <div className="border-b bg-background p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <h2 className="text-lg font-semibold">Visual Page Editor</h2>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setCurrentTab('header')}
+                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                      Header
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('footer')}
+                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                      Footer
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('additional-pages')}
+                      className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                      Additional Pages
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentTab('sections')}
+                    className="px-3 py-1 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                  >
+                    Manage Sections
+                  </button>
+                  <button
+                    onClick={() => setCurrentTab('settings')}
+                    className="px-3 py-1 text-sm border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                  >
+                    Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+            <VisualPageEditor onBack={onBack} />
+          </div>
+        </div>
       ) : (
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
