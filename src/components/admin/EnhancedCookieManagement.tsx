@@ -15,7 +15,7 @@ import {
   AlertTriangle, BarChart3, Trash2, Plus, Edit, Monitor,
   Smartphone, Globe, RefreshCw, Download, Calendar, Clock
 } from 'lucide-react';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
+// Removed Chart.js imports - using placeholder content instead
 
 interface CookieCategory {
   id: string;
@@ -434,26 +434,9 @@ export const EnhancedCookieManagement: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {analytics?.dailyConsent && (
-                  <Line
-                    data={{
-                      labels: analytics.dailyConsent.labels,
-                      datasets: [{
-                        label: 'Daily Consents',
-                        data: analytics.dailyConsent.data,
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: { beginAtZero: true }
-                      }
-                    }}
-                    height={200}
-                  />
+                  <div className="h-[200px] flex items-center justify-center border rounded-lg bg-muted">
+                    <p className="text-muted-foreground">Daily consent trend chart will be displayed here</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -662,24 +645,9 @@ export const EnhancedCookieManagement: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {analytics && (
-                  <Doughnut
-                    data={{
-                      labels: ['Accepted All', 'Rejected All', 'Custom'],
-                      datasets: [{
-                        data: [
-                          analytics.totalVisitors * (analytics.consentRate / 100),
-                          analytics.totalVisitors * (analytics.rejectionRate / 100),
-                          analytics.totalVisitors * ((100 - analytics.consentRate - analytics.rejectionRate) / 100)
-                        ],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false
-                    }}
-                    height={250}
-                  />
+                  <div className="h-[250px] flex items-center justify-center border rounded-lg bg-muted">
+                    <p className="text-muted-foreground">Consent distribution chart will be displayed here</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -691,26 +659,9 @@ export const EnhancedCookieManagement: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {analytics?.categoryStats && (
-                  <Bar
-                    data={{
-                      labels: categories.map(cat => cat.display_name),
-                      datasets: [{
-                        label: 'Accepted',
-                        data: categories.map(cat => analytics.categoryStats[cat.name]?.accepted || 0),
-                        backgroundColor: '#10b981'
-                      }, {
-                        label: 'Rejected',
-                        data: categories.map(cat => analytics.categoryStats[cat.name]?.rejected || 0),
-                        backgroundColor: '#ef4444'
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: { y: { beginAtZero: true } }
-                    }}
-                    height={250}
-                  />
+                  <div className="h-[250px] flex items-center justify-center border rounded-lg bg-muted">
+                    <p className="text-muted-foreground">Category performance chart will be displayed here</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
