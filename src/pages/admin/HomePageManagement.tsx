@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
-import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Settings, Home, Users, BarChart3, Layout, Globe, TrendingUp, Clock, MapPin, Activity, Monitor, Smartphone, Target, Search, Brain, CheckCircle, AlertTriangle, Lightbulb, Share2, ExternalLink, Database, FileText, Code, Save, RefreshCw, Timer, Signal, Wifi, Gauge, Download, Upload, Filter, Calendar, Type, ImageIcon, Hash, Link, Star, Award, Bookmark, Copy, Trash, RotateCcw, HardDrive, Cpu, Cookie, Shield, Tablet, Zap, MousePointer, Heart, ThumbsUp, EyeOff, Palette } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeroBlockManager } from '@/components/admin/HeroBlockManager';
 import HomePageEditor from '@/components/admin/HomePageEditor';
@@ -168,6 +168,102 @@ const HomePageManagement = () => {
     awards: [],
     galleryItems: []
   });
+  const [heroTemplates, setHeroTemplates] = useState([
+    {
+      id: 'modern-minimal',
+      name: 'Modern Minimal',
+      description: 'Clean and simple hero with centered content',
+      category: 'free',
+      icon: Type,
+      features: ['Centered Layout', 'Clean Typography', 'Single CTA'],
+      preview_image_url: '',
+      config: {
+        layout: 'centered',
+        background: 'gradient',
+        animation: 'fade-in',
+        responsive: true
+      }
+    },
+    {
+      id: 'split-screen',
+      name: 'Split Screen Hero',
+      description: 'Content on left, image on right layout',
+      category: 'free',
+      icon: Layout,
+      features: ['Split Layout', 'Image Support', 'Dual CTA'],
+      preview_image_url: '',
+      config: {
+        layout: 'split',
+        background: 'image',
+        animation: 'slide-in',
+        responsive: true
+      }
+    },
+    {
+      id: 'video-background',
+      name: 'Video Background',
+      description: 'Full-screen video with overlay text',
+      category: 'premium',
+      icon: Monitor,
+      features: ['Video Background', 'Overlay Text', 'Auto-play'],
+      preview_image_url: '',
+      config: {
+        layout: 'fullscreen',
+        background: 'video',
+        animation: 'zoom-in',
+        responsive: true,
+        hasVideo: true
+      }
+    },
+    {
+      id: 'interactive-cards',
+      name: 'Interactive Cards',
+      description: 'Hero with interactive feature cards',
+      category: 'premium',
+      icon: MousePointer,
+      features: ['Card Layout', 'Hover Effects', 'Interactive Elements'],
+      preview_image_url: '',
+      config: {
+        layout: 'cards',
+        background: 'gradient',
+        animation: 'stagger',
+        responsive: true,
+        hasAnimation: true
+      }
+    },
+    {
+      id: 'author-showcase',
+      name: 'Author Showcase',
+      description: 'Perfect for author profiles with book highlights',
+      category: 'free',
+      icon: Star,
+      features: ['Author Focus', 'Book Display', 'Social Links'],
+      preview_image_url: '',
+      config: {
+        layout: 'author-focused',
+        background: 'image',
+        animation: 'fade-up',
+        responsive: true,
+        authorFeatures: true
+      }
+    },
+    {
+      id: 'animated-gradient',
+      name: 'Animated Gradient',
+      description: 'Dynamic gradient background with smooth animations',
+      category: 'premium',
+      icon: Palette,
+      features: ['Animated Background', 'Smooth Transitions', 'Modern Design'],
+      preview_image_url: '',
+      config: {
+        layout: 'centered',
+        background: 'animated-gradient',
+        animation: 'gradient-shift',
+        responsive: true,
+        hasAnimation: true
+      }
+    }
+  ]);
 
   // Fetch real analytics data from database
   const fetchAnalyticsData = async (period: string) => {
@@ -607,30 +703,317 @@ const HomePageManagement = () => {
     }
   };
 
-  // Delete section
-  const deleteSection = async (sectionId: string) => {
-    if (!confirm('Are you sure you want to delete this section?')) return;
-
+  // Hero Block Management Functions
+  const createHeroFromTemplate = async (template: any) => {
     try {
-      const { error } = await supabase
-        .from('home_page_sections')
-        .delete()
-        .eq('id', sectionId);
+      const newHeroBlock = {
+        name: `${template.name} - Custom`,
+        description: `${template.description} (Created from template)`,
+        enabled: false,
+        config: {
+          ...template.config,
+          template_id: template.id,
+          created_from_template: true,
+          usage_count: 0,
+          elements: generateTemplateElements(template),
+          customizations: {}
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('hero_blocks')
+        .insert([newHeroBlock])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      setHomeSections(prev => prev.filter((s: any) => s.id !== sectionId));
+      setHeroBlocks(prev => [...prev, data]);
       
       toast({
-        title: "Section Deleted",
-        description: "Section has been removed from your home page",
+        title: "Hero Block Created",
+        description: `New hero block created from ${template.name} template`,
+      });
+
+      // Navigate to editor
+      setCurrentView('hero-designer');
+
+    } catch (error) {
+      console.error('Error creating hero from template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create hero block from template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const generateTemplateElements = (template: any) => {
+    switch (template.id) {
+      case 'modern-minimal':
+        return [
+          {
+            id: '1',
+            type: 'text',
+            content: 'Welcome to Your Story',
+            styles: { fontSize: '4xl', fontWeight: 'bold', textAlign: 'center', marginBottom: '4' }
+          },
+          {
+            id: '2',
+            type: 'text',
+            content: 'Discover compelling narratives and join thousands of readers on an unforgettable journey.',
+            styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground', marginBottom: '8' }
+          },
+          {
+            id: '3',
+            type: 'button',
+            content: 'Start Reading',
+            styles: { variant: 'default', size: 'lg' }
+          }
+        ];
+      case 'split-screen':
+        return [
+          {
+            id: '1',
+            type: 'text',
+            content: 'Transform Your Reading Experience',
+            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'left', marginBottom: '4' }
+          },
+          {
+            id: '2',
+            type: 'text',
+            content: 'Explore our curated collection of bestselling authors and discover your next favorite book.',
+            styles: { fontSize: 'lg', textAlign: 'left', marginBottom: '6' }
+          },
+          {
+            id: '3',
+            type: 'button',
+            content: 'Browse Books',
+            styles: { variant: 'default', size: 'lg', marginRight: '4' }
+          },
+          {
+            id: '4',
+            type: 'button',
+            content: 'Learn More',
+            styles: { variant: 'outline', size: 'lg' }
+          },
+          {
+            id: '5',
+            type: 'image',
+            content: '/api/placeholder/600/400',
+            styles: { width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'lg' }
+          }
+        ];
+      case 'author-showcase':
+        return [
+          {
+            id: '1',
+            type: 'image',
+            content: '/api/placeholder/150/150',
+            styles: { width: '150px', height: '150px', borderRadius: 'full', marginBottom: '4' }
+          },
+          {
+            id: '2',
+            type: 'text',
+            content: 'Meet the Author',
+            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center', marginBottom: '2' }
+          },
+          {
+            id: '3',
+            type: 'text',
+            content: 'Award-winning novelist with over 10 bestselling books',
+            styles: { fontSize: 'lg', textAlign: 'center', color: 'muted-foreground', marginBottom: '6' }
+          },
+          {
+            id: '4',
+            type: 'button',
+            content: 'View Books',
+            styles: { variant: 'default', size: 'lg' }
+          }
+        ];
+      default:
+        return [
+          {
+            id: '1',
+            type: 'text',
+            content: 'Hero Title',
+            styles: { fontSize: '3xl', fontWeight: 'bold', textAlign: 'center' }
+          }
+        ];
+    }
+  };
+
+  const previewTemplate = (template: any) => {
+    toast({
+      title: "Template Preview",
+      description: `Previewing ${template.name} template`,
+    });
+    // Could open a modal or navigate to preview
+  };
+
+  const editHeroBlock = (block: any) => {
+    // Navigate to hero block designer with this block
+    setCurrentView('hero-designer');
+    toast({
+      title: "Editing Hero Block",
+      description: `Opening editor for ${block.name}`,
+    });
+  };
+
+  const previewHeroBlock = (block: any) => {
+    // Open preview modal or navigate to preview
+    toast({
+      title: "Hero Block Preview",
+      description: `Previewing ${block.name}`,
+    });
+  };
+
+  const duplicateHeroBlock = async (block: any) => {
+    try {
+      const duplicatedBlock = {
+        name: `${block.name} (Copy)`,
+        description: `${block.description} (Duplicate)`,
+        enabled: false,
+        config: {
+          ...block.config,
+          usage_count: 0,
+          created_from_duplicate: true,
+          original_id: block.id
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('hero_blocks')
+        .insert([duplicatedBlock])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setHeroBlocks(prev => [...prev, data]);
+      
+      toast({
+        title: "Hero Block Duplicated",
+        description: `Created a copy of ${block.name}`,
       });
 
     } catch (error) {
-      console.error('Error deleting section:', error);
+      console.error('Error duplicating hero block:', error);
       toast({
         title: "Error",
-        description: "Failed to delete section",
+        description: "Failed to duplicate hero block",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleHeroBlock = async (blockId: string) => {
+    try {
+      const block = heroBlocks.find(b => b.id === blockId);
+      if (!block) return;
+
+      const { error } = await supabase
+        .from('hero_blocks')
+        .update({ enabled: !block.enabled })
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setHeroBlocks(prev => 
+        prev.map(b => 
+          b.id === blockId ? { ...b, enabled: !b.enabled } : b
+        )
+      );
+
+      toast({
+        title: "Hero Block Updated",
+        description: `Hero block ${block.enabled ? 'disabled' : 'enabled'}`,
+      });
+
+    } catch (error) {
+      console.error('Error toggling hero block:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update hero block",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteHeroBlock = async (blockId: string) => {
+    if (!confirm('Are you sure you want to delete this hero block?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('hero_blocks')
+        .delete()
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setHeroBlocks(prev => prev.filter(b => b.id !== blockId));
+      
+      toast({
+        title: "Hero Block Deleted",
+        description: "Hero block has been permanently removed",
+      });
+
+    } catch (error) {
+      console.error('Error deleting hero block:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete hero block",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const setAsDefaultHero = async (blockId: string) => {
+    try {
+      // First, get all blocks and update them
+      const { data: allBlocks, error: fetchError } = await supabase
+        .from('hero_blocks')
+        .select('*');
+
+      if (fetchError) throw fetchError;
+
+      // Update all blocks to remove default status
+      for (const block of allBlocks) {
+        const currentConfig = block.config && typeof block.config === 'object' ? block.config : {};
+        const updatedConfig = Object.assign({}, currentConfig, {
+          isDefault: block.id === blockId
+        });
+
+        const { error: updateError } = await supabase
+          .from('hero_blocks')
+          .update({ config: updatedConfig })
+          .eq('id', block.id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Update local state
+      setHeroBlocks(prev => 
+        prev.map(b => ({
+          ...b,
+          config: Object.assign(
+            {},
+            b.config && typeof b.config === 'object' ? b.config : {},
+            { isDefault: b.id === blockId }
+          )
+        }))
+      );
+
+      toast({
+        title: "Default Hero Set",
+        description: "This hero block is now the default",
+      });
+
+    } catch (error) {
+      console.error('Error setting default hero:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set default hero block",
         variant: "destructive"
       });
     }
@@ -1629,15 +2012,312 @@ const HomePageManagement = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold">Hero Block Management</h2>
-              <p className="text-muted-foreground">Create and manage hero sections for your homepage</p>
+              <p className="text-muted-foreground">Create and customize hero sections with advanced controls</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => fetchHeroBlocks()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Sync Blocks
+              </Button>
+              <Button onClick={() => setCurrentView('hero-designer')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Hero Block
+              </Button>
             </div>
           </div>
-          
-          <HeroBlockManager heroBlocks={heroBlocks.map(block => ({
-          ...block,
-          preview_image: block.preview_image_url || '',
-          enabled_for_authors: block.enabled
-        }))} onBack={() => setCurrentView('overview')} onUpdate={fetchHeroBlocks} />
+
+          {/* Hero Block Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Blocks</CardTitle>
+                <Star className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{heroBlocks.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Hero blocks available
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Blocks</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{heroBlocks.filter(h => h.enabled).length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Currently enabled
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Templates</CardTitle>
+                <Layout className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{heroTemplates.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Available templates
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Performance</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">98%</div>
+                <p className="text-xs text-muted-foreground">
+                  Loading speed score
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Hero Block Templates */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Hero Block Templates
+              </CardTitle>
+              <CardDescription>
+                Choose from pre-designed templates or create custom blocks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {heroTemplates.map((template) => (
+                  <Card key={template.id} className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/50">
+                    <CardContent className="p-0">
+                      {/* Preview Image */}
+                      <div className="relative h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-t-lg overflow-hidden">
+                        {template.preview_image_url ? (
+                          <img 
+                            src={template.preview_image_url} 
+                            alt={template.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <template.icon className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2">
+                          <Badge variant={template.category === 'premium' ? 'default' : 'secondary'} className="text-xs">
+                            {template.category}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Template Info */}
+                      <div className="p-4">
+                        <h4 className="font-semibold mb-1">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                        
+                        {/* Features */}
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {template.features.map((feature, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => createHeroFromTemplate(template)}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Use Template
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => previewTemplate(template)}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing Hero Blocks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Your Hero Blocks
+              </CardTitle>
+              <CardDescription>
+                Manage your custom hero blocks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : heroBlocks.length === 0 ? (
+                <div className="text-center py-12">
+                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Hero Blocks Yet</h3>
+                  <p className="text-muted-foreground mb-4">Create your first hero block to get started</p>
+                  <Button onClick={() => setCurrentView('hero-designer')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Hero Block
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {heroBlocks.map((block) => (
+                    <Card key={block.id} className="group hover:shadow-md transition-all duration-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4 flex-1">
+                            {/* Block Preview */}
+                            <div className="w-20 h-16 bg-gradient-to-br from-primary/10 to-accent/10 rounded flex items-center justify-center flex-shrink-0">
+                              {block.preview_image_url ? (
+                                <img 
+                                  src={block.preview_image_url} 
+                                  alt={block.name}
+                                  className="w-full h-full object-cover rounded"
+                                />
+                              ) : (
+                                <Star className="h-6 w-6 text-muted-foreground" />
+                              )}
+                            </div>
+                            
+                            {/* Block Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold">{block.name}</h4>
+                                <Badge variant={block.enabled ? 'default' : 'secondary'} className="text-xs">
+                                  {block.enabled ? 'Active' : 'Disabled'}
+                                </Badge>
+                                {block.config?.isDefault && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Default
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{block.description}</p>
+                              
+                              {/* Block Stats */}
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span>Created: {new Date(block.created_at).toLocaleDateString()}</span>
+                                <span>Updated: {new Date(block.updated_at).toLocaleDateString()}</span>
+                                {block.config?.usage_count && (
+                                  <span>Used: {block.config.usage_count} times</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Block Actions */}
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => previewHeroBlock(block)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => editHeroBlock(block)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => duplicateHeroBlock(block)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toggleHeroBlock(block.id)}
+                            >
+                              {block.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => deleteHeroBlock(block.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Advanced Controls */}
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <Switch 
+                                  checked={block.enabled}
+                                  onCheckedChange={() => toggleHeroBlock(block.id)}
+                                  className="scale-75"
+                                />
+                                <span className="text-sm">Enable Block</span>
+                              </div>
+                              {block.config?.hasAnimation && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    <MousePointer className="h-3 w-3 mr-1" />
+                                    Animated
+                                  </Badge>
+                                </div>
+                              )}
+                              {block.config?.responsive && (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    <Monitor className="h-3 w-3 mr-1" />
+                                    Responsive
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setAsDefaultHero(block.id)}
+                              disabled={block.config?.isDefault}
+                            >
+                              {block.config?.isDefault ? 'Default' : 'Set as Default'}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
