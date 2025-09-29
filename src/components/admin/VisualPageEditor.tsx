@@ -31,7 +31,27 @@ import {
   MousePointer,
   Box,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Palette,
+  Link,
+  Image,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Italic,
+  Underline,
+  List,
+  Hash,
+  ExternalLink,
+  Copy,
+  Crown,
+  Check,
+  X,
+  ChevronDown,
+  Code,
+  FileText,
+  Gift
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -563,99 +583,500 @@ const VisualPageEditor = ({ onBack }: VisualPageEditorProps) => {
   const renderEditPanel = () => {
     if (!editingSection) return null;
 
+    const sectionType = editingSection.type;
+    const config = editingSection.config || {};
+
     return (
-      <div className="w-80 border-l bg-background p-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Edit Section</h3>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditingSection(null)}
-          >
-            Close
-          </Button>
+      <div className="w-96 border-l bg-background overflow-y-auto">
+        <div className="sticky top-0 bg-background border-b p-4 z-10">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Edit {editingSection.title}</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingSection(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="section-title">Section Title</Label>
-            <Input
-              id="section-title"
-              value={editingSection.title || ''}
-              onChange={(e) => setEditingSection({
-                ...editingSection,
-                title: e.target.value
-              })}
-            />
+        <div className="p-4 space-y-6">
+          {/* Basic Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Basic Settings</h4>
+            
+            <div>
+              <Label htmlFor="section-title">Section Title</Label>
+              <Input
+                id="section-title"
+                value={editingSection.title || ''}
+                onChange={(e) => setEditingSection({
+                  ...editingSection,
+                  title: e.target.value
+                })}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={editingSection.enabled}
+                onCheckedChange={(checked) => setEditingSection({
+                  ...editingSection,
+                  enabled: checked
+                })}
+              />
+              <Label>Section Enabled</Label>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="content-title">Content Title</Label>
-            <Input
-              id="content-title"
-              value={editingSection.config.title || ''}
-              onChange={(e) => setEditingSection({
-                ...editingSection,
-                config: { ...editingSection.config, title: e.target.value }
-              })}
-            />
+          {/* Content Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Content</h4>
+            
+            <div>
+              <Label htmlFor="content-title">Content Title</Label>
+              <Input
+                id="content-title"
+                value={config.title || ''}
+                onChange={(e) => updateConfig('title', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="content-subtitle">Subtitle</Label>
+              <Textarea
+                id="content-subtitle"
+                value={config.subtitle || ''}
+                onChange={(e) => updateConfig('subtitle', e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Rich Text Editor for Description */}
+            {(sectionType === 'features' || sectionType === 'premium_showcase') && (
+              <div>
+                <Label>Description</Label>
+                <div className="border rounded-md">
+                  <div className="flex items-center gap-1 p-2 border-b bg-muted/50">
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Bold className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Italic className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Underline className="h-3 w-3" />
+                    </Button>
+                    <div className="w-px h-4 bg-border mx-1" />
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <List className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Link className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={config.description || ''}
+                    onChange={(e) => updateConfig('description', e.target.value)}
+                    className="border-0 focus-visible:ring-0"
+                    rows={4}
+                    placeholder="Enter rich description..."
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          <div>
-            <Label htmlFor="content-subtitle">Subtitle</Label>
-            <Textarea
-              id="content-subtitle"
-              value={editingSection.config.subtitle || ''}
-              onChange={(e) => setEditingSection({
-                ...editingSection,
-                config: { ...editingSection.config, subtitle: e.target.value }
-              })}
-            />
+          {/* Layout & Design */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Design & Layout
+            </h4>
+
+            <div>
+              <Label>Background Style</Label>
+              <Select
+                value={config.backgroundColor || 'background'}
+                onValueChange={(value) => updateConfig('backgroundColor', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="background">Default</SelectItem>
+                  <SelectItem value="muted">Muted</SelectItem>
+                  <SelectItem value="primary">Primary</SelectItem>
+                  <SelectItem value="secondary">Secondary</SelectItem>
+                  <SelectItem value="accent">Accent</SelectItem>
+                  <SelectItem value="gradient-to-br from-primary/10 to-secondary/10">Gradient</SelectItem>
+                  <SelectItem value="gradient-to-r from-blue-500/10 to-purple-500/10">Blue Purple</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Text Alignment</Label>
+              <div className="flex gap-1 mt-2">
+                <Button
+                  variant={config.alignment === 'left' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateConfig('alignment', 'left')}
+                  className="flex-1"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={config.alignment === 'center' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateConfig('alignment', 'center')}
+                  className="flex-1"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={config.alignment === 'right' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateConfig('alignment', 'right')}
+                  className="flex-1"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Text Size</Label>
+              <Select
+                value={config.textSize || 'medium'}
+                onValueChange={(value) => updateConfig('textSize', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small">Small</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="extra-large">Extra Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Font Family</Label>
+              <Select
+                value={config.fontFamily || 'default'}
+                onValueChange={(value) => updateConfig('fontFamily', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="serif">Serif</SelectItem>
+                  <SelectItem value="mono">Monospace</SelectItem>
+                  <SelectItem value="heading">Display</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Padding</Label>
+              <Select
+                value={config.padding || 'normal'}
+                onValueChange={(value) => updateConfig('padding', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="small">Small</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="extra">Extra Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="background-color">Background</Label>
-            <Select
-              value={editingSection.config.backgroundColor || 'background'}
-              onValueChange={(value) => setEditingSection({
-                ...editingSection,
-                config: { ...editingSection.config, backgroundColor: value }
-              })}
+          {/* Buttons Editor */}
+          {(sectionType === 'hero' || sectionType === 'interactive_hero' || sectionType === 'trial_cta') && (
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <MousePointer className="h-4 w-4" />
+                Buttons & Links
+              </h4>
+              
+              {(config.buttons || []).map((button: any, index: number) => (
+                <Card key={index} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">Button {index + 1}</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeButton(index)}
+                        className="h-7 w-7 p-0 text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    
+                    <div>
+                      <Label>Button Text</Label>
+                      <Input
+                        value={button.text || ''}
+                        onChange={(e) => updateButton(index, 'text', e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Button URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={button.url || ''}
+                          onChange={(e) => updateButton(index, 'url', e.target.value)}
+                          placeholder="/auth or https://..."
+                        />
+                        <Button variant="outline" size="sm" className="px-3">
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Button Style</Label>
+                      <Select
+                        value={button.variant || 'primary'}
+                        onValueChange={(value) => updateButton(index, 'variant', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="primary">Primary</SelectItem>
+                          <SelectItem value="secondary">Secondary</SelectItem>
+                          <SelectItem value="outline">Outline</SelectItem>
+                          <SelectItem value="ghost">Ghost</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label>Button Size</Label>
+                      <Select
+                        value={button.size || 'default'}
+                        onValueChange={(value) => updateButton(index, 'size', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sm">Small</SelectItem>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="lg">Large</SelectItem>
+                          <SelectItem value="extra-large">Extra Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addButton}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Button
+              </Button>
+            </div>
+          )}
+
+          {/* Pricing Plans Editor */}
+          {sectionType === 'free_vs_pro' && (
+            <div className="space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                Pricing Plans
+              </h4>
+              
+              {(config.plans || []).map((plan: any, index: number) => (
+                <Card key={index} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">{plan.name} Plan</Label>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={plan.popular || false}
+                          onCheckedChange={(checked) => updatePlan(index, 'popular', checked)}
+                        />
+                        <Label className="text-xs">Popular</Label>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Plan Name</Label>
+                        <Input
+                          value={plan.name || ''}
+                          onChange={(e) => updatePlan(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Price</Label>
+                        <div className="flex">
+                          <span className="flex items-center px-3 border border-r-0 rounded-l-md bg-muted text-sm">$</span>
+                          <Input
+                            type="number"
+                            value={plan.price || 0}
+                            onChange={(e) => updatePlan(index, 'price', parseFloat(e.target.value))}
+                            className="rounded-l-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Description</Label>
+                      <Input
+                        value={plan.description || ''}
+                        onChange={(e) => updatePlan(index, 'description', e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Features (one per line)</Label>
+                      <Textarea
+                        value={(plan.features || []).join('\n')}
+                        onChange={(e) => updatePlan(index, 'features', e.target.value.split('\n').filter(f => f.trim()))}
+                        rows={4}
+                        placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Animation Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Animation & Effects
+            </h4>
+            
+            <div>
+              <Label>Animation Type</Label>
+              <Select
+                value={config.animation || 'none'}
+                onValueChange={(value) => updateConfig('animation', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="fade-in">Fade In</SelectItem>
+                  <SelectItem value="slide-in-left">Slide In Left</SelectItem>
+                  <SelectItem value="slide-in-right">Slide In Right</SelectItem>
+                  <SelectItem value="slide-in-up">Slide In Up</SelectItem>
+                  <SelectItem value="bounce">Bounce</SelectItem>
+                  <SelectItem value="scale">Scale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Shadow Effect</Label>
+              <Select
+                value={config.shadow || 'none'}
+                onValueChange={(value) => updateConfig('shadow', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="small">Small</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="extra-large">Extra Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={config.interactive || false}
+                onCheckedChange={(checked) => updateConfig('interactive', checked)}
+              />
+              <Label>Interactive Elements</Label>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="sticky bottom-0 bg-background pt-4 border-t">
+            <Button
+              onClick={() => updateSection(editingSection)}
+              disabled={saving}
+              className="w-full"
+              size="lg"
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="background">Default</SelectItem>
-                <SelectItem value="muted">Muted</SelectItem>
-                <SelectItem value="primary">Primary</SelectItem>
-                <SelectItem value="secondary">Secondary</SelectItem>
-                <SelectItem value="accent">Accent</SelectItem>
-              </SelectContent>
-            </Select>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={editingSection.enabled}
-              onCheckedChange={(checked) => setEditingSection({
-                ...editingSection,
-                enabled: checked
-              })}
-            />
-            <Label>Section Enabled</Label>
-          </div>
-
-          <Button
-            onClick={() => updateSection(editingSection)}
-            disabled={saving}
-            className="w-full"
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
         </div>
       </div>
     );
+  };
+
+  // Helper functions for editing
+  const updateConfig = (key: string, value: any) => {
+    if (!editingSection) return;
+    setEditingSection({
+      ...editingSection,
+      config: { ...editingSection.config, [key]: value }
+    });
+  };
+
+  const updateButton = (index: number, key: string, value: any) => {
+    if (!editingSection) return;
+    const buttons = [...(editingSection.config.buttons || [])];
+    buttons[index] = { ...buttons[index], [key]: value };
+    updateConfig('buttons', buttons);
+  };
+
+  const addButton = () => {
+    if (!editingSection) return;
+    const buttons = [...(editingSection.config.buttons || [])];
+    buttons.push({
+      text: 'New Button',
+      url: '#',
+      variant: 'primary',
+      size: 'default'
+    });
+    updateConfig('buttons', buttons);
+  };
+
+  const removeButton = (index: number) => {
+    if (!editingSection) return;
+    const buttons = [...(editingSection.config.buttons || [])];
+    buttons.splice(index, 1);
+    updateConfig('buttons', buttons);
+  };
+
+  const updatePlan = (index: number, key: string, value: any) => {
+    if (!editingSection) return;
+    const plans = [...(editingSection.config.plans || [])];
+    plans[index] = { ...plans[index], [key]: value };
+    updateConfig('plans', plans);
   };
 
   if (loading) {
