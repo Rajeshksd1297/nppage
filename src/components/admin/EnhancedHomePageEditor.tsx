@@ -67,7 +67,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface HomeSection {
   id: string;
-  type: 'hero' | 'stats' | 'features' | 'pricing' | 'testimonials' | 'newsletter' | 'slider' | 'header' | 'footer';
+  type: 'hero' | 'stats' | 'features' | 'pricing' | 'testimonials' | 'newsletter' | 'slider' | 'header' | 'footer' | 
+        'interactive_hero' | 'premium_showcase' | 'free_vs_pro' | 'faq' | 'free_success' | 'trial_cta' | 'success_stories' | 'final_cta';
   title: string;
   enabled: boolean;
   order_index: number;
@@ -153,10 +154,18 @@ function SortableItem({ section, onEdit, onDelete, onToggle, onDuplicate }: Sort
 
   const getSectionIcon = (type: string) => {
     switch (type) {
-      case 'hero': return <Star className="h-4 w-4" />;
+      case 'hero':
+      case 'interactive_hero': return <Star className="h-4 w-4" />;
       case 'stats': return <BarChart3 className="h-4 w-4" />;
       case 'features': return <Layout className="h-4 w-4" />;
       case 'pricing': return <Users className="h-4 w-4" />;
+      case 'premium_showcase': return <Zap className="h-4 w-4" />;
+      case 'free_vs_pro': return <Users className="h-4 w-4" />;
+      case 'faq': return <Type className="h-4 w-4" />;
+      case 'free_success':
+      case 'success_stories': return <Star className="h-4 w-4" />;
+      case 'trial_cta':
+      case 'final_cta': return <MousePointer className="h-4 w-4" />;
       case 'slider': return <Sliders className="h-4 w-4" />;
       case 'header': return <Navigation className="h-4 w-4" />;
       case 'footer': return <Box className="h-4 w-4" />;
@@ -291,10 +300,12 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
 
       if (error) throw error;
       if (data) {
+        console.log('Fetched sections:', data);
         const transformedData = data.map(section => ({
           ...section,
           config: typeof section.config === 'object' ? section.config : {}
         }));
+        console.log('Transformed sections:', transformedData);
         setSections(transformedData as HomeSection[]);
       }
     } catch (error) {
@@ -437,6 +448,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
 
     switch (type) {
       case 'hero':
+      case 'interactive_hero':
         return {
           ...baseConfig,
           heroSize: 'large',
@@ -472,6 +484,45 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
             { platform: 'facebook', url: '', icon: 'facebook' },
             { platform: 'linkedin', url: '', icon: 'linkedin' }
           ]
+        };
+      case 'premium_showcase':
+        return {
+          ...baseConfig,
+          title: 'Premium Features Showcase',
+          items: []
+        };
+      case 'free_vs_pro':
+        return {
+          ...baseConfig,
+          title: 'Free vs Pro Comparison',
+          plans: []
+        };
+      case 'faq':
+        return {
+          ...baseConfig,
+          title: 'Frequently Asked Questions',
+          categories: []
+        };
+      case 'success_stories':
+        return {
+          ...baseConfig,
+          title: 'Success Stories',
+          stories: []
+        };
+      case 'trial_cta':
+      case 'final_cta':
+        return {
+          ...baseConfig,
+          title: 'Call to Action',
+          buttons: [
+            { text: 'Get Started', url: '/auth', variant: 'primary' as const }
+          ]
+        };
+      case 'free_success':
+        return {
+          ...baseConfig,
+          title: 'Success Stories',
+          stories: []
         };
       case 'slider':
         return {
@@ -1270,7 +1321,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAddSection('hero')}
+                      onClick={() => handleAddSection('interactive_hero')}
                       className="flex items-center justify-start"
                     >
                       <Star className="h-4 w-4 mr-2" />
@@ -1297,11 +1348,47 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAddSection('slider')}
+                      onClick={() => handleAddSection('premium_showcase')}
                       className="flex items-center justify-start"
                     >
-                      <Sliders className="h-4 w-4 mr-2" />
-                      Slider
+                      <Zap className="h-4 w-4 mr-2" />
+                      Showcase
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddSection('free_vs_pro')}
+                      className="flex items-center justify-start"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Pricing
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddSection('faq')}
+                      className="flex items-center justify-start"
+                    >
+                      <Type className="h-4 w-4 mr-2" />
+                      FAQ
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddSection('success_stories')}
+                      className="flex items-center justify-start"
+                    >
+                      <Star className="h-4 w-4 mr-2" />
+                      Testimonials
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddSection('trial_cta')}
+                      className="flex items-center justify-start"
+                    >
+                      <MousePointer className="h-4 w-4 mr-2" />
+                      CTA
                     </Button>
                     <Button
                       variant="outline"
@@ -1318,7 +1405,12 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                 <Separator />
 
                 <div>
-                  <h3 className="font-medium mb-3">Page Structure</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium">Page Structure</h3>
+                    <Badge variant="outline" className="text-xs">
+                      {sections.length} sections
+                    </Badge>
+                  </div>
                   <ScrollArea className="h-[400px]">
                     <DndContext
                       sensors={sensors}
@@ -1329,19 +1421,27 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
                         items={sections}
                         strategy={verticalListSortingStrategy}
                       >
-                        {sections.map((section) => (
-                          <SortableItem
-                            key={section.id}
-                            section={section}
-                            onEdit={(section) => {
-                              setEditingSection(section);
-                              setCurrentTab('editor');
-                            }}
-                            onDelete={handleDeleteSection}
-                            onToggle={handleToggleSection}
-                            onDuplicate={handleDuplicateSection}
-                          />
-                        ))}
+                        {sections.length > 0 ? (
+                          sections.map((section) => (
+                            <SortableItem
+                              key={section.id}
+                              section={section}
+                              onEdit={(section) => {
+                                setEditingSection(section);
+                                setCurrentTab('editor');
+                              }}
+                              onDelete={handleDeleteSection}
+                              onToggle={handleToggleSection}
+                              onDuplicate={handleDuplicateSection}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-center py-8">
+                            <Layout className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">No sections found</p>
+                            <p className="text-xs text-muted-foreground mt-1">Add sections using the buttons above</p>
+                          </div>
+                        )}
                       </SortableContext>
                     </DndContext>
                   </ScrollArea>
