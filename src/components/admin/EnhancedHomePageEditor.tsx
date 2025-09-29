@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import VisualPageEditor from './VisualPageEditor';
+import HeaderEditor from './HeaderEditor';
+import FooterEditor from './FooterEditor';
+import AdditionalPagesEditor from './AdditionalPagesEditor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -265,7 +268,7 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual'>('visual');
+  const [currentTab, setCurrentTab] = useState<'sections' | 'editor' | 'settings' | 'preview' | 'visual' | 'header' | 'footer' | 'additional-pages'>('visual');
   const [liveSync, setLiveSync] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const { toast } = useToast();
@@ -1300,13 +1303,18 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
           <div className="w-80 border-r bg-muted/10 flex flex-col">
-            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'sections' | 'editor' | 'settings' | 'preview' | 'visual')} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-5 m-4">
+            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as typeof currentTab)} className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-4 m-4">
                 <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
                 <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
-                <TabsTrigger value="editor" className="text-xs">Editor</TabsTrigger>
                 <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
                 <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
+              </TabsList>
+              
+              <TabsList className="grid w-full grid-cols-3 mx-4 mb-4">
+                <TabsTrigger value="header" className="text-xs">Header</TabsTrigger>
+                <TabsTrigger value="footer" className="text-xs">Footer</TabsTrigger>
+                <TabsTrigger value="additional-pages" className="text-xs">Pages</TabsTrigger>
               </TabsList>
 
             <TabsContent value="sections" className="flex-1 overflow-hidden">
@@ -1469,6 +1477,18 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
 
             <TabsContent value="preview" className="flex-1">
               {renderPreview()}
+            </TabsContent>
+
+            <TabsContent value="header" className="flex-1 overflow-auto">
+              <HeaderEditor />
+            </TabsContent>
+
+            <TabsContent value="footer" className="flex-1 overflow-auto">
+              <FooterEditor />
+            </TabsContent>
+
+            <TabsContent value="additional-pages" className="flex-1 overflow-auto">
+              <AdditionalPagesEditor />
             </TabsContent>
           </Tabs>
         </div>
