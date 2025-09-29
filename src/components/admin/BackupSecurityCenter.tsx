@@ -15,7 +15,8 @@ import {
   Shield, Database, Download, Play, RotateCcw, Calendar, 
   Clock, HardDrive, Cloud, Lock, AlertTriangle, CheckCircle,
   Activity, Eye, Settings, RefreshCw, Zap, Server, Globe, Key,
-  FileText, Users, Wifi, Monitor, Bell, Mail, Smartphone, Upload
+  FileText, Users, Wifi, Monitor, Bell, Mail, Smartphone, Upload,
+  Trash2
 } from 'lucide-react';
 
 interface BackupSettings {
@@ -516,32 +517,91 @@ export const BackupSecurityCenter: React.FC = () => {
           checksum: backupJob.checksum,
           metadata: backupJob.metadata,
           download_info: 'This is a backup information file. The actual backup content was not available.'
-        };
-        blob = new Blob([JSON.stringify(backupInfo, null, 2)], { type: 'application/json' });
-        filename = `backup-info-${backupJob.id}.json`;
-      }
+  };
 
-      // Create download link and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+  const deleteBackup = async (backupId: string) => {
+    try {
+      const { error } = await supabase
+        .from('backup_jobs' as any)
+        .delete()
+        .eq('id', backupId);
 
-      toast({
-        title: "Download completed",
-        description: `${data.backup_type === 'full' ? 'Full backup' : `${data.backup_type} backup`} "${filename}" downloaded successfully.`
+      if (error) throw error;
+
+      // Remove from local state
+      setBackupJobs(prev => prev.filter(job => job.id !== backupId));
+
+      // Log security event
+      await supabase.from('security_logs' as any).insert({
+        event_type: 'backup_deleted',
+        severity: 'medium',
+        description: `Backup deleted: ${backupId}`,
+        metadata: { backup_id: backupId }
       });
-    } catch (error) {
-      console.error('Error downloading backup:', error);
+
       toast({
-        title: "Download failed",
-        description: "Failed to download backup file.",
+        title: "Backup deleted",
+        description: "Backup has been successfully removed.",
+      });
+
+      // Recalculate stats
+      loadData();
+    } catch (error) {
+      console.error('Error deleting backup:', error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete backup.",
         variant: "destructive"
       });
+    }
+  };
+
+  const confirmDeleteBackup = (backupId: string, jobType: string) => {
+    if (window.confirm(`Are you sure you want to delete this ${jobType} backup? This action cannot be undone and will free up storage space.`)) {
+      deleteBackup(backupId);
+    }
+  };
+
+  const deleteBackup = async (backupId: string) => {
+    try {
+      const { error } = await supabase
+        .from('backup_jobs' as any)
+        .delete()
+        .eq('id', backupId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setBackupJobs(prev => prev.filter(job => job.id !== backupId));
+
+      // Log security event
+      await supabase.from('security_logs' as any).insert({
+        event_type: 'backup_deleted',
+        severity: 'medium',
+        description: `Backup deleted: ${backupId}`,
+        metadata: { backup_id: backupId }
+      });
+
+      toast({
+        title: "Backup deleted",
+        description: "Backup has been successfully removed.",
+      });
+
+      // Recalculate stats
+      loadData();
+    } catch (error) {
+      console.error('Error deleting backup:', error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete backup.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const confirmDeleteBackup = (backupId: string, jobType: string) => {
+    if (window.confirm(`Are you sure you want to delete this ${jobType} backup? This action cannot be undone and will free up storage space.`)) {
+      deleteBackup(backupId);
     }
   };
 
@@ -1046,6 +1106,16 @@ export const BackupSecurityCenter: React.FC = () => {
                           </Button>
                         </>
                       )}
+                      {/* Delete button for all backup statuses */}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => confirmDeleteBackup(job.id, job.job_type)}
+                        className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -1437,3 +1507,5 @@ export const BackupSecurityCenter: React.FC = () => {
     </div>
   );
 };
+
+export default BackupSecurityCenter;
