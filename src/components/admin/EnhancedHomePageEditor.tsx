@@ -1304,17 +1304,14 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
           {/* Sidebar */}
           <div className="w-80 border-r bg-muted/10 flex flex-col">
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as typeof currentTab)} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-4 m-4">
+              <TabsList className="grid w-full grid-cols-7 m-4 gap-1">
                 <TabsTrigger value="visual" className="text-xs">Visual</TabsTrigger>
                 <TabsTrigger value="sections" className="text-xs">Sections</TabsTrigger>
-                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
-                <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
-              </TabsList>
-              
-              <TabsList className="grid w-full grid-cols-3 mx-4 mb-4">
                 <TabsTrigger value="header" className="text-xs">Header</TabsTrigger>
                 <TabsTrigger value="footer" className="text-xs">Footer</TabsTrigger>
                 <TabsTrigger value="additional-pages" className="text-xs">Pages</TabsTrigger>
+                <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
+                <TabsTrigger value="preview" className="text-xs">Preview</TabsTrigger>
               </TabsList>
 
             <TabsContent value="sections" className="flex-1 overflow-hidden">
@@ -1478,18 +1475,6 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
             <TabsContent value="preview" className="flex-1">
               {renderPreview()}
             </TabsContent>
-
-            <TabsContent value="header" className="flex-1 overflow-auto">
-              <HeaderEditor />
-            </TabsContent>
-
-            <TabsContent value="footer" className="flex-1 overflow-auto">
-              <FooterEditor />
-            </TabsContent>
-
-            <TabsContent value="additional-pages" className="flex-1 overflow-auto">
-              <AdditionalPagesEditor />
-            </TabsContent>
           </Tabs>
         </div>
 
@@ -1497,6 +1482,18 @@ const EnhancedHomePageEditor = ({ onBack }: EnhancedHomePageEditorProps) => {
         <div className="flex-1 overflow-hidden">
           {currentTab === 'preview' ? (
             renderPreview()
+          ) : currentTab === 'header' ? (
+            <div className="h-full overflow-auto p-6">
+              <HeaderEditor />
+            </div>
+          ) : currentTab === 'footer' ? (
+            <div className="h-full overflow-auto p-6">
+              <FooterEditor />
+            </div>
+          ) : currentTab === 'additional-pages' ? (
+            <div className="h-full overflow-auto p-6">
+              <AdditionalPagesEditor />
+            </div>
           ) : (
             <div className="h-full flex items-center justify-center bg-muted/5">
               <div className="text-center max-w-md">
