@@ -15,7 +15,7 @@ import {
   Shield, Database, Download, Play, RotateCcw, Calendar, 
   Clock, HardDrive, Cloud, Lock, AlertTriangle, CheckCircle,
   Activity, Eye, Settings, RefreshCw, Zap, Server, Globe, Key,
-  FileText, Users, Wifi, Monitor, Bell, Mail, Smartphone
+  FileText, Users, Wifi, Monitor, Bell, Mail, Smartphone, Upload
 } from 'lucide-react';
 
 interface BackupSettings {
@@ -134,6 +134,7 @@ export const BackupSecurityCenter: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [stats, setStats] = useState({
     totalBackups: 0,
     successfulBackups: 0,
@@ -321,6 +322,70 @@ export const BackupSecurityCenter: React.FC = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file size (50MB limit)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 50MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const uploadBackupFile = async () => {
+    if (!selectedFile) return;
+
+    setCreating(true);
+    try {
+      const formData = new FormData();
+      formData.append('action', 'upload');
+      formData.append('file', selectedFile);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`https://kovlbxzqasqhigygfiyj.supabase.co/functions/v1/backup-manager`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error);
+
+      toast({
+        title: "Backup uploaded",
+        description: `Backup file "${selectedFile.name}" uploaded successfully.`
+      });
+
+      setSelectedFile(null);
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
+      await loadBackupJobs();
+      await calculateStats();
+    } catch (error) {
+      console.error('Error uploading backup:', error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload backup file.",
+        variant: "destructive"
+      });
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -813,7 +878,7 @@ export const BackupSecurityCenter: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Manual Backup</CardTitle>
-                <CardDescription>Create instant backups of your data</CardDescription>
+                <CardDescription>Create instant backups of your data or upload backup files</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
@@ -841,14 +906,39 @@ export const BackupSecurityCenter: React.FC = () => {
                     className="gap-2 h-12"
                   >
                     <HardDrive className="h-4 w-4" />
-                    Full Backup
+                    Full Backup (Database + Files)
                   </Button>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium mb-2 block">Upload Backup File</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept=".sql,.txt,.json,.zip"
+                      onChange={handleFileUpload}
+                      className="file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-primary file:text-primary-foreground"
+                    />
+                    <Button 
+                      onClick={uploadBackupFile}
+                      disabled={!selectedFile || creating}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                    >
+                      <Upload className="h-3 w-3" />
+                      Upload
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supported formats: .sql, .txt, .json, .zip (Max 50MB)
+                  </p>
                 </div>
 
                 {creating && (
                   <div className="flex items-center justify-center py-4">
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    Creating backup...
+                    {selectedFile ? 'Uploading backup...' : 'Creating backup...'}
                   </div>
                 )}
               </CardContent>
