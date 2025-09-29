@@ -178,7 +178,26 @@ const HomePageManagement = () => {
     pageLoadTime: 0
   });
   const [homeSections, setHomeSections] = useState([]);
-  const [seoSettings, setSeoSettings] = useState({});
+  const [seoSettings, setSeoSettings] = useState({
+    site_title: '',
+    site_description: '',
+    site_keywords: '',
+    google_analytics_id: '',
+    google_site_verification: '',
+    bing_site_verification: '',
+    facebook_app_id: '',
+    twitter_handle: '',
+    default_og_image: '',
+    enable_sitemap: true,
+    enable_robots: true,
+    enable_schema: true
+  });
+  const [autoGenerating, setAutoGenerating] = useState(false);
+  const [seoValidation, setSeoValidation] = useState({
+    title: { valid: false, message: '' },
+    description: { valid: false, message: '' },
+    keywords: { valid: false, message: '' }
+  });
   const [cookieSettings, setCookieSettings] = useState({});
   const [backupStatus, setBackupStatus] = useState('checking');
   const [analyticsData, setAnalyticsData] = useState({
@@ -1233,22 +1252,276 @@ const HomePageManagement = () => {
   // Fetch SEO settings from database
   const fetchSEOSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('seo_settings')
-        .select('*')
-        .maybeSingle();
+      // Try to load from localStorage first for immediate display
+      const savedSEO = localStorage.getItem('seo_settings');
+      if (savedSEO) {
+        const parsed = JSON.parse(savedSEO);
+        setSeoSettings(parsed);
+        validateSEOData(parsed);
+      }
       
-      if (error && error.code !== 'PGRST116') throw error;
+      // Sync siteSettings with existing values
+      setSeoSettings(prev => ({
+        ...prev,
+        site_title: prev.site_title || siteSettings.siteName,
+        site_description: prev.site_description || siteSettings.siteDescription,
+        site_keywords: prev.site_keywords || siteSettings.siteKeywords
+      }));
       
-      setSeoSettings(data || {
-        site_title: '',
-        site_description: '',
-        google_analytics_id: '',
-        robots_txt: ''
-      });
     } catch (error) {
-      console.error('Error fetching SEO settings:', error);
-      setSeoSettings({});
+      console.error('Error loading SEO settings:', error);
+    }
+  };
+
+  // Save SEO settings 
+  const saveSEOSettings = async () => {
+    try {
+      setSaving(true);
+      
+      const seoData = {
+        site_title: seoSettings.site_title || siteSettings.siteName,
+        site_description: seoSettings.site_description || siteSettings.siteDescription,
+        site_keywords: seoSettings.site_keywords || siteSettings.siteKeywords,
+        google_site_verification: seoSettings.google_site_verification,
+        bing_site_verification: seoSettings.bing_site_verification,
+        facebook_app_id: seoSettings.facebook_app_id,
+        twitter_handle: seoSettings.twitter_handle,
+        default_og_image: seoSettings.default_og_image,
+        enable_sitemap: seoSettings.enable_sitemap,
+        enable_robots: seoSettings.enable_robots,
+        enable_schema: seoSettings.enable_schema
+      };
+
+      // Save to localStorage for immediate persistence
+      localStorage.setItem('seo_settings', JSON.stringify(seoData));
+
+      // Update site settings to sync
+      setSiteSettings(prev => ({
+        ...prev,
+        siteName: seoData.site_title,
+        siteDescription: seoData.site_description,
+        siteKeywords: seoData.site_keywords
+      }));
+
+      // Update real-time SEO on the website
+      updateWebsiteSEO(seoData);
+      
+      toast({
+        title: "Success",
+        description: "SEO settings saved and applied to website",
+      });
+      
+    } catch (error) {
+      console.error('Error saving SEO settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save SEO settings",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Auto-generate SEO data
+  const autoGenerateSEO = async () => {
+    try {
+      setAutoGenerating(true);
+      
+      // Fetch user profile and content for context
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, bio, specializations')
+        .single();
+        
+      const { data: books } = await supabase
+        .from('books')
+        .select('title, description, genres')
+        .eq('status', 'published')
+        .limit(3);
+
+      const { data: blogPosts } = await supabase
+        .from('blog_posts')
+        .select('title, excerpt')
+        .eq('status', 'published')
+        .limit(3);
+
+      // Generate intelligent SEO content
+      const authorName = profile?.full_name || 'Author';
+      const specializations = profile?.specializations || [];
+      const genres = books?.flatMap(book => book.genres || []) || [];
+      
+      const generatedTitle = generateSEOTitle(authorName, specializations, genres);
+      const generatedDescription = generateSEODescription(authorName, profile?.bio, books, blogPosts);
+      const generatedKeywords = generateSEOKeywords(specializations, genres, books);
+
+      const newSeoSettings = {
+        ...seoSettings,
+        site_title: generatedTitle,
+        site_description: generatedDescription,
+        site_keywords: generatedKeywords
+      };
+
+      setSeoSettings(newSeoSettings);
+      setSiteSettings(prev => ({
+        ...prev,
+        siteName: generatedTitle,
+        siteDescription: generatedDescription,
+        siteKeywords: generatedKeywords
+      }));
+
+      validateSEOData(newSeoSettings);
+
+      toast({
+        title: "SEO Generated",
+        description: "AI-powered SEO content has been generated. Review and save changes.",
+      });
+
+    } catch (error) {
+      console.error('Error generating SEO:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate SEO content",
+        variant: "destructive"
+      });
+    } finally {
+      setAutoGenerating(false);
+    }
+  };
+
+  // SEO generation helpers
+  const generateSEOTitle = (authorName: string, specializations: string[], genres: string[]) => {
+    if (specializations.length > 0) {
+      return `${authorName} - ${specializations[0]} Author | Books & Writing`;
+    }
+    if (genres.length > 0) {
+      return `${authorName} - ${genres[0]} Author | Published Books`;
+    }
+    return `${authorName} - Author & Writer | Official Website`;
+  };
+
+  const generateSEODescription = (authorName: string, bio: string, books: any[], blogPosts: any[]) => {
+    const bookCount = books?.length || 0;
+    const postCount = blogPosts?.length || 0;
+    
+    let description = `Official website of ${authorName}`;
+    
+    if (bio && bio.length > 20) {
+      const bioSnippet = bio.substring(0, 100).trim();
+      description += `. ${bioSnippet}${bioSnippet.length === 100 ? '...' : ''}`;
+    }
+    
+    if (bookCount > 0) {
+      description += `. Published author with ${bookCount} book${bookCount > 1 ? 's' : ''}`;
+    }
+    
+    if (postCount > 0) {
+      description += `. Active blogger with ${postCount}+ posts`;
+    }
+    
+    description += '. Discover books, latest updates, and connect with the author.';
+    
+    return description.length > 160 ? description.substring(0, 157) + '...' : description;
+  };
+
+  const generateSEOKeywords = (specializations: string[], genres: string[], books: any[]) => {
+    const keywords = new Set();
+    
+    // Add specializations
+    specializations.forEach(spec => keywords.add(spec.toLowerCase()));
+    
+    // Add genres
+    genres.forEach(genre => keywords.add(genre.toLowerCase()));
+    
+    // Add book titles (first words)
+    books?.forEach(book => {
+      if (book.title) {
+        const firstWord = book.title.split(' ')[0].toLowerCase();
+        if (firstWord.length > 3) keywords.add(firstWord);
+      }
+    });
+    
+    // Add common author keywords
+    keywords.add('author');
+    keywords.add('writer');
+    keywords.add('books');
+    keywords.add('published');
+    keywords.add('writing');
+    
+    return Array.from(keywords).slice(0, 15).join(', ');
+  };
+
+  // Validate SEO data
+  const validateSEOData = (data: any) => {
+    const validation = {
+      title: { valid: true, message: '' },
+      description: { valid: true, message: '' },
+      keywords: { valid: true, message: '' }
+    };
+
+    // Validate title
+    const title = data.site_title || '';
+    if (!title) {
+      validation.title = { valid: false, message: 'Title is required' };
+    } else if (title.length < 10) {
+      validation.title = { valid: false, message: 'Title too short (min 10 characters)' };
+    } else if (title.length > 60) {
+      validation.title = { valid: false, message: 'Title too long (max 60 characters)' };
+    }
+
+    // Validate description
+    const description = data.site_description || '';
+    if (!description) {
+      validation.description = { valid: false, message: 'Description is required' };
+    } else if (description.length < 50) {
+      validation.description = { valid: false, message: 'Description too short (min 50 characters)' };
+    } else if (description.length > 160) {
+      validation.description = { valid: false, message: 'Description too long (max 160 characters)' };
+    }
+
+    // Validate keywords
+    const keywords = data.site_keywords || '';
+    if (!keywords) {
+      validation.keywords = { valid: false, message: 'Keywords are recommended' };
+    } else {
+      const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+      if (keywordArray.length < 3) {
+        validation.keywords = { valid: false, message: 'Add at least 3 keywords' };
+      } else if (keywordArray.length > 15) {
+        validation.keywords = { valid: false, message: 'Too many keywords (max 15)' };
+      }
+    }
+
+    setSeoValidation(validation);
+  };
+
+  // Update website SEO in real-time
+  const updateWebsiteSEO = (seoData: any) => {
+    // Update document title and meta tags
+    if (seoData.site_title) {
+      document.title = seoData.site_title;
+    }
+    
+    // Update meta description
+    let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    if (seoData.site_description) {
+      metaDesc.content = seoData.site_description;
+    }
+    
+    // Update meta keywords
+    let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
+    if (!metaKeywords) {
+      metaKeywords = document.createElement('meta');
+      metaKeywords.name = 'keywords';
+      document.head.appendChild(metaKeywords);
+    }
+    if (seoData.site_keywords) {
+      metaKeywords.content = seoData.site_keywords;
     }
   };
 
