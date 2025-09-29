@@ -50,35 +50,12 @@ interface Book {
 }
 
 export const DynamicHomePage: React.FC = () => {
-  console.log('DynamicHomePage component started rendering');
-  console.log('Current URL:', window.location.href);
-  console.log('Current pathname:', window.location.pathname);
-  
-  // Early return test to ensure component renders
-  if (typeof window !== 'undefined') {
-    console.log('Window is available');
-    console.log('Current URL:', window.location.href);
-    console.log('Current pathname:', window.location.pathname);
-  }
-
-  // Force public access - don't require authentication for home page
-  console.log('Rendering public home page without auth check');
-  
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [heroBlocks, setHeroBlocks] = useState<HeroBlock[]>([]);
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  console.log('DynamicHomePage state:', { 
-    siteSettings: !!siteSettings, 
-    loading, 
-    error,
-    heroBlocksCount: heroBlocks.length,
-    sectionsCount: sections.length 
-  });
 
   useEffect(() => {
     loadAllData();
@@ -87,19 +64,15 @@ export const DynamicHomePage: React.FC = () => {
 
   const loadAllData = async () => {
     try {
-      console.log('Starting to load all data...');
       setLoading(true);
-      setError(null);
       await Promise.all([
         loadSiteSettings(),
         loadHeroBlocks(),
         loadSections(),
         loadBooks()
       ]);
-      console.log('All data loaded successfully');
     } catch (error) {
       console.error('Error loading data:', error);
-      setError('Failed to load website data');
       toast({
         title: "Loading Error",
         description: "Some content may not display correctly.",
@@ -111,58 +84,22 @@ export const DynamicHomePage: React.FC = () => {
   };
 
   const loadSiteSettings = async () => {
-    console.log('Loading site settings...');
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .order('created_at', { ascending: false });
+      .maybeSingle();
 
     if (error) {
       console.error('Error loading site settings:', error);
       return;
     }
 
-    console.log('Site settings loaded:', data);
-    if (data && data.length > 0) {
-      // Find the first record that has a valid site_title, or use the most recent one
-      let settings = data.find(s => s.site_title && s.site_title.trim() !== '') || data[0];
-      
-      // Ensure we have valid values, use defaults if needed
-      if (!settings.site_title || settings.site_title.trim() === '') {
-        settings.site_title = 'AuthorPage';
-      }
-      if (!settings.site_description || settings.site_description.trim() === '') {
-        settings.site_description = 'Professional author profiles and book showcases';
-      }
-      if (!settings.primary_color) {
-        settings.primary_color = '#3b82f6';
-      }
-      if (!settings.secondary_color) {
-        settings.secondary_color = '#64748b';
-      }
-      
-      console.log('Using site settings:', settings);
-      setSiteSettings(settings);
-    } else {
-      console.log('No site settings found, creating defaults');
-      // Create default settings if none exist
-      setSiteSettings({
-        id: 'default',
-        site_title: 'AuthorPage',
-        site_description: 'Professional author profiles and book showcases',
-        logo_url: null,
-        favicon_url: null,
-        primary_color: '#3b82f6',
-        secondary_color: '#64748b',
-        enable_dark_mode: true,
-        header_config: { showLogo: true, showLogin: true, navigation: [], showSearch: false },
-        footer_config: { copyright: '© 2024 AuthorPage. All rights reserved.', showPages: true, customText: 'Built with AuthorPage', showSocial: true }
-      });
+    if (data) {
+      setSiteSettings(data);
     }
   };
 
   const loadHeroBlocks = async () => {
-    console.log('Loading hero blocks...');
     const { data, error } = await supabase
       .from('hero_blocks')
       .select('*')
@@ -174,12 +111,10 @@ export const DynamicHomePage: React.FC = () => {
       return;
     }
 
-    console.log('Hero blocks loaded:', data);
     setHeroBlocks(data || []);
   };
 
   const loadSections = async () => {
-    console.log('Loading home page sections...');
     const { data, error } = await supabase
       .from('home_page_sections')
       .select('*')
@@ -191,7 +126,6 @@ export const DynamicHomePage: React.FC = () => {
       return;
     }
 
-    console.log('Sections loaded:', data);
     setSections(data || []);
   };
 
@@ -286,98 +220,21 @@ export const DynamicHomePage: React.FC = () => {
   };
 
   if (loading) {
-    console.log('Showing loading state');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 flex items-center justify-center p-4">
-        <div className="text-center space-y-6 max-w-sm mx-auto">
-          <div className="relative">
-            <div className="animate-spin h-12 w-12 border-3 border-primary/30 border-t-primary rounded-full mx-auto"></div>
-            <div className="absolute inset-0 animate-ping h-12 w-12 border border-primary/20 rounded-full mx-auto"></div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-lg font-medium text-foreground">Loading your website...</p>
-            <p className="text-sm text-muted-foreground">Fetching brand settings and content</p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
+          <p className="text-muted-foreground">Loading your website...</p>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    console.log('Showing error state:', error);
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-destructive">Website Error</h1>
-          <p className="text-muted-foreground">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Apply brand colors to CSS variables
-  useEffect(() => {
-    if (siteSettings) {
-      const root = document.documentElement;
-      // Convert hex to HSL for CSS variables
-      const hexToHsl = (hex: string) => {
-        const r = parseInt(hex.slice(1, 3), 16) / 255;
-        const g = parseInt(hex.slice(3, 5), 16) / 255;
-        const b = parseInt(hex.slice(5, 7), 16) / 255;
-        
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        
-        if (max === min) {
-          h = s = 0;
-        } else {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-            default: h = 0;
-          }
-          h /= 6;
-        }
-        
-        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-      };
-      
-      if (siteSettings.primary_color) {
-        root.style.setProperty('--primary', hexToHsl(siteSettings.primary_color));
-      }
-      if (siteSettings.secondary_color) {
-        root.style.setProperty('--secondary', hexToHsl(siteSettings.secondary_color));
-      }
-    }
-  }, [siteSettings]);
 
   const pageTitle = siteSettings?.site_title || "AuthorPage - Professional Author Profiles & Book Showcases";
   const pageDescription = siteSettings?.site_description || "Create stunning author profiles, showcase your books, and grow your readership with our professional author platform.";
 
-  console.log('Rendering DynamicHomePage with data:', {
-    siteSettings: !!siteSettings,
-    heroBlocks: heroBlocks.length,
-    sections: sections.length,
-    books: books.length,
-    loading
-  });
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/10 overflow-x-hidden" 
-         style={{
-           '--brand-primary': siteSettings?.primary_color,
-           '--brand-secondary': siteSettings?.secondary_color
-         } as React.CSSProperties}>
+    <div className="min-h-screen bg-background">
       <SEOHead
         title={pageTitle}
         description={pageDescription}
@@ -387,68 +244,45 @@ export const DynamicHomePage: React.FC = () => {
         image={siteSettings?.logo_url || "/hero-authors-workspace.jpg"}
       />
 
-      {/* Dynamic Header with Mobile Optimization */}
+      {/* Dynamic Header */}
       <DynamicHeader 
         config={siteSettings?.header_config} 
         siteTitle={siteSettings?.site_title}
         logoUrl={siteSettings?.logo_url}
       />
 
-      {/* Hero Blocks with Mobile Enhancement */}
-      <div className="w-full">
-        {heroBlocks.map((heroBlock) => (
-          <DynamicHeroBlock
-            key={heroBlock.id}
-            config={heroBlock.config}
-            name={heroBlock.name}
-            description={heroBlock.description}
-          />
-        ))}
-      </div>
+      {/* Hero Blocks */}
+      {heroBlocks.map((heroBlock) => (
+        <DynamicHeroBlock
+          key={heroBlock.id}
+          config={heroBlock.config}
+          name={heroBlock.name}
+          description={heroBlock.description}
+        />
+      ))}
 
-      {/* Dynamic Sections with Mobile-First Design */}
-      <main className="relative w-full">
-        {sections.map((section, index) => (
-          <div key={section.id} className={`w-full ${index % 2 === 1 ? 'bg-muted/30' : ''}`}>
-            <DynamicSection
-              type={section.type}
-              title={section.title}
-              config={section.config}
-              books={section.type === 'book_showcase' ? books : undefined}
-            />
-          </div>
-        ))}
+      {/* Dynamic Sections */}
+      {sections.map((section) => (
+        <DynamicSection
+          key={section.id}
+          type={section.type}
+          title={section.title}
+          config={section.config}
+          books={section.type === 'book_showcase' ? books : undefined}
+        />
+      ))}
 
-        {/* Default Welcome Section - Mobile Optimized */}
-        {sections.length === 0 && (
-          <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6">
-            <div className="container mx-auto text-center max-w-4xl">
-              <div className="space-y-6 sm:space-y-8 animate-fade-in">
-                <div className="space-y-4">
-                  <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent leading-tight">
-                    Welcome to Your Author Platform
-                  </h1>
-                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4">
-                    Your professional author website is ready to showcase your work. 
-                    Customize your brand identity and add compelling content through the admin dashboard.
-                  </p>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
-                  <div className="px-4 sm:px-6 py-2 sm:py-3 bg-primary/10 text-primary rounded-full text-xs sm:text-sm font-medium border border-primary/20 w-full sm:w-auto text-center">
-                    🎨 Brand Identity Ready
-                  </div>
-                  <div className="px-4 sm:px-6 py-2 sm:py-3 bg-muted text-muted-foreground rounded-full text-xs sm:text-sm font-medium w-full sm:w-auto text-center">
-                    📝 Add Content to Get Started
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
+      {/* Default content if no sections exist */}
+      {sections.length === 0 && (
+        <div className="container mx-auto px-6 py-24 text-center">
+          <h2 className="text-3xl font-bold mb-4">Welcome to Your Author Platform</h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Your home page is ready to be customized. Visit the admin dashboard to add sections and content.
+          </p>
+        </div>
+      )}
 
-      {/* Dynamic Footer with Mobile Enhancement */}
+      {/* Dynamic Footer */}
       <DynamicFooter 
         config={siteSettings?.footer_config}
         siteTitle={siteSettings?.site_title}

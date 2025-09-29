@@ -44,7 +44,7 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
   const { toast } = useToast();
 
   const generateSuggestions = async () => {
-    if (!content || !content.trim()) {
+    if (!content.trim()) {
       toast({
         title: "No content provided",
         description: "Please provide content to analyze for SEO suggestions.",
@@ -172,7 +172,7 @@ export const AISEOAssistant: React.FC<AISEOAssistantProps> = ({
         {!suggestions && !error && (
           <Button 
             onClick={generateSuggestions} 
-            disabled={loading || !content || !content.trim()}
+            disabled={loading || !content.trim()}
             className="w-full"
           >
             {loading ? (

@@ -59,7 +59,7 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
   const showLogo = config?.showLogo !== false;
   const showLogin = config?.showLogin !== false;
   const showSearch = config?.showSearch || false;
-  const showDarkMode = config?.showDarkMode !== false;
+  const showDarkMode = config?.showDarkMode || false;
 
   const getNavIcon = (label: string) => {
     const icons: { [key: string]: JSX.Element } = {
@@ -92,37 +92,37 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-          {/* Logo/Brand - Mobile Optimized */}
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo/Brand */}
           {showLogo && (
             <div 
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0 min-w-0"
+              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate('/')}
             >
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={siteTitle}
-                  className="h-6 sm:h-8 w-auto flex-shrink-0"
+                  className="h-8 w-auto"
                 />
               ) : (
-                <BookOpen className="h-6 sm:h-8 w-6 sm:w-8 text-primary flex-shrink-0" />
+                <BookOpen className="h-8 w-8 text-primary" />
               )}
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 {siteTitle}
               </span>
             </div>
           )}
 
-          {/* Desktop Navigation - Hidden on Mobile */}
-          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center">
-            {navigation.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => handleNavigation(item.url, item.external)}
-                className="text-sm font-medium transition-colors hover:text-primary relative group whitespace-nowrap"
-              >
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+      {navigation.map((item, index) => (
+        <button
+          key={index}
+          onClick={() => handleNavigation(item.url, item.external)}
+          className="text-sm font-medium transition-colors hover:text-primary relative group"
+        >
                 <span className="flex items-center space-x-1">
                   {getNavIcon(item.label)}
                   <span>{item.label}</span>
@@ -132,11 +132,11 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Action Controls - Mobile Optimized */}
-          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
-            {/* Search - Hidden on Small Mobile */}
+          {/* Search, Dark Mode, Auth Controls */}
+          <div className="flex items-center space-x-4">
+            {/* Search */}
             {showSearch && (
-              <form onSubmit={handleSearch} className="hidden md:flex items-center">
+              <form onSubmit={handleSearch} className="hidden sm:flex items-center">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -144,58 +144,57 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-32 lg:w-48"
+                    className="pl-10 w-48"
                   />
                 </div>
               </form>
             )}
 
-            {/* Dark Mode Toggle - Smaller on Mobile */}
+            {/* Dark Mode Toggle */}
             {showDarkMode && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="h-8 w-8 sm:h-9 sm:w-9 px-0"
+                className="h-9 w-9 px-0"
               >
-                <Sun className="h-3 w-3 sm:h-4 sm:w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-3 w-3 sm:h-4 sm:w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 <span className="sr-only">Toggle theme</span>
               </Button>
             )}
 
-            {/* Auth Buttons - Hidden on Small Mobile */}
+            {/* Auth Buttons */}
             {showLogin && (
               <div className="hidden sm:flex items-center space-x-2">
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={() => navigate('/auth')}
-                  className="flex items-center space-x-1 text-xs sm:text-sm px-2 sm:px-3"
+                  className="flex items-center space-x-1"
                 >
-                  <LogIn className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In</span>
                 </Button>
                 <Button 
                   size="sm"
                   onClick={() => navigate('/auth')}
-                  className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-xs sm:text-sm px-2 sm:px-3"
+                  className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                 >
-                  <span className="hidden sm:inline">Get Started</span>
-                  <span className="sm:hidden">Start</span>
+                  Get Started
                 </Button>
               </div>
             )}
 
-            {/* Mobile Menu - Enhanced */}
+            {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="lg:hidden h-8 w-8 sm:h-9 sm:w-9 px-0">
-                  <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Button variant="ghost" className="md:hidden h-9 w-9 px-0">
+                  <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px] px-4">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col space-y-4 mt-8">
                   {/* Mobile Search */}
                   {showSearch && (
@@ -229,7 +228,7 @@ export const DynamicHeader: React.FC<DynamicHeaderProps> = ({
 
                   {/* Mobile Auth Buttons */}
                   {showLogin && (
-                    <div className="flex flex-col space-y-2 mt-6 pt-6 border-t">
+                    <div className="flex flex-col space-y-2 mt-6">
                       <Button 
                         variant="outline" 
                         onClick={() => navigate('/auth')}
