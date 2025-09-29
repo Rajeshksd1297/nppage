@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { ZipWriter, BlobWriter, TextReader, BlobReader } from "https://deno.land/x/zipjs@v2.7.34/index.js";
 
 
 const corsHeaders = {
@@ -670,13 +671,15 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const numberSuffix = sameDateBackups && sameDateBackups.length > 1 ? `_${backupNumber}` : '';
-        
-        // For now, return as comprehensive text file instead of ZIP due to edge function limitations
-        let filename = `${backup.job_type}_backup_${backupDate}${numberSuffix}.txt`;
-        let backupContent = '';
+        const filename = `${backup.job_type}_backup_${backupDate}${numberSuffix}.zip`;
 
-        // Create comprehensive backup content
-        const readmeContent = `WEBSITE BACKUP - ${backup.job_type.toUpperCase()}
+        // Create ZIP file with proper folder structure
+        const blobWriter = new BlobWriter("application/zip");
+        const zipWriter = new ZipWriter(blobWriter);
+
+        try {
+          // Add README file
+          const readmeContent = `WEBSITE BACKUP - ${backup.job_type.toUpperCase()}
 Generated: ${backup.created_at}
 Backup ID: ${backupId}
 Type: ${backup.job_type}
@@ -699,97 +702,138 @@ RESTORATION INSTRUCTIONS:
 
 Project: kovlbxzqasqhigygfiyj
 Supabase URL: https://kovlbxzqasqhigygfiyj.supabase.co
-
-===============================================
-DATABASE BACKUP CONTENT:
-===============================================
-
 `;
+          await zipWriter.add("README.txt", new TextReader(readmeContent));
 
-        // Add database backup
-        let databaseContent = '';
-        if (backup.metadata?.backup_content) {
-          databaseContent = backup.metadata.backup_content;
-        } else {
-          databaseContent = await regenerateBackupContent('database', backupId);
-        }
-        
-        backupContent = readmeContent + databaseContent;
+          // Add database backup
+          let databaseContent = '';
+          if (backup.metadata?.backup_content) {
+            databaseContent = backup.metadata.backup_content;
+          } else {
+            databaseContent = await regenerateBackupContent('database', backupId);
+          }
+          await zipWriter.add("database/backup.sql", new TextReader(databaseContent));
 
-        // Add storage files information if it's a full backup or files backup
-        if (backup.job_type === 'full' || backup.job_type === 'files') {
-          backupContent += `\n\n===============================================\nSTORAGE FILES INFORMATION:\n===============================================\n\n`;
-          
-          try {
-            const { data: buckets } = await supabase.storage.listBuckets();
-            
-            if (buckets && buckets.length > 0) {
-              for (const bucket of buckets) {
-                try {
-                  const { data: filesList } = await supabase.storage
-                    .from(bucket.name)
-                    .list('', { limit: 100 });
+          // Add storage files if it's a full backup or files backup
+          if (backup.job_type === 'full' || backup.job_type === 'files') {
+            try {
+              const { data: buckets } = await supabase.storage.listBuckets();
+              
+              if (buckets && buckets.length > 0) {
+                for (const bucket of buckets) {
+                  try {
+                    const { data: filesList } = await supabase.storage
+                      .from(bucket.name)
+                      .list('', { limit: 50 });
 
-                  if (filesList && filesList.length > 0) {
-                    backupContent += `Bucket: ${bucket.name}\n`;
-                    backupContent += `Public: ${bucket.public}\n`;
-                    backupContent += `Files (${filesList.length}):\n`;
-                    
-                    for (const file of filesList) {
-                      const { data: fileData } = supabase.storage
-                        .from(bucket.name)
-                        .getPublicUrl(file.name);
+                    if (filesList && filesList.length > 0) {
+                      for (const file of filesList.slice(0, 20)) { // Limit to 20 files per bucket
+                        try {
+                          const { data: fileData } = await supabase.storage
+                            .from(bucket.name)
+                            .download(file.name);
 
-                      backupContent += `  - ${file.name}\n`;
-                      backupContent += `    Size: ${file.metadata?.size || 'unknown'} bytes\n`;
-                      backupContent += `    Modified: ${file.updated_at || file.created_at}\n`;
-                      backupContent += `    URL: ${fileData.publicUrl}\n`;
-                      backupContent += `    Type: ${file.metadata?.mimetype || 'unknown'}\n\n`;
+                          if (fileData) {
+                            await zipWriter.add(
+                              `storage/${bucket.name}/${file.name}`, 
+                              new BlobReader(fileData)
+                            );
+                          }
+                        } catch (fileError) {
+                          // Add error info file for failed downloads
+                          const errorContent = `File could not be downloaded: ${file.name}
+Error: ${(fileError as Error).message}
+Size: ${file.metadata?.size || 'unknown'} bytes
+Last modified: ${file.updated_at || file.created_at}
+Public URL: ${supabase.storage.from(bucket.name).getPublicUrl(file.name).data.publicUrl}`;
+                          
+                          await zipWriter.add(
+                            `storage/${bucket.name}/${file.name}.error.txt`, 
+                            new TextReader(errorContent)
+                          );
+                        }
+                      }
                     }
-                  } else {
-                    backupContent += `Bucket: ${bucket.name} (empty)\n\n`;
+                  } catch (bucketError) {
+                    const errorContent = `Bucket listing failed: ${bucket.name}
+Error: ${(bucketError as Error).message}`;
+                    await zipWriter.add(
+                      `storage/${bucket.name}/bucket-error.txt`, 
+                      new TextReader(errorContent)
+                    );
                   }
-                } catch (bucketError) {
-                  backupContent += `Bucket: ${bucket.name} - Error: ${(bucketError as Error).message}\n\n`;
                 }
               }
-            } else {
-              backupContent += `No storage buckets found.\n\n`;
+            } catch (storageError) {
+              const errorContent = `Storage backup failed
+Error: ${(storageError as Error).message}`;
+              await zipWriter.add("storage/storage-error.txt", new TextReader(errorContent));
             }
-          } catch (storageError) {
-            backupContent += `Storage backup failed: ${(storageError as Error).message}\n\n`;
           }
+
+          // Add backup metadata
+          const backupInfo = {
+            id: backup.id,
+            type: backup.job_type,
+            created_at: backup.created_at,
+            completed_at: backup.completed_at,
+            file_size: backup.file_size,
+            checksum: backup.checksum,
+            metadata: backup.metadata,
+            backup_date: backupDate,
+            backup_number: backupNumber,
+            project_id: 'kovlbxzqasqhigygfiyj',
+            restoration_notes: 'Follow README.txt for restoration instructions'
+          };
+          await zipWriter.add("config/backup-info.json", new TextReader(JSON.stringify(backupInfo, null, 2)));
+
+          // Close and get the ZIP blob
+          await zipWriter.close();
+          const zipBlob = await blobWriter.getData();
+          const zipArrayBuffer = await zipBlob.arrayBuffer();
+          const zipData = new Uint8Array(zipArrayBuffer);
+
+          result = {
+            success: true,
+            content: Array.from(zipData), // Convert to array for JSON serialization
+            filename: filename,
+            contentType: 'application/zip',
+            file_size: zipData.length,
+            encoding: 'binary',
+            backup_type: backup.job_type,
+            created_date: backupDate,
+            backup_number: backupNumber
+          };
+        } catch (zipError) {
+          console.error('ZIP creation failed:', zipError);
+          // Fallback to text format if ZIP fails
+          const fallbackReadme = `WEBSITE BACKUP - ${backup.job_type.toUpperCase()}
+Generated: ${backup.created_at}
+Backup ID: ${backupId}
+Type: ${backup.job_type}
+Size: ${backup.file_size} bytes`;
+
+          let fallbackContent = `BACKUP FAILED TO CREATE ZIP - TEXT FORMAT FALLBACK
+
+${fallbackReadme}
+
+DATABASE BACKUP:
+===============
+${backup.metadata?.backup_content || await regenerateBackupContent('database', backupId)}
+`;
+          
+          result = {
+            success: true,
+            content: fallbackContent,
+            filename: `${backup.job_type}_backup_${backupDate}${numberSuffix}_fallback.txt`,
+            contentType: 'text/plain',
+            file_size: new TextEncoder().encode(fallbackContent).length,
+            encoding: 'text',
+            backup_type: backup.job_type,
+            created_date: backupDate,
+            backup_number: backupNumber
+          };
         }
-
-        // Add backup metadata
-        const backupInfo = {
-          id: backup.id,
-          type: backup.job_type,
-          created_at: backup.created_at,
-          completed_at: backup.completed_at,
-          file_size: backup.file_size,
-          checksum: backup.checksum,
-          metadata: backup.metadata,
-          backup_date: backupDate,
-          backup_number: backupNumber,
-          project_id: 'kovlbxzqasqhigygfiyj',
-          restoration_notes: 'Follow instructions in this file for restoration'
-        };
-        
-        backupContent += `\n\n===============================================\nBACKUP METADATA:\n===============================================\n\n`;
-        backupContent += JSON.stringify(backupInfo, null, 2);
-
-        result = {
-          success: true,
-          content: backupContent,
-          filename: filename,
-          contentType: 'text/plain',
-          file_size: new TextEncoder().encode(backupContent).length,
-          encoding: 'text',
-          backup_type: backup.job_type,
-          created_date: backupDate,
-          backup_number: backupNumber
-        };
         break;
 
       case 'schedule':
