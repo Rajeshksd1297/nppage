@@ -2024,11 +2024,13 @@ export type Database = {
         Row: {
           billing_address: Json | null
           brand_colors: Json | null
+          branding_config: Json | null
           contact_email: string
           created_at: string
           custom_css: string | null
           custom_fields: Json | null
           description: string | null
+          feature_config: Json | null
           id: string
           logo_url: string | null
           name: string
@@ -2036,17 +2038,20 @@ export type Database = {
           revenue_share_percentage: number | null
           slug: string
           status: string
+          tools_config: Json | null
           updated_at: string
           website_url: string | null
         }
         Insert: {
           billing_address?: Json | null
           brand_colors?: Json | null
+          branding_config?: Json | null
           contact_email: string
           created_at?: string
           custom_css?: string | null
           custom_fields?: Json | null
           description?: string | null
+          feature_config?: Json | null
           id?: string
           logo_url?: string | null
           name: string
@@ -2054,17 +2059,20 @@ export type Database = {
           revenue_share_percentage?: number | null
           slug: string
           status?: string
+          tools_config?: Json | null
           updated_at?: string
           website_url?: string | null
         }
         Update: {
           billing_address?: Json | null
           brand_colors?: Json | null
+          branding_config?: Json | null
           contact_email?: string
           created_at?: string
           custom_css?: string | null
           custom_fields?: Json | null
           description?: string | null
+          feature_config?: Json | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -2072,6 +2080,7 @@ export type Database = {
           revenue_share_percentage?: number | null
           slug?: string
           status?: string
+          tools_config?: Json | null
           updated_at?: string
           website_url?: string | null
         }
