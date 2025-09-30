@@ -311,6 +311,51 @@ export type Database = {
         }
         Relationships: []
       }
+      aws_deployments: {
+        Row: {
+          auto_deploy: boolean | null
+          created_at: string | null
+          deployment_log: string | null
+          deployment_name: string
+          ec2_instance_id: string | null
+          ec2_public_ip: string | null
+          id: string
+          last_deployed_at: string | null
+          region: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_deploy?: boolean | null
+          created_at?: string | null
+          deployment_log?: string | null
+          deployment_name: string
+          ec2_instance_id?: string | null
+          ec2_public_ip?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          region?: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_deploy?: boolean | null
+          created_at?: string | null
+          deployment_log?: string | null
+          deployment_name?: string
+          ec2_instance_id?: string | null
+          ec2_public_ip?: string | null
+          id?: string
+          last_deployed_at?: string | null
+          region?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       backup_jobs: {
         Row: {
           backup_duration: number | null
