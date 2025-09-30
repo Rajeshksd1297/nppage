@@ -24,6 +24,7 @@ import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
+import PublisherFieldEdit from './pages/admin/PublisherFieldEdit';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
@@ -440,6 +441,20 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <PublisherManagement />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publishers/field/new" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <PublisherFieldEdit />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publishers/field/edit" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <PublisherFieldEdit />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
