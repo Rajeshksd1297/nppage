@@ -68,7 +68,6 @@ import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
 import PublicPage from "./pages/PublicPage";
 import AWSDeployment from "./pages/admin/AWSDeployment";
-import AWSSettings from "./pages/admin/AWSSettings";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -434,13 +433,6 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <AWSDeployment />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
-            <Route path="/admin/aws-settings" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <AWSSettings />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
