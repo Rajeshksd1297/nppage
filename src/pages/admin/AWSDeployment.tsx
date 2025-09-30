@@ -66,7 +66,7 @@ const deploymentSteps = [
 
 export default function AWSDeployment() {
   const [deploymentName, setDeploymentName] = useState("");
-  const [region, setRegion] = useState("us-east-1");
+  const [region, setRegion] = useState("ap-south-1");
   const [autoDeploy, setAutoDeploy] = useState(false);
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
@@ -76,7 +76,7 @@ export default function AWSDeployment() {
   const [settingsForm, setSettingsForm] = useState({
     aws_access_key_id: "",
     aws_secret_access_key: "",
-    default_region: "us-east-1",
+    default_region: "ap-south-1",
     instance_type: "t2.micro",
     key_pair_name: "",
     security_group_id: "",
@@ -105,7 +105,7 @@ export default function AWSDeployment() {
       setSettingsForm({
         aws_access_key_id: awsSettings.aws_access_key_id || "",
         aws_secret_access_key: awsSettings.aws_secret_access_key || "",
-        default_region: awsSettings.default_region || "us-east-1",
+        default_region: awsSettings.default_region || "ap-south-1",
         instance_type: awsSettings.instance_type || "t2.micro",
         key_pair_name: awsSettings.key_pair_name || "",
         security_group_id: awsSettings.security_group_id || "",
@@ -113,7 +113,7 @@ export default function AWSDeployment() {
         ami_id: awsSettings.ami_id || "",
         auto_deploy_enabled: awsSettings.auto_deploy_enabled || false,
       });
-      setRegion(awsSettings.default_region || "us-east-1");
+      setRegion(awsSettings.default_region || "ap-south-1");
     }
   }, [awsSettings]);
 
