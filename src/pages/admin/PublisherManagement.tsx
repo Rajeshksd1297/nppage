@@ -7,6 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import PublisherList from '@/components/admin/Publisher/PublisherList';
 import PublisherSettings from '@/components/admin/Publisher/PublisherSettings';
 import PublisherFieldManager from '@/components/admin/PublisherFieldManager';
+import AuthorManagement from '@/components/admin/Publisher/AuthorManagement';
+import FeatureAccess from '@/components/admin/Publisher/FeatureAccess';
+import ToolsAccess from '@/components/admin/Publisher/ToolsAccess';
+import PublisherBranding from '@/components/admin/Publisher/PublisherBranding';
 
 export default function PublisherManagement() {
   const { toast } = useToast();
@@ -104,43 +108,19 @@ export default function PublisherManagement() {
           </TabsContent>
 
           <TabsContent value="authors" key={`authors-${refreshKey}`}>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Author Management</h3>
-              <p className="text-muted-foreground">
-                Manage publisher authors, assign permissions, and track author activity.
-              </p>
-              {/* Author management component will go here */}
-            </div>
+            <AuthorManagement />
           </TabsContent>
 
           <TabsContent value="features" key={`features-${refreshKey}`}>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Feature Access Control</h3>
-              <p className="text-muted-foreground">
-                Configure which features are available to each publisher and their authors.
-              </p>
-              {/* Feature management component will go here */}
-            </div>
+            <FeatureAccess />
           </TabsContent>
 
           <TabsContent value="tools" key={`tools-${refreshKey}`}>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Tools & Integrations</h3>
-              <p className="text-muted-foreground">
-                Manage publisher access to tools, integrations, and third-party services.
-              </p>
-              {/* Tools access component will go here */}
-            </div>
+            <ToolsAccess />
           </TabsContent>
 
           <TabsContent value="branding" key={`branding-${refreshKey}`}>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Publisher Branding</h3>
-              <p className="text-muted-foreground">
-                Customize publisher branding including logos, colors, and themes.
-              </p>
-              {/* Branding customization component will go here */}
-            </div>
+            <PublisherBranding />
           </TabsContent>
 
           <TabsContent value="settings" key={`settings-${refreshKey}`}>
