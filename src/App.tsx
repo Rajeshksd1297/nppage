@@ -26,6 +26,7 @@ import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
 import PublisherDashboard from './pages/PublisherDashboard';
 import PublisherProfileEdit from './pages/PublisherProfileEdit';
+import PublisherPage from './pages/PublisherPage';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
@@ -447,6 +448,7 @@ function App() {
                 <PublisherProfileEdit />
               </DashboardLayout>
             } />
+            <Route path="/publisher/:slug" element={<PublisherPage />} />
             
             {/* User Content Management Routes */}
             <Route path="/user-blog-management" element={

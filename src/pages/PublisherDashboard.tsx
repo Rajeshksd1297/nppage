@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGate } from '@/components/FeatureGate';
 import { UpgradeBanner } from '@/components/UpgradeBanner';
+import { AuthorBooksList } from '@/components/publisher/AuthorBooksList';
 
 interface PublisherAuthor {
   id: string;
@@ -462,7 +463,7 @@ export default function PublisherDashboard() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Building2 className="w-8 h-8" />
-            Publisher Dashboard
+            Publisher Page
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               Real-time Sync
@@ -470,8 +471,8 @@ export default function PublisherDashboard() {
           </h1>
           <p className="text-muted-foreground">
             {publisherInfo 
-              ? `Manage your publishing house and ${authors.length}/${publisherInfo.max_authors} authors`
-              : 'Set up your publisher profile and manage authors'
+              ? `Manage your publishing house, ${authors.length}/${publisherInfo.max_authors} authors, and their books`
+              : 'Create your publisher profile to manage authors and publish books'
             }
           </p>
         </div>
@@ -497,15 +498,15 @@ export default function PublisherDashboard() {
       </div>
 
       {!publisherInfo ? (
-        /* Setup Publisher Card */
+        /* Setup Publisher Profile Card */
         <Card className="border-dashed border-primary/50">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <Building2 className="w-6 h-6" />
-              Set Up Your Publisher Profile
+              Create Your Publisher Profile
             </CardTitle>
             <CardDescription>
-              Create your publisher profile to start managing authors and books. Get access to advanced features like multi-author management, revenue sharing, and custom branding.
+              Set up your publisher profile to manage authors, publish books, and create your public landing page. Get access to author management, book assignments, and custom branding.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
@@ -599,6 +600,39 @@ export default function PublisherDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Publisher Info Card */}
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {publisherInfo.logo_url && (
+                      <img 
+                        src={publisherInfo.logo_url} 
+                        alt={publisherInfo.name}
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-background shadow"
+                      />
+                    )}
+                    <div>
+                      <h2 className="text-2xl font-bold mb-1">{publisherInfo.name}</h2>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Globe className="w-4 h-4" />
+                        <code className="bg-background/50 px-2 py-0.5 rounded text-xs">
+                          /publisher/{publisherInfo.slug.replace('pub-', '')}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => window.open(`/publisher/${publisherInfo.slug.replace('pub-', '')}`, '_blank')}
+                    className="gap-2"
+                  >
+                    <Globe className="h-4 w-4" />
+                    View Public Page
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Quick Actions */}
             <Card>
@@ -735,79 +769,119 @@ export default function PublisherDashboard() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid gap-6">
                     {filteredAuthors.map((author) => (
-                      <div key={author.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                            {author.profiles?.avatar_url ? (
-                              <img src={author.profiles.avatar_url} alt="Avatar" className="w-12 h-12 rounded-lg object-cover" />
-                            ) : (
-                              <Users className="h-6 w-6 text-primary" />
-                            )}
+                      <Card key={author.id} className="overflow-hidden">
+                        <div className="flex items-start p-4 border-b bg-muted/30">
+                          <div className="flex items-center space-x-4 flex-1">
+                            <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                              {author.profiles?.avatar_url ? (
+                                <img src={author.profiles.avatar_url} alt="Avatar" className="w-16 h-16 object-cover" />
+                              ) : (
+                                <Users className="h-8 w-8 text-primary" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-lg">{author.profiles?.full_name || 'Unknown Author'}</h4>
+                                <Badge variant={author.status === 'active' ? 'default' : 'secondary'}>
+                                  {author.status}
+                                </Badge>
+                                {author.access_level === 'pro' && (
+                                  <Badge variant="outline" className="gap-1">
+                                    <Crown className="w-3 h-3" />
+                                    Pro
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                <Mail className="w-3 h-3" />
+                                <span>{author.profiles?.email}</span>
+                                <span>•</span>
+                                <span className="capitalize">{author.role}</span>
+                                {author.profiles?.slug && (
+                                  <>
+                                    <span>•</span>
+                                    <a href={`/${author.profiles.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                      View Profile
+                                      <Globe className="w-3 h-3" />
+                                    </a>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <BookOpen className="w-3 h-3" />
+                                  {author.books_count || 0} books
+                                </span>
+                                <span>{author.revenue_share_percentage}% share</span>
+                                <span>Joined {new Date(author.joined_at).toLocaleDateString()}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-medium">{author.profiles?.full_name || 'Unknown Author'}</h4>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>{author.profiles?.email}</span>
-                              <span>•</span>
-                              <span className="capitalize">{author.role}</span>
-                              <span>•</span>
-                              <span>{author.revenue_share_percentage}% share</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                              <span>{author.books_count || 0} books</span>
-                              <span>${(author.total_revenue || 0).toFixed(2)} total</span>
-                              <span>${(author.monthly_earnings || 0).toFixed(2)}/month</span>
-                              <span>Joined {new Date(author.joined_at).toLocaleDateString()}</span>
-                            </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAuthor(author);
+                                setIsAuthorDetailDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Details
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateAuthorStatus(author.id, author.status === 'active' ? 'inactive' : 'active')}
+                            >
+                              {author.status === 'active' ? (
+                                <>
+                                  <EyeOff className="h-3 w-3 mr-1" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Activate
+                                </>
+                              )}
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => giveProAccess(author.id)}
+                              disabled={author.access_level === 'pro'}
+                            >
+                              <Crown className="h-3 w-3 mr-1" />
+                              {author.access_level === 'pro' ? 'Pro' : 'Give Pro'}
+                            </Button>
+                            
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setDeleteConfirmAuthor(author.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={author.status === 'active' ? 'default' : 'secondary'}
-                          >
-                            {author.status}
-                          </Badge>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedAuthor(author);
-                              setIsAuthorDetailDialogOpen(true);
-                            }}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateAuthorStatus(author.id, author.status === 'active' ? 'inactive' : 'active')}
-                          >
-                            {author.status === 'active' ? <EyeOff className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => giveProAccess(author.id)}
-                            disabled={author.access_level === 'pro'}
-                          >
-                            <Crown className="h-3 w-3" />
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeleteConfirmAuthor(author.id)}
-                          >
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
+                        {/* Author's Books */}
+                        {author.books_count > 0 && (
+                          <div className="p-4">
+                            <h5 className="text-sm font-medium mb-3 flex items-center gap-2">
+                              <BookOpen className="w-4 h-4" />
+                              Books by this author
+                            </h5>
+                            <AuthorBooksList authorId={author.user_id} />
+                          </div>
+                        )}
+                      </Card>
                     ))}
                   </div>
                 )}
