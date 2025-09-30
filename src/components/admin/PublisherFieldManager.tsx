@@ -287,199 +287,173 @@ export default function PublisherFieldManager() {
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="fields" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="fields" className="flex items-center gap-2">
-              <SettingsIcon className="h-4 w-4" />
-              Form Fields
-            </TabsTrigger>
-            <TabsTrigger value="branding" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Branding
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Form Fields Tab */}
-          <TabsContent value="fields" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-semibold">Publisher Form Fields</h3>
-                <p className="text-sm text-muted-foreground">
-                  Customize fields displayed in publisher registration and profile forms
-                </p>
-              </div>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setEditingField({})}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Custom Field
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingField?.id ? 'Edit Field' : 'Add Custom Field'}
-                    </DialogTitle>
-                    <DialogDescription>
-                      Configure the field properties
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Field Label</Label>
-                      <Input
-                        value={editingField?.field_label || ''}
-                        onChange={(e) => setEditingField({ ...editingField, field_label: e.target.value })}
-                        placeholder="e.g., Company Name"
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold">Publisher Form Fields</h3>
+              <p className="text-sm text-muted-foreground">
+                Customize fields displayed in publisher registration and profile forms
+              </p>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setEditingField({})}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Custom Field
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingField?.id ? 'Edit Field' : 'Add Custom Field'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Configure the field properties
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Field Label</Label>
+                    <Input
+                      value={editingField?.field_label || ''}
+                      onChange={(e) => setEditingField({ ...editingField, field_label: e.target.value })}
+                      placeholder="e.g., Company Name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Field Type</Label>
+                    <Select
+                      value={editingField?.field_type || 'text'}
+                      onValueChange={(value) => setEditingField({ ...editingField, field_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="url">URL</SelectItem>
+                        <SelectItem value="tel">Phone</SelectItem>
+                        <SelectItem value="textarea">Text Area</SelectItem>
+                        <SelectItem value="select">Select Dropdown</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Placeholder</Label>
+                    <Input
+                      value={editingField?.placeholder || ''}
+                      onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
+                      placeholder="e.g., Enter your company name"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editingField?.is_required || false}
+                        onCheckedChange={(checked) => setEditingField({ ...editingField, is_required: checked })}
                       />
+                      <Label>Required</Label>
                     </div>
-                    <div>
-                      <Label>Field Type</Label>
-                      <Select
-                        value={editingField?.field_type || 'text'}
-                        onValueChange={(value) => setEditingField({ ...editingField, field_type: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="url">URL</SelectItem>
-                          <SelectItem value="tel">Phone</SelectItem>
-                          <SelectItem value="textarea">Text Area</SelectItem>
-                          <SelectItem value="select">Select Dropdown</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Placeholder</Label>
-                      <Input
-                        value={editingField?.placeholder || ''}
-                        onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
-                        placeholder="e.g., Enter your company name"
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={editingField?.is_enabled !== false}
+                        onCheckedChange={(checked) => setEditingField({ ...editingField, is_enabled: checked })}
                       />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={editingField?.is_required || false}
-                          onCheckedChange={(checked) => setEditingField({ ...editingField, is_required: checked })}
-                        />
-                        <Label>Required</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={editingField?.is_enabled !== false}
-                          onCheckedChange={(checked) => setEditingField({ ...editingField, is_enabled: checked })}
-                        />
-                        <Label>Enabled</Label>
-                      </div>
+                      <Label>Enabled</Label>
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSaveField}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Field
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveField}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Field
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">Order</TableHead>
+                  <TableHead>Field Label</TableHead>
+                  <TableHead>Field Type</TableHead>
+                  <TableHead>Required</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fields.length === 0 ? (
                   <TableRow>
-                    <TableHead className="w-[50px]">Order</TableHead>
-                    <TableHead>Field Label</TableHead>
-                    <TableHead>Field Type</TableHead>
-                    <TableHead>Required</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      No fields configured
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fields.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No fields configured
+                ) : (
+                  fields.map((field) => (
+                    <TableRow key={field.id}>
+                      <TableCell>
+                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    fields.map((field) => (
-                      <TableRow key={field.id}>
-                        <TableCell>
-                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {field.field_label}
+                      <TableCell className="font-medium">
+                        {field.field_label}
+                        {field.is_custom && (
+                          <Badge variant="outline" className="ml-2 text-xs">Custom</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{field.field_type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {field.is_required ? (
+                          <Badge variant="destructive">Required</Badge>
+                        ) : (
+                          <Badge variant="outline">Optional</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={field.is_enabled}
+                          onCheckedChange={() => handleToggleField(field.id, field.is_enabled)}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingField(field);
+                              setIsDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           {field.is_custom && (
-                            <Badge variant="outline" className="ml-2 text-xs">Custom</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{field.field_type}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {field.is_required ? (
-                            <Badge variant="destructive">Required</Badge>
-                          ) : (
-                            <Badge variant="outline">Optional</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Switch
-                            checked={field.is_enabled}
-                            onCheckedChange={() => handleToggleField(field.id, field.is_enabled)}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setEditingField(field);
-                                setIsDialogOpen(true);
-                              }}
+                              onClick={() => handleDeleteField(field.id)}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
-                            {field.is_custom && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteField(field.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
-
-          {/* Branding Tab */}
-          <TabsContent value="branding" className="space-y-6">
-            <div className="text-center py-12">
-              <Palette className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Branding Configuration Moved</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Branding options are now configured globally in the Settings tab. 
-                Publishers can customize their own branding based on the options you enable.
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </CardContent>
     </div>
   );
