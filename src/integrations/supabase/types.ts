@@ -1882,6 +1882,54 @@ export type Database = {
           },
         ]
       }
+      publisher_field_settings: {
+        Row: {
+          created_at: string | null
+          field_label: string
+          field_name: string
+          field_type: string
+          id: string
+          is_custom: boolean | null
+          is_enabled: boolean | null
+          is_required: boolean | null
+          options: Json | null
+          placeholder: string | null
+          sort_order: number | null
+          updated_at: string | null
+          validation_rules: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          field_label: string
+          field_name: string
+          field_type?: string
+          id?: string
+          is_custom?: boolean | null
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          options?: Json | null
+          placeholder?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+          validation_rules?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          field_label?: string
+          field_name?: string
+          field_type?: string
+          id?: string
+          is_custom?: boolean | null
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          options?: Json | null
+          placeholder?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+          validation_rules?: Json | null
+        }
+        Relationships: []
+      }
       publisher_settings: {
         Row: {
           allow_publisher_registration: boolean | null
@@ -1934,6 +1982,8 @@ export type Database = {
           contact_email: string
           created_at: string
           custom_css: string | null
+          custom_fields: Json | null
+          description: string | null
           id: string
           logo_url: string | null
           name: string
@@ -1950,6 +2000,8 @@ export type Database = {
           contact_email: string
           created_at?: string
           custom_css?: string | null
+          custom_fields?: Json | null
+          description?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -1966,6 +2018,8 @@ export type Database = {
           contact_email?: string
           created_at?: string
           custom_css?: string | null
+          custom_fields?: Json | null
+          description?: string | null
           id?: string
           logo_url?: string | null
           name?: string

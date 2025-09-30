@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import PublisherFieldManager from '@/components/admin/PublisherFieldManager';
 
 interface PublisherSettings {
   id: string;
@@ -200,9 +201,10 @@ export default function PublisherSettings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="revenue">Revenue & Limits</TabsTrigger>
+          <TabsTrigger value="fields">Form Fields</TabsTrigger>
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
@@ -336,6 +338,10 @@ export default function PublisherSettings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="fields" className="space-y-6">
+          <PublisherFieldManager />
         </TabsContent>
 
         <TabsContent value="branding" className="space-y-6">
