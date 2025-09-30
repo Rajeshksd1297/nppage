@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, Save, ArrowLeft, Globe, Mail, Palette, Sparkles } from 'lucide-react';
+import { Building2, Save, ArrowLeft, Globe, Mail, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -43,6 +43,14 @@ export default function PublisherProfileEdit() {
       fetchPublisherData();
     }
   }, [isEditMode]);
+
+  // Auto-generate slug from name in create mode
+  useEffect(() => {
+    if (!isEditMode && publisherData.name) {
+      const autoSlug = generateSlug(publisherData.name);
+      setPublisherData(prev => ({ ...prev, slug: autoSlug }));
+    }
+  }, [publisherData.name, isEditMode, generateSlug]);
 
   const fetchPublisherData = async () => {
     try {
@@ -201,17 +209,6 @@ export default function PublisherProfileEdit() {
     }
   };
 
-  const handleAutoSlug = () => {
-    if (publisherData.name && !isEditMode) {
-      const autoSlug = generateSlug(publisherData.name);
-      setPublisherData({ ...publisherData, slug: autoSlug });
-      toast({
-        title: 'Slug Generated',
-        description: `Auto-generated slug: pub-${autoSlug}`,
-      });
-    }
-  };
-
   const renderDynamicField = (field: any) => {
     const fieldValue = field.is_custom 
       ? publisherData.custom_fields?.[field.field_name] || ''
@@ -261,24 +258,13 @@ export default function PublisherProfileEdit() {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">pub-</span>
             <Input {...commonProps} />
-            {!isEditMode && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAutoSlug}
-                disabled={!publisherData.name}
-              >
-                <Sparkles className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         ) : (
           <Input {...commonProps} type={field.field_type} />
         )}
-        {field.field_name === 'slug' && !isEditMode && (
+        {field.field_name === 'slug' && (
           <p className="text-xs text-muted-foreground mt-1">
-            Click the sparkle button to auto-generate from publisher name
+            Auto-generated from publisher name
           </p>
         )}
         {errors[field.field_name] && (
