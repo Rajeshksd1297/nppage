@@ -12,7 +12,6 @@ interface SubscriptionPlan {
   custom_domain: boolean;
   advanced_analytics: boolean;
   premium_themes: boolean;
-  no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
   blog: boolean;

@@ -200,17 +200,7 @@ export function useDynamicFeatures() {
       });
     }
 
-    if (plan.no_watermark) {
-      features.push({
-        id: 'no_watermark',
-        name: 'No Watermark',
-        description: 'Clean, professional appearance without platform branding',
-        icon: 'shield',
-        category: 'premium',
-        enabled: true,
-        required_plan_level: 1
-      });
-    }
+    // Feature removed: No Watermark
 
     if (plan.contact_form) {
       features.push({

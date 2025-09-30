@@ -45,7 +45,6 @@ interface Package {
   premium_themes: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
-  no_watermark: boolean;
   blog: boolean;
   events: boolean;
   awards: boolean;
@@ -152,7 +151,6 @@ export default function PackageManagement() {
             if (plan.advanced_analytics) features.push('Advanced analytics');
             if (plan.contact_form) features.push('Contact forms');
             if (plan.newsletter_integration) features.push('Newsletter integration');
-            if (plan.no_watermark) features.push('No watermark');
             if (plan.blog) features.push('Blog features');
             
             if (plan.events) features.push('Events');
@@ -184,7 +182,6 @@ export default function PackageManagement() {
             premium_themes: plan.premium_themes || false,
             contact_form: plan.contact_form || false,
             newsletter_integration: plan.newsletter_integration || false,
-            no_watermark: plan.no_watermark || false,
             blog: plan.blog || false,
             events: plan.events || false,
             awards: plan.awards || false,
@@ -252,7 +249,6 @@ export default function PackageManagement() {
           if (pkg.advanced_analytics) features.push('Advanced analytics');
           if (pkg.contact_form) features.push('Contact forms');
           if (pkg.newsletter_integration) features.push('Newsletter integration');
-          if (pkg.no_watermark) features.push('No watermark');
           if (pkg.blog) features.push('Blog features');
           
           if (pkg.events) features.push('Events');
@@ -283,7 +279,6 @@ export default function PackageManagement() {
           premium_themes: pkg.premium_themes,
           contact_form: pkg.contact_form,
           newsletter_integration: pkg.newsletter_integration,
-          no_watermark: pkg.no_watermark,
           blog: pkg.blog,
           events: pkg.events,
           awards: pkg.awards,
@@ -346,7 +341,6 @@ export default function PackageManagement() {
       premium_themes: false,
       contact_form: false,
       newsletter_integration: false,
-      no_watermark: false,
       blog: false,
       events: false,
       awards: false,
@@ -486,7 +480,7 @@ export default function PackageManagement() {
           // Auto-sync features when feature toggles change
           if (Object.keys(updates).some(key => 
             ['premium_themes', 'advanced_analytics', 'custom_domain', 'contact_form', 
-             'newsletter_integration', 'no_watermark', 'blog', 'events', 'awards', 'faq',
+             'newsletter_integration', 'blog', 'events', 'awards', 'faq',
              'max_books', 'max_publications', 'max_support_tickets', 'helpdesk'].includes(key)
           )) {
             updatedPkg.features = generateAutoFeatures(updatedPkg);
@@ -522,7 +516,6 @@ export default function PackageManagement() {
     if (pkg.premium_themes) features.push('Premium Themes');
     if (pkg.advanced_analytics) features.push('Advanced Analytics');
     if (pkg.custom_domain) features.push('Custom Domain');
-    if (pkg.no_watermark) features.push('No Watermark');
     if (pkg.contact_form) features.push('Contact Forms');
     if (pkg.newsletter_integration) features.push('Newsletter Integration');
     if (pkg.blog) features.push('Blog Features');
@@ -757,13 +750,7 @@ export default function PackageManagement() {
                           />
                           <Label>Newsletter Integration</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={pkg.no_watermark}
-                            onCheckedChange={(checked) => updatePackage(pkg.id, { no_watermark: checked })}
-                          />
-                          <Label>No Watermark</Label>
-                        </div>
+                        {/* Feature removed: No Watermark */}
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={pkg.is_publisher_plan}
@@ -824,7 +811,6 @@ export default function PackageManagement() {
                           {pkg.advanced_analytics && <Badge variant="outline" className="text-xs">Advanced Analytics</Badge>}
                           {pkg.contact_form && <Badge variant="outline" className="text-xs">Contact Form</Badge>}
                           {pkg.newsletter_integration && <Badge variant="outline" className="text-xs">Newsletter</Badge>}
-                          {pkg.no_watermark && <Badge variant="outline" className="text-xs">No Watermark</Badge>}
                           {pkg.blog && <Badge variant="outline" className="text-xs">Blog</Badge>}
                           
                           {pkg.events && <Badge variant="outline" className="text-xs">Events</Badge>}
@@ -1294,7 +1280,6 @@ export default function PackageManagement() {
                       <ul className="text-sm text-green-700 space-y-1">
                         <li>• Custom Domain - Professional branded URLs</li>
                         <li>• Premium Themes - Advanced design options</li>
-                        <li>• No Watermark - Clean, professional appearance</li>
                         <li>• Advanced Analytics - Detailed performance insights</li>
                       </ul>
                     </CardContent>
