@@ -175,7 +175,7 @@ export default function PackageManagement() {
             features: generateFeatures(plan),
             max_books: plan.max_books === -1 ? null : plan.max_books,
             max_publications: plan.max_publications === -1 ? null : plan.max_publications,
-            max_authors: null,
+            max_authors: plan.max_authors, // Publisher feature
             max_support_tickets: plan.max_support_tickets || 3, // Default 3 tickets/month
             advanced_analytics: plan.advanced_analytics || false,
             custom_domain: plan.custom_domain || false,
@@ -197,7 +197,7 @@ export default function PackageManagement() {
             discount_percent: 0,
             discount_from: '',
             discount_to: '',
-            is_publisher_plan: plan.name === 'Publisher',
+            is_publisher_plan: plan.is_publisher_plan || false, // Load from database
             available_themes: Array.isArray(plan.available_themes) ? plan.available_themes : []
           };
         });
@@ -273,6 +273,7 @@ export default function PackageManagement() {
           features: generateFeatures(pkg),
           max_books: pkg.max_books === null ? -1 : pkg.max_books, // -1 for unlimited
           max_publications: pkg.max_publications === null ? -1 : pkg.max_publications,
+          max_authors: pkg.max_authors, // Publisher feature - number of authors
           max_support_tickets: pkg.max_support_tickets || 3, // Helpdesk ticket limit
           advanced_analytics: pkg.advanced_analytics,
           custom_domain: pkg.custom_domain,
@@ -283,6 +284,7 @@ export default function PackageManagement() {
           events: pkg.events,
           awards: pkg.awards,
           faq: pkg.faq,
+          is_publisher_plan: pkg.is_publisher_plan, // Publisher plan flag
           available_themes: pkg.available_themes || []
         };
 
@@ -481,7 +483,7 @@ export default function PackageManagement() {
           if (Object.keys(updates).some(key => 
             ['premium_themes', 'advanced_analytics', 'custom_domain', 'contact_form', 
              'newsletter_integration', 'blog', 'events', 'awards', 'faq',
-             'max_books', 'max_publications', 'max_support_tickets', 'helpdesk'].includes(key)
+             'max_books', 'max_publications', 'max_support_tickets', 'max_authors', 'is_publisher_plan', 'helpdesk'].includes(key)
           )) {
             updatedPkg.features = generateAutoFeatures(updatedPkg);
           }

@@ -2356,6 +2356,8 @@ export type Database = {
           faq: boolean | null
           features: Json
           id: string
+          is_publisher_plan: boolean | null
+          max_authors: number | null
           max_books: number | null
           max_publications: number | null
           max_support_tickets: number | null
@@ -2379,6 +2381,8 @@ export type Database = {
           faq?: boolean | null
           features?: Json
           id?: string
+          is_publisher_plan?: boolean | null
+          max_authors?: number | null
           max_books?: number | null
           max_publications?: number | null
           max_support_tickets?: number | null
@@ -2402,6 +2406,8 @@ export type Database = {
           faq?: boolean | null
           features?: Json
           id?: string
+          is_publisher_plan?: boolean | null
+          max_authors?: number | null
           max_books?: number | null
           max_publications?: number | null
           max_support_tickets?: number | null

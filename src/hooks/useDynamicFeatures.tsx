@@ -274,6 +274,19 @@ export function useDynamicFeatures() {
       });
     }
 
+    // Publisher features
+    if (plan.is_publisher_plan && plan.max_authors) {
+      features.push({
+        id: 'multi_author_management',
+        name: `Multi-Author Management (${plan.max_authors} authors)`,
+        description: `Manage up to ${plan.max_authors} authors under this publisher account`,
+        icon: 'users',
+        category: 'premium',
+        enabled: true,
+        required_plan_level: 2
+      });
+    }
+
     // Support feature
     features.push({
       id: 'support',
