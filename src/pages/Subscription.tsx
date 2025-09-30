@@ -490,20 +490,6 @@ export default function Subscription() {
                           );
                         })}
                         
-                        {/* Dynamic Support Tickets Feature */}
-                        <div className="flex items-start gap-3">
-                          <div className="p-1 bg-green-100 rounded">
-                            <HelpCircle className="w-4 h-4 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">
-                              Help Desk Support ({plan.max_support_tickets || 3}/month)
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Submit support tickets monthly
-                            </p>
-                          </div>
-                        </div>
                       </div>
                     </div>
 
@@ -601,20 +587,6 @@ export default function Subscription() {
                       </tr>
                     ))}
                     
-                    {/* Manual Support Tickets Row */}
-                    <tr className="border-b hover:bg-muted/50">
-                      <td className="p-4 font-medium">Help Desk Support</td>
-                      {plans.map(plan => (
-                        <td key={plan.id} className="text-center p-4">
-                          <div className="flex flex-col items-center">
-                            <Check className="w-5 h-5 text-green-500 mb-1" />
-                            <span className="text-xs text-muted-foreground">
-                              {plan.max_support_tickets || 3}/month
-                            </span>
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
                     
                     {/* Premium Features Section */}
                     <tr className="bg-muted/30">
