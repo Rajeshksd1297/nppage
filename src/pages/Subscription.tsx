@@ -366,20 +366,6 @@ export default function Subscription() {
                         );
                       })}
                       
-                      {/* Dynamic Support Tickets Feature */}
-                      <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="p-1 bg-green-100 rounded">
-                          <HelpCircle className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm text-green-900">
-                            Help Desk Support ({subscription.subscription_plans.max_support_tickets || 3} tickets/month)
-                          </p>
-                          <p className="text-xs text-green-700">
-                            Submit support tickets with monthly limit of {subscription.subscription_plans.max_support_tickets || 3}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
