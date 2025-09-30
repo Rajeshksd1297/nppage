@@ -66,9 +66,41 @@ export function useDynamicPublisherFields() {
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
   };
 
+  const generateUniqueSlug = async (name: string, currentPublisherId?: string): Promise<string> => {
+    const baseSlug = generateSlug(name);
+    let finalSlug = `pub-${baseSlug}`;
+    let counter = 1;
+
+    // Keep checking until we find a unique slug
+    while (true) {
+      const { data, error } = await supabase
+        .from('publishers')
+        .select('id')
+        .eq('slug', finalSlug)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking slug:', error);
+        break;
+      }
+
+      // If no publisher exists with this slug, or it's the current publisher, we're good
+      if (!data || (currentPublisherId && data.id === currentPublisherId)) {
+        break;
+      }
+
+      // Slug exists, try with a number suffix
+      finalSlug = `pub-${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return finalSlug.replace('pub-', ''); // Return without prefix
+  };
+
   return {
     fields,
     loading,
-    generateSlug
+    generateSlug,
+    generateUniqueSlug
   };
 }

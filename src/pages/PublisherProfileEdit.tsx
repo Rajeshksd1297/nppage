@@ -24,7 +24,7 @@ export default function PublisherProfileEdit() {
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get('edit') === 'true';
   const { toast } = useToast();
-  const { fields, loading: fieldsLoading, generateSlug } = useDynamicPublisherFields();
+  const { fields, loading: fieldsLoading, generateUniqueSlug } = useDynamicPublisherFields();
   const [loading, setLoading] = useState(false);
   const [publisherData, setPublisherData] = useState<any>({
     name: '',
@@ -44,13 +44,17 @@ export default function PublisherProfileEdit() {
     }
   }, [isEditMode]);
 
-  // Auto-generate slug from name in create mode
+  // Auto-generate unique slug from name in create mode
   useEffect(() => {
     if (!isEditMode && publisherData.name) {
-      const autoSlug = generateSlug(publisherData.name);
-      setPublisherData(prev => ({ ...prev, slug: autoSlug }));
+      const debounceTimer = setTimeout(async () => {
+        const uniqueSlug = await generateUniqueSlug(publisherData.name);
+        setPublisherData(prev => ({ ...prev, slug: uniqueSlug }));
+      }, 500); // Debounce to avoid too many checks while typing
+
+      return () => clearTimeout(debounceTimer);
     }
-  }, [publisherData.name, isEditMode, generateSlug]);
+  }, [publisherData.name, isEditMode, generateUniqueSlug]);
 
   const fetchPublisherData = async () => {
     try {
@@ -125,7 +129,7 @@ export default function PublisherProfileEdit() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const finalSlug = `pub-${publisherData.slug.toLowerCase().trim()}`;
+      const finalSlug = `pub-${publisherData.slug}`;
 
       if (isEditMode) {
         // Update existing publisher
@@ -151,25 +155,8 @@ export default function PublisherProfileEdit() {
           description: 'Publisher profile updated successfully',
         });
       } else {
-        // Check if slug already exists
-        const { data: existingPublisher } = await supabase
-          .from('publishers')
-          .select('id')
-          .eq('slug', finalSlug)
-          .maybeSingle();
-
-        if (existingPublisher) {
-          setErrors({ slug: 'This slug is already in use' });
-          toast({
-            title: 'Slug Taken',
-            description: 'This slug is already in use. Please choose another one.',
-            variant: 'destructive',
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Create new publisher
+        // Slug is already unique from the auto-generation
+        const finalSlug = `pub-${publisherData.slug}`;
         const { error } = await supabase
           .from('publishers')
           .insert([{
