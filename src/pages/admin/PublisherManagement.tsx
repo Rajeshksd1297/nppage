@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Building2, Settings, List, Users, Wrench, Shield, Palette, UserCog } from 'lucide-react';
+import { Building2, Settings, List, Users, Wrench, Shield, Palette, UserCog, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PublisherList from '@/components/admin/Publisher/PublisherList';
@@ -18,6 +18,7 @@ export default function PublisherManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [applyingPlans, setApplyingPlans] = useState(false);
 
   // Real-time sync across all tabs
   useEffect(() => {
@@ -51,6 +52,105 @@ export default function PublisherManagement() {
     };
   }, []);
 
+  const applyPublisherPlanToAllUsers = async () => {
+    if (!confirm('Apply publisher plan to ALL existing users? This will update users who don\'t have a publisher plan.')) {
+      return;
+    }
+
+    try {
+      setApplyingPlans(true);
+
+      // Get the first publisher plan
+      const { data: publisherPlan, error: planError } = await supabase
+        .from('subscription_plans')
+        .select('id, name')
+        .eq('is_publisher_plan', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (planError) throw planError;
+
+      if (!publisherPlan) {
+        toast({
+          title: 'Error',
+          description: 'No publisher plan found. Please create one first.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Get all users
+      const { data: allUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('id');
+
+      if (usersError) throw usersError;
+
+      let updatedCount = 0;
+      let createdCount = 0;
+      let skippedCount = 0;
+
+      // Apply to all users
+      for (const user of allUsers || []) {
+        // Check if user has a subscription
+        const { data: existingSub } = await supabase
+          .from('user_subscriptions')
+          .select('id, plan_id, subscription_plans!inner(is_publisher_plan)')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingSub) {
+          // Check if they already have a publisher plan
+          const hasPublisherPlan = (existingSub as any).subscription_plans?.is_publisher_plan;
+          
+          if (hasPublisherPlan) {
+            skippedCount++;
+            continue;
+          }
+
+          // Update to publisher plan
+          const { error } = await supabase
+            .from('user_subscriptions')
+            .update({
+              plan_id: publisherPlan.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id);
+
+          if (!error) updatedCount++;
+        } else {
+          // Create new subscription with publisher plan
+          const { error } = await supabase
+            .from('user_subscriptions')
+            .insert({
+              user_id: user.id,
+              plan_id: publisherPlan.id,
+              status: 'active',
+              current_period_start: new Date().toISOString(),
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            });
+
+          if (!error) createdCount++;
+        }
+      }
+
+      toast({
+        title: 'Publisher Plans Applied',
+        description: `Updated: ${updatedCount}, Created: ${createdCount}, Skipped: ${skippedCount} users.`,
+      });
+
+    } catch (error: any) {
+      console.error('Error applying publisher plans:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to apply publisher plans',
+        variant: 'destructive',
+      });
+    } finally {
+      setApplyingPlans(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -67,10 +167,24 @@ export default function PublisherManagement() {
             Manage publishers, configure settings, and customize form fields
           </p>
         </div>
-        <Button onClick={() => navigate('/admin/publishers/assign-users')}>
-          <UserCog className="h-4 w-4 mr-2" />
-          Assign Publisher Owners
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={applyPublisherPlanToAllUsers}
+            disabled={applyingPlans}
+            variant="outline"
+          >
+            {applyingPlans ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Users className="h-4 w-4 mr-2" />
+            )}
+            Apply Publisher Plan to All Users
+          </Button>
+          <Button onClick={() => navigate('/admin/publishers/assign-users')}>
+            <UserCog className="h-4 w-4 mr-2" />
+            Assign Publisher Owners
+          </Button>
+        </div>
       </div>
 
       <Card>
