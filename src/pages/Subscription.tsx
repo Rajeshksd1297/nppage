@@ -187,7 +187,8 @@ export default function Subscription() {
         </div>
       </div>;
   }
-  return <div className="container mx-auto p-6 max-w-7xl">
+  return (
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
       {/* Enhanced Trial Banner */}
       {isOnTrial()}
       
@@ -312,8 +313,9 @@ export default function Subscription() {
                     </h4>
                     <div className="grid md:grid-cols-2 gap-3">
                       {getFeaturesByCategory(subscription.subscription_plans.id, 'core').map((feature, idx) => {
-                    const IconComponent = getFeatureIcon(feature.icon);
-                    return <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        const IconComponent = getFeatureIcon(feature.icon);
+                        return (
+                          <div key={idx} className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <div className="p-1 bg-green-100 rounded">
                               <IconComponent className="w-4 h-4 text-green-600" />
                             </div>
@@ -321,21 +323,39 @@ export default function Subscription() {
                               <p className="font-medium text-sm text-green-900">{feature.name}</p>
                               <p className="text-xs text-green-700">{feature.description}</p>
                             </div>
-                          </div>;
-                  })}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Dynamic Support Tickets Feature */}
+                      <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="p-1 bg-green-100 rounded">
+                          <HelpCircle className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm text-green-900">
+                            Help Desk Support ({subscription.subscription_plans.max_support_tickets || 3} tickets/month)
+                          </p>
+                          <p className="text-xs text-green-700">
+                            Submit support tickets with monthly limit of {subscription.subscription_plans.max_support_tickets || 3}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* Premium Features */}
-                  {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').length > 0 && <div>
+                  {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').length > 0 && (
+                    <div>
                       <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                         <Crown className="w-4 h-4" />
                         Premium Features
                       </h4>
                       <div className="grid md:grid-cols-2 gap-3">
                         {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').map((feature, idx) => {
-                    const IconComponent = getFeatureIcon(feature.icon);
-                    return <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                          const IconComponent = getFeatureIcon(feature.icon);
+                          return (
+                            <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                               <div className="p-1 bg-purple-100 rounded">
                                 <IconComponent className="w-4 h-4 text-purple-600" />
                               </div>
@@ -343,10 +363,12 @@ export default function Subscription() {
                                 <p className="font-medium text-sm text-purple-900">{feature.name}</p>
                                 <p className="text-xs text-purple-700">{feature.description}</p>
                               </div>
-                            </div>;
-                  })}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card> : <Card>
@@ -366,21 +388,38 @@ export default function Subscription() {
         {/* Subscription Packages Tab */}
         <TabsContent value="packages" className="space-y-6">
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-6 mb-8 p-2 bg-muted/50 rounded-full w-fit mx-auto">
-            <Button variant={billingCycle === 'monthly' ? 'default' : 'ghost'} size="sm" onClick={() => setBillingCycle('monthly')} className="rounded-full px-8 transition-all duration-200">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 mb-8 p-2 bg-muted/50 rounded-full w-fit mx-auto">
+            <Button 
+              variant={billingCycle === 'monthly' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => setBillingCycle('monthly')} 
+              className="rounded-full px-4 sm:px-8 transition-all duration-200"
+            >
               Monthly
             </Button>
-            <Button variant={billingCycle === 'yearly' ? 'default' : 'ghost'} size="sm" onClick={() => setBillingCycle('yearly')} className="rounded-full px-8 relative transition-all duration-200">
+            <Button 
+              variant={billingCycle === 'yearly' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => setBillingCycle('yearly')} 
+              className="rounded-full px-4 sm:px-8 relative transition-all duration-200"
+            >
               Yearly
               <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                Save 17%
+                <span className="hidden sm:inline">Save 17%</span>
+                <span className="sm:hidden">17%</span>
               </Badge>
             </Button>
           </div>
 
-          {/* Enhanced Plans Grid */}
-          <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* Enhanced Plans Grid - Responsive for any number of packages */}
+          <div className={`grid gap-6 mx-auto ${
+            plans.length === 1 ? 'max-w-md' :
+            plans.length === 2 ? 'grid-cols-1 lg:grid-cols-2 max-w-4xl' :
+            plans.length === 3 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-6xl' :
+            plans.length === 4 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4 max-w-7xl' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl'
+          }`}>
             {plans.map((plan, index) => {
             const isCurrentPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'active';
             const isOnTrialForPlan = subscription?.subscription_plans.id === plan.id && subscription?.status === 'trialing';
@@ -430,26 +469,43 @@ export default function Subscription() {
 
                   <CardContent className="pt-0">
                     {/* Core Features */}
-                    {coreFeaturesList.length > 0 && <div className="mb-6">
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-                          <Shield className="w-4 h-4" />
-                          Core Features
-                        </h4>
-                        <div className="space-y-3">
-                          {coreFeaturesList.map((feature, idx) => {
-                      const IconComponent = getFeatureIcon(feature.icon);
-                      return <div key={idx} className="flex items-start gap-3">
-                                <div className="p-1 bg-green-100 rounded">
-                                  <IconComponent className="w-4 h-4 text-green-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-medium text-sm">{feature.name}</p>
-                                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                                </div>
-                              </div>;
-                    })}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Core Features
+                      </h4>
+                      <div className="space-y-3">
+                        {coreFeaturesList.map((feature, idx) => {
+                          const IconComponent = getFeatureIcon(feature.icon);
+                          return (
+                            <div key={idx} className="flex items-start gap-3">
+                              <div className="p-1 bg-green-100 rounded">
+                                <IconComponent className="w-4 h-4 text-green-600" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{feature.name}</p>
+                                <p className="text-xs text-muted-foreground">{feature.description}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {/* Dynamic Support Tickets Feature */}
+                        <div className="flex items-start gap-3">
+                          <div className="p-1 bg-green-100 rounded">
+                            <HelpCircle className="w-4 h-4 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">
+                              Help Desk Support ({plan.max_support_tickets || 3}/month)
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Submit support tickets monthly
+                            </p>
+                          </div>
                         </div>
-                      </div>}
+                      </div>
+                    </div>
 
                     {/* Premium Features */}
                     {premiumFeaturesList.length > 0 && <div className="mb-8">
@@ -505,7 +561,8 @@ export default function Subscription() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <div className="min-w-[600px]"> {/* Minimum width for proper table display */}
+                  <table className="w-full">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-4 font-semibold">Features</th>
@@ -525,16 +582,39 @@ export default function Subscription() {
                         Core Features
                       </td>
                     </tr>
-                    {coreFeatures.map((feature, idx) => <tr key={`core-${idx}`} className="border-b hover:bg-muted/50">
+                    {coreFeatures.map((feature, idx) => (
+                      <tr key={`core-${idx}`} className="border-b hover:bg-muted/50">
                         <td className="p-4 font-medium">{feature.name}</td>
                         {plans.map(plan => {
-                      const planFeatures = getPlanFeatures(plan.id);
-                      const hasFeature = planFeatures.some(f => f.id === feature.id);
-                      return <td key={plan.id} className="text-center p-4">
-                              {hasFeature ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">—</span>}
-                            </td>;
-                    })}
-                      </tr>)}
+                          const planFeatures = getPlanFeatures(plan.id);
+                          const hasFeature = planFeatures.some(f => f.id === feature.id);
+                          return (
+                            <td key={plan.id} className="text-center p-4">
+                              {hasFeature ? (
+                                <Check className="w-5 h-5 text-green-500 mx-auto" />
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    
+                    {/* Manual Support Tickets Row */}
+                    <tr className="border-b hover:bg-muted/50">
+                      <td className="p-4 font-medium">Help Desk Support</td>
+                      {plans.map(plan => (
+                        <td key={plan.id} className="text-center p-4">
+                          <div className="flex flex-col items-center">
+                            <Check className="w-5 h-5 text-green-500 mb-1" />
+                            <span className="text-xs text-muted-foreground">
+                              {plan.max_support_tickets || 3}/month
+                            </span>
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
                     
                     {/* Premium Features Section */}
                     <tr className="bg-muted/30">
@@ -553,12 +633,14 @@ export default function Subscription() {
                             </td>;
                     })}
                       </tr>)}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div> {/* Close min-width container */}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 }
