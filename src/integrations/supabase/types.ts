@@ -1932,44 +1932,89 @@ export type Database = {
       }
       publisher_settings: {
         Row: {
+          allow_author_invites: boolean | null
+          allow_author_messaging: boolean | null
+          allow_author_self_registration: boolean | null
+          allow_author_themes: boolean | null
           allow_publisher_registration: boolean | null
           auto_payout_threshold: number | null
+          auto_publish_enabled: boolean | null
           commission_percentage: number | null
           created_at: string | null
+          default_book_visibility: string | null
           default_revenue_share: number | null
+          enable_author_analytics: boolean | null
+          enable_collaborative_editing: boolean | null
+          enable_content_moderation: boolean | null
           enable_custom_branding: boolean | null
+          enable_email_notifications: boolean | null
           enable_white_label: boolean | null
           id: string
           max_authors_per_publisher: number | null
+          max_books_per_author: number | null
+          notify_new_author_requests: boolean | null
+          notify_new_book_submissions: boolean | null
           publisher_subdomain_prefix: string | null
+          require_admin_review: boolean | null
+          require_author_approval: boolean | null
           require_publisher_approval: boolean | null
           updated_at: string | null
         }
         Insert: {
+          allow_author_invites?: boolean | null
+          allow_author_messaging?: boolean | null
+          allow_author_self_registration?: boolean | null
+          allow_author_themes?: boolean | null
           allow_publisher_registration?: boolean | null
           auto_payout_threshold?: number | null
+          auto_publish_enabled?: boolean | null
           commission_percentage?: number | null
           created_at?: string | null
+          default_book_visibility?: string | null
           default_revenue_share?: number | null
+          enable_author_analytics?: boolean | null
+          enable_collaborative_editing?: boolean | null
+          enable_content_moderation?: boolean | null
           enable_custom_branding?: boolean | null
+          enable_email_notifications?: boolean | null
           enable_white_label?: boolean | null
           id?: string
           max_authors_per_publisher?: number | null
+          max_books_per_author?: number | null
+          notify_new_author_requests?: boolean | null
+          notify_new_book_submissions?: boolean | null
           publisher_subdomain_prefix?: string | null
+          require_admin_review?: boolean | null
+          require_author_approval?: boolean | null
           require_publisher_approval?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          allow_author_invites?: boolean | null
+          allow_author_messaging?: boolean | null
+          allow_author_self_registration?: boolean | null
+          allow_author_themes?: boolean | null
           allow_publisher_registration?: boolean | null
           auto_payout_threshold?: number | null
+          auto_publish_enabled?: boolean | null
           commission_percentage?: number | null
           created_at?: string | null
+          default_book_visibility?: string | null
           default_revenue_share?: number | null
+          enable_author_analytics?: boolean | null
+          enable_collaborative_editing?: boolean | null
+          enable_content_moderation?: boolean | null
           enable_custom_branding?: boolean | null
+          enable_email_notifications?: boolean | null
           enable_white_label?: boolean | null
           id?: string
           max_authors_per_publisher?: number | null
+          max_books_per_author?: number | null
+          notify_new_author_requests?: boolean | null
+          notify_new_book_submissions?: boolean | null
           publisher_subdomain_prefix?: string | null
+          require_admin_review?: boolean | null
+          require_author_approval?: boolean | null
           require_publisher_approval?: boolean | null
           updated_at?: string | null
         }

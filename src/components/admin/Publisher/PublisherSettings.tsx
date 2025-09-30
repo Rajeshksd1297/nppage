@@ -5,22 +5,39 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Users, Globe, Palette, Shield, Save, RefreshCw } from 'lucide-react';
+import { Users, Globe, Bell, BookOpen, Shield, Save, RefreshCw, FileCheck, Palette, Settings as SettingsIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface Settings {
   id: string;
   allow_publisher_registration: boolean;
-  default_revenue_share: number;
-  max_authors_per_publisher: number;
   require_publisher_approval: boolean;
   publisher_subdomain_prefix: string;
   enable_custom_branding: boolean;
   enable_white_label: boolean;
-  commission_percentage: number;
-  auto_payout_threshold: number;
+  max_authors_per_publisher: number;
+  // Author Management
+  allow_author_invites: boolean;
+  require_author_approval: boolean;
+  allow_author_self_registration: boolean;
+  max_books_per_author: number;
+  allow_author_themes: boolean;
+  // Content & Publishing
+  enable_content_moderation: boolean;
+  auto_publish_enabled: boolean;
+  require_admin_review: boolean;
+  default_book_visibility: string;
+  enable_collaborative_editing: boolean;
+  // Notifications & Communication
+  enable_email_notifications: boolean;
+  notify_new_author_requests: boolean;
+  notify_new_book_submissions: boolean;
+  allow_author_messaging: boolean;
+  // Analytics
+  enable_author_analytics: boolean;
 }
 
 export default function PublisherSettings() {
@@ -50,14 +67,26 @@ export default function PublisherSettings() {
         // Create default settings
         const defaultSettings = {
           allow_publisher_registration: true,
-          default_revenue_share: 30,
-          max_authors_per_publisher: 25,
           require_publisher_approval: false,
           publisher_subdomain_prefix: 'pub',
           enable_custom_branding: true,
           enable_white_label: false,
-          commission_percentage: 10,
-          auto_payout_threshold: 100
+          max_authors_per_publisher: 25,
+          allow_author_invites: true,
+          require_author_approval: true,
+          allow_author_self_registration: false,
+          max_books_per_author: 50,
+          allow_author_themes: true,
+          enable_content_moderation: true,
+          auto_publish_enabled: false,
+          require_admin_review: false,
+          default_book_visibility: 'private',
+          enable_collaborative_editing: false,
+          enable_email_notifications: true,
+          notify_new_author_requests: true,
+          notify_new_book_submissions: true,
+          allow_author_messaging: true,
+          enable_author_analytics: true,
         };
 
         const { data: newSettings, error: createError } = await supabase
@@ -89,17 +118,7 @@ export default function PublisherSettings() {
       
       const { error } = await supabase
         .from('publisher_settings')
-        .update({
-          allow_publisher_registration: settings.allow_publisher_registration,
-          default_revenue_share: settings.default_revenue_share,
-          max_authors_per_publisher: settings.max_authors_per_publisher,
-          require_publisher_approval: settings.require_publisher_approval,
-          publisher_subdomain_prefix: settings.publisher_subdomain_prefix,
-          enable_custom_branding: settings.enable_custom_branding,
-          enable_white_label: settings.enable_white_label,
-          commission_percentage: settings.commission_percentage,
-          auto_payout_threshold: settings.auto_payout_threshold,
-        })
+        .update(settings)
         .eq('id', settings.id);
 
       if (error) throw error;
@@ -149,7 +168,7 @@ export default function PublisherSettings() {
           <div>
             <CardTitle>Publisher Configuration</CardTitle>
             <CardDescription>
-              Configure global publisher settings and rules
+              Configure global publisher and author management settings
             </CardDescription>
           </div>
           <Button onClick={saveSettings} disabled={saving}>
@@ -164,12 +183,12 @@ export default function PublisherSettings() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* General Settings */}
+        {/* Publisher Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              General Settings
+              Publisher Settings
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -188,7 +207,7 @@ export default function PublisherSettings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Require Approval</Label>
+                <Label className="text-base">Require Publisher Approval</Label>
                 <p className="text-sm text-muted-foreground">
                   New publishers need admin approval
                 </p>
@@ -199,76 +218,276 @@ export default function PublisherSettings() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="slug_prefix">Slug Prefix</Label>
+                <Input
+                  id="slug_prefix"
+                  value={settings.publisher_subdomain_prefix}
+                  onChange={(e) => updateSetting('publisher_subdomain_prefix', e.target.value)}
+                  placeholder="pub"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Example: {settings.publisher_subdomain_prefix}-publishername
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="max_authors">Max Authors per Publisher</Label>
+                <Input
+                  id="max_authors"
+                  type="number"
+                  min="1"
+                  value={settings.max_authors_per_publisher}
+                  onChange={(e) => updateSetting('max_authors_per_publisher', parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Author Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Author Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Invites</Label>
+                <p className="text-sm text-muted-foreground">
+                  Publishers can invite authors to join
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_invites}
+                onCheckedChange={(checked) => updateSetting('allow_author_invites', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Require Author Approval</Label>
+                <p className="text-sm text-muted-foreground">
+                  Authors need publisher approval to join
+                </p>
+              </div>
+              <Switch
+                checked={settings.require_author_approval}
+                onCheckedChange={(checked) => updateSetting('require_author_approval', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Self-Registration</Label>
+                <p className="text-sm text-muted-foreground">
+                  Authors can directly request to join publishers
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_self_registration}
+                onCheckedChange={(checked) => updateSetting('allow_author_self_registration', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Themes</Label>
+                <p className="text-sm text-muted-foreground">
+                  Authors can customize their profile themes
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_themes}
+                onCheckedChange={(checked) => updateSetting('allow_author_themes', checked)}
+              />
+            </div>
+
             <div>
-              <Label htmlFor="slug_prefix">Slug Prefix</Label>
+              <Label htmlFor="max_books">Max Books per Author</Label>
               <Input
-                id="slug_prefix"
-                value={settings.publisher_subdomain_prefix}
-                onChange={(e) => updateSetting('publisher_subdomain_prefix', e.target.value)}
-                placeholder="pub"
+                id="max_books"
+                type="number"
+                min="1"
+                value={settings.max_books_per_author}
+                onChange={(e) => updateSetting('max_books_per_author', parseInt(e.target.value))}
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Example: {settings.publisher_subdomain_prefix}-publishername
+                Maximum number of books an author can publish
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Revenue & Limits */}
+        {/* Content & Publishing */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Revenue & Limits
+              <BookOpen className="w-5 h-5" />
+              Content & Publishing
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="revenue_share">Default Revenue Share (%)</Label>
-              <Input
-                id="revenue_share"
-                type="number"
-                min="0"
-                max="100"
-                value={settings.default_revenue_share}
-                onChange={(e) => updateSetting('default_revenue_share', parseFloat(e.target.value))}
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Enable Content Moderation</Label>
+                <p className="text-sm text-muted-foreground">
+                  Review content before publishing
+                </p>
+              </div>
+              <Switch
+                checked={settings.enable_content_moderation}
+                onCheckedChange={(checked) => updateSetting('enable_content_moderation', checked)}
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Auto-Publish Approved Content</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically publish after approval
+                </p>
+              </div>
+              <Switch
+                checked={settings.auto_publish_enabled}
+                onCheckedChange={(checked) => updateSetting('auto_publish_enabled', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Require Admin Review</Label>
+                <p className="text-sm text-muted-foreground">
+                  Platform admins review all content
+                </p>
+              </div>
+              <Switch
+                checked={settings.require_admin_review}
+                onCheckedChange={(checked) => updateSetting('require_admin_review', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Enable Collaborative Editing</Label>
+                <p className="text-sm text-muted-foreground">
+                  Multiple authors can edit books together
+                </p>
+              </div>
+              <Switch
+                checked={settings.enable_collaborative_editing}
+                onCheckedChange={(checked) => updateSetting('enable_collaborative_editing', checked)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="book_visibility">Default Book Visibility</Label>
+              <Select 
+                value={settings.default_book_visibility}
+                onValueChange={(value) => updateSetting('default_book_visibility', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
               <p className="text-sm text-muted-foreground mt-1">
-                Publisher's share from sales
+                Default visibility for new books
               </p>
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <Label htmlFor="commission">Platform Commission (%)</Label>
-              <Input
-                id="commission"
-                type="number"
-                min="0"
-                max="100"
-                value={settings.commission_percentage}
-                onChange={(e) => updateSetting('commission_percentage', parseFloat(e.target.value))}
+        {/* Notifications & Communication */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Notifications & Communication
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Enable Email Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Send email notifications to users
+                </p>
+              </div>
+              <Switch
+                checked={settings.enable_email_notifications}
+                onCheckedChange={(checked) => updateSetting('enable_email_notifications', checked)}
               />
             </div>
 
-            <div>
-              <Label htmlFor="max_authors">Max Authors per Publisher</Label>
-              <Input
-                id="max_authors"
-                type="number"
-                min="1"
-                value={settings.max_authors_per_publisher}
-                onChange={(e) => updateSetting('max_authors_per_publisher', parseInt(e.target.value))}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Notify New Author Requests</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert publishers of new author requests
+                </p>
+              </div>
+              <Switch
+                checked={settings.notify_new_author_requests}
+                onCheckedChange={(checked) => updateSetting('notify_new_author_requests', checked)}
               />
             </div>
 
-            <div>
-              <Label htmlFor="payout_threshold">Auto Payout Threshold ($)</Label>
-              <Input
-                id="payout_threshold"
-                type="number"
-                min="0"
-                value={settings.auto_payout_threshold}
-                onChange={(e) => updateSetting('auto_payout_threshold', parseFloat(e.target.value))}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Notify New Book Submissions</Label>
+                <p className="text-sm text-muted-foreground">
+                  Alert publishers of new book submissions
+                </p>
+              </div>
+              <Switch
+                checked={settings.notify_new_book_submissions}
+                onCheckedChange={(checked) => updateSetting('notify_new_book_submissions', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Messaging</Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable messaging between publishers and authors
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_messaging}
+                onCheckedChange={(checked) => updateSetting('allow_author_messaging', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analytics & Reporting */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileCheck className="w-5 h-5" />
+              Analytics & Reporting
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Enable Author Analytics</Label>
+                <p className="text-sm text-muted-foreground">
+                  Authors can view their performance metrics
+                </p>
+              </div>
+              <Switch
+                checked={settings.enable_author_analytics}
+                onCheckedChange={(checked) => updateSetting('enable_author_analytics', checked)}
               />
             </div>
           </CardContent>
@@ -279,15 +498,15 @@ export default function PublisherSettings() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              Branding Options
+              Branding & Customization
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Custom Branding</Label>
+                <Label className="text-base">Enable Custom Branding</Label>
                 <p className="text-sm text-muted-foreground">
-                  Allow publishers to customize colors and logos
+                  Publishers can customize colors and logos
                 </p>
               </div>
               <Switch
@@ -298,7 +517,7 @@ export default function PublisherSettings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">White Label</Label>
+                <Label className="text-base">Enable White Label</Label>
                 <p className="text-sm text-muted-foreground">
                   Remove platform branding from publisher pages
                 </p>
@@ -311,41 +530,73 @@ export default function PublisherSettings() {
           </CardContent>
         </Card>
 
-        {/* Current Status */}
+        {/* Status Overview */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Current Status
+              Current Status Overview
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm">Registration:</span>
                   <Badge variant={settings.allow_publisher_registration ? 'default' : 'secondary'}>
                     {settings.allow_publisher_registration ? 'Open' : 'Closed'}
                   </Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Approval Required:</span>
-                  <Badge variant={settings.require_publisher_approval ? 'default' : 'secondary'}>
-                    {settings.require_publisher_approval ? 'Yes' : 'No'}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Author Invites:</span>
+                  <Badge variant={settings.allow_author_invites ? 'default' : 'secondary'}>
+                    {settings.allow_author_invites ? 'Enabled' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Self-Registration:</span>
+                  <Badge variant={settings.allow_author_self_registration ? 'default' : 'secondary'}>
+                    {settings.allow_author_self_registration ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Custom Branding:</span>
-                  <Badge variant={settings.enable_custom_branding ? 'default' : 'secondary'}>
-                    {settings.enable_custom_branding ? 'Enabled' : 'Disabled'}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Moderation:</span>
+                  <Badge variant={settings.enable_content_moderation ? 'default' : 'secondary'}>
+                    {settings.enable_content_moderation ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">White Label:</span>
-                  <Badge variant={settings.enable_white_label ? 'default' : 'secondary'}>
-                    {settings.enable_white_label ? 'Enabled' : 'Disabled'}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Auto-Publish:</span>
+                  <Badge variant={settings.auto_publish_enabled ? 'default' : 'secondary'}>
+                    {settings.auto_publish_enabled ? 'Enabled' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Admin Review:</span>
+                  <Badge variant={settings.require_admin_review ? 'default' : 'secondary'}>
+                    {settings.require_admin_review ? 'Required' : 'Optional'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Email Notifications:</span>
+                  <Badge variant={settings.enable_email_notifications ? 'default' : 'secondary'}>
+                    {settings.enable_email_notifications ? 'Enabled' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Analytics:</span>
+                  <Badge variant={settings.enable_author_analytics ? 'default' : 'secondary'}>
+                    {settings.enable_author_analytics ? 'Enabled' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Messaging:</span>
+                  <Badge variant={settings.allow_author_messaging ? 'default' : 'secondary'}>
+                    {settings.allow_author_messaging ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
               </div>
