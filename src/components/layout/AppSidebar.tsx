@@ -326,7 +326,7 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {/* Publisher Dashboard - Show for Pro plans or publishers */}
+                {/* Publisher Page - Show for Pro plans or publishers */}
                 {(isPro() || isPublisher) && (
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
@@ -335,7 +335,10 @@ export function AppSidebar() {
                           <Building2 className="h-4 w-4" />
                           {!collapsed && (
                             <div className="flex items-center justify-between flex-1">
-                              <span>Publisher Dashboard</span>
+                              <span>Publisher Page</span>
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                New
+                              </Badge>
                             </div>
                           )}
                         </div>
