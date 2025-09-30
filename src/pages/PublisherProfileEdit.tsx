@@ -5,19 +5,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, Save, ArrowLeft, Globe, Mail, Palette } from 'lucide-react';
+import { Building2, Save, ArrowLeft, Globe, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useDynamicPublisherFields } from '@/hooks/useDynamicPublisherFields';
 
-const publisherSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  slug: z.string().trim().min(1, 'Slug is required').max(50, 'Slug must be less than 50 characters').regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-  contact_email: z.string().trim().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
-  website_url: z.string().trim().url('Invalid URL').optional().or(z.literal('')),
-  description: z.string().trim().max(1000, 'Description must be less than 1000 characters').optional(),
-});
+// Dynamic validation schema builder
+const buildValidationSchema = (fields: any[]) => {
+  const schemaObject: any = {};
+  
+  fields.forEach(field => {
+    if (field.field_name === 'slug') return; // Skip slug, it's auto-generated
+    
+    // Add type-specific validation
+    if (field.field_type === 'email') {
+      if (field.is_required) {
+        schemaObject[field.field_name] = z.string().trim().email(`Invalid ${field.field_label.toLowerCase()}`);
+      } else {
+        schemaObject[field.field_name] = z.string().trim().email(`Invalid ${field.field_label.toLowerCase()}`).optional().or(z.literal(''));
+      }
+    } else if (field.field_type === 'url') {
+      if (field.is_required) {
+        schemaObject[field.field_name] = z.string().trim().url(`Invalid ${field.field_label.toLowerCase()}`);
+      } else {
+        schemaObject[field.field_name] = z.string().trim().url(`Invalid ${field.field_label.toLowerCase()}`).optional().or(z.literal(''));
+      }
+    } else {
+      // Text, textarea, number, etc.
+      if (field.is_required) {
+        schemaObject[field.field_name] = z.string().trim().min(1, `${field.field_label} is required`);
+      } else {
+        schemaObject[field.field_name] = z.string().trim().optional().or(z.literal(''));
+      }
+    }
+  });
+  
+  return z.object(schemaObject);
+};
 
 export default function PublisherProfileEdit() {
   const navigate = useNavigate();
@@ -27,13 +52,6 @@ export default function PublisherProfileEdit() {
   const { fields, loading: fieldsLoading, generateUniqueSlug } = useDynamicPublisherFields();
   const [loading, setLoading] = useState(false);
   const [publisherData, setPublisherData] = useState<any>({
-    name: '',
-    slug: '',
-    contact_email: '',
-    website_url: '',
-    description: '',
-    brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
-    social_links: { twitter: '', linkedin: '', website: '' },
     custom_fields: {}
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,17 +88,21 @@ export default function PublisherProfileEdit() {
       if (error) throw error;
 
       if (data) {
-        const customFields = (data.custom_fields as any) || {};
-        setPublisherData({
-          name: data.name,
-          slug: data.slug.replace('pub-', ''), // Remove prefix for editing
-          contact_email: data.contact_email,
-          website_url: data.website_url || '',
-          description: data.description || '',
-          brand_colors: data.brand_colors || { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
-          social_links: customFields.social_links || { twitter: '', linkedin: '', website: '' },
-          custom_fields: customFields
+        const newData: any = { custom_fields: {} };
+        
+        // Map database fields to state
+        fields.forEach(field => {
+          if (field.is_custom) {
+            const customFields = data.custom_fields as any || {};
+            newData.custom_fields[field.field_name] = customFields[field.field_name] || '';
+          } else if (field.field_name === 'slug') {
+            newData.slug = data.slug.replace('pub-', '');
+          } else {
+            newData[field.field_name] = data[field.field_name] || '';
+          }
         });
+        
+        setPublisherData(newData);
       }
     } catch (error) {
       console.error('Error fetching publisher data:', error);
@@ -94,7 +116,22 @@ export default function PublisherProfileEdit() {
 
   const validateForm = () => {
     try {
-      publisherSchema.parse(publisherData);
+      const schema = buildValidationSchema(fields);
+      const dataToValidate: any = {};
+      
+      // Build data object from fields
+      fields.forEach(field => {
+        if (field.is_custom) {
+          if (!dataToValidate.custom_fields) {
+            dataToValidate.custom_fields = {};
+          }
+          dataToValidate.custom_fields[field.field_name] = publisherData.custom_fields?.[field.field_name] || '';
+        } else if (field.field_name !== 'slug') {
+          dataToValidate[field.field_name] = publisherData[field.field_name] || '';
+        }
+      });
+      
+      schema.parse(dataToValidate);
       setErrors({});
       return true;
     } catch (error) {
@@ -102,7 +139,8 @@ export default function PublisherProfileEdit() {
         const newErrors: Record<string, string> = {};
         error.errors.forEach((err) => {
           if (err.path[0]) {
-            newErrors[err.path[0].toString()] = err.message;
+            const path = err.path.join('.');
+            newErrors[path] = err.message;
           }
         });
         setErrors(newErrors);
@@ -131,21 +169,30 @@ export default function PublisherProfileEdit() {
 
       const finalSlug = `pub-${publisherData.slug}`;
 
+      // Build update/insert data dynamically from fields
+      const publisherUpdate: any = {
+        slug: finalSlug,
+        custom_fields: {}
+      };
+
+      fields.forEach(field => {
+        if (field.field_name === 'slug') return;
+        
+        if (field.is_custom) {
+          publisherUpdate.custom_fields[field.field_name] = publisherData.custom_fields?.[field.field_name] || null;
+        } else {
+          const value = publisherData[field.field_name];
+          publisherUpdate[field.field_name] = value?.trim() || null;
+        }
+      });
+
       if (isEditMode) {
         // Update existing publisher
+        delete publisherUpdate.slug; // Don't update slug
+        
         const { error } = await supabase
           .from('publishers')
-          .update({
-            name: publisherData.name.trim(),
-            contact_email: publisherData.contact_email.trim(),
-            website_url: publisherData.website_url?.trim() || null,
-            description: publisherData.description?.trim() || null,
-            brand_colors: publisherData.brand_colors,
-            custom_fields: {
-              ...publisherData.custom_fields,
-              social_links: publisherData.social_links
-            },
-          })
+          .update(publisherUpdate)
           .eq('owner_id', user.id);
 
         if (error) throw error;
@@ -196,13 +243,14 @@ export default function PublisherProfileEdit() {
     }
   };
 
-  const renderDynamicField = (field: any) => {
-    const fieldValue = field.is_custom 
+  const renderField = (field: any) => {
+    const isCustomField = field.is_custom;
+    const fieldValue = isCustomField 
       ? publisherData.custom_fields?.[field.field_name] || ''
       : publisherData[field.field_name] || '';
 
     const handleFieldChange = (value: any) => {
-      if (field.is_custom) {
+      if (isCustomField) {
         setPublisherData({
           ...publisherData,
           custom_fields: {
@@ -215,50 +263,85 @@ export default function PublisherProfileEdit() {
       }
     };
 
-    const commonProps = {
-      id: field.field_name,
-      value: fieldValue,
-      onChange: (e: any) => handleFieldChange(e.target.value),
-      placeholder: field.placeholder || '',
-      className: errors[field.field_name] ? 'border-destructive' : '',
-      disabled: field.field_name === 'slug', // Slug is always disabled (auto-generated)
-    };
+    const errorKey = isCustomField ? `custom_fields.${field.field_name}` : field.field_name;
+    const hasError = errors[errorKey];
+
+    // Slug is always disabled and auto-generated
+    const isDisabled = field.field_name === 'slug';
 
     return (
-      <div key={field.id}>
+      <div key={field.id} className={field.field_type === 'textarea' ? 'md:col-span-2' : ''}>
         <Label htmlFor={field.field_name}>
-          {field.field_label} {field.is_required && <span className="text-destructive">*</span>}
+          {field.field_label}
+          {field.is_required && <span className="text-destructive ml-1">*</span>}
         </Label>
+        
         {field.field_type === 'textarea' ? (
-          <Textarea {...commonProps} rows={4} />
+          <Textarea
+            id={field.field_name}
+            value={fieldValue}
+            onChange={(e) => handleFieldChange(e.target.value)}
+            placeholder={field.placeholder || ''}
+            className={hasError ? 'border-destructive' : ''}
+            disabled={isDisabled}
+            rows={4}
+          />
         ) : field.field_type === 'email' ? (
           <div className="relative">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input {...commonProps} type="email" className={`pl-10 ${commonProps.className}`} />
+            <Input
+              id={field.field_name}
+              type="email"
+              value={fieldValue}
+              onChange={(e) => handleFieldChange(e.target.value)}
+              placeholder={field.placeholder || ''}
+              className={`pl-10 ${hasError ? 'border-destructive' : ''}`}
+              disabled={isDisabled}
+            />
           </div>
         ) : field.field_type === 'url' ? (
           <div className="relative">
             <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input {...commonProps} type="url" className={`pl-10 ${commonProps.className}`} />
-          </div>
-        ) : field.field_name === 'slug' ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">pub-</span>
-            <Input 
-              {...commonProps} 
-              className={`${commonProps.className} bg-muted cursor-not-allowed`}
+            <Input
+              id={field.field_name}
+              type="url"
+              value={fieldValue}
+              onChange={(e) => handleFieldChange(e.target.value)}
+              placeholder={field.placeholder || ''}
+              className={`pl-10 ${hasError ? 'border-destructive' : ''}`}
+              disabled={isDisabled}
             />
           </div>
+        ) : field.field_name === 'slug' ? (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">pub-</span>
+              <Input
+                id={field.field_name}
+                value={fieldValue}
+                disabled={true}
+                placeholder={field.placeholder || ''}
+                className={`bg-muted cursor-not-allowed ${hasError ? 'border-destructive' : ''}`}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Automatically generated from publisher name
+            </p>
+          </>
         ) : (
-          <Input {...commonProps} type={field.field_type} />
+          <Input
+            id={field.field_name}
+            type={field.field_type}
+            value={fieldValue}
+            onChange={(e) => handleFieldChange(e.target.value)}
+            placeholder={field.placeholder || ''}
+            className={hasError ? 'border-destructive' : ''}
+            disabled={isDisabled}
+          />
         )}
-        {field.field_name === 'slug' && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Automatically generated from publisher name
-          </p>
-        )}
-        {errors[field.field_name] && (
-          <p className="text-sm text-destructive mt-1">{errors[field.field_name]}</p>
+        
+        {hasError && (
+          <p className="text-sm text-destructive mt-1">{hasError}</p>
         )}
       </div>
     );
@@ -292,151 +375,15 @@ export default function PublisherProfileEdit() {
           <CardDescription>
             {isEditMode 
               ? 'Update your publishing house information' 
-              : 'Set up your publishing house profile to manage authors and books'}
+              : 'Complete all required fields to create your publisher profile'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Dynamic Fields */}
+            {/* All Dynamic Fields */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Publisher Information</h3>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {fields.filter(f => !f.is_custom).map(field => (
-                  <div key={field.id} className={field.field_type === 'textarea' ? 'md:col-span-2' : ''}>
-                    {renderDynamicField(field)}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom Fields */}
-            {fields.filter(f => f.is_custom).length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Additional Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {fields.filter(f => f.is_custom).map(field => (
-                    <div key={field.id} className={field.field_type === 'textarea' ? 'md:col-span-2' : ''}>
-                      {renderDynamicField(field)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Brand Colors */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Brand Colors
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="primary_color">Primary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="primary_color"
-                      type="color"
-                      value={publisherData.brand_colors.primary}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, primary: e.target.value }
-                      })}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      value={publisherData.brand_colors.primary}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, primary: e.target.value }
-                      })}
-                      placeholder="#000000"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="secondary_color">Secondary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="secondary_color"
-                      type="color"
-                      value={publisherData.brand_colors.secondary}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, secondary: e.target.value }
-                      })}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      value={publisherData.brand_colors.secondary}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, secondary: e.target.value }
-                      })}
-                      placeholder="#666666"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="accent_color">Accent Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="accent_color"
-                      type="color"
-                      value={publisherData.brand_colors.accent}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, accent: e.target.value }
-                      })}
-                      className="w-20 h-10"
-                    />
-                    <Input
-                      value={publisherData.brand_colors.accent}
-                      onChange={(e) => setPublisherData({ 
-                        ...publisherData, 
-                        brand_colors: { ...publisherData.brand_colors, accent: e.target.value }
-                      })}
-                      placeholder="#0066cc"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Social Links */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Social Media Links</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="twitter">Twitter</Label>
-                  <Input
-                    id="twitter"
-                    value={publisherData.social_links.twitter}
-                    onChange={(e) => setPublisherData({ 
-                      ...publisherData, 
-                      social_links: { ...publisherData.social_links, twitter: e.target.value }
-                    })}
-                    placeholder="https://twitter.com/yourpublisher"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="linkedin">LinkedIn</Label>
-                  <Input
-                    id="linkedin"
-                    value={publisherData.social_links.linkedin}
-                    onChange={(e) => setPublisherData({ 
-                      ...publisherData, 
-                      social_links: { ...publisherData.social_links, linkedin: e.target.value }
-                    })}
-                    placeholder="https://linkedin.com/company/yourpublisher"
-                  />
-                </div>
+                {fields.map(field => renderField(field))}
               </div>
             </div>
 
