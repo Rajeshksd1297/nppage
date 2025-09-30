@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Search, UserPlus, UserMinus, RefreshCw, BookOpen, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, CheckCircle, XCircle, Trash2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,8 +33,9 @@ export default function PublisherList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Publisher>>({});
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const { toast } = useToast();
@@ -202,6 +203,58 @@ export default function PublisherList() {
     }
   };
 
+  const handleEdit = (publisher: Publisher) => {
+    setEditingRow(publisher.id);
+    setEditForm({
+      id: publisher.id,
+      name: publisher.name,
+      contact_email: publisher.contact_email,
+      status: publisher.status,
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('publishers')
+        .update({
+          name: editForm.name,
+          contact_email: editForm.contact_email,
+          status: editForm.status,
+        })
+        .eq('id', editForm.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Publisher updated successfully',
+      });
+
+      setEditingRow(null);
+      setEditForm({});
+      fetchPublishers();
+    } catch (error: any) {
+      console.error('Error updating publisher:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update publisher',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRow(null);
+    setEditForm({});
+  };
+
+  const toggleExpand = (publisherId: string) => {
+    setExpandedRow(expandedRow === publisherId ? null : publisherId);
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       active: 'default',
@@ -265,6 +318,7 @@ export default function PublisherList() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]"></TableHead>
                 <TableHead>
                   <Button
                     variant="ghost"
@@ -326,115 +380,181 @@ export default function PublisherList() {
             <TableBody>
               {filteredPublishers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No publishers found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredPublishers.map((publisher) => (
-                  <TableRow key={publisher.id}>
-                    <TableCell className="font-medium">{publisher.name}</TableCell>
-                    <TableCell>{publisher.contact_email}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{publisher.author_count || 0}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{publisher.book_count || 0}</Badge>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(publisher.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPublisher(publisher);
-                            setIsDetailsOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {publisher.status === 'active' ? (
+                filteredPublishers.map((publisher) => {
+                  const isExpanded = expandedRow === publisher.id;
+                  const isEditing = editingRow === publisher.id;
+
+                  return (
+                    <>
+                      <TableRow key={publisher.id}>
+                        <TableCell>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleStatusChange(publisher.id, 'suspended')}
+                            onClick={() => toggleExpand(publisher.id)}
                           >
-                            <XCircle className="h-4 w-4 text-destructive" />
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                           </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleStatusChange(publisher.id, 'active')}
-                          >
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(publisher.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {isEditing ? (
+                            <Input
+                              value={editForm.name || ''}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className="h-8"
+                            />
+                          ) : (
+                            publisher.name
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isEditing ? (
+                            <Input
+                              type="email"
+                              value={editForm.contact_email || ''}
+                              onChange={(e) => setEditForm({ ...editForm, contact_email: e.target.value })}
+                              className="h-8"
+                            />
+                          ) : (
+                            publisher.contact_email
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{publisher.author_count || 0}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{publisher.book_count || 0}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {isEditing ? (
+                            <Select
+                              value={editForm.status}
+                              onValueChange={(value) => setEditForm({ ...editForm, status: value })}
+                            >
+                              <SelectTrigger className="h-8 w-[120px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="suspended">Suspended</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getStatusBadge(publisher.status)
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {isEditing ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleSaveEdit}
+                                >
+                                  <Save className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleCancelEdit}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(publisher)}
+                                  title="Edit"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                                {publisher.status === 'active' ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleStatusChange(publisher.id, 'suspended')}
+                                    title="Suspend"
+                                  >
+                                    <XCircle className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleStatusChange(publisher.id, 'active')}
+                                    title="Activate"
+                                  >
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(publisher.id)}
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="bg-muted/50">
+                            <div className="p-4 space-y-3">
+                              <h4 className="font-semibold text-sm">Publisher Details</h4>
+                              <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <Label className="text-muted-foreground">Publisher ID</Label>
+                                  <p className="font-mono text-xs mt-1">{publisher.id}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Authors</Label>
+                                  <p className="mt-1">{publisher.author_count || 0} authors</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Books</Label>
+                                  <p className="mt-1">{publisher.book_count || 0} books</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Max Authors</Label>
+                                  <p className="mt-1">{publisher.max_authors || 'Unlimited'}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Created At</Label>
+                                  <p className="mt-1">
+                                    {new Date(publisher.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </div>
       </CardContent>
-
-      {/* Publisher Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Publisher Details</DialogTitle>
-            <DialogDescription>
-              View complete information about this publisher
-            </DialogDescription>
-          </DialogHeader>
-          {selectedPublisher && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Name</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.name}</p>
-                </div>
-                <div>
-                  <Label>Authors</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.author_count || 0}</p>
-                </div>
-                <div>
-                  <Label>Books</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.book_count || 0}</p>
-                </div>
-                <div>
-                  <Label>Contact Email</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.contact_email}</p>
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedPublisher.status)}</div>
-                </div>
-                <div>
-                  <Label>Max Authors</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.max_authors || 'Unlimited'}</p>
-                </div>
-                <div className="col-span-2">
-                  <Label>Created At</Label>
-                  <p className="text-sm font-medium mt-1">
-                    {new Date(selectedPublisher.created_at).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
