@@ -161,6 +161,27 @@ export function AppSidebar() {
     getCurrentUserRole();
     getUserProfile();
     checkPublisherStatus();
+
+    // Set up real-time subscription for subscription changes
+    const channel = supabase
+      .channel('sidebar-subscription-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        () => {
+          console.log('Subscription changed, rechecking publisher status');
+          checkPublisherStatus();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const getCurrentUserRole = async () => {
