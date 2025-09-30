@@ -4,8 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { 
   Users, 
   Plus, 
@@ -17,7 +21,21 @@ import {
   BookOpen,
   Building2,
   Crown,
-  AlertCircle
+  AlertCircle,
+  Settings,
+  Eye,
+  EyeOff,
+  UserCheck,
+  UserX,
+  Mail,
+  Globe,
+  Palette,
+  Shield,
+  TrendingUp,
+  Activity,
+  CalendarDays,
+  FileText,
+  MoreHorizontal
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,13 +50,18 @@ interface PublisherAuthor {
   revenue_share_percentage: number;
   joined_at: string;
   status: string;
+  access_level: string;
+  permissions: string[];
+  last_active?: string;
   profiles: {
     full_name?: string;
     email?: string;
     slug?: string;
+    avatar_url?: string;
   };
   books_count?: number;
   total_revenue?: number;
+  monthly_earnings?: number;
 }
 
 interface PublisherInfo {
@@ -47,19 +70,43 @@ interface PublisherInfo {
   subdomain: string;
   contact_email: string;
   website_url?: string;
+  description?: string;
   revenue_share_percentage: number;
   status: string;
   max_authors: number;
   brand_colors: any;
+  logo_url?: string;
+  social_links?: any;
+}
+
+interface PublisherSettings {
+  allow_author_submissions: boolean;
+  require_approval_for_books: boolean;
+  default_revenue_share: number;
+  max_books_per_author: number;
+  author_onboarding_enabled: boolean;
 }
 
 export default function PublisherDashboard() {
   const [publisherInfo, setPublisherInfo] = useState<PublisherInfo | null>(null);
+  const [publisherSettings, setPublisherSettings] = useState<PublisherSettings>({
+    allow_author_submissions: true,
+    require_approval_for_books: false,
+    default_revenue_share: 50,
+    max_books_per_author: 10,
+    author_onboarding_enabled: true,
+  });
   const [authors, setAuthors] = useState<PublisherAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAuthor, setSelectedAuthor] = useState<PublisherAuthor | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterRole, setFilterRole] = useState<string>('all');
   const [isAddAuthorDialogOpen, setIsAddAuthorDialogOpen] = useState(false);
   const [isEditPublisherDialogOpen, setIsEditPublisherDialogOpen] = useState(false);
+  const [isAuthorDetailDialogOpen, setIsAuthorDetailDialogOpen] = useState(false);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [deleteConfirmAuthor, setDeleteConfirmAuthor] = useState<string | null>(null);
   const { toast } = useToast();
   const { subscription, isPro } = useSubscription();
 
@@ -67,6 +114,8 @@ export default function PublisherDashboard() {
     email: '',
     role: 'author',
     revenue_share_percentage: 50,
+    access_level: 'author',
+    permissions: ['read', 'write'],
   });
 
   const [editPublisher, setEditPublisher] = useState({
@@ -74,11 +123,14 @@ export default function PublisherDashboard() {
     subdomain: '',
     contact_email: '',
     website_url: '',
-    brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' }
+    description: '',
+    brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
+    social_links: { twitter: '', linkedin: '', website: '' }
   });
 
   useEffect(() => {
     fetchPublisherData();
+    fetchPublisherSettings();
     
     // Set up real-time sync for publisher plan changes
     const channel = supabase
@@ -99,12 +151,43 @@ export default function PublisherDashboard() {
         console.log('👥 Publisher authors changed - refreshing data...');
         fetchAuthors();
       })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'publisher_settings'
+      }, () => {
+        console.log('⚙️ Publisher settings changed - refreshing settings...');
+        fetchPublisherSettings();
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const fetchPublisherSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('publisher_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setPublisherSettings({
+          allow_author_submissions: (data as any).allow_author_submissions ?? true,
+          require_approval_for_books: (data as any).require_approval_for_books ?? false,
+          default_revenue_share: data.default_revenue_share ?? 50,
+          max_books_per_author: (data as any).max_books_per_author ?? 10,
+          author_onboarding_enabled: (data as any).author_onboarding_enabled ?? true,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching publisher settings:', error);
+    }
+  };
 
   const fetchPublisherData = async () => {
     try {
@@ -175,8 +258,12 @@ export default function PublisherDashboard() {
           return {
             ...author,
             status: (author as any).status || 'active',
+            access_level: (author as any).access_level || 'author',
+            permissions: (author as any).permissions || ['read', 'write'],
+            last_active: (author as any).last_active || new Date().toISOString(),
             books_count: booksData?.length || 0,
-            total_revenue: Math.random() * 1000 // Placeholder for revenue calculation
+            total_revenue: Math.random() * 1000, // Placeholder for revenue calculation
+            monthly_earnings: Math.random() * 200 // Placeholder for monthly earnings
           };
         })
       );
@@ -279,6 +366,8 @@ export default function PublisherDashboard() {
         email: '',
         role: 'author',
         revenue_share_percentage: 50,
+        access_level: 'author',
+        permissions: ['read', 'write'],
       });
       fetchAuthors();
     } catch (error) {
@@ -291,9 +380,32 @@ export default function PublisherDashboard() {
     }
   };
 
-  const removeAuthor = async (authorId: string) => {
-    if (!confirm('Are you sure you want to remove this author?')) return;
+  const updateAuthorStatus = async (authorId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('publisher_authors')
+        .update({ status: newStatus })
+        .eq('id', authorId);
 
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Author ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`,
+      });
+
+      fetchAuthors();
+    } catch (error) {
+      console.error('Error updating author status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update author status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const removeAuthor = async (authorId: string) => {
     try {
       const { error } = await supabase
         .from('publisher_authors')
@@ -307,6 +419,7 @@ export default function PublisherDashboard() {
         description: 'Author removed successfully',
       });
 
+      setDeleteConfirmAuthor(null);
       fetchAuthors();
     } catch (error) {
       console.error('Error removing author:', error);
@@ -318,11 +431,46 @@ export default function PublisherDashboard() {
     }
   };
 
-  const filteredAuthors = authors.filter(author =>
-    author.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    author.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    author.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const giveProAccess = async (authorId: string) => {
+    try {
+      // This would integrate with your subscription system
+      // For now, we'll update their access level
+      const { error } = await supabase
+        .from('publisher_authors')
+        .update({ 
+          access_level: 'pro',
+          permissions: ['read', 'write', 'publish', 'analytics']
+        })
+        .eq('id', authorId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Pro access granted successfully',
+      });
+
+      fetchAuthors();
+    } catch (error) {
+      console.error('Error granting pro access:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to grant pro access',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const filteredAuthors = authors.filter(author => {
+    const matchesSearch = author.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      author.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      author.role.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || author.status === filterStatus;
+    const matchesRole = filterRole === 'all' || author.role === filterRole;
+    
+    return matchesSearch && matchesStatus && matchesRole;
+  });
 
   // Check if user has publisher plan access
   if (!subscription?.subscription_plans?.name?.toLowerCase().includes('pro') && !(subscription?.subscription_plans as any)?.is_publisher_plan) {
