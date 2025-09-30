@@ -1870,6 +1870,51 @@ export type Database = {
           },
         ]
       }
+      publisher_settings: {
+        Row: {
+          allow_publisher_registration: boolean | null
+          auto_payout_threshold: number | null
+          commission_percentage: number | null
+          created_at: string | null
+          default_revenue_share: number | null
+          enable_custom_branding: boolean | null
+          enable_white_label: boolean | null
+          id: string
+          max_authors_per_publisher: number | null
+          publisher_subdomain_prefix: string | null
+          require_publisher_approval: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_publisher_registration?: boolean | null
+          auto_payout_threshold?: number | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          default_revenue_share?: number | null
+          enable_custom_branding?: boolean | null
+          enable_white_label?: boolean | null
+          id?: string
+          max_authors_per_publisher?: number | null
+          publisher_subdomain_prefix?: string | null
+          require_publisher_approval?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_publisher_registration?: boolean | null
+          auto_payout_threshold?: number | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          default_revenue_share?: number | null
+          enable_custom_branding?: boolean | null
+          enable_white_label?: boolean | null
+          id?: string
+          max_authors_per_publisher?: number | null
+          publisher_subdomain_prefix?: string | null
+          require_publisher_approval?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       publishers: {
         Row: {
           billing_address: Json | null
@@ -1880,6 +1925,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          owner_id: string | null
           revenue_share_percentage: number | null
           status: string
           subdomain: string
@@ -1895,6 +1941,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          owner_id?: string | null
           revenue_share_percentage?: number | null
           status?: string
           subdomain: string
@@ -1910,6 +1957,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          owner_id?: string | null
           revenue_share_percentage?: number | null
           status?: string
           subdomain?: string

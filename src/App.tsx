@@ -24,6 +24,8 @@ import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
+import PublisherSettings from './pages/admin/PublisherSettings';
+import PublisherDashboard from './pages/PublisherDashboard';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
@@ -433,6 +435,18 @@ function App() {
                 <AdminAccessGuard>
                   <PublisherManagement />
                 </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publisher-settings" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <PublisherSettings />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/publisher-dashboard" element={
+              <DashboardLayout>
+                <PublisherDashboard />
               </DashboardLayout>
             } />
             

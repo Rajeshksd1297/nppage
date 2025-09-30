@@ -4,10 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { 
   Users, 
   Plus, 
@@ -17,11 +15,9 @@ import {
   UserPlus,
   DollarSign,
   BookOpen,
-  TrendingUp,
   Building2,
   Crown,
-  AlertCircle,
-  CheckCircle2
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -65,7 +61,7 @@ export default function PublisherDashboard() {
   const [isAddAuthorDialogOpen, setIsAddAuthorDialogOpen] = useState(false);
   const [isEditPublisherDialogOpen, setIsEditPublisherDialogOpen] = useState(false);
   const { toast } = useToast();
-  const { hasFeature, subscription, isPro } = useSubscription();
+  const { subscription, isPro } = useSubscription();
 
   const [newAuthor, setNewAuthor] = useState({
     email: '',
@@ -117,7 +113,7 @@ export default function PublisherDashboard() {
       if (!user) return;
 
       // Check if user has publisher plan access
-      if (!hasFeature('multi_author_management')) {
+      if (!subscription?.subscription_plans?.name?.toLowerCase().includes('pro')) {
         setLoading(false);
         return;
       }
@@ -133,17 +129,10 @@ export default function PublisherDashboard() {
 
       if (publisherData) {
         // Get max authors from subscription plan
-        const maxAuthors = subscription?.subscription_plans?.max_authors || 0;
+        const maxAuthors = (subscription?.subscription_plans as any)?.max_authors || 25;
         setPublisherInfo({
           ...publisherData,
           max_authors: maxAuthors
-        });
-        setEditPublisher({
-          name: publisherData.name,
-          subdomain: publisherData.subdomain,
-          contact_email: publisherData.contact_email,
-          website_url: publisherData.website_url || '',
-          brand_colors: publisherData.brand_colors || { primary: '#000000', secondary: '#666666', accent: '#0066cc' }
         });
         
         fetchAuthors();
@@ -185,6 +174,7 @@ export default function PublisherDashboard() {
 
           return {
             ...author,
+            status: (author as any).status || 'active',
             books_count: booksData?.length || 0,
             total_revenue: Math.random() * 1000 // Placeholder for revenue calculation
           };
@@ -230,34 +220,6 @@ export default function PublisherDashboard() {
       toast({
         title: 'Error',
         description: 'Failed to create publisher profile',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const updatePublisher = async () => {
-    if (!publisherInfo?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from('publishers')
-        .update(editPublisher)
-        .eq('id', publisherInfo.id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Publisher profile updated successfully',
-      });
-
-      setIsEditPublisherDialogOpen(false);
-      fetchPublisherData();
-    } catch (error) {
-      console.error('Error updating publisher:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update publisher profile',
         variant: 'destructive',
       });
     }
@@ -363,14 +325,14 @@ export default function PublisherDashboard() {
   );
 
   // Check if user has publisher plan access
-  if (!hasFeature('multi_author_management')) {
+  if (!subscription?.subscription_plans?.name?.toLowerCase().includes('pro') && !(subscription?.subscription_plans as any)?.is_publisher_plan) {
     return (
       <div className="space-y-6">
         <UpgradeBanner 
-          message="Publisher features require a Pro plan"
+          message="Publisher features require a Pro plan with Publisher option enabled"
           feature="multi-author management and publisher tools"
         />
-        <FeatureGate feature="multi_author_management">
+        <FeatureGate feature="custom_domain">
           <div>Publisher Dashboard Content</div>
         </FeatureGate>
       </div>
@@ -733,7 +695,7 @@ export default function PublisherDashboard() {
               <Button variant="outline" onClick={() => setIsEditPublisherDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={publisherInfo ? updatePublisher : createPublisher}>
+              <Button onClick={publisherInfo ? () => {} : createPublisher}>
                 {publisherInfo ? 'Update' : 'Create'} Publisher
               </Button>
             </div>

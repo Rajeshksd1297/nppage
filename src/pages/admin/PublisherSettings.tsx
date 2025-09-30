@@ -75,7 +75,7 @@ export default function PublisherSettings() {
       }
 
       if (data) {
-        setSettings(data);
+        setSettings(data as PublisherSettings);
       } else {
         // Create default settings if none exist
         const defaultSettings = {
@@ -97,7 +97,7 @@ export default function PublisherSettings() {
           .single();
 
         if (createError) throw createError;
-        setSettings(newSettings);
+        setSettings(newSettings as PublisherSettings);
       }
     } catch (error) {
       console.error('Error fetching publisher settings:', error);
