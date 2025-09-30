@@ -152,6 +152,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
+  const [isPublisher, setIsPublisher] = useState(false);
   const { hasFeature, subscription, isPro, isFree, isOnTrial, trialDaysLeft } = useSubscription();
   const { getPlanFeatures } = useDynamicFeatures();
 
@@ -179,7 +180,7 @@ export function AppSidebar() {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug, full_name')
+        .select('slug, full_name, publisher_id')
         .eq('id', user.id)
         .single();
 
@@ -192,6 +193,11 @@ export function AppSidebar() {
       } else {
         console.log('No slug found for user');
         setUserSlug(null);
+      }
+      
+      // Check if user has publisher_id
+      if (data?.publisher_id) {
+        setIsPublisher(true);
       }
     } catch (error) {
       console.error('Error getting user profile:', error);
@@ -321,8 +327,8 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {/* Publisher Dashboard - Show for Pro plans */}
-                {isPro() && (
+                {/* Publisher Dashboard - Show for Pro plans or publishers */}
+                {(isPro() || isPublisher) && (
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink to="/publisher-dashboard" className={getNavCls}>
