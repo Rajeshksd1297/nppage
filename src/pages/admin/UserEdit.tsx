@@ -22,7 +22,8 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Star
+  Star,
+  Building2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +31,7 @@ import { emailSchema, validateFormData } from "@/utils/inputValidation";
 import { z } from 'zod';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
+import UserPublisherAssignment from '@/components/admin/UserManagement/UserPublisherAssignment';
 
 interface User {
   id: string;
@@ -464,7 +466,7 @@ export default function UserEdit() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             User Profile
@@ -472,6 +474,10 @@ export default function UserEdit() {
           <TabsTrigger value="package" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Package Management
+          </TabsTrigger>
+          <TabsTrigger value="publisher" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Publisher
           </TabsTrigger>
         </TabsList>
 
@@ -827,6 +833,10 @@ export default function UserEdit() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="publisher" className="space-y-6">
+          <UserPublisherAssignment userId={userId!} />
         </TabsContent>
       </Tabs>
     </div>
