@@ -351,7 +351,8 @@ export default function PublisherDashboard() {
           user_id: userData.id,
           role: newAuthor.role,
           revenue_share_percentage: newAuthor.revenue_share_percentage,
-          status: 'active'
+          ...(newAuthor.access_level && { access_level: newAuthor.access_level } as any),
+          ...(newAuthor.permissions && { permissions: newAuthor.permissions } as any)
         }]);
 
       if (error) throw error;
@@ -384,7 +385,9 @@ export default function PublisherDashboard() {
     try {
       const { error } = await supabase
         .from('publisher_authors')
-        .update({ status: newStatus })
+        .update({ 
+          ...(newStatus && { status: newStatus })
+        } as any)
         .eq('id', authorId);
 
       if (error) throw error;
@@ -433,14 +436,12 @@ export default function PublisherDashboard() {
 
   const giveProAccess = async (authorId: string) => {
     try {
-      // This would integrate with your subscription system
-      // For now, we'll update their access level
       const { error } = await supabase
         .from('publisher_authors')
         .update({ 
           access_level: 'pro',
           permissions: ['read', 'write', 'publish', 'analytics']
-        })
+        } as any)
         .eq('id', authorId);
 
       if (error) throw error;
@@ -515,17 +516,25 @@ export default function PublisherDashboard() {
             }
           </p>
         </div>
-        {publisherInfo ? (
-          <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
-          </Button>
-        ) : (
-          <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Setup Publisher
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {publisherInfo && (
+            <Button variant="outline" onClick={() => setIsSettingsDialogOpen(true)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          )}
+          {publisherInfo ? (
+            <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
+          ) : (
+            <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Setup Publisher
+            </Button>
+          )}
+        </div>
       </div>
 
       {!publisherInfo ? (
@@ -537,10 +546,24 @@ export default function PublisherDashboard() {
               Set Up Your Publisher Profile
             </CardTitle>
             <CardDescription>
-              Create your publisher profile to start managing authors and books
+              Create your publisher profile to start managing authors and books. Get access to advanced features like multi-author management, revenue sharing, and custom branding.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
+            <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-col items-center gap-2">
+                <Users className="w-8 h-8" />
+                <span>Manage Authors</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <DollarSign className="w-8 h-8" />
+                <span>Revenue Sharing</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Globe className="w-8 h-8" />
+                <span>Custom Branding</span>
+              </div>
+            </div>
             <Button onClick={() => setIsEditPublisherDialogOpen(true)} size="lg">
               <Plus className="h-5 w-5 mr-2" />
               Create Publisher Profile
@@ -548,179 +571,374 @@ export default function PublisherDashboard() {
           </CardContent>
         </Card>
       ) : (
-        <>
-          {/* Publisher Stats */}
-          <div className="grid gap-4 md:grid-cols-4">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="authors">Authors</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Publisher Stats */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Authors</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{authors.filter(a => a.status === 'active').length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    of {publisherInfo.max_authors} allowed
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Books</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {authors.reduce((sum, author) => sum + (author.books_count || 0), 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Across all authors
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    ${authors.reduce((sum, author) => sum + (author.monthly_earnings || 0), 0).toFixed(0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {publisherInfo.revenue_share_percentage}% platform share
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Plan Status</CardTitle>
+                  <Crown className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-bold text-primary">
+                    {subscription?.subscription_plans?.name || 'Free'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {publisherInfo.max_authors} authors max
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Authors</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Manage your publishing operations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{authors.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  of {publisherInfo.max_authors} allowed
-                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col gap-2"
+                    onClick={() => setIsAddAuthorDialogOpen(true)}
+                    disabled={authors.length >= publisherInfo.max_authors}
+                  >
+                    <UserPlus className="h-6 w-6" />
+                    <span>Add Author</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col gap-2"
+                    onClick={() => setIsEditPublisherDialogOpen(true)}
+                  >
+                    <Edit className="h-6 w-6" />
+                    <span>Edit Profile</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col gap-2"
+                    onClick={() => setIsSettingsDialogOpen(true)}
+                  >
+                    <Settings className="h-6 w-6" />
+                    <span>Settings</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col gap-2"
+                  >
+                    <TrendingUp className="h-6 w-6" />
+                    <span>Analytics</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
+          <TabsContent value="authors" className="space-y-6">
+            {/* Author Management */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Books</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Author Management</CardTitle>
+                    <CardDescription>
+                      Manage authors under your publishing house ({authors.length}/{publisherInfo.max_authors} slots used)
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    onClick={() => setIsAddAuthorDialogOpen(true)}
+                    disabled={authors.length >= publisherInfo.max_authors}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Author
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {authors.reduce((sum, author) => sum + (author.books_count || 0), 0)}
+                {/* Filters */}
+                <div className="flex gap-4 mb-6">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search authors..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterRole} onValueChange={setFilterRole}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="author">Author</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="contributor">Contributor</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Across all authors
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Revenue Share</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{publisherInfo.revenue_share_percentage}%</div>
-                <p className="text-xs text-muted-foreground">
-                  Average rate
-                </p>
-              </CardContent>
-            </Card>
+                {/* Author Limit Warning */}
+                {authors.length >= publisherInfo.max_authors * 0.8 && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-900">
+                        Approaching Author Limit
+                      </p>
+                      <p className="text-sm text-amber-700">
+                        You're using {authors.length} of {publisherInfo.max_authors} author slots. 
+                        {authors.length >= publisherInfo.max_authors 
+                          ? ' Upgrade your plan to add more authors.'
+                          : ' Consider upgrading if you need more capacity.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Plan Status</CardTitle>
-                <Crown className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-primary">
-                  {subscription?.subscription_plans?.name || 'Free'}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {publisherInfo.max_authors} authors max
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Author Management */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Author Management</CardTitle>
-                  <CardDescription>
-                    Manage authors under your publishing house ({authors.length}/{publisherInfo.max_authors} slots used)
-                  </CardDescription>
-                </div>
-                <Button 
-                  onClick={() => setIsAddAuthorDialogOpen(true)}
-                  disabled={authors.length >= publisherInfo.max_authors}
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Author
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Search */}
-              <div className="flex gap-4 mb-6">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search authors..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              {/* Author Limit Warning */}
-              {authors.length >= publisherInfo.max_authors * 0.8 && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-amber-900">
-                      Approaching Author Limit
-                    </p>
-                    <p className="text-sm text-amber-700">
-                      You're using {authors.length} of {publisherInfo.max_authors} author slots. 
-                      {authors.length >= publisherInfo.max_authors 
-                        ? ' Upgrade your plan to add more authors.'
-                        : ' Consider upgrading if you need more capacity.'
+                {/* Authors List */}
+                {filteredAuthors.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">
+                      {authors.length === 0 ? 'No authors yet' : 'No authors found'}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {authors.length === 0 
+                        ? 'Add your first author to start building your publishing network'
+                        : 'Try adjusting your search terms'
                       }
                     </p>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4">
+                    {filteredAuthors.map((author) => (
+                      <div key={author.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                            {author.profiles?.avatar_url ? (
+                              <img src={author.profiles.avatar_url} alt="Avatar" className="w-12 h-12 rounded-lg object-cover" />
+                            ) : (
+                              <Users className="h-6 w-6 text-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{author.profiles?.full_name || 'Unknown Author'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>{author.profiles?.email}</span>
+                              <span>•</span>
+                              <span className="capitalize">{author.role}</span>
+                              <span>•</span>
+                              <span>{author.revenue_share_percentage}% share</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                              <span>{author.books_count || 0} books</span>
+                              <span>${(author.total_revenue || 0).toFixed(2)} total</span>
+                              <span>${(author.monthly_earnings || 0).toFixed(2)}/month</span>
+                              <span>Joined {new Date(author.joined_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={author.status === 'active' ? 'default' : 'secondary'}
+                          >
+                            {author.status}
+                          </Badge>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAuthor(author);
+                              setIsAuthorDetailDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
 
-              {/* Authors List */}
-              {filteredAuthors.length === 0 ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateAuthorStatus(author.id, author.status === 'active' ? 'inactive' : 'active')}
+                          >
+                            {author.status === 'active' ? <EyeOff className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => giveProAccess(author.id)}
+                            disabled={author.access_level === 'pro'}
+                          >
+                            <Crown className="h-3 w-3" />
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteConfirmAuthor(author.id)}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Analytics</CardTitle>
+                <CardDescription>Track your publishing performance</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    {authors.length === 0 ? 'No authors yet' : 'No authors found'}
-                  </h3>
+                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Analytics Coming Soon</h3>
                   <p className="text-muted-foreground">
-                    {authors.length === 0 
-                      ? 'Add your first author to start building your publishing network'
-                      : 'Try adjusting your search terms'
-                    }
+                    Detailed analytics and revenue tracking will be available soon.
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredAuthors.map((author) => (
-                    <div key={author.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Users className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{author.profiles?.full_name || 'Unknown Author'}</h4>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{author.profiles?.email}</span>
-                            <span>•</span>
-                            <span className="capitalize">{author.role}</span>
-                            <span>•</span>
-                            <span>{author.revenue_share_percentage}% share</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                            <span>{author.books_count || 0} books</span>
-                            <span>${(author.total_revenue || 0).toFixed(2)} revenue</span>
-                            <span>Joined {new Date(author.joined_at).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={author.status === 'active' ? 'default' : 'secondary'}
-                        >
-                          {author.status}
-                        </Badge>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeAuthor(author.id)}
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Publisher Settings</CardTitle>
+                <CardDescription>Configure your publishing preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="author-submissions">Allow Author Submissions</Label>
+                    <p className="text-sm text-muted-foreground">Allow authors to submit books for review</p>
+                  </div>
+                  <Switch
+                    id="author-submissions"
+                    checked={publisherSettings.allow_author_submissions}
+                    onCheckedChange={(checked) => 
+                      setPublisherSettings(prev => ({ ...prev, allow_author_submissions: checked }))
+                    }
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="require-approval">Require Book Approval</Label>
+                    <p className="text-sm text-muted-foreground">All books must be approved before publishing</p>
+                  </div>
+                  <Switch
+                    id="require-approval"
+                    checked={publisherSettings.require_approval_for_books}
+                    onCheckedChange={(checked) => 
+                      setPublisherSettings(prev => ({ ...prev, require_approval_for_books: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="default-revenue">Default Revenue Share (%)</Label>
+                  <Input
+                    id="default-revenue"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={publisherSettings.default_revenue_share}
+                    onChange={(e) => 
+                      setPublisherSettings(prev => ({ ...prev, default_revenue_share: parseFloat(e.target.value) }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="max-books">Max Books per Author</Label>
+                  <Input
+                    id="max-books"
+                    type="number"
+                    min="1"
+                    value={publisherSettings.max_books_per_author}
+                    onChange={(e) => 
+                      setPublisherSettings(prev => ({ ...prev, max_books_per_author: parseInt(e.target.value) }))
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Add Author Dialog */}
@@ -728,6 +946,9 @@ export default function PublisherDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Author</DialogTitle>
+            <DialogDescription>
+              Add an existing user as an author to your publishing house
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -772,6 +993,23 @@ export default function PublisherDashboard() {
                 onChange={(e) => setNewAuthor(prev => ({ ...prev, revenue_share_percentage: parseFloat(e.target.value) }))}
               />
             </div>
+
+            <div>
+              <Label htmlFor="access_level">Access Level</Label>
+              <Select
+                value={newAuthor.access_level}
+                onValueChange={(value) => setNewAuthor(prev => ({ ...prev, access_level: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="author">Author</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsAddAuthorDialogOpen(false)}>
@@ -785,6 +1023,62 @@ export default function PublisherDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Author Detail Dialog */}
+      <Dialog open={isAuthorDetailDialogOpen} onOpenChange={setIsAuthorDetailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Author Details</DialogTitle>
+          </DialogHeader>
+          {selectedAuthor && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                  {selectedAuthor.profiles?.avatar_url ? (
+                    <img src={selectedAuthor.profiles.avatar_url} alt="Avatar" className="w-16 h-16 rounded-lg object-cover" />
+                  ) : (
+                    <Users className="h-8 w-8 text-primary" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedAuthor.profiles?.full_name}</h3>
+                  <p className="text-muted-foreground">{selectedAuthor.profiles?.email}</p>
+                  <Badge variant={selectedAuthor.status === 'active' ? 'default' : 'secondary'}>
+                    {selectedAuthor.status}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Role</Label>
+                  <p className="capitalize">{selectedAuthor.role}</p>
+                </div>
+                <div>
+                  <Label>Revenue Share</Label>
+                  <p>{selectedAuthor.revenue_share_percentage}%</p>
+                </div>
+                <div>
+                  <Label>Books Published</Label>
+                  <p>{selectedAuthor.books_count || 0}</p>
+                </div>
+                <div>
+                  <Label>Total Revenue</Label>
+                  <p>${(selectedAuthor.total_revenue || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <Label>Joined Date</Label>
+                  <p>{new Date(selectedAuthor.joined_at).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <Label>Access Level</Label>
+                  <p className="capitalize">{selectedAuthor.access_level}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Publisher Dialog */}
       <Dialog open={isEditPublisherDialogOpen} onOpenChange={setIsEditPublisherDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -792,6 +1086,9 @@ export default function PublisherDashboard() {
             <DialogTitle>
               {publisherInfo ? 'Edit Publisher Profile' : 'Create Publisher Profile'}
             </DialogTitle>
+            <DialogDescription>
+              {publisherInfo ? 'Update your publisher information' : 'Set up your publishing house profile'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -838,6 +1135,17 @@ export default function PublisherDashboard() {
                 placeholder="https://yourpublisher.com"
               />
             </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editPublisher.description}
+                onChange={(e) => setEditPublisher(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Tell us about your publishing house..."
+                rows={3}
+              />
+            </div>
             
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsEditPublisherDialogOpen(false)}>
@@ -850,6 +1158,27 @@ export default function PublisherDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmAuthor} onOpenChange={() => setDeleteConfirmAuthor(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Author</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this author from your publishing house? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirmAuthor && removeAuthor(deleteConfirmAuthor)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove Author
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

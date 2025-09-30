@@ -1823,27 +1823,39 @@ export type Database = {
       }
       publisher_authors: {
         Row: {
+          access_level: string | null
           id: string
           joined_at: string
+          last_active: string | null
+          permissions: Json | null
           publisher_id: string
           revenue_share_percentage: number | null
           role: string
+          status: string | null
           user_id: string
         }
         Insert: {
+          access_level?: string | null
           id?: string
           joined_at?: string
+          last_active?: string | null
+          permissions?: Json | null
           publisher_id: string
           revenue_share_percentage?: number | null
           role?: string
+          status?: string | null
           user_id: string
         }
         Update: {
+          access_level?: string | null
           id?: string
           joined_at?: string
+          last_active?: string | null
+          permissions?: Json | null
           publisher_id?: string
           revenue_share_percentage?: number | null
           role?: string
+          status?: string | null
           user_id?: string
         }
         Relationships: [
