@@ -344,7 +344,7 @@ export default function Subscription() {
                     </div>
                   </div>
 
-                  {/* Premium Features */}
+                  {/* Premium Features - Dynamic from Package Management */}
                   {getFeaturesByCategory(subscription.subscription_plans.id, 'premium').length > 0 && (
                     <div>
                       <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -542,7 +542,7 @@ export default function Subscription() {
                 Feature Comparison
               </CardTitle>
               <CardDescription>
-                Compare all features across our subscription plans (synced with package management)
+                Real-time comparison of all features across subscription plans (synced with package management)
               </CardDescription>
             </CardHeader>
             <CardContent>
