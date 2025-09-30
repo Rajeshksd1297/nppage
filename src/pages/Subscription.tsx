@@ -65,7 +65,8 @@ export default function Subscription() {
     getFeaturesByCategory,
     coreFeatures,
     premiumFeatures,
-    loading: featuresLoading
+    loading: featuresLoading,
+    refreshFeatures
   } = useDynamicFeatures();
   useEffect(() => {
     fetchData();
@@ -79,11 +80,12 @@ export default function Subscription() {
     }, payload => {
       console.log('Subscription plans changed, refetching...', payload);
       fetchData(); // Refetch data when plans change
+      refreshFeatures(); // Also refresh the dynamic features
     }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refreshFeatures]);
   const getPackageDescription = (plan: SubscriptionPlan) => {
     if (plan.price_monthly === 0) return 'Perfect for getting started with essential features';
     if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to build a professional author presence';
