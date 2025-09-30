@@ -185,13 +185,22 @@ export default function PublisherDashboard() {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      console.log('🔍 Publisher Dashboard - Current user:', user?.id);
+      console.log('🔍 Publisher Dashboard - Subscription:', subscription);
+      
+      if (!user) {
+        console.log('❌ No user found');
+        return;
+      }
 
       // Check if user has publisher plan access
       if (!subscription?.subscription_plans?.name?.toLowerCase().includes('pro')) {
+        console.log('❌ User does not have Pro plan access');
         setLoading(false);
         return;
       }
+      
+      console.log('✅ User has Pro plan access, fetching publisher data...');
 
       // Fetch publisher info for current user
       const { data: publisherData, error: publisherError } = await supabase
@@ -200,9 +209,14 @@ export default function PublisherDashboard() {
         .eq('owner_id', user.id)
         .maybeSingle();
 
-      if (publisherError) throw publisherError;
+      console.log('📦 Publisher data fetched:', publisherData);
+      if (publisherError) {
+        console.error('❌ Publisher error:', publisherError);
+        throw publisherError;
+      }
 
       if (publisherData) {
+        console.log('✅ Publisher profile found, loading authors...');
         // Get max authors from subscription plan
         const maxAuthors = (subscription?.subscription_plans as any)?.max_authors || 25;
         setPublisherInfo({
@@ -212,6 +226,8 @@ export default function PublisherDashboard() {
         
         // Fetch authors with the publisher ID directly
         fetchAuthors(publisherData.id);
+      } else {
+        console.log('ℹ️ No publisher profile found - showing setup screen');
       }
     } catch (error) {
       console.error('Error fetching publisher data:', error);
