@@ -212,19 +212,32 @@ export function AppSidebar() {
 
       console.log('Checking publisher status for user:', user.id);
 
-      const { data, error } = await supabase
+      // Check if user owns a publisher
+      const { data: publisherData, error: publisherError } = await supabase
         .from('publishers')
         .select('id, name, status')
         .eq('owner_id', user.id)
         .maybeSingle();
 
-      console.log('Publisher query result:', { data, error });
+      console.log('Publisher query result:', { data: publisherData, error: publisherError });
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      const hasPublisher = !!data && data.status === 'active';
-      console.log('Is publisher:', hasPublisher);
-      setIsPublisher(hasPublisher);
+      const ownsPublisher = !!publisherData && publisherData.status === 'active';
+
+      // Also check if user has a publisher plan
+      const { data: subscriptionData, error: subError } = await supabase
+        .from('user_subscriptions')
+        .select('subscription_plans!inner(is_publisher_plan)')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log('Subscription query result:', { data: subscriptionData, error: subError });
+
+      const hasPublisherPlan = !!(subscriptionData as any)?.subscription_plans?.is_publisher_plan;
+
+      // Show publisher dashboard if user owns a publisher OR has a publisher plan
+      const hasPublisherAccess = ownsPublisher || hasPublisherPlan;
+      console.log('Publisher access:', { ownsPublisher, hasPublisherPlan, hasPublisherAccess });
+      setIsPublisher(hasPublisherAccess);
     } catch (error) {
       console.error('Error checking publisher status:', error);
       setIsPublisher(false);
