@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeThemes } from '@/hooks/useRealtimeThemes';
+import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Package {
@@ -65,6 +66,7 @@ export default function PackageManagement() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const { themes, loading: themesLoading } = useRealtimeThemes();
+  const { coreFeatures, premiumFeatures, refreshFeatures } = useDynamicFeatures();
   
   const [packageSettings, setPackageSettings] = useState({
     packages: [], // Will be loaded from database
@@ -461,10 +463,58 @@ export default function PackageManagement() {
   const updatePackage = (packageId: string, updates: Partial<Package>) => {
     setPackageSettings(prev => ({
       ...prev,
-      packages: prev.packages.map(pkg => 
-        pkg.id === packageId ? { ...pkg, ...updates } : pkg
-      )
+      packages: prev.packages.map(pkg => {
+        if (pkg.id === packageId) {
+          const updatedPkg = { ...pkg, ...updates };
+          
+          // Auto-sync features when feature toggles change
+          if (Object.keys(updates).some(key => 
+            ['premium_themes', 'advanced_analytics', 'custom_domain', 'contact_form', 
+             'newsletter_integration', 'no_watermark', 'blog', 'events', 'awards', 'faq',
+             'max_books', 'max_publications'].includes(key)
+          )) {
+            updatedPkg.features = generateAutoFeatures(updatedPkg);
+          }
+          
+          return updatedPkg;
+        }
+        return pkg;
+      })
     }));
+  };
+
+  const generateAutoFeatures = (pkg: Package): string[] => {
+    const features: string[] = [];
+    
+    // Book limits
+    if (pkg.max_books === null || pkg.max_books === -1) {
+      features.push('Unlimited books');
+    } else if (pkg.max_books > 0) {
+      features.push(`Up to ${pkg.max_books} books`);
+    }
+    
+    // Core features
+    features.push('Professional Profile');
+    features.push('Basic Analytics');
+    features.push('Basic Themes');
+    
+    // Premium features based on toggles
+    if (pkg.premium_themes) features.push('Premium Themes');
+    if (pkg.advanced_analytics) features.push('Advanced Analytics');
+    if (pkg.custom_domain) features.push('Custom Domain');
+    if (pkg.no_watermark) features.push('No Watermark');
+    if (pkg.contact_form) features.push('Contact Forms');
+    if (pkg.newsletter_integration) features.push('Newsletter Integration');
+    if (pkg.blog) features.push('Blog Features');
+    if (pkg.events) features.push('Events Management');
+    if (pkg.awards) features.push('Awards Showcase');
+    if (pkg.faq) features.push('FAQ Section');
+    
+    // Support
+    const isPaidPlan = pkg.price_monthly > 0;
+    features.push(isPaidPlan ? 'Priority Support' : 'Community Support');
+    
+    return features;
   };
 
   const calculateDiscountedPrice = (originalPrice: number, discountPercent: number) => {
@@ -986,17 +1036,37 @@ export default function PackageManagement() {
                     </CardContent>
                   </Card>
 
-                  {/* Features */}
+                  {/* Features - Auto-synced */}
                   <div>
-                    <Label>Package Features (one per line)</Label>
-                    <Textarea
-                      value={pkg.features.join('\n')}
-                      onChange={(e) => updatePackage(pkg.id, { features: e.target.value.split('\n').filter(f => f.trim()) })}
-                      rows={5}
-                      placeholder="Unlimited books&#10;Custom domain&#10;Premium themes&#10;Advanced analytics"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enter each feature on a new line
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Package Features (Auto-synced)</Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updatePackage(pkg.id, { features: generateAutoFeatures(pkg) })}
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Sync Features
+                      </Button>
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-lg border border-dashed">
+                      <div className="grid gap-2">
+                        {pkg.features.map((feature, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3 w-3 text-primary" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {pkg.features.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic">
+                          No features configured. Toggle feature switches above to automatically populate this list.
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ✨ Features are automatically updated when you toggle the feature switches above. 
+                      Click "Sync Features" to manually refresh based on current settings.
                     </p>
                   </div>
 
