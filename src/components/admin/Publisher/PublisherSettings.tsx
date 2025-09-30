@@ -7,37 +7,44 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Users, Globe, Bell, BookOpen, Shield, Save, RefreshCw, FileCheck, Palette, Settings as SettingsIcon } from 'lucide-react';
+import { Users, Globe, FileEdit, Bell, Shield, Save, RefreshCw, BookOpen, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface Settings {
   id: string;
+  // General
   allow_publisher_registration: boolean;
   require_publisher_approval: boolean;
   publisher_subdomain_prefix: string;
-  enable_custom_branding: boolean;
-  enable_white_label: boolean;
   max_authors_per_publisher: number;
+  
   // Author Management
   allow_author_invites: boolean;
   require_author_approval: boolean;
   allow_author_self_registration: boolean;
   max_books_per_author: number;
-  allow_author_themes: boolean;
+  
   // Content & Publishing
   enable_content_moderation: boolean;
   auto_publish_enabled: boolean;
   require_admin_review: boolean;
   default_book_visibility: string;
   enable_collaborative_editing: boolean;
-  // Notifications & Communication
+  
+  // Analytics & Features
+  enable_author_analytics: boolean;
+  allow_author_messaging: boolean;
+  allow_author_themes: boolean;
+  
+  // Notifications
   enable_email_notifications: boolean;
   notify_new_author_requests: boolean;
   notify_new_book_submissions: boolean;
-  allow_author_messaging: boolean;
-  // Analytics
-  enable_author_analytics: boolean;
+  
+  // Branding
+  enable_custom_branding: boolean;
+  enable_white_label: boolean;
 }
 
 export default function PublisherSettings() {
@@ -69,24 +76,24 @@ export default function PublisherSettings() {
           allow_publisher_registration: true,
           require_publisher_approval: false,
           publisher_subdomain_prefix: 'pub',
-          enable_custom_branding: true,
-          enable_white_label: false,
           max_authors_per_publisher: 25,
           allow_author_invites: true,
           require_author_approval: true,
           allow_author_self_registration: false,
           max_books_per_author: 50,
-          allow_author_themes: true,
           enable_content_moderation: true,
           auto_publish_enabled: false,
           require_admin_review: false,
           default_book_visibility: 'private',
           enable_collaborative_editing: false,
+          enable_author_analytics: true,
+          allow_author_messaging: true,
+          allow_author_themes: true,
           enable_email_notifications: true,
           notify_new_author_requests: true,
           notify_new_book_submissions: true,
-          allow_author_messaging: true,
-          enable_author_analytics: true,
+          enable_custom_branding: true,
+          enable_white_label: false,
         };
 
         const { data: newSettings, error: createError } = await supabase
@@ -183,12 +190,12 @@ export default function PublisherSettings() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Publisher Settings */}
+        {/* General Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              Publisher Settings
+              General Settings
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -196,7 +203,7 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Allow Publisher Registration</Label>
                 <p className="text-sm text-muted-foreground">
-                  Enable new publishers to register
+                  Enable new publishers to register on the platform
                 </p>
               </div>
               <Switch
@@ -209,7 +216,7 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Require Publisher Approval</Label>
                 <p className="text-sm text-muted-foreground">
-                  New publishers need admin approval
+                  New publishers need admin approval before activation
                 </p>
               </div>
               <Switch
@@ -220,15 +227,15 @@ export default function PublisherSettings() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="slug_prefix">Slug Prefix</Label>
+                <Label htmlFor="slug_prefix">Publisher Slug Prefix</Label>
                 <Input
                   id="slug_prefix"
                   value={settings.publisher_subdomain_prefix}
                   onChange={(e) => updateSetting('publisher_subdomain_prefix', e.target.value)}
                   placeholder="pub"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Example: {settings.publisher_subdomain_prefix}-publishername
+                <p className="text-xs text-muted-foreground mt-1">
+                  e.g., {settings.publisher_subdomain_prefix}-publishername
                 </p>
               </div>
 
@@ -285,25 +292,12 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Allow Author Self-Registration</Label>
                 <p className="text-sm text-muted-foreground">
-                  Authors can directly request to join publishers
+                  Authors can register directly with publishers
                 </p>
               </div>
               <Switch
                 checked={settings.allow_author_self_registration}
                 onCheckedChange={(checked) => updateSetting('allow_author_self_registration', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Allow Author Themes</Label>
-                <p className="text-sm text-muted-foreground">
-                  Authors can customize their profile themes
-                </p>
-              </div>
-              <Switch
-                checked={settings.allow_author_themes}
-                onCheckedChange={(checked) => updateSetting('allow_author_themes', checked)}
               />
             </div>
 
@@ -317,7 +311,7 @@ export default function PublisherSettings() {
                 onChange={(e) => updateSetting('max_books_per_author', parseInt(e.target.value))}
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Maximum number of books an author can publish
+                Maximum number of books an author can create
               </p>
             </div>
           </CardContent>
@@ -347,9 +341,9 @@ export default function PublisherSettings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Auto-Publish Approved Content</Label>
+                <Label className="text-base">Auto-Publish</Label>
                 <p className="text-sm text-muted-foreground">
-                  Automatically publish after approval
+                  Automatically publish approved content
                 </p>
               </div>
               <Switch
@@ -360,9 +354,9 @@ export default function PublisherSettings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Require Admin Review</Label>
+                <Label className="text-base">Require Platform Admin Review</Label>
                 <p className="text-sm text-muted-foreground">
-                  Platform admins review all content
+                  Platform admins must review all new content
                 </p>
               </div>
               <Switch
@@ -375,7 +369,7 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Enable Collaborative Editing</Label>
                 <p className="text-sm text-muted-foreground">
-                  Multiple authors can edit books together
+                  Allow multiple authors to edit content together
                 </p>
               </div>
               <Switch
@@ -385,8 +379,8 @@ export default function PublisherSettings() {
             </div>
 
             <div>
-              <Label htmlFor="book_visibility">Default Book Visibility</Label>
-              <Select 
+              <Label htmlFor="default_visibility">Default Book Visibility</Label>
+              <Select
                 value={settings.default_book_visibility}
                 onValueChange={(value) => updateSetting('default_book_visibility', value)}
               >
@@ -395,8 +389,8 @@ export default function PublisherSettings() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="unlisted">Unlisted</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground mt-1">
@@ -406,12 +400,62 @@ export default function PublisherSettings() {
           </CardContent>
         </Card>
 
-        {/* Notifications & Communication */}
+        {/* Features & Tools */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileEdit className="w-5 h-5" />
+              Features & Tools
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Enable Author Analytics</Label>
+                <p className="text-sm text-muted-foreground">
+                  Provide analytics dashboards for authors
+                </p>
+              </div>
+              <Switch
+                checked={settings.enable_author_analytics}
+                onCheckedChange={(checked) => updateSetting('enable_author_analytics', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Messaging</Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable messaging between publishers and authors
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_messaging}
+                onCheckedChange={(checked) => updateSetting('allow_author_messaging', checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Allow Author Themes</Label>
+                <p className="text-sm text-muted-foreground">
+                  Authors can customize their profile themes
+                </p>
+              </div>
+              <Switch
+                checked={settings.allow_author_themes}
+                onCheckedChange={(checked) => updateSetting('allow_author_themes', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Notifications & Communication
+              Notifications
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -432,12 +476,13 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Notify New Author Requests</Label>
                 <p className="text-sm text-muted-foreground">
-                  Alert publishers of new author requests
+                  Alert publishers when authors request to join
                 </p>
               </div>
               <Switch
                 checked={settings.notify_new_author_requests}
                 onCheckedChange={(checked) => updateSetting('notify_new_author_requests', checked)}
+                disabled={!settings.enable_email_notifications}
               />
             </div>
 
@@ -445,49 +490,13 @@ export default function PublisherSettings() {
               <div>
                 <Label className="text-base">Notify New Book Submissions</Label>
                 <p className="text-sm text-muted-foreground">
-                  Alert publishers of new book submissions
+                  Alert publishers when authors submit books
                 </p>
               </div>
               <Switch
                 checked={settings.notify_new_book_submissions}
                 onCheckedChange={(checked) => updateSetting('notify_new_book_submissions', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Allow Author Messaging</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable messaging between publishers and authors
-                </p>
-              </div>
-              <Switch
-                checked={settings.allow_author_messaging}
-                onCheckedChange={(checked) => updateSetting('allow_author_messaging', checked)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Analytics & Reporting */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileCheck className="w-5 h-5" />
-              Analytics & Reporting
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Enable Author Analytics</Label>
-                <p className="text-sm text-muted-foreground">
-                  Authors can view their performance metrics
-                </p>
-              </div>
-              <Switch
-                checked={settings.enable_author_analytics}
-                onCheckedChange={(checked) => updateSetting('enable_author_analytics', checked)}
+                disabled={!settings.enable_email_notifications}
               />
             </div>
           </CardContent>
@@ -498,15 +507,15 @@ export default function PublisherSettings() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              Branding & Customization
+              Branding Options
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Enable Custom Branding</Label>
+                <Label className="text-base">Custom Branding</Label>
                 <p className="text-sm text-muted-foreground">
-                  Publishers can customize colors and logos
+                  Allow publishers to customize colors and logos
                 </p>
               </div>
               <Switch
@@ -517,7 +526,7 @@ export default function PublisherSettings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-base">Enable White Label</Label>
+                <Label className="text-base">White Label Mode</Label>
                 <p className="text-sm text-muted-foreground">
                   Remove platform branding from publisher pages
                 </p>
@@ -530,74 +539,67 @@ export default function PublisherSettings() {
           </CardContent>
         </Card>
 
-        {/* Status Overview */}
+        {/* Current Status Summary */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Current Status Overview
+              Current Configuration
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Registration:</span>
-                  <Badge variant={settings.allow_publisher_registration ? 'default' : 'secondary'}>
-                    {settings.allow_publisher_registration ? 'Open' : 'Closed'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Author Invites:</span>
-                  <Badge variant={settings.allow_author_invites ? 'default' : 'secondary'}>
-                    {settings.allow_author_invites ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Self-Registration:</span>
-                  <Badge variant={settings.allow_author_self_registration ? 'default' : 'secondary'}>
-                    {settings.allow_author_self_registration ? 'Enabled' : 'Disabled'}
-                  </Badge>
+                <h4 className="font-medium text-sm">Publishers</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Registration:</span>
+                    <Badge variant={settings.allow_publisher_registration ? 'default' : 'secondary'}>
+                      {settings.allow_publisher_registration ? 'Open' : 'Closed'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Approval:</span>
+                    <Badge variant={settings.require_publisher_approval ? 'default' : 'secondary'}>
+                      {settings.require_publisher_approval ? 'Required' : 'Not Required'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Moderation:</span>
-                  <Badge variant={settings.enable_content_moderation ? 'default' : 'secondary'}>
-                    {settings.enable_content_moderation ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Auto-Publish:</span>
-                  <Badge variant={settings.auto_publish_enabled ? 'default' : 'secondary'}>
-                    {settings.auto_publish_enabled ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Admin Review:</span>
-                  <Badge variant={settings.require_admin_review ? 'default' : 'secondary'}>
-                    {settings.require_admin_review ? 'Required' : 'Optional'}
-                  </Badge>
+                <h4 className="font-medium text-sm">Authors</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Self-Register:</span>
+                    <Badge variant={settings.allow_author_self_registration ? 'default' : 'secondary'}>
+                      {settings.allow_author_self_registration ? 'Allowed' : 'Not Allowed'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Approval:</span>
+                    <Badge variant={settings.require_author_approval ? 'default' : 'secondary'}>
+                      {settings.require_author_approval ? 'Required' : 'Not Required'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Email Notifications:</span>
-                  <Badge variant={settings.enable_email_notifications ? 'default' : 'secondary'}>
-                    {settings.enable_email_notifications ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Analytics:</span>
-                  <Badge variant={settings.enable_author_analytics ? 'default' : 'secondary'}>
-                    {settings.enable_author_analytics ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Messaging:</span>
-                  <Badge variant={settings.allow_author_messaging ? 'default' : 'secondary'}>
-                    {settings.allow_author_messaging ? 'Enabled' : 'Disabled'}
-                  </Badge>
+                <h4 className="font-medium text-sm">Content</h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Moderation:</span>
+                    <Badge variant={settings.enable_content_moderation ? 'default' : 'secondary'}>
+                      {settings.enable_content_moderation ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Auto-Publish:</span>
+                    <Badge variant={settings.auto_publish_enabled ? 'default' : 'secondary'}>
+                      {settings.auto_publish_enabled ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>
