@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.ai-seo-suggestions-multi]
 verify_jwt = true
+
+[functions.aws-deploy]
+verify_jwt = true
