@@ -92,7 +92,8 @@ export default function PublisherBranding() {
       if (error) throw error;
       
       if (data?.branding_config) {
-        setBranding({ ...branding, ...data.branding_config });
+        const config = data.branding_config as any;
+        setBranding({ ...branding, ...config });
       }
     } catch (error: any) {
       console.error('Error fetching branding:', error);
@@ -108,7 +109,7 @@ export default function PublisherBranding() {
       setSaving(true);
       const { error } = await supabase
         .from('publishers')
-        .update({ branding_config: branding })
+        .update({ branding_config: branding as any })
         .eq('id', selectedPublisher);
 
       if (error) throw error;
