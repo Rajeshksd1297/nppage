@@ -68,14 +68,14 @@ export default function PublisherManagement() {
 
       <Card>
         <Tabs defaultValue="publishers" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 h-auto">
+          <TabsList className="grid w-full grid-cols-6 h-auto">
             <TabsTrigger value="publishers" className="flex flex-col items-center gap-1 py-3">
               <List className="h-4 w-4" />
               <span className="text-xs">Publishers</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-3">
               <Building2 className="h-4 w-4" />
-              <span className="text-xs">Profile Fields</span>
+              <span className="text-xs">Profile & Branding</span>
             </TabsTrigger>
             <TabsTrigger value="authors" className="flex flex-col items-center gap-1 py-3">
               <Users className="h-4 w-4" />
@@ -89,10 +89,6 @@ export default function PublisherManagement() {
               <Wrench className="h-4 w-4" />
               <span className="text-xs">Tools</span>
             </TabsTrigger>
-            <TabsTrigger value="branding" className="flex flex-col items-center gap-1 py-3">
-              <Palette className="h-4 w-4" />
-              <span className="text-xs">Branding</span>
-            </TabsTrigger>
             <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
               <Settings className="h-4 w-4" />
               <span className="text-xs">Settings</span>
@@ -103,8 +99,9 @@ export default function PublisherManagement() {
             <PublisherList />
           </TabsContent>
 
-          <TabsContent value="profile" key={`profile-${refreshKey}`}>
+          <TabsContent value="profile" key={`profile-${refreshKey}`} className="space-y-6">
             <PublisherFieldManager />
+            <BrandingOptions />
           </TabsContent>
 
           <TabsContent value="authors" key={`authors-${refreshKey}`}>
@@ -117,10 +114,6 @@ export default function PublisherManagement() {
 
           <TabsContent value="tools" key={`tools-${refreshKey}`}>
             <ToolsAccess />
-          </TabsContent>
-
-          <TabsContent value="branding" key={`branding-${refreshKey}`}>
-            <BrandingOptions />
           </TabsContent>
 
           <TabsContent value="settings" key={`settings-${refreshKey}`}>
