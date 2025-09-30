@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, TrendingUp, Users, Eye, PlusCircle, Calendar, Settings, Shield, BarChart3, Building2, MessageCircle, Crown, Globe, Palette, FileText, CreditCard, AlertCircle } from "lucide-react";
+import { BookOpen, TrendingUp, Users, Eye, PlusCircle, Calendar, Settings, Shield, BarChart3, MessageCircle, Crown, Globe, Palette, FileText, CreditCard, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TrialBanner } from "@/components/TrialBanner";
@@ -27,12 +27,6 @@ interface AdminStats {
   openTickets: number;
   pendingTickets: number;
 }
-interface PublisherStats {
-  totalAuthors: number;
-  totalBooksManaged: number;
-  totalRevenue: number;
-  thisMonthRevenue: number;
-}
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalBooks: 0,
@@ -49,12 +43,6 @@ export default function Dashboard() {
     thisMonthSignups: 0,
     openTickets: 0,
     pendingTickets: 0
-  });
-  const [publisherStats, setPublisherStats] = useState<PublisherStats>({
-    totalAuthors: 0,
-    totalBooksManaged: 0,
-    totalRevenue: 0,
-    thisMonthRevenue: 0
   });
   const [recentBooks, setRecentBooks] = useState<any[]>([]);
   const [recentTickets, setRecentTickets] = useState<any[]>([]);
@@ -111,8 +99,6 @@ export default function Dashboard() {
       await calculateUserStats(user.id, books || []);
       if (currentUserRole === 'admin') {
         await calculateAdminStats();
-      } else if (profile?.publisher_id) {
-        await calculatePublisherStats(profile.publisher_id);
       }
       setRecentBooks(books?.slice(0, 3) || []);
     } catch (error) {
@@ -183,29 +169,6 @@ export default function Dashboard() {
       });
     } catch (error) {
       console.error('Error calculating admin stats:', error);
-    }
-  };
-  const calculatePublisherStats = async (publisherId: string) => {
-    try {
-      const [{
-        data: authors
-      }, {
-        data: managedBooks
-      }, {
-        data: transactions
-      }] = await Promise.all([supabase.from('publisher_authors').select('*').eq('publisher_id', publisherId), supabase.from('books').select('*').in('user_id', await supabase.from('publisher_authors').select('user_id').eq('publisher_id', publisherId).then(result => result.data?.map(a => a.user_id) || [])), supabase.from('billing_transactions').select('*').eq('publisher_id', publisherId)]);
-      const thisMonthStart = new Date();
-      thisMonthStart.setDate(1);
-      const totalRevenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-      const thisMonthRevenue = transactions?.filter(t => new Date(t.created_at) >= thisMonthStart).reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-      setPublisherStats({
-        totalAuthors: authors?.length || 0,
-        totalBooksManaged: managedBooks?.length || 0,
-        totalRevenue,
-        thisMonthRevenue
-      });
-    } catch (error) {
-      console.error('Error calculating publisher stats:', error);
     }
   };
   if (loading) {
@@ -279,74 +242,6 @@ export default function Dashboard() {
         <Button onClick={() => navigate('/admin/package-management')} variant="outline" className="flex items-center gap-2">
           <Settings className="h-4 w-4" />
           Package Management
-        </Button>
-      </div>
-    </div>;
-  const renderPublisherDashboard = () => <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Building2 className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-semibold">Publisher Overview</h2>
-        <Badge variant="secondary">Publisher Account</Badge>
-      </div>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Managed Authors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{publisherStats.totalAuthors}</div>
-            <p className="text-xs text-muted-foreground">Active authors</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published Books</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{publisherStats.totalBooksManaged}</div>
-            <p className="text-xs text-muted-foreground">Across all authors</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${publisherStats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${publisherStats.thisMonthRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Revenue this month</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Button onClick={() => navigate('/admin/publishers')} className="flex items-center gap-2">
-          <Users className="h-4 w-4" />
-          Manage Authors
-        </Button>
-        <Button onClick={() => navigate('/books')} variant="outline" className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4" />
-          View All Books
-        </Button>
-        <Button onClick={() => navigate('/analytics')} variant="outline" className="flex items-center gap-2">
-          <BarChart3 className="h-4 w-4" />
-          Analytics
         </Button>
       </div>
     </div>;
@@ -618,7 +513,7 @@ export default function Dashboard() {
       
 
       {/* Role-based Dashboard Content */}
-      {userRole === 'admin' ? renderAdminDashboard() : userProfile?.publisher_id ? renderPublisherDashboard() : renderUserDashboard()}
+      {userRole === 'admin' ? renderAdminDashboard() : renderUserDashboard()}
 
       {/* Recent Content - Only for non-admin users */}
       {userRole !== 'admin'}

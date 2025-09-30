@@ -366,27 +366,6 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {/* Publisher Page - Show for Pro plans or publishers */}
-                {(isPro() || isPublisher) && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/publisher-page" className={getNavCls}>
-                        <div className="flex items-center gap-2 flex-1">
-                          <Building2 className="h-4 w-4" />
-                          {!collapsed && (
-                            <div className="flex items-center justify-between flex-1">
-                              <span>Publisher Page</span>
-                              <Badge variant="outline" className="text-[10px] px-1 py-0">
-                                New
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-
                 {/* Content Management Tools - Always show, but lock if not available */}
                 {(() => {
                   const currentPlanFeatures = subscription?.subscription_plans?.id 
