@@ -110,8 +110,8 @@ export default function UserPublisherAssignment({ userId }: UserPublisherAssignm
 
     if (alreadyAssigned) {
       toast({
-        title: 'Error',
-        description: 'User is already assigned to this publisher',
+        title: 'Already Assigned',
+        description: 'This user is already assigned to the selected publisher',
         variant: 'destructive',
       });
       return;
@@ -119,6 +119,18 @@ export default function UserPublisherAssignment({ userId }: UserPublisherAssignm
 
     try {
       setSaving(true);
+      
+      // Check if user exists
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('id', userId)
+        .single();
+
+      if (userError || !userData) {
+        throw new Error('User not found');
+      }
+
       const { error } = await supabase.from('publisher_authors').insert({
         user_id: userId,
         publisher_id: selectedPublisher,
@@ -126,7 +138,13 @@ export default function UserPublisherAssignment({ userId }: UserPublisherAssignm
         role: 'author',
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle duplicate email or constraint violations
+        if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          throw new Error('This assignment already exists');
+        }
+        throw error;
+      }
 
       toast({
         title: 'Success',
@@ -135,11 +153,11 @@ export default function UserPublisherAssignment({ userId }: UserPublisherAssignm
 
       setSelectedPublisher('');
       await fetchAssignedPublishers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning publisher:', error);
       toast({
         title: 'Error',
-        description: 'Failed to assign publisher',
+        description: error.message || 'Failed to assign publisher',
         variant: 'destructive',
       });
     } finally {

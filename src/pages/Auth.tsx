@@ -147,15 +147,29 @@ export default function Auth() {
       });
 
       if (error) {
-        if (error.message.includes('User already registered')) {
+        // Handle duplicate email errors
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already exists') ||
+            error.message.includes('duplicate key') ||
+            error.message.includes('unique constraint')) {
           setMessage({
             type: 'error',
-            text: 'This email is already registered. Please sign in instead or use the forgot password option.'
+            text: 'This email address is already registered. Please sign in instead or use a different email address.'
+          });
+        } else if (error.message.includes('email')) {
+          setMessage({
+            type: 'error',
+            text: 'Invalid email address. Please check and try again.'
+          });
+        } else if (error.message.includes('password')) {
+          setMessage({
+            type: 'error',
+            text: 'Password must be at least 6 characters long.'
           });
         } else {
           setMessage({
             type: 'error',
-            text: error.message
+            text: error.message || 'An error occurred during signup. Please try again.'
           });
         }
       } else {
