@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Search, UserPlus, UserMinus, RefreshCw, BookOpen, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, CheckCircle, XCircle, Trash2, Save, X } from 'lucide-react';
+import { Search, UserPlus, UserMinus, RefreshCw, BookOpen, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, CheckCircle, XCircle, Trash2, Save, X, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +20,7 @@ interface Publisher {
   max_authors?: number;
   created_at: string;
   owner_id: string;
+  package_id?: string;
   author_count?: number;
   book_count?: number;
 }
@@ -253,6 +254,115 @@ export default function PublisherList() {
 
   const toggleExpand = (publisherId: string) => {
     setExpandedRow(expandedRow === publisherId ? null : publisherId);
+  };
+
+  const handleApplyPackagePlans = async (publisher: Publisher) => {
+    if (!publisher.package_id) {
+      toast({
+        title: 'Error',
+        description: 'This publisher does not have a package assigned',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to apply package plans to all users (excluding publisher-added authors) for ${publisher.name}?`)) {
+      return;
+    }
+
+    try {
+      // Get the package details
+      const { data: packageData, error: packageError } = await supabase
+        .from('subscription_plans')
+        .select('id, name')
+        .eq('id', publisher.package_id)
+        .single();
+
+      if (packageError) throw packageError;
+
+      // Get all users
+      const { data: allUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, email');
+
+      if (usersError) throw usersError;
+
+      // Get publisher-added authors to exclude (authors with this publisher_id in profiles)
+      const { data: publisherAuthors, error: authorsError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('publisher_id', publisher.id);
+
+      if (authorsError) throw authorsError;
+
+      const excludedAuthorIds = new Set(publisherAuthors?.map(pa => pa.id) || []);
+
+      // Filter users to only those not added by publisher
+      const usersToUpdate = allUsers?.filter(user => !excludedAuthorIds.has(user.id)) || [];
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Apply plans to filtered users
+      for (const user of usersToUpdate) {
+        // Check if user already has a subscription
+        const { data: existingSub } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingSub) {
+          // Update existing subscription
+          const { error } = await supabase
+            .from('user_subscriptions')
+            .update({
+              plan_id: publisher.package_id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id);
+
+          if (error) {
+            console.error(`Error updating subscription for user ${user.id}:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } else {
+          // Create new subscription
+          const { error } = await supabase
+            .from('user_subscriptions')
+            .insert({
+              user_id: user.id,
+              plan_id: publisher.package_id,
+              status: 'active',
+              current_period_start: new Date().toISOString(),
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            });
+
+          if (error) {
+            console.error(`Error creating subscription for user ${user.id}:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        }
+      }
+
+      toast({
+        title: 'Package Plans Applied',
+        description: `Successfully applied ${packageData.name} plan to ${successCount} users. ${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
+      });
+
+      fetchPublishers();
+    } catch (error: any) {
+      console.error('Error applying package plans:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to apply package plans',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -517,8 +627,19 @@ export default function PublisherList() {
                       {isExpanded && (
                         <TableRow>
                           <TableCell colSpan={7} className="bg-muted/50">
-                            <div className="p-4 space-y-3">
-                              <h4 className="font-semibold text-sm">Publisher Details</h4>
+                            <div className="p-4 space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold text-sm">Publisher Details</h4>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApplyPackagePlans(publisher)}
+                                  disabled={!publisher.package_id}
+                                  title={publisher.package_id ? 'Apply package plans to all users (excluding publisher authors)' : 'No package assigned'}
+                                >
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Apply Package Plans to Users
+                                </Button>
+                              </div>
                               <div className="grid grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <Label className="text-muted-foreground">Publisher ID</Label>
@@ -540,6 +661,16 @@ export default function PublisherList() {
                                   <Label className="text-muted-foreground">Created At</Label>
                                   <p className="mt-1">
                                     {new Date(publisher.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Package Status</Label>
+                                  <p className="mt-1">
+                                    {publisher.package_id ? (
+                                      <Badge variant="outline" className="text-green-600">Package Assigned</Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="text-orange-600">No Package</Badge>
+                                    )}
                                   </p>
                                 </div>
                               </div>
