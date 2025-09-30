@@ -185,22 +185,14 @@ export default function PublisherDashboard() {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('🔍 Publisher Dashboard - Current user:', user?.id);
-      console.log('🔍 Publisher Dashboard - Subscription:', subscription);
       
-      if (!user) {
-        console.log('❌ No user found');
-        return;
-      }
+      if (!user) return;
 
       // Check if user has publisher plan access
       if (!subscription?.subscription_plans?.name?.toLowerCase().includes('pro')) {
-        console.log('❌ User does not have Pro plan access');
         setLoading(false);
         return;
       }
-      
-      console.log('✅ User has Pro plan access, fetching publisher data...');
 
       // Fetch publisher info for current user
       const { data: publisherData, error: publisherError } = await supabase
@@ -209,14 +201,9 @@ export default function PublisherDashboard() {
         .eq('owner_id', user.id)
         .maybeSingle();
 
-      console.log('📦 Publisher data fetched:', publisherData);
-      if (publisherError) {
-        console.error('❌ Publisher error:', publisherError);
-        throw publisherError;
-      }
+      if (publisherError) throw publisherError;
 
       if (publisherData) {
-        console.log('✅ Publisher profile found, loading authors...');
         // Get max authors from subscription plan
         const maxAuthors = (subscription?.subscription_plans as any)?.max_authors || 25;
         setPublisherInfo({
@@ -226,8 +213,6 @@ export default function PublisherDashboard() {
         
         // Fetch authors with the publisher ID directly
         fetchAuthors(publisherData.id);
-      } else {
-        console.log('ℹ️ No publisher profile found - showing setup screen');
       }
     } catch (error) {
       console.error('Error fetching publisher data:', error);
@@ -481,7 +466,14 @@ export default function PublisherDashboard() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Building2 className="w-8 h-8" />
-            Publisher Page
+            {publisherInfo ? (
+              <>
+                Publisher Page
+                <span className="text-muted-foreground text-xl">/ {publisherInfo.slug}</span>
+              </>
+            ) : (
+              'Publisher Page'
+            )}
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               Real-time Sync
@@ -496,10 +488,16 @@ export default function PublisherDashboard() {
         </div>
         <div className="flex gap-2">
           {publisherInfo && (
-            <Button variant="outline" onClick={() => setIsSettingsDialogOpen(true)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => window.open(`/publisher/${publisherInfo.slug}`, '_blank')}>
+                <Globe className="h-4 w-4 mr-2" />
+                View Public Page
+              </Button>
+              <Button variant="outline" onClick={() => setIsSettingsDialogOpen(true)}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </>
           )}
           {publisherInfo ? (
             <Button onClick={() => navigate('/publisher-profile/edit?edit=true')}>

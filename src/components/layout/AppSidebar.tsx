@@ -158,6 +158,37 @@ export function AppSidebar() {
   useEffect(() => {
     getCurrentUserRole();
     getUserProfile();
+    
+    // Set up real-time sync for publishers table
+    const publishersChannel = supabase
+      .channel('sidebar_publishers_sync')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'publishers'
+      }, () => {
+        console.log('📦 Publishers table changed, refreshing sidebar...');
+        getUserProfile();
+      })
+      .subscribe();
+
+    // Set up real-time sync for profiles (for publisher_id changes)
+    const profilesChannel = supabase
+      .channel('sidebar_profiles_sync')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'profiles'
+      }, () => {
+        console.log('👤 Profiles table changed, refreshing sidebar...');
+        getUserProfile();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(publishersChannel);
+      supabase.removeChannel(profilesChannel);
+    };
   }, []);
 
   const getCurrentUserRole = async () => {
@@ -194,9 +225,18 @@ export function AppSidebar() {
         setUserSlug(null);
       }
       
-      // Check if user has publisher_id
+      // Check if user is a publisher (either by publisher_id or owner_id)
       if (data?.publisher_id) {
         setIsPublisher(true);
+      } else {
+        // Also check if user owns a publisher
+        const { data: publisherData } = await supabase
+          .from('publishers')
+          .select('id')
+          .eq('owner_id', user.id)
+          .maybeSingle();
+        
+        setIsPublisher(!!publisherData);
       }
     } catch (error) {
       console.error('Error getting user profile:', error);
