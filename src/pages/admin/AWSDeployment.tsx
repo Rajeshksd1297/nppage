@@ -281,9 +281,10 @@ export default function AWSDeployment() {
       </Card>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
           <TabsTrigger value="deployments">Deployments</TabsTrigger>
+          <TabsTrigger value="guide">Deployment Guide</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="space-y-6">
@@ -706,6 +707,295 @@ export default function AWSDeployment() {
                   No deployments yet. Create your first deployment above.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="guide" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>AWS EC2 Deployment Guide</CardTitle>
+              <CardDescription>
+                Complete step-by-step guide for deploying your application to AWS EC2
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Prerequisites Section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  Prerequisites
+                </h3>
+                <ul className="space-y-2 ml-7 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Active AWS account with administrative access</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>AWS Access Key ID and Secret Access Key (from IAM console)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Basic understanding of EC2 instances and regions</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="border-t pt-6 space-y-6">
+                {/* Step 1 */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      1
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Create AWS IAM Credentials</h4>
+                      <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal">
+                        <li>Log in to AWS Console → Navigate to IAM service</li>
+                        <li>Click "Users" in the left sidebar → "Add users"</li>
+                        <li>Enter user name (e.g., "ec2-deployment-user")</li>
+                        <li>Select "Programmatic access" for access type</li>
+                        <li>Attach policy: "AmazonEC2FullAccess"</li>
+                        <li>Review and create user</li>
+                        <li>Download credentials CSV or copy Access Key ID and Secret Access Key</li>
+                      </ol>
+                      <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg mt-3">
+                        <p className="text-sm text-amber-900 dark:text-amber-100">
+                          ⚠️ <strong>Important:</strong> Save your credentials securely. AWS shows the Secret Access Key only once.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      2
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Configure AWS Settings in Platform</h4>
+                      <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal">
+                        <li>Navigate to "AWS Configuration" tab above</li>
+                        <li>Enter your AWS Access Key ID (starts with AKIA...)</li>
+                        <li>Enter your AWS Secret Access Key</li>
+                        <li>Select default region (Mumbai ap-south-1 is pre-selected)</li>
+                        <li>Choose instance type (t2.micro for free tier)</li>
+                        <li>Click "Save Configuration"</li>
+                      </ol>
+                      <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mt-3">
+                        <p className="text-sm text-blue-900 dark:text-blue-100">
+                          💡 <strong>Tip:</strong> Your credentials are encrypted and stored securely. Use the eye icon to verify entries before saving.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      3
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Understanding Deployment Types</h4>
+                      <div className="space-y-3 ml-4">
+                        <div className="p-4 border rounded-lg">
+                          <h5 className="font-medium text-sm mb-2">✅ Incremental Deployment (Recommended)</h5>
+                          <ul className="space-y-1 text-sm text-muted-foreground">
+                            <li>• Preserves all user data and database records</li>
+                            <li>• Updates application code files only</li>
+                            <li>• Runs SQL migrations without data loss</li>
+                            <li>• Safe for production environments</li>
+                            <li>• Zero downtime for users</li>
+                          </ul>
+                        </div>
+                        <div className="p-4 border rounded-lg bg-red-50 dark:bg-red-950">
+                          <h5 className="font-medium text-sm mb-2 text-red-900 dark:text-red-100">⚠️ Fresh Installation</h5>
+                          <ul className="space-y-1 text-sm text-red-700 dark:text-red-300">
+                            <li>• Completely wipes existing data</li>
+                            <li>• Sets up clean database</li>
+                            <li>• Use only for first-time deployment</li>
+                            <li>• Cannot be undone - creates new instance</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      4
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Deploy Your Application</h4>
+                      <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal">
+                        <li>Go to "Deployments" tab</li>
+                        <li>Enter a deployment name (e.g., "production-app")</li>
+                        <li>Verify region is correct (ap-south-1 Mumbai)</li>
+                        <li>Select deployment type:
+                          <ul className="ml-4 mt-1 space-y-1">
+                            <li>→ "Incremental" for updates (preserves data)</li>
+                            <li>→ "Fresh Installation" for first deployment</li>
+                          </ul>
+                        </li>
+                        <li>Check "Include Database Migrations" (recommended)</li>
+                        <li>Enable "Auto Deploy" if you want automatic updates</li>
+                        <li>Click "Deploy Update" or "Deploy Fresh Installation"</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 5 */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      5
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Monitor Deployment Progress</h4>
+                      <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal">
+                        <li>Deployment status will show as "deploying" → "running"</li>
+                        <li>View deployment log by clicking "View Deployment Log"</li>
+                        <li>Log shows:
+                          <ul className="ml-4 mt-1 space-y-1">
+                            <li>→ Instance ID (e.g., i-0123456789abcdef0)</li>
+                            <li>→ Public IP address</li>
+                            <li>→ Data preservation status</li>
+                            <li>→ Migration execution steps</li>
+                          </ul>
+                        </li>
+                        <li>Click on Public IP to access your deployed application</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 6 */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      6
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Verify Deployment</h4>
+                      <ol className="space-y-2 text-sm text-muted-foreground ml-4 list-decimal">
+                        <li>Click the Public IP link in deployment card</li>
+                        <li>Application should load in new browser tab</li>
+                        <li>For incremental deployments, verify:
+                          <ul className="ml-4 mt-1 space-y-1">
+                            <li>→ Existing user accounts still accessible</li>
+                            <li>→ Database records intact (books, profiles, etc.)</li>
+                            <li>→ New features/updates are live</li>
+                            <li>→ Migrations applied successfully</li>
+                          </ul>
+                        </li>
+                        <li>Check browser console for any errors</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What Gets Deployed Section */}
+                <div className="border-t pt-6 space-y-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Server className="h-5 w-5 text-primary" />
+                    What Gets Deployed
+                  </h3>
+                  <div className="space-y-3 ml-7">
+                    <div>
+                      <h5 className="font-medium text-sm mb-2">Incremental Deployment Includes:</h5>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>✅ Updated application code files</li>
+                        <li>✅ New database migrations (schema changes only)</li>
+                        <li>✅ Environment configuration updates</li>
+                        <li>✅ Dependencies and package updates</li>
+                        <li>✅ Static assets (images, CSS, JS)</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                      <h5 className="font-medium text-sm mb-2 text-green-900 dark:text-green-100">Data Preserved:</h5>
+                      <ul className="space-y-1 text-sm text-green-700 dark:text-green-300">
+                        <li>✓ User accounts and profiles</li>
+                        <li>✓ Books, articles, blog posts</li>
+                        <li>✓ Contact submissions and messages</li>
+                        <li>✓ Events, awards, FAQs</li>
+                        <li>✓ Newsletter subscribers</li>
+                        <li>✓ All custom user data</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Troubleshooting Section */}
+                <div className="border-t pt-6 space-y-3">
+                  <h3 className="text-lg font-semibold">Common Issues & Solutions</h3>
+                  <div className="space-y-3 ml-7">
+                    <div className="p-4 border rounded-lg">
+                      <p className="font-medium text-sm mb-1">❌ "AWS credentials not configured"</p>
+                      <p className="text-sm text-muted-foreground">
+                        → Go to AWS Configuration tab and enter valid credentials
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="font-medium text-sm mb-1">❌ Deployment stuck in "deploying" status</p>
+                      <p className="text-sm text-muted-foreground">
+                        → Check deployment log for errors. Verify AWS IAM permissions include EC2 full access
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="font-medium text-sm mb-1">❌ Cannot access deployed application</p>
+                      <p className="text-sm text-muted-foreground">
+                        → Ensure security group allows HTTP/HTTPS traffic. Check if public IP is accessible
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <p className="font-medium text-sm mb-1">❌ Data lost after deployment</p>
+                      <p className="text-sm text-muted-foreground">
+                        → You likely used "Fresh Installation" instead of "Incremental". Always use Incremental for updates
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Best Practices */}
+                <div className="border-t pt-6 space-y-3">
+                  <h3 className="text-lg font-semibold">Best Practices</h3>
+                  <ul className="space-y-2 ml-7 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Always test deployments in a staging environment first</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Use Incremental deployment for all production updates</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Review deployment logs after each deployment</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Keep AWS credentials secure - never share or commit to code</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Enable Auto Deploy for continuous deployment from code changes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>Monitor instance costs in AWS billing dashboard regularly</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
