@@ -440,7 +440,7 @@ export default function PublisherAuthorManagement({ publisherId }: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {plans.map(plan => (
+                  {plans.filter(plan => plan.name && plan.name.trim()).map(plan => (
                     <SelectItem key={plan.id} value={plan.name.toLowerCase()}>
                       {plan.name} - ${plan.price_monthly}/month
                     </SelectItem>
