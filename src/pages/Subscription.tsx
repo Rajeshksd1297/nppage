@@ -70,21 +70,35 @@ export default function Subscription() {
   useEffect(() => {
     fetchData();
 
-    // Set up real-time subscription to listen for changes in subscription plans
-    const channel = supabase.channel('subscription_plans_changes').on('postgres_changes', {
-      event: '*',
-      // Listen to all changes (INSERT, UPDATE, DELETE)
-      schema: 'public',
-      table: 'subscription_plans'
-    }, payload => {
-      console.log('Subscription plans changed, refetching...', payload);
-      fetchData(); // Refetch data when plans change
-      refreshFeatures(); // Also refresh the dynamic features
-    }).subscribe();
+    // Set up comprehensive real-time subscription for package management changes
+    const channel = supabase.channel('subscription_real_time_sync')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'subscription_plans'
+      }, payload => {
+        console.log('📦 Package Management changed - refreshing subscription data...', payload);
+        // Refresh all data when package management changes
+        fetchData();
+        refreshFeatures();
+        refreshSubscription();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public', 
+        table: 'user_subscriptions'
+      }, payload => {
+        console.log('👤 User subscription changed - refreshing data...', payload);
+        // Refresh data when user subscription changes
+        fetchData();
+        refreshSubscription();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refreshFeatures]);
+  }, [refreshFeatures, refreshSubscription]);
   const getPackageDescription = (plan: SubscriptionPlan) => {
     if (plan.price_monthly === 0) return 'Perfect for getting started with essential features';
     if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to build a professional author presence';
@@ -231,13 +245,23 @@ export default function Subscription() {
                       Your Current Plan
                     </CardTitle>
                     <CardDescription>
-                      {subscription.status === 'trialing' ? 'You are currently on a free trial' : 'Your active subscription details'}
+                      {subscription.status === 'trialing' ? 'You are currently on a free trial' : 'Your active subscription details'} • Real-time sync with package management
                     </CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={refreshSubscription} className="flex items-center gap-2">
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      refreshSubscription();
+                      refreshFeatures();
+                      fetchData();
+                    }} className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh
+                    </Button>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      Live Sync
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -277,6 +301,16 @@ export default function Subscription() {
                         </div>}
                     </div>
                     
+                    {/* Plan Pricing Display */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900">
+                        Current Plan Pricing
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        ${subscription.subscription_plans.price_monthly}/month • ${subscription.subscription_plans.price_yearly}/year
+                      </p>
+                    </div>
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-muted/50 rounded-lg">
                         <p className="text-2xl font-bold text-primary">{userStats.totalBooks}</p>
@@ -299,10 +333,16 @@ export default function Subscription() {
                   </div>
                 </div>
 
-                {/* Current Plan Features */}
+                {/* Current Plan Features - Dynamic from Package Management */}
                 <Separator className="my-6" />
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Your Plan Features</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Your Plan Features</h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      Synced with Package Management
+                    </div>
+                  </div>
                   
                   {/* Core Features */}
                   <div>
@@ -377,6 +417,7 @@ export default function Subscription() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No Active Subscription</h3>
                 <p className="text-muted-foreground mb-4">You don't have an active subscription yet. Choose a plan to get started!</p>
+                <p className="text-xs text-muted-foreground mb-4">All plans sync in real-time with package management</p>
                 <Button onClick={() => (document.querySelector('[value="packages"]') as HTMLElement)?.click()}>
                   View Packages
                 </Button>
