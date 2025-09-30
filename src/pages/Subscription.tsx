@@ -98,7 +98,7 @@ export default function Subscription() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refreshFeatures, refreshSubscription]);
+  }, []); // Empty dependency array to prevent infinite loop
   const getPackageDescription = (plan: SubscriptionPlan) => {
     if (plan.price_monthly === 0) return 'Perfect for getting started with essential features';
     if (plan.name.toLowerCase().includes('pro')) return 'Everything you need to build a professional author presence';
