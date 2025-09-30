@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Publisher {
   id: string;
   name: string;
-  subdomain: string;
+  slug: string;
   logo_url?: string;
   brand_colors: any; // Using any for now since it's JSONB
   contact_email: string;
@@ -59,7 +59,7 @@ export default function PublisherManagement() {
 
   const [newPublisher, setNewPublisher] = useState({
     name: '',
-    subdomain: '',
+    slug: '',
     contact_email: '',
     website_url: '',
     revenue_share_percentage: 30,
@@ -125,10 +125,14 @@ export default function PublisherManagement() {
 
   const createPublisher = async () => {
     try {
+      // Add pub prefix to slug
+      const finalSlug = `pub-${newPublisher.slug.toLowerCase().trim()}`;
+      
       const { error } = await supabase
         .from('publishers')
         .insert([{
           ...newPublisher,
+          slug: finalSlug,
           brand_colors: {
             primary: '#000000',
             secondary: '#666666',
@@ -146,7 +150,7 @@ export default function PublisherManagement() {
       setIsCreateDialogOpen(false);
       setNewPublisher({
         name: '',
-        subdomain: '',
+        slug: '',
         contact_email: '',
         website_url: '',
         revenue_share_percentage: 30,
@@ -218,7 +222,7 @@ export default function PublisherManagement() {
 
   const filteredPublishers = publishers.filter(publisher =>
     publisher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    publisher.subdomain.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    publisher.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
     publisher.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -260,13 +264,16 @@ export default function PublisherManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="subdomain">Subdomain</Label>
-                  <Input
-                    id="subdomain"
-                    value={newPublisher.subdomain}
-                    onChange={(e) => setNewPublisher(prev => ({ ...prev, subdomain: e.target.value }))}
-                    placeholder="penguin"
-                  />
+                  <Label htmlFor="slug">Publisher Slug</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">pub-</span>
+                    <Input
+                      id="slug"
+                      value={newPublisher.slug}
+                      onChange={(e) => setNewPublisher(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
+                      placeholder="penguin"
+                    />
+                  </div>
                 </div>
               </div>
               
@@ -405,7 +412,7 @@ export default function PublisherManagement() {
                       <h4 className="font-medium">{publisher.name}</h4>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Globe className="h-3 w-3" />
-                        <span>{publisher.subdomain}.namyapage.com</span>
+                        <span>{publisher.slug}</span>
                         <span>•</span>
                         <Users className="h-3 w-3" />
                         <span>{publisher.author_count || 0} authors</span>

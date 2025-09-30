@@ -67,7 +67,7 @@ interface PublisherAuthor {
 interface PublisherInfo {
   id: string;
   name: string;
-  subdomain: string;
+  slug: string;
   contact_email: string;
   website_url?: string;
   description?: string;
@@ -120,7 +120,7 @@ export default function PublisherDashboard() {
 
   const [editPublisher, setEditPublisher] = useState({
     name: '',
-    subdomain: '',
+    slug: '',
     contact_email: '',
     website_url: '',
     description: '',
@@ -285,37 +285,40 @@ export default function PublisherDashboard() {
       if (!user) return;
 
       // Validate required fields
-      if (!editPublisher.name || !editPublisher.subdomain || !editPublisher.contact_email) {
+      if (!editPublisher.name || !editPublisher.slug || !editPublisher.contact_email) {
         toast({
           title: 'Validation Error',
-          description: 'Please fill in all required fields (Name, Subdomain, Contact Email)',
+          description: 'Please fill in all required fields (Name, Slug, Contact Email)',
           variant: 'destructive',
         });
         return;
       }
 
-      // Validate subdomain format
-      const subdomainRegex = /^[a-z0-9-]+$/;
-      if (!subdomainRegex.test(editPublisher.subdomain)) {
+      // Validate slug format (only lowercase letters, numbers, and hyphens)
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(editPublisher.slug)) {
         toast({
-          title: 'Invalid Subdomain',
-          description: 'Subdomain can only contain lowercase letters, numbers, and hyphens',
+          title: 'Invalid Slug',
+          description: 'Slug can only contain lowercase letters, numbers, and hyphens',
           variant: 'destructive',
         });
         return;
       }
 
-      // Check if subdomain already exists
+      // Add pub prefix to slug
+      const finalSlug = `pub-${editPublisher.slug.toLowerCase().trim()}`;
+
+      // Check if slug already exists
       const { data: existingPublisher } = await supabase
         .from('publishers')
         .select('id')
-        .eq('subdomain', editPublisher.subdomain)
+        .eq('slug', finalSlug)
         .maybeSingle();
 
       if (existingPublisher) {
         toast({
-          title: 'Subdomain Taken',
-          description: 'This subdomain is already in use. Please choose another one.',
+          title: 'Slug Taken',
+          description: 'This slug is already in use. Please choose another one.',
           variant: 'destructive',
         });
         return;
@@ -325,7 +328,7 @@ export default function PublisherDashboard() {
         .from('publishers')
         .insert([{
           name: editPublisher.name.trim(),
-          subdomain: editPublisher.subdomain.toLowerCase().trim(),
+          slug: finalSlug,
           contact_email: editPublisher.contact_email.trim(),
           website_url: editPublisher.website_url?.trim() || null,
           description: editPublisher.description?.trim() || null,
@@ -347,7 +350,7 @@ export default function PublisherDashboard() {
       // Reset form
       setEditPublisher({
         name: '',
-        subdomain: '',
+        slug: '',
         contact_email: '',
         website_url: '',
         description: '',
@@ -1158,16 +1161,19 @@ export default function PublisherDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="subdomain">
-                  Subdomain <span className="text-destructive">*</span>
+                <Label htmlFor="slug">
+                  Publisher Slug <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="subdomain"
-                  value={editPublisher.subdomain}
-                  onChange={(e) => setEditPublisher(prev => ({ ...prev, subdomain: e.target.value.toLowerCase() }))}
-                  placeholder="yourpublisher"
-                  required
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">pub-</span>
+                  <Input
+                    id="slug"
+                    value={editPublisher.slug}
+                    onChange={(e) => setEditPublisher(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
+                    placeholder="yourpublisher"
+                    required
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Lowercase letters, numbers, and hyphens only
                 </p>

@@ -1939,8 +1939,8 @@ export type Database = {
           name: string
           owner_id: string | null
           revenue_share_percentage: number | null
+          slug: string
           status: string
-          subdomain: string
           updated_at: string
           website_url: string | null
         }
@@ -1955,8 +1955,8 @@ export type Database = {
           name: string
           owner_id?: string | null
           revenue_share_percentage?: number | null
+          slug: string
           status?: string
-          subdomain: string
           updated_at?: string
           website_url?: string | null
         }
@@ -1971,8 +1971,8 @@ export type Database = {
           name?: string
           owner_id?: string | null
           revenue_share_percentage?: number | null
+          slug?: string
           status?: string
-          subdomain?: string
           updated_at?: string
           website_url?: string | null
         }
