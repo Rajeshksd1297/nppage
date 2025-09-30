@@ -177,6 +177,9 @@ export default function AuthorManagement() {
       } else {
         filtered = filtered.filter((author) => author.publisher_id === selectedPublisher);
       }
+    } else {
+      // For 'all', hide unassigned authors unless explicitly selected
+      filtered = filtered.filter((author) => author.publisher_id !== null);
     }
 
     setFilteredAuthors(filtered);
