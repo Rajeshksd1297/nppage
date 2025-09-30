@@ -128,6 +128,18 @@ export function useDynamicFeatures() {
       required_plan_level: 0
     });
 
+    // Core helpdesk feature with configurable limits
+    const ticketLimit = plan.max_support_tickets || 3;
+    features.push({
+      id: 'helpdesk',
+      name: `Help Desk (${ticketLimit}/month)`,
+      description: `Submit support tickets with monthly limit of ${ticketLimit}`,
+      icon: 'help-circle',
+      category: 'core',
+      enabled: true,
+      required_plan_level: 0
+    });
+
     // Books feature (dynamic based on plan)
     if (plan.max_books === -1) {
       features.push({

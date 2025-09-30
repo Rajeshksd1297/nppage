@@ -39,6 +39,7 @@ interface Package {
   max_books: number | null;
   max_publications: number | null;
   max_authors: number | null; // For publishers
+  max_support_tickets: number; // Monthly helpdesk ticket limit
   advanced_analytics: boolean;
   custom_domain: boolean;
   premium_themes: boolean;
@@ -49,6 +50,7 @@ interface Package {
   events: boolean;
   awards: boolean;
   faq: boolean;
+  helpdesk: boolean; // Core helpdesk feature
   badge_text: string;
   badge_color: string;
   description: string;
@@ -135,6 +137,16 @@ export default function PackageManagement() {
               features.push(`Up to ${plan.max_books} books`);
             }
             
+            // Core features
+            features.push('Professional Profile');
+            features.push('Basic Analytics');
+            features.push('Basic Themes');
+            
+            // Core helpdesk feature
+            const ticketLimit = plan.max_support_tickets || 3;
+            features.push(`Help Desk (${ticketLimit} tickets/month)`);
+            
+            // Premium features
             if (plan.custom_domain) features.push('Custom domain');
             if (plan.premium_themes) features.push('Premium themes');
             if (plan.advanced_analytics) features.push('Advanced analytics');
@@ -147,10 +159,9 @@ export default function PackageManagement() {
             if (plan.awards) features.push('Awards');
             if (plan.faq) features.push('FAQ');
             
-            // Add basic features for all plans
-            features.push('Basic profile');
+            // Support
             if (plan.name === 'Free') {
-              features.push('Standard themes', 'Community support');
+              features.push('Community support');
             } else {
               features.push('Priority support');
             }
@@ -167,6 +178,7 @@ export default function PackageManagement() {
             max_books: plan.max_books === -1 ? null : plan.max_books,
             max_publications: plan.max_publications === -1 ? null : plan.max_publications,
             max_authors: null,
+            max_support_tickets: plan.max_support_tickets || 3, // Default 3 tickets/month
             advanced_analytics: plan.advanced_analytics || false,
             custom_domain: plan.custom_domain || false,
             premium_themes: plan.premium_themes || false,
@@ -177,6 +189,7 @@ export default function PackageManagement() {
             events: plan.events || false,
             awards: plan.awards || false,
             faq: plan.faq || false,
+            helpdesk: true, // Core feature for all plans
             badge_text: plan.name === 'Pro' ? 'Most Popular' : (plan.name === 'Publisher' ? 'For Publishers' : ''),
             badge_color: plan.name === 'Pro' ? 'blue' : (plan.name === 'Publisher' ? 'secondary' : 'gray'),
             description: plan.name === 'Free' ? 'Perfect for getting started with your author journey' : 
@@ -264,6 +277,7 @@ export default function PackageManagement() {
           features: generateFeatures(pkg),
           max_books: pkg.max_books === null ? -1 : pkg.max_books, // -1 for unlimited
           max_publications: pkg.max_publications === null ? -1 : pkg.max_publications,
+          max_support_tickets: pkg.max_support_tickets || 3, // Helpdesk ticket limit
           advanced_analytics: pkg.advanced_analytics,
           custom_domain: pkg.custom_domain,
           premium_themes: pkg.premium_themes,
@@ -326,6 +340,7 @@ export default function PackageManagement() {
       max_books: 10,
       max_publications: null,
       max_authors: null,
+      max_support_tickets: 3, // Default helpdesk limit
       advanced_analytics: false,
       custom_domain: false,
       premium_themes: false,
@@ -336,6 +351,7 @@ export default function PackageManagement() {
       events: false,
       awards: false,
       faq: false,
+      helpdesk: true, // Core feature
       badge_text: '',
       badge_color: '',
       description: 'Description for new package',
@@ -471,7 +487,7 @@ export default function PackageManagement() {
           if (Object.keys(updates).some(key => 
             ['premium_themes', 'advanced_analytics', 'custom_domain', 'contact_form', 
              'newsletter_integration', 'no_watermark', 'blog', 'events', 'awards', 'faq',
-             'max_books', 'max_publications'].includes(key)
+             'max_books', 'max_publications', 'max_support_tickets', 'helpdesk'].includes(key)
           )) {
             updatedPkg.features = generateAutoFeatures(updatedPkg);
           }
@@ -497,6 +513,10 @@ export default function PackageManagement() {
     features.push('Professional Profile');
     features.push('Basic Analytics');
     features.push('Basic Themes');
+    
+    // Core helpdesk feature
+    const ticketLimit = pkg.max_support_tickets || 3;
+    features.push(`Help Desk (${ticketLimit} tickets/month)`);
     
     // Premium features based on toggles
     if (pkg.premium_themes) features.push('Premium Themes');
@@ -640,7 +660,7 @@ export default function PackageManagement() {
                   </div>
 
                   {/* Package Details */}
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-4">
                     <div>
                       <Label>Max Books</Label>
                       <Input
@@ -673,6 +693,22 @@ export default function PackageManagement() {
                           Number of authors this publisher can manage
                         </p>
                       )}
+                    </div>
+                    <div>
+                      <Label className="flex items-center gap-2">
+                        <HelpCircle className="h-3 w-3" />
+                        Help Desk Tickets/Month
+                      </Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={pkg.max_support_tickets || 3}
+                        onChange={(e) => updatePackage(pkg.id, { max_support_tickets: parseInt(e.target.value) || 3 })}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Monthly support ticket limit (Core feature)
+                      </p>
                     </div>
                   </div>
 
