@@ -29,7 +29,8 @@ import {
   Calendar,
   Award,
   HelpCircle,
-  Cookie
+  Cookie,
+  Server
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -114,6 +115,7 @@ const siteManagementItems = [
   { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
   { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
+  { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
 ];
 
 // Book Management

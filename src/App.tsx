@@ -67,6 +67,7 @@ import HomePageManagement from "./pages/admin/HomePageManagement";
 import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
 import PublicPage from "./pages/PublicPage";
+import AWSDeployment from "./pages/admin/AWSDeployment";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -425,6 +426,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <CookieConsentSettings />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/aws-deployment" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <AWSDeployment />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
