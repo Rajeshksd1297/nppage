@@ -153,12 +153,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [userSlug, setUserSlug] = useState<string | null>(null);
+  const [isPublisher, setIsPublisher] = useState(false);
   const { hasFeature, subscription, isPro, isFree, isOnTrial, trialDaysLeft } = useSubscription();
   const { getPlanFeatures } = useDynamicFeatures();
 
   useEffect(() => {
     getCurrentUserRole();
     getUserProfile();
+    checkPublisherStatus();
   }, []);
 
   const getCurrentUserRole = async () => {
@@ -200,6 +202,25 @@ export function AppSidebar() {
     }
   };
 
+  const checkPublisherStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('publishers')
+        .select('id')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsPublisher(!!data);
+    } catch (error) {
+      console.error('Error checking publisher status:', error);
+      setIsPublisher(false);
+    }
+  };
+
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
@@ -229,6 +250,30 @@ export function AppSidebar() {
               </p>
             )}
           </div>
+        )}
+
+        {/* Publisher Dashboard - Special access */}
+        {!isAdmin && isPublisher && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Publisher
+              </div>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/publisher-dashboard" className={getNavCls}>
+                      <Building2 className="h-4 w-4" />
+                      {!collapsed && <span>Publisher Dashboard</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
 
         {/* Main Features */}

@@ -20,6 +20,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import Analytics from "./pages/Analytics";
 import Subscription from "./pages/Subscription";
 import CustomDomains from "./pages/CustomDomains";
+import PublisherDashboard from "./pages/PublisherDashboard";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
@@ -157,6 +158,11 @@ function App() {
             <Route path="/custom-domains" element={
               <DashboardLayout>
                 <CustomDomains />
+              </DashboardLayout>
+            } />
+            <Route path="/publisher-dashboard" element={
+              <DashboardLayout>
+                <PublisherDashboard />
               </DashboardLayout>
             } />
             <Route path="/advanced-analytics" element={
