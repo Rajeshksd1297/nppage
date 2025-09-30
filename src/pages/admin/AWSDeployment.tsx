@@ -68,6 +68,9 @@ export default function AWSDeployment() {
   const [deploymentName, setDeploymentName] = useState("");
   const [region, setRegion] = useState("ap-south-1");
   const [autoDeploy, setAutoDeploy] = useState(false);
+  const [deploymentType, setDeploymentType] = useState<'fresh' | 'incremental'>('incremental');
+  const [includeDatabase, setIncludeDatabase] = useState(false);
+  const [includeMigrations, setIncludeMigrations] = useState(true);
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const { toast } = useToast();
@@ -175,6 +178,9 @@ export default function AWSDeployment() {
           deploymentName,
           region,
           autoDeploy,
+          deploymentType,
+          includeDatabase,
+          includeMigrations,
         },
       });
 
@@ -538,6 +544,64 @@ export default function AWSDeployment() {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="deployment-type">Deployment Type</Label>
+                <Select 
+                  value={deploymentType} 
+                  onValueChange={(value: 'fresh' | 'incremental') => setDeploymentType(value)}
+                  disabled={!awsSettings?.aws_access_key_id}
+                >
+                  <SelectTrigger id="deployment-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="incremental">
+                      Incremental (Preserves User Data)
+                    </SelectItem>
+                    <SelectItem value="fresh">
+                      Fresh Installation
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {deploymentType === 'incremental' 
+                    ? "Updates code and migrations only. Preserves all user data and database records."
+                    : "Complete fresh installation. Warning: This will reset all data!"}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="include-migrations">Include Database Migrations</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Run SQL migrations during deployment
+                  </p>
+                </div>
+                <Switch
+                  id="include-migrations"
+                  checked={includeMigrations}
+                  onCheckedChange={setIncludeMigrations}
+                  disabled={!awsSettings?.aws_access_key_id}
+                />
+              </div>
+
+              {deploymentType === 'fresh' && (
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-amber-50 dark:bg-amber-950">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="include-database">Initialize Database</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Set up fresh database schema
+                    </p>
+                  </div>
+                  <Switch
+                    id="include-database"
+                    checked={includeDatabase}
+                    onCheckedChange={setIncludeDatabase}
+                    disabled={!awsSettings?.aws_access_key_id}
+                  />
+                </div>
+              )}
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="auto-deploy-new"
@@ -558,7 +622,7 @@ export default function AWSDeployment() {
                 ) : (
                   <Rocket className="mr-2 h-4 w-4" />
                 )}
-                Deploy to AWS EC2
+                {deploymentType === 'incremental' ? 'Deploy Update' : 'Deploy Fresh Installation'}
               </Button>
             </CardContent>
           </Card>
@@ -576,7 +640,7 @@ export default function AWSDeployment() {
                   {deployments.map((deployment) => (
                     <Card key={deployment.id}>
                       <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <Server className="h-4 w-4" />
@@ -623,6 +687,16 @@ export default function AWSDeployment() {
                             )}
                           </div>
                         </div>
+                        {deployment.deployment_log && (
+                          <details className="mt-3">
+                            <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">
+                              View Deployment Log
+                            </summary>
+                            <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto">
+                              {deployment.deployment_log}
+                            </pre>
+                          </details>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
