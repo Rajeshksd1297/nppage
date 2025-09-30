@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,6 +89,7 @@ interface PublisherSettings {
 }
 
 export default function PublisherDashboard() {
+  const navigate = useNavigate();
   const [publisherInfo, setPublisherInfo] = useState<PublisherInfo | null>(null);
   const [publisherSettings, setPublisherSettings] = useState<PublisherSettings>({
     allow_author_submissions: true,
@@ -103,7 +105,6 @@ export default function PublisherDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [isAddAuthorDialogOpen, setIsAddAuthorDialogOpen] = useState(false);
-  const [isEditPublisherDialogOpen, setIsEditPublisherDialogOpen] = useState(false);
   const [isAuthorDetailDialogOpen, setIsAuthorDetailDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [deleteConfirmAuthor, setDeleteConfirmAuthor] = useState<string | null>(null);
@@ -116,16 +117,6 @@ export default function PublisherDashboard() {
     revenue_share_percentage: 50,
     access_level: 'author',
     permissions: ['read', 'write'],
-  });
-
-  const [editPublisher, setEditPublisher] = useState({
-    name: '',
-    slug: '',
-    contact_email: '',
-    website_url: '',
-    description: '',
-    brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
-    social_links: { twitter: '', linkedin: '', website: '' }
   });
 
   useEffect(() => {
@@ -279,94 +270,6 @@ export default function PublisherDashboard() {
     }
   };
 
-  const createPublisher = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Validate required fields
-      if (!editPublisher.name || !editPublisher.slug || !editPublisher.contact_email) {
-        toast({
-          title: 'Validation Error',
-          description: 'Please fill in all required fields (Name, Slug, Contact Email)',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Validate slug format (only lowercase letters, numbers, and hyphens)
-      const slugRegex = /^[a-z0-9-]+$/;
-      if (!slugRegex.test(editPublisher.slug)) {
-        toast({
-          title: 'Invalid Slug',
-          description: 'Slug can only contain lowercase letters, numbers, and hyphens',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Add pub prefix to slug
-      const finalSlug = `pub-${editPublisher.slug.toLowerCase().trim()}`;
-
-      // Check if slug already exists
-      const { data: existingPublisher } = await supabase
-        .from('publishers')
-        .select('id')
-        .eq('slug', finalSlug)
-        .maybeSingle();
-
-      if (existingPublisher) {
-        toast({
-          title: 'Slug Taken',
-          description: 'This slug is already in use. Please choose another one.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('publishers')
-        .insert([{
-          name: editPublisher.name.trim(),
-          slug: finalSlug,
-          contact_email: editPublisher.contact_email.trim(),
-          website_url: editPublisher.website_url?.trim() || null,
-          description: editPublisher.description?.trim() || null,
-          brand_colors: editPublisher.brand_colors,
-          social_links: editPublisher.social_links,
-          owner_id: user.id,
-          status: 'active',
-          revenue_share_percentage: 30
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Publisher profile created successfully',
-      });
-
-      setIsEditPublisherDialogOpen(false);
-      // Reset form
-      setEditPublisher({
-        name: '',
-        slug: '',
-        contact_email: '',
-        website_url: '',
-        description: '',
-        brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
-        social_links: { twitter: '', linkedin: '', website: '' }
-      });
-      fetchPublisherData();
-    } catch (error: any) {
-      console.error('Error creating publisher:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create publisher profile',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const addAuthor = async () => {
     if (!publisherInfo?.id) return;
@@ -580,12 +483,12 @@ export default function PublisherDashboard() {
             </Button>
           )}
           {publisherInfo ? (
-            <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
+            <Button onClick={() => navigate('/publisher-profile/edit?edit=true')}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
           ) : (
-            <Button onClick={() => setIsEditPublisherDialogOpen(true)}>
+            <Button onClick={() => navigate('/publisher-profile/edit')}>
               <Plus className="h-4 w-4 mr-2" />
               Setup Publisher
             </Button>
@@ -620,7 +523,7 @@ export default function PublisherDashboard() {
                 <span>Custom Branding</span>
               </div>
             </div>
-            <Button onClick={() => setIsEditPublisherDialogOpen(true)} size="lg">
+            <Button onClick={() => navigate('/publisher-profile/edit')} size="lg">
               <Plus className="h-5 w-5 mr-2" />
               Create Publisher Profile
             </Button>
@@ -717,7 +620,7 @@ export default function PublisherDashboard() {
                   <Button 
                     variant="outline" 
                     className="h-20 flex-col gap-2"
-                    onClick={() => setIsEditPublisherDialogOpen(true)}
+                    onClick={() => navigate('/publisher-profile/edit?edit=true')}
                   >
                     <Edit className="h-6 w-6" />
                     <span>Edit Profile</span>
@@ -1135,97 +1038,6 @@ export default function PublisherDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Publisher Dialog */}
-      <Dialog open={isEditPublisherDialogOpen} onOpenChange={setIsEditPublisherDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {publisherInfo ? 'Edit Publisher Profile' : 'Create Publisher Profile'}
-            </DialogTitle>
-            <DialogDescription>
-              {publisherInfo ? 'Update your publisher information' : 'Set up your publishing house profile'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">
-                  Publisher Name <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  value={editPublisher.name}
-                  onChange={(e) => setEditPublisher(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Your Publishing House"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="slug">
-                  Publisher Slug <span className="text-destructive">*</span>
-                </Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">pub-</span>
-                  <Input
-                    id="slug"
-                    value={editPublisher.slug}
-                    onChange={(e) => setEditPublisher(prev => ({ ...prev, slug: e.target.value.toLowerCase() }))}
-                    placeholder="yourpublisher"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Lowercase letters, numbers, and hyphens only
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="contact_email">
-                Contact Email <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="contact_email"
-                type="email"
-                value={editPublisher.contact_email}
-                onChange={(e) => setEditPublisher(prev => ({ ...prev, contact_email: e.target.value }))}
-                placeholder="contact@yourpublisher.com"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="website_url">Website URL</Label>
-              <Input
-                id="website_url"
-                value={editPublisher.website_url}
-                onChange={(e) => setEditPublisher(prev => ({ ...prev, website_url: e.target.value }))}
-                placeholder="https://yourpublisher.com"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={editPublisher.description}
-                onChange={(e) => setEditPublisher(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Tell us about your publishing house..."
-                rows={3}
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditPublisherDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={publisherInfo ? () => {} : createPublisher}>
-                {publisherInfo ? 'Update' : 'Create'} Publisher
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmAuthor} onOpenChange={() => setDeleteConfirmAuthor(null)}>

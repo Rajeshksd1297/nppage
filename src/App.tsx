@@ -26,6 +26,7 @@ import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
 import PublisherSettings from './pages/admin/PublisherSettings';
 import PublisherDashboard from './pages/PublisherDashboard';
+import PublisherProfileEdit from './pages/PublisherProfileEdit';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
@@ -447,6 +448,11 @@ function App() {
             <Route path="/publisher-dashboard" element={
               <DashboardLayout>
                 <PublisherDashboard />
+              </DashboardLayout>
+            } />
+            <Route path="/publisher-profile/edit" element={
+              <DashboardLayout>
+                <PublisherProfileEdit />
               </DashboardLayout>
             } />
             
