@@ -16,6 +16,8 @@ interface DashboardStats {
   publishedBooks: number;
   totalViews: number;
   thisMonthViews: number;
+  supportTicketsUsed: number;
+  supportTicketsLimit: number;
 }
 interface AdminStats {
   totalUsers: number;
@@ -36,7 +38,9 @@ export default function Dashboard() {
     totalBooks: 0,
     publishedBooks: 0,
     totalViews: 0,
-    thisMonthViews: 0
+    thisMonthViews: 0,
+    supportTicketsUsed: 0,
+    supportTicketsLimit: 3
   });
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -62,6 +66,7 @@ export default function Dashboard() {
     subscription,
     hasFeature,
     getLimit,
+    getSupportTicketsUsed,
     isOnTrial,
     trialDaysLeft,
     isPro,
@@ -119,20 +124,30 @@ export default function Dashboard() {
   const calculateUserStats = async (userId: string, books: any[]) => {
     try {
       // Fetch analytics
-      const {
-        data: analytics
-      } = await supabase.from('page_analytics').select('*').or(`page_type.eq.profile,and(page_type.eq.book,page_id.in.(${books?.map(b => b.slug).join(',') || 'none'}))`);
+      const { data: analytics } = await supabase
+        .from('page_analytics')
+        .select('*')
+        .or(`page_type.eq.profile,and(page_type.eq.book,page_id.in.(${books?.map(b => b.slug).join(',') || 'none'}))`);
+
       const totalBooks = books?.length || 0;
       const publishedBooks = books?.filter(b => b.status === 'published').length || 0;
       const totalViews = analytics?.length || 0;
+      
       const thisMonthStart = new Date();
       thisMonthStart.setDate(1);
       const thisMonthViews = analytics?.filter(a => new Date(a.created_at) >= thisMonthStart).length || 0;
+
+      // Get helpdesk ticket usage
+      const supportTicketsUsed = await getSupportTicketsUsed();
+      const supportTicketsLimit = getLimit('support_tickets');
+
       setStats({
         totalBooks,
         publishedBooks,
         totalViews,
-        thisMonthViews
+        thisMonthViews,
+        supportTicketsUsed,
+        supportTicketsLimit
       });
     } catch (error) {
       console.error('Error calculating user stats:', error);
@@ -398,20 +413,24 @@ export default function Dashboard() {
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             Subscription Overview
-            {subscription?.subscription_plans?.name && <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
+            {subscription?.subscription_plans?.name && (
+              <Badge variant={isPro() ? 'default' : 'secondary'} className="ml-2">
                 {subscription.subscription_plans.name}
                 {isPro() && <Crown className="h-3 w-3 ml-1" />}
-              </Badge>}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{stats.totalBooks}</p>
               <p className="text-sm text-muted-foreground">
                 Books ({getLimit('books') === Infinity ? 'Unlimited' : `${getLimit('books')} max`})
               </p>
-              {getLimit('books') !== Infinity && stats.totalBooks >= getLimit('books') && <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>}
+              {getLimit('books') !== Infinity && stats.totalBooks >= getLimit('books') && (
+                <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>
+              )}
             </div>
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{stats.publishedBooks}</p>
@@ -420,6 +439,15 @@ export default function Dashboard() {
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{stats.totalViews}</p>
               <p className="text-sm text-muted-foreground">Total Views</p>
+            </div>
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{stats.supportTicketsUsed}</p>
+              <p className="text-sm text-muted-foreground">
+                Help Desk ({stats.supportTicketsLimit}/month)
+              </p>
+              {stats.supportTicketsUsed >= stats.supportTicketsLimit && (
+                <Badge variant="destructive" className="mt-1 text-xs">Limit Reached</Badge>
+              )}
             </div>
           </div>
         </CardContent>

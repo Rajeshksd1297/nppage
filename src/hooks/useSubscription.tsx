@@ -8,12 +8,18 @@ interface SubscriptionPlan {
   price_yearly: number;
   max_books: number;
   max_publications: number;
+  max_support_tickets: number; // Monthly helpdesk ticket limit
   custom_domain: boolean;
   advanced_analytics: boolean;
   premium_themes: boolean;
   no_watermark: boolean;
   contact_form: boolean;
   newsletter_integration: boolean;
+  blog: boolean;
+  events: boolean;
+  awards: boolean;
+  faq: boolean;
+  helpdesk?: boolean; // Core feature
   features: {
     contact_form?: boolean;
     newsletter_integration?: boolean;
@@ -22,6 +28,7 @@ interface SubscriptionPlan {
     awards?: boolean;
     faq?: boolean;
     gallery?: boolean;
+    helpdesk?: boolean;
   };
 }
 
@@ -188,11 +195,43 @@ export function useSubscription() {
     const plan = subscription.subscription_plans;
     switch (feature) {
       case 'books':
-        return plan.max_books;
+        return plan.max_books === -1 ? Infinity : plan.max_books;
       case 'publications':
-        return plan.max_publications;
+        return plan.max_publications === -1 ? Infinity : plan.max_publications;
+      case 'support_tickets':
+      case 'helpdesk':
+        return plan.max_support_tickets || 3;
       default:
         return 0;
+    }
+  };
+
+  const getSupportTicketsUsed = async () => {
+    if (!subscription) return 0;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
+
+      const { data: tickets, error } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('created_by', user.id)
+        .gte('created_at', currentMonth.toISOString());
+
+      if (error) {
+        console.error('Error fetching ticket usage:', error);
+        return 0;
+      }
+
+      return tickets?.length || 0;
+    } catch (error) {
+      console.error('Error getting support tickets used:', error);
+      return 0;
     }
   };
 
@@ -210,6 +249,7 @@ export function useSubscription() {
     trialDaysLeft,
     isTrialActive,
     getLimit,
+    getSupportTicketsUsed,
     getCurrentPlanName,
     refreshSubscription
   };

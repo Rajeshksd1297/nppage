@@ -18,6 +18,7 @@ interface SubscriptionPlan {
   features: any;
   max_books: number;
   max_publications: number;
+  max_support_tickets: number; // Monthly helpdesk ticket limit
   custom_domain: boolean;
   advanced_analytics: boolean;
   premium_themes: boolean;
@@ -28,6 +29,7 @@ interface SubscriptionPlan {
   events: boolean;
   awards: boolean;
   faq: boolean;
+  helpdesk?: boolean; // Core feature
 }
 interface UserSubscription {
   id: string;
@@ -89,9 +91,7 @@ export default function Subscription() {
     return 'Complete publishing and marketing solution';
   };
   const getFeatureIcon = (featureName: string) => {
-    const iconMap: {
-      [key: string]: any;
-    } = {
+    const iconMap: { [key: string]: any } = {
       'unlimited books': BookOpen,
       'books': BookOpen,
       'book-open': BookOpen,
@@ -118,6 +118,8 @@ export default function Subscription() {
       'award': Award,
       'faq': HelpCircle,
       'help-circle': HelpCircle,
+      'help desk': HelpCircle,
+      'helpdesk': HelpCircle,
       'support': Users,
       'users': Users,
       'watermark': Shield,
@@ -125,6 +127,7 @@ export default function Subscription() {
       'shield': Shield,
       'profile': Users
     };
+    
     for (const [key, icon] of Object.entries(iconMap)) {
       if (featureName.toLowerCase().includes(key)) {
         return icon;
