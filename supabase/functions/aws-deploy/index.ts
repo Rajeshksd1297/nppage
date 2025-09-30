@@ -43,13 +43,36 @@ Deno.serve(async (req) => {
       autoDeploy,
     });
 
-    // Get AWS credentials from secrets
-    const awsAccessKeyId = Deno.env.get('AWS_ACCESS_KEY_ID');
-    const awsSecretAccessKey = Deno.env.get('AWS_SECRET_ACCESS_KEY');
+    // Get AWS settings from database
+    const { data: awsSettings, error: settingsError } = await supabaseClient
+      .from('aws_settings')
+      .select('*')
+      .order('created_at', { desc: true })
+      .limit(1)
+      .maybeSingle();
 
-    if (!awsAccessKeyId || !awsSecretAccessKey) {
-      throw new Error('AWS credentials not configured');
+    if (settingsError) {
+      console.error('Error fetching AWS settings:', settingsError);
+      throw new Error('Failed to fetch AWS settings');
     }
+
+    if (!awsSettings || !awsSettings.aws_access_key_id || !awsSettings.aws_secret_access_key) {
+      throw new Error('AWS credentials not configured. Please configure AWS settings first.');
+    }
+
+    const awsAccessKeyId = awsSettings.aws_access_key_id;
+    const awsSecretAccessKey = awsSettings.aws_secret_access_key;
+    const instanceType = awsSettings.instance_type || 't2.micro';
+    const keyPairName = awsSettings.key_pair_name;
+    const securityGroupId = awsSettings.security_group_id;
+    const subnetId = awsSettings.subnet_id;
+    const amiId = awsSettings.ami_id;
+
+    console.log('Using AWS settings:', {
+      instanceType,
+      region,
+      hasCredentials: !!awsAccessKeyId && !!awsSecretAccessKey,
+    });
 
     // Create deployment record
     const { data: deployment, error: insertError } = await supabaseClient

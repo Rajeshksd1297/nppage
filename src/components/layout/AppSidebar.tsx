@@ -116,6 +116,7 @@ const siteManagementItems = [
   { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
   { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
   { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
+  { title: "AWS Settings", url: "/admin/aws-settings", icon: Settings },
 ];
 
 // Book Management

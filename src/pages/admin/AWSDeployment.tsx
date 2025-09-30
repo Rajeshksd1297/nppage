@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Server, ExternalLink } from "lucide-react";
+import { Loader2, Server, ExternalLink, Settings as SettingsIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link } from "react-router-dom";
 
 export default function AWSDeployment() {
   const [deploymentName, setDeploymentName] = useState("");
@@ -16,6 +17,21 @@ export default function AWSDeployment() {
   const [autoDeploy, setAutoDeploy] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: awsSettings } = useQuery({
+    queryKey: ["aws-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("aws_settings")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: deployments, isLoading } = useQuery({
     queryKey: ["aws-deployments"],
@@ -61,6 +77,15 @@ export default function AWSDeployment() {
   });
 
   const handleDeploy = () => {
+    if (!awsSettings?.aws_access_key_id || !awsSettings?.aws_secret_access_key) {
+      toast({
+        title: "AWS Settings Required",
+        description: "Please configure AWS settings first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!deploymentName.trim()) {
       toast({
         title: "Name Required",
@@ -74,12 +99,34 @@ export default function AWSDeployment() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">AWS EC2 Deployment</h1>
-        <p className="text-muted-foreground">
-          Deploy and manage your AWS EC2 instances
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">AWS EC2 Deployment</h1>
+          <p className="text-muted-foreground">
+            Deploy and manage your AWS EC2 instances
+          </p>
+        </div>
+        <Link to="/admin/aws-settings">
+          <Button variant="outline">
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            AWS Settings
+          </Button>
+        </Link>
       </div>
+
+      {!awsSettings?.aws_access_key_id && (
+        <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950">
+          <CardContent className="pt-6">
+            <p className="text-sm">
+              ⚠️ AWS credentials not configured. Please{" "}
+              <Link to="/admin/aws-settings" className="underline font-medium">
+                configure AWS settings
+              </Link>{" "}
+              before deploying.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -356,6 +356,51 @@ export type Database = {
         }
         Relationships: []
       }
+      aws_settings: {
+        Row: {
+          ami_id: string | null
+          auto_deploy_enabled: boolean | null
+          aws_access_key_id: string | null
+          aws_secret_access_key: string | null
+          created_at: string | null
+          default_region: string
+          id: string
+          instance_type: string
+          key_pair_name: string | null
+          security_group_id: string | null
+          subnet_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ami_id?: string | null
+          auto_deploy_enabled?: boolean | null
+          aws_access_key_id?: string | null
+          aws_secret_access_key?: string | null
+          created_at?: string | null
+          default_region?: string
+          id?: string
+          instance_type?: string
+          key_pair_name?: string | null
+          security_group_id?: string | null
+          subnet_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ami_id?: string | null
+          auto_deploy_enabled?: boolean | null
+          aws_access_key_id?: string | null
+          aws_secret_access_key?: string | null
+          created_at?: string | null
+          default_region?: string
+          id?: string
+          instance_type?: string
+          key_pair_name?: string | null
+          security_group_id?: string | null
+          subnet_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       backup_jobs: {
         Row: {
           backup_duration: number | null
