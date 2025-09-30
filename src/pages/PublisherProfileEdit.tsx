@@ -234,7 +234,7 @@ export default function PublisherProfileEdit() {
       onChange: (e: any) => handleFieldChange(e.target.value),
       placeholder: field.placeholder || '',
       className: errors[field.field_name] ? 'border-destructive' : '',
-      disabled: field.field_name === 'slug' && isEditMode,
+      disabled: field.field_name === 'slug', // Slug is always disabled (auto-generated)
     };
 
     return (
@@ -257,14 +257,17 @@ export default function PublisherProfileEdit() {
         ) : field.field_name === 'slug' ? (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">pub-</span>
-            <Input {...commonProps} />
+            <Input 
+              {...commonProps} 
+              className={`${commonProps.className} bg-muted cursor-not-allowed`}
+            />
           </div>
         ) : (
           <Input {...commonProps} type={field.field_type} />
         )}
         {field.field_name === 'slug' && (
           <p className="text-xs text-muted-foreground mt-1">
-            Auto-generated from publisher name
+            Automatically generated from publisher name
           </p>
         )}
         {errors[field.field_name] && (
