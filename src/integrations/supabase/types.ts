@@ -1939,6 +1939,7 @@ export type Database = {
           allow_publisher_registration: boolean | null
           auto_payout_threshold: number | null
           auto_publish_enabled: boolean | null
+          branding_options: Json | null
           commission_percentage: number | null
           created_at: string | null
           default_book_visibility: string | null
@@ -1968,6 +1969,7 @@ export type Database = {
           allow_publisher_registration?: boolean | null
           auto_payout_threshold?: number | null
           auto_publish_enabled?: boolean | null
+          branding_options?: Json | null
           commission_percentage?: number | null
           created_at?: string | null
           default_book_visibility?: string | null
@@ -1997,6 +1999,7 @@ export type Database = {
           allow_publisher_registration?: boolean | null
           auto_payout_threshold?: number | null
           auto_publish_enabled?: boolean | null
+          branding_options?: Json | null
           commission_percentage?: number | null
           created_at?: string | null
           default_book_visibility?: string | null
