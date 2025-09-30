@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Settings, List, Users, Wrench, Shield } from 'lucide-react';
+import { Building2, Settings, List, Users, Wrench, Shield, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PublisherList from '@/components/admin/Publisher/PublisherList';
@@ -10,6 +10,7 @@ import PublisherFieldManager from '@/components/admin/PublisherFieldManager';
 import AuthorManagement from '@/components/admin/Publisher/AuthorManagement';
 import FeatureAccess from '@/components/admin/Publisher/FeatureAccess';
 import ToolsAccess from '@/components/admin/Publisher/ToolsAccess';
+import BrandingOptions from '@/components/admin/Publisher/BrandingOptions';
 
 export default function PublisherManagement() {
   const { toast } = useToast();
@@ -67,14 +68,14 @@ export default function PublisherManagement() {
 
       <Card>
         <Tabs defaultValue="publishers" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 h-auto">
+          <TabsList className="grid w-full grid-cols-7 h-auto">
             <TabsTrigger value="publishers" className="flex flex-col items-center gap-1 py-3">
               <List className="h-4 w-4" />
               <span className="text-xs">Publishers</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-3">
               <Building2 className="h-4 w-4" />
-              <span className="text-xs">Profile & Brand</span>
+              <span className="text-xs">Profile Fields</span>
             </TabsTrigger>
             <TabsTrigger value="authors" className="flex flex-col items-center gap-1 py-3">
               <Users className="h-4 w-4" />
@@ -86,7 +87,11 @@ export default function PublisherManagement() {
             </TabsTrigger>
             <TabsTrigger value="tools" className="flex flex-col items-center gap-1 py-3">
               <Wrench className="h-4 w-4" />
-              <span className="text-xs">Tools Access</span>
+              <span className="text-xs">Tools</span>
+            </TabsTrigger>
+            <TabsTrigger value="branding" className="flex flex-col items-center gap-1 py-3">
+              <Palette className="h-4 w-4" />
+              <span className="text-xs">Branding</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
               <Settings className="h-4 w-4" />
@@ -112,6 +117,10 @@ export default function PublisherManagement() {
 
           <TabsContent value="tools" key={`tools-${refreshKey}`}>
             <ToolsAccess />
+          </TabsContent>
+
+          <TabsContent value="branding" key={`branding-${refreshKey}`}>
+            <BrandingOptions />
           </TabsContent>
 
           <TabsContent value="settings" key={`settings-${refreshKey}`}>
