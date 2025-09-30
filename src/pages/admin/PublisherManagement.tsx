@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Settings, List } from 'lucide-react';
+import { Building2, Settings, List, Users, Wrench, Palette, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PublisherList from '@/components/admin/Publisher/PublisherList';
@@ -64,18 +64,34 @@ export default function PublisherManagement() {
 
       <Card>
         <Tabs defaultValue="publishers" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className="grid w-full grid-cols-7 h-auto">
             <TabsTrigger value="publishers" className="flex flex-col items-center gap-1 py-3">
               <List className="h-4 w-4" />
-              <span>Publishers</span>
+              <span className="text-xs">Publishers</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex flex-col items-center gap-1 py-3">
+              <Building2 className="h-4 w-4" />
+              <span className="text-xs">Profile Mgmt</span>
+            </TabsTrigger>
+            <TabsTrigger value="authors" className="flex flex-col items-center gap-1 py-3">
+              <Users className="h-4 w-4" />
+              <span className="text-xs">Authors</span>
+            </TabsTrigger>
+            <TabsTrigger value="features" className="flex flex-col items-center gap-1 py-3">
+              <Shield className="h-4 w-4" />
+              <span className="text-xs">Features</span>
+            </TabsTrigger>
+            <TabsTrigger value="tools" className="flex flex-col items-center gap-1 py-3">
+              <Wrench className="h-4 w-4" />
+              <span className="text-xs">Tools Access</span>
+            </TabsTrigger>
+            <TabsTrigger value="branding" className="flex flex-col items-center gap-1 py-3">
+              <Palette className="h-4 w-4" />
+              <span className="text-xs">Branding</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
               <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </TabsTrigger>
-            <TabsTrigger value="fields" className="flex flex-col items-center gap-1 py-3">
-              <Building2 className="h-4 w-4" />
-              <span>Form Fields</span>
+              <span className="text-xs">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -83,12 +99,52 @@ export default function PublisherManagement() {
             <PublisherList />
           </TabsContent>
 
-          <TabsContent value="settings" key={`settings-${refreshKey}`}>
-            <PublisherSettings />
+          <TabsContent value="profile" key={`profile-${refreshKey}`}>
+            <PublisherFieldManager />
           </TabsContent>
 
-          <TabsContent value="fields" key={`fields-${refreshKey}`}>
-            <PublisherFieldManager />
+          <TabsContent value="authors" key={`authors-${refreshKey}`}>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Author Management</h3>
+              <p className="text-muted-foreground">
+                Manage publisher authors, assign permissions, and track author activity.
+              </p>
+              {/* Author management component will go here */}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="features" key={`features-${refreshKey}`}>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Feature Access Control</h3>
+              <p className="text-muted-foreground">
+                Configure which features are available to each publisher and their authors.
+              </p>
+              {/* Feature management component will go here */}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tools" key={`tools-${refreshKey}`}>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Tools & Integrations</h3>
+              <p className="text-muted-foreground">
+                Manage publisher access to tools, integrations, and third-party services.
+              </p>
+              {/* Tools access component will go here */}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="branding" key={`branding-${refreshKey}`}>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Publisher Branding</h3>
+              <p className="text-muted-foreground">
+                Customize publisher branding including logos, colors, and themes.
+              </p>
+              {/* Branding customization component will go here */}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" key={`settings-${refreshKey}`}>
+            <PublisherSettings />
           </TabsContent>
         </Tabs>
       </Card>

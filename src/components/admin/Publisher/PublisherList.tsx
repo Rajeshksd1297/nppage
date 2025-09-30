@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,11 +17,15 @@ interface Publisher {
   slug: string;
   contact_email: string;
   status: string;
-  revenue_share_percentage: number;
   max_authors?: number;
   created_at: string;
   owner_id: string;
+  author_count?: number;
+  book_count?: number;
 }
+
+type SortField = 'name' | 'contact_email' | 'status' | 'author_count' | 'book_count' | 'created_at';
+type SortDirection = 'asc' | 'desc';
 
 export default function PublisherList() {
   const [publishers, setPublishers] = useState<Publisher[]>([]);
@@ -31,6 +35,8 @@ export default function PublisherList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,18 +45,42 @@ export default function PublisherList() {
 
   useEffect(() => {
     filterPublishers();
-  }, [publishers, searchTerm, statusFilter]);
+  }, [publishers, searchTerm, statusFilter, sortField, sortDirection]);
 
   const fetchPublishers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data: publishersData, error } = await supabase
         .from('publishers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPublishers(data || []);
+
+      // Fetch author and book counts for each publisher
+      const publishersWithCounts = await Promise.all(
+        (publishersData || []).map(async (publisher) => {
+          // Get author count
+          const { count: authorCount } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('publisher_id', publisher.id);
+
+          // Get book count
+          const { count: bookCount } = await supabase
+            .from('books')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', publisher.owner_id);
+
+          return {
+            ...publisher,
+            author_count: authorCount || 0,
+            book_count: bookCount || 0,
+          };
+        })
+      );
+
+      setPublishers(publishersWithCounts);
     } catch (error) {
       console.error('Error fetching publishers:', error);
       toast({
@@ -69,7 +99,6 @@ export default function PublisherList() {
     if (searchTerm) {
       filtered = filtered.filter(pub => 
         pub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pub.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pub.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -78,7 +107,47 @@ export default function PublisherList() {
       filtered = filtered.filter(pub => pub.status === statusFilter);
     }
 
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      // Handle undefined values
+      if (aValue === undefined) aValue = 0;
+      if (bValue === undefined) bValue = 0;
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+
     setFilteredPublishers(filtered);
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-4 w-4 ml-1" />
+      : <ArrowDown className="h-4 w-4 ml-1" />;
   };
 
   const handleStatusChange = async (publisherId: string, newStatus: string) => {
@@ -196,11 +265,61 @@ export default function PublisherList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Contact Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Revenue Share</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('name')}
+                    className="h-8 flex items-center hover:bg-transparent p-0 font-semibold"
+                  >
+                    Name
+                    <SortIcon field="name" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('contact_email')}
+                    className="h-8 flex items-center hover:bg-transparent p-0 font-semibold"
+                  >
+                    Contact Email
+                    <SortIcon field="contact_email" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('author_count')}
+                    className="h-8 flex items-center hover:bg-transparent p-0 font-semibold"
+                  >
+                    Authors
+                    <SortIcon field="author_count" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('book_count')}
+                    className="h-8 flex items-center hover:bg-transparent p-0 font-semibold"
+                  >
+                    Books
+                    <SortIcon field="book_count" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('status')}
+                    className="h-8 flex items-center hover:bg-transparent p-0 font-semibold"
+                  >
+                    Status
+                    <SortIcon field="status" />
+                  </Button>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -215,12 +334,14 @@ export default function PublisherList() {
                 filteredPublishers.map((publisher) => (
                   <TableRow key={publisher.id}>
                     <TableCell className="font-medium">{publisher.name}</TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-muted px-2 py-1 rounded">{publisher.slug}</code>
-                    </TableCell>
                     <TableCell>{publisher.contact_email}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{publisher.author_count || 0}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{publisher.book_count || 0}</Badge>
+                    </TableCell>
                     <TableCell>{getStatusBadge(publisher.status)}</TableCell>
-                    <TableCell>{publisher.revenue_share_percentage}%</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -284,10 +405,12 @@ export default function PublisherList() {
                   <p className="text-sm font-medium mt-1">{selectedPublisher.name}</p>
                 </div>
                 <div>
-                  <Label>Slug</Label>
-                  <p className="text-sm font-medium mt-1">
-                    <code className="bg-muted px-2 py-1 rounded">{selectedPublisher.slug}</code>
-                  </p>
+                  <Label>Authors</Label>
+                  <p className="text-sm font-medium mt-1">{selectedPublisher.author_count || 0}</p>
+                </div>
+                <div>
+                  <Label>Books</Label>
+                  <p className="text-sm font-medium mt-1">{selectedPublisher.book_count || 0}</p>
                 </div>
                 <div>
                   <Label>Contact Email</Label>
@@ -296,10 +419,6 @@ export default function PublisherList() {
                 <div>
                   <Label>Status</Label>
                   <div className="mt-1">{getStatusBadge(selectedPublisher.status)}</div>
-                </div>
-                <div>
-                  <Label>Revenue Share</Label>
-                  <p className="text-sm font-medium mt-1">{selectedPublisher.revenue_share_percentage}%</p>
                 </div>
                 <div>
                   <Label>Max Authors</Label>
