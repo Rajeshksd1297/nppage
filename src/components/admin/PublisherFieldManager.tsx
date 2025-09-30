@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Trash2, Save, X, GripVertical, Palette, Upload, Building2, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, GripVertical, Palette, Upload, Building2, Settings as SettingsIcon, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -275,26 +275,20 @@ export default function PublisherFieldManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5" />
-          Publisher Profile Management
+          <FileText className="h-5 w-5" />
+          Publisher Form Fields
         </CardTitle>
         <CardDescription>
-          Configure publisher form fields and branding settings
+          Customize fields displayed in publisher registration and profile forms
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold">Publisher Form Fields</h3>
-              <p className="text-sm text-muted-foreground">
-                Customize fields displayed in publisher registration and profile forms
-              </p>
-            </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setEditingField({})}>
@@ -455,6 +449,6 @@ export default function PublisherFieldManager() {
           </div>
         </div>
       </CardContent>
-    </div>
+    </Card>
   );
 }

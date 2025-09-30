@@ -100,8 +100,24 @@ export default function PublisherManagement() {
           </TabsContent>
 
           <TabsContent value="profile" key={`profile-${refreshKey}`} className="space-y-6">
-            <PublisherFieldManager />
-            <BrandingOptions />
+            <Tabs defaultValue="fields" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="fields">
+                  Publisher Form Fields
+                </TabsTrigger>
+                <TabsTrigger value="branding">
+                  Publisher Branding
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="fields" className="mt-6">
+                <PublisherFieldManager />
+              </TabsContent>
+
+              <TabsContent value="branding" className="mt-6">
+                <BrandingOptions />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="authors" key={`authors-${refreshKey}`}>
