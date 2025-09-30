@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Settings, List, Users, Wrench, Shield, Palette } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, Settings, List, Users, Wrench, Shield, Palette, UserCog } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PublisherList from '@/components/admin/Publisher/PublisherList';
@@ -13,6 +15,7 @@ import ToolsAccess from '@/components/admin/Publisher/ToolsAccess';
 import BrandingOptions from '@/components/admin/Publisher/BrandingOptions';
 
 export default function PublisherManagement() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -64,6 +67,10 @@ export default function PublisherManagement() {
             Manage publishers, configure settings, and customize form fields
           </p>
         </div>
+        <Button onClick={() => navigate('/admin/publishers/assign-users')}>
+          <UserCog className="h-4 w-4 mr-2" />
+          Assign Publisher Owners
+        </Button>
       </div>
 
       <Card>

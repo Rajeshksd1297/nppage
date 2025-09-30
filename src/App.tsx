@@ -26,6 +26,7 @@ import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
 import PublisherFieldEdit from './pages/admin/PublisherFieldEdit';
+import PublisherUserAssignment from './pages/admin/PublisherUserAssignment';
 import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
@@ -461,6 +462,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <PublisherFieldEdit />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/publishers/assign-users" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <PublisherUserAssignment />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

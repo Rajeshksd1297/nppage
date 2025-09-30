@@ -205,16 +205,26 @@ export function AppSidebar() {
   const checkPublisherStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('Publisher check: No authenticated user');
+        return;
+      }
+
+      console.log('Checking publisher status for user:', user.id);
 
       const { data, error } = await supabase
         .from('publishers')
-        .select('id')
+        .select('id, name, status')
         .eq('owner_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
-      setIsPublisher(!!data);
+      console.log('Publisher query result:', { data, error });
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      const hasPublisher = !!data && data.status === 'active';
+      console.log('Is publisher:', hasPublisher);
+      setIsPublisher(hasPublisher);
     } catch (error) {
       console.error('Error checking publisher status:', error);
       setIsPublisher(false);
