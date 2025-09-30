@@ -284,10 +284,53 @@ export default function PublisherDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Validate required fields
+      if (!editPublisher.name || !editPublisher.subdomain || !editPublisher.contact_email) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please fill in all required fields (Name, Subdomain, Contact Email)',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate subdomain format
+      const subdomainRegex = /^[a-z0-9-]+$/;
+      if (!subdomainRegex.test(editPublisher.subdomain)) {
+        toast({
+          title: 'Invalid Subdomain',
+          description: 'Subdomain can only contain lowercase letters, numbers, and hyphens',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check if subdomain already exists
+      const { data: existingPublisher } = await supabase
+        .from('publishers')
+        .select('id')
+        .eq('subdomain', editPublisher.subdomain)
+        .maybeSingle();
+
+      if (existingPublisher) {
+        toast({
+          title: 'Subdomain Taken',
+          description: 'This subdomain is already in use. Please choose another one.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('publishers')
         .insert([{
-          ...editPublisher,
+          name: editPublisher.name.trim(),
+          subdomain: editPublisher.subdomain.toLowerCase().trim(),
+          contact_email: editPublisher.contact_email.trim(),
+          website_url: editPublisher.website_url?.trim() || null,
+          description: editPublisher.description?.trim() || null,
+          brand_colors: editPublisher.brand_colors,
+          social_links: editPublisher.social_links,
           owner_id: user.id,
           status: 'active',
           revenue_share_percentage: 30
@@ -301,12 +344,22 @@ export default function PublisherDashboard() {
       });
 
       setIsEditPublisherDialogOpen(false);
+      // Reset form
+      setEditPublisher({
+        name: '',
+        subdomain: '',
+        contact_email: '',
+        website_url: '',
+        description: '',
+        brand_colors: { primary: '#000000', secondary: '#666666', accent: '#0066cc' },
+        social_links: { twitter: '', linkedin: '', website: '' }
+      });
       fetchPublisherData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating publisher:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create publisher profile',
+        description: error.message || 'Failed to create publisher profile',
         variant: 'destructive',
       });
     }
@@ -1093,36 +1146,45 @@ export default function PublisherDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Publisher Name</Label>
+                <Label htmlFor="name">
+                  Publisher Name <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={editPublisher.name}
                   onChange={(e) => setEditPublisher(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Your Publishing House"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="subdomain">Subdomain</Label>
+                <Label htmlFor="subdomain">
+                  Subdomain <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="subdomain"
                   value={editPublisher.subdomain}
-                  onChange={(e) => setEditPublisher(prev => ({ ...prev, subdomain: e.target.value }))}
+                  onChange={(e) => setEditPublisher(prev => ({ ...prev, subdomain: e.target.value.toLowerCase() }))}
                   placeholder="yourpublisher"
+                  required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  yourpublisher.namyapage.com
+                  Lowercase letters, numbers, and hyphens only
                 </p>
               </div>
             </div>
             
             <div>
-              <Label htmlFor="contact_email">Contact Email</Label>
+              <Label htmlFor="contact_email">
+                Contact Email <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="contact_email"
                 type="email"
                 value={editPublisher.contact_email}
                 onChange={(e) => setEditPublisher(prev => ({ ...prev, contact_email: e.target.value }))}
                 placeholder="contact@yourpublisher.com"
+                required
               />
             </div>
             
