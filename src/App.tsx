@@ -24,7 +24,6 @@ import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
-import PublisherSettings from './pages/admin/PublisherSettings';
 import PublisherDashboard from './pages/PublisherDashboard';
 import PublisherProfileEdit from './pages/PublisherProfileEdit';
 import SocialConnections from './pages/SocialConnections';
@@ -435,13 +434,6 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <PublisherManagement />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
-            <Route path="/admin/publisher-settings" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <PublisherSettings />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

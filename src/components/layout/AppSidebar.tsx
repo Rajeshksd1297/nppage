@@ -139,8 +139,7 @@ const contentManagementItems = [
 
 // Business Management
 const businessManagementItems = [
-  { title: "Publishers", url: "/admin/publishers", icon: Building2 },
-  { title: "Publisher Settings", url: "/admin/publisher-settings", icon: Settings },
+  { title: "Publisher Management", url: "/admin/publishers", icon: Building2 },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Help Desk Settings", url: "/admin/help-desk-settings", icon: Settings },
 ];
