@@ -210,7 +210,8 @@ export default function PublisherDashboard() {
           max_authors: maxAuthors
         });
         
-        fetchAuthors();
+        // Fetch authors with the publisher ID directly
+        fetchAuthors(publisherData.id);
       }
     } catch (error) {
       console.error('Error fetching publisher data:', error);
@@ -224,8 +225,9 @@ export default function PublisherDashboard() {
     }
   };
 
-  const fetchAuthors = async () => {
-    if (!publisherInfo?.id) return;
+  const fetchAuthors = async (publisherId?: string) => {
+    const id = publisherId || publisherInfo?.id;
+    if (!id) return;
 
     try {
       const { data, error } = await supabase
@@ -234,7 +236,7 @@ export default function PublisherDashboard() {
           *,
           profiles(full_name, email, slug)
         `)
-        .eq('publisher_id', publisherInfo.id)
+        .eq('publisher_id', id)
         .order('joined_at', { ascending: false });
 
       if (error) throw error;
