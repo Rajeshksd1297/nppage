@@ -502,7 +502,7 @@ export default function PublisherDashboard() {
           {publisherInfo ? (
             <Button onClick={() => navigate('/publisher-profile/edit?edit=true')}>
               <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
+              Edit Publisher Profile
             </Button>
           ) : (
             <Button onClick={() => navigate('/publisher-profile/edit')}>

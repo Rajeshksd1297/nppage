@@ -438,7 +438,7 @@ function App() {
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
-            <Route path="/publisher-dashboard" element={
+            <Route path="/publisher-page" element={
               <DashboardLayout>
                 <PublisherDashboard />
               </DashboardLayout>

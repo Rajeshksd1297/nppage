@@ -230,7 +230,7 @@ export default function PublisherProfileEdit() {
         });
       }
 
-      navigate('/publisher-dashboard');
+      navigate('/publisher-page');
     } catch (error: any) {
       console.error('Error saving publisher:', error);
       toast({
@@ -359,11 +359,11 @@ export default function PublisherProfileEdit() {
     <div className="container mx-auto py-8 max-w-4xl">
       <Button
         variant="ghost"
-        onClick={() => navigate('/publisher-dashboard')}
+        onClick={() => navigate('/publisher-page')}
         className="mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Dashboard
+        Back to Publisher Page
       </Button>
 
       <Card>
@@ -392,7 +392,7 @@ export default function PublisherProfileEdit() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/publisher-dashboard')}
+                onClick={() => navigate('/publisher-page')}
               >
                 Cancel
               </Button>

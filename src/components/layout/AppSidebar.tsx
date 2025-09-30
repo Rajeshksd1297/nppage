@@ -370,7 +370,7 @@ export function AppSidebar() {
                 {(isPro() || isPublisher) && (
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <NavLink to="/publisher-dashboard" className={getNavCls}>
+                      <NavLink to="/publisher-page" className={getNavCls}>
                         <div className="flex items-center gap-2 flex-1">
                           <Building2 className="h-4 w-4" />
                           {!collapsed && (
