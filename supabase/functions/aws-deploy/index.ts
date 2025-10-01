@@ -123,6 +123,161 @@ Deno.serve(async (req) => {
     
     console.log('Using AMI:', amiId, 'Instance Type:', instanceType);
 
+    // Create comprehensive User Data script for automatic web server setup
+    const userData = `#!/bin/bash
+set -e
+exec > >(tee /var/log/user-data.log)
+exec 2>&1
+
+echo "=== Starting Automated Web Server Setup ==="
+echo "Deployment: ${deploymentName}"
+echo "Time: $(date)"
+
+# Update system
+yum update -y
+
+# Install Node.js 18.x
+curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+yum install -y nodejs git
+
+# Install Nginx
+amazon-linux-extras install -y nginx1
+systemctl enable nginx
+
+# Create application directory
+mkdir -p /var/www/app
+cd /var/www/app
+
+# Create Node.js application
+cat > package.json << 'EOF'
+{
+  "name": "${deploymentName}",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {"express": "^4.18.2"}
+}
+EOF
+
+cat > server.js << 'EOF'
+const express = require('express');
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', deployment: '${deploymentName}', region: '${region}' });
+});
+
+app.get('/', (req, res) => {
+  res.send(\\\`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${deploymentName} - Live</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{background:white;border-radius:20px;padding:60px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:600px;text-align:center}
+.icon{width:80px;height:80px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 30px;animation:pop 0.5s}
+.icon::after{content:'✓';color:white;font-size:40px;font-weight:bold}
+h1{color:#1f2937;font-size:32px;margin-bottom:20px}
+.status{display:inline-block;background:#10b981;color:white;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:30px}
+.info{display:grid;gap:15px;text-align:left;margin:30px 0}
+.item{background:#f3f4f6;padding:15px 20px;border-radius:10px;display:flex;justify-content:space-between}
+.label{color:#6b7280;font-size:14px}
+.value{color:#1f2937;font-size:14px;font-weight:600;font-family:monospace}
+.next{background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;text-align:left;margin-top:30px}
+.next h3{color:#1f2937;margin-bottom:15px}
+.next ul{list-style:none;color:#4b5563;line-height:2}
+.next li::before{content:'→';color:#3b82f6;font-weight:bold;margin-right:10px}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+</style>
+</head><body>
+<div class="container">
+<div class="icon"></div>
+<h1>${deploymentName}</h1>
+<div class="status">🚀 Live & Running</div>
+<p style="color:#6b7280;line-height:1.6;margin:20px 0">
+Your application is deployed and running on AWS EC2 with Nginx and Node.js!</p>
+<div class="info">
+<div class="item"><span class="label">Region</span><span class="value">${region}</span></div>
+<div class="item"><span class="label">Stack</span><span class="value">Nginx + Node.js</span></div>
+<div class="item"><span class="label">Status</span><span class="value" style="color:#10b981">● Online</span></div>
+</div>
+<div class="next">
+<h3>📋 Next Steps</h3>
+<ul>
+<li>Deploy your application code</li>
+<li>Configure database connection</li>
+<li>Set up SSL certificate</li>
+<li>Configure custom domain</li>
+</ul>
+</div>
+</div>
+</body></html>\\\`);
+});
+
+app.listen(PORT, () => console.log(\\\`Server running on port \${PORT}\\\`));
+EOF
+
+# Install dependencies
+npm install
+
+# Configure Nginx
+cat > /etc/nginx/conf.d/app.conf << 'EOF'
+server {
+    listen 80 default_server;
+    server_name _;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    location /health {
+        access_log off;
+        proxy_pass http://localhost:3000/api/health;
+    }
+}
+EOF
+
+rm -f /etc/nginx/conf.d/default.conf
+
+# Create systemd service
+cat > /etc/systemd/system/app.service << 'EOF'
+[Unit]
+Description=Node.js Application
+After=network.target
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/app
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Start services
+systemctl daemon-reload
+systemctl enable app
+systemctl start app
+sleep 5
+systemctl restart nginx
+
+echo "=== Setup Complete ==="
+echo "✅ Node.js: $(node --version)"
+echo "✅ Nginx: Running"
+echo "✅ Application: Running"
+echo "🌐 Your site is now live!"
+`;
+
+    const userDataBase64 = btoa(userData);
     const deploymentStartTime = new Date();
     let deploymentLog = `=== AWS EC2 REAL Deployment Log ===\n`;
     deploymentLog += `Deployment Started: ${deploymentStartTime.toISOString()}\n`;
@@ -134,12 +289,13 @@ Deno.serve(async (req) => {
 
     deploymentLog += `--- Launching EC2 Instance (REAL AWS API CALL) ---\n`;
 
-    // Prepare EC2 instance parameters
+    // Prepare EC2 instance parameters with User Data for automatic setup
     const runInstancesParams: any = {
       ImageId: amiId,
       InstanceType: instanceType,
       MinCount: 1,
       MaxCount: 1,
+      UserData: userDataBase64,
       TagSpecifications: [
         {
           ResourceType: 'instance',
@@ -147,6 +303,7 @@ Deno.serve(async (req) => {
             { Key: 'Name', Value: deploymentName },
             { Key: 'ManagedBy', Value: 'Lovable-Platform' },
             { Key: 'DeploymentType', Value: deploymentType },
+            { Key: 'AutoConfigured', Value: 'true' },
             { Key: 'CreatedAt', Value: deploymentStartTime.toISOString() },
           ],
         },
@@ -230,20 +387,18 @@ Deno.serve(async (req) => {
         publicIp = 'N/A (Check AWS Console)';
       }
 
-      deploymentLog += `\n--- Deployment Configuration ---\n`;
-      if (deploymentType === 'fresh') {
-        deploymentLog += `✓ Deployment Type: Fresh Installation\n`;
-        if (includeDatabase) {
-          deploymentLog += `✓ Database initialization: Enabled\n`;
-        }
-      } else {
-        deploymentLog += `✓ Deployment Type: Incremental Update\n`;
+      deploymentLog += `\n--- Automated Setup Configuration ---\n`;
+      deploymentLog += `✓ Web Server: Nginx (reverse proxy)\n`;
+      deploymentLog += `✓ Runtime: Node.js 18.x\n`;
+      deploymentLog += `✓ Application: Express.js\n`;
+      deploymentLog += `✓ Auto-start: systemd service\n`;
+      deploymentLog += `✓ Deployment Type: ${deploymentType === 'fresh' ? 'Fresh Installation' : 'Incremental Update'}\n`;
+      if (includeDatabase) {
+        deploymentLog += `✓ Database initialization: Enabled\n`;
       }
-      
       if (includeMigrations) {
         deploymentLog += `✓ Database migrations: Enabled\n`;
       }
-      
       if (autoDeploy) {
         deploymentLog += `✓ Auto-deploy on changes: Enabled\n`;
       }
@@ -257,10 +412,33 @@ Deno.serve(async (req) => {
       deploymentLog += `Public IP: ${publicIp}\n`;
       deploymentLog += `Instance State: ${instanceState}\n`;
       deploymentLog += `Duration: ${duration} seconds\n`;
-      deploymentLog += `Completed at: ${deploymentEndTime.toISOString()}\n`;
-      deploymentLog += `\nℹ️ Note: It may take 2-3 minutes for the instance to be fully ready.\n`;
-      deploymentLog += `ℹ️ You can view this instance in your AWS Console:\n`;
-      deploymentLog += `   https://console.aws.amazon.com/ec2/home?region=${region}#Instances:\n\n`;
+      deploymentLog += `Completed at: ${deploymentEndTime.toISOString()}\n\n`;
+      
+      deploymentLog += `--- Application Access ---\n`;
+      deploymentLog += `🌐 Website URL: http://${publicIp}\n`;
+      deploymentLog += `📊 Health Check: http://${publicIp}/api/health\n\n`;
+      
+      deploymentLog += `--- Setup Details ---\n`;
+      deploymentLog += `⚙️  The instance is automatically installing:\n`;
+      deploymentLog += `   • Nginx web server (port 80)\n`;
+      deploymentLog += `   • Node.js 18.x runtime\n`;
+      deploymentLog += `   • Express.js application (port 3000)\n`;
+      deploymentLog += `   • Systemd service for auto-restart\n\n`;
+      
+      deploymentLog += `⏱️  Initial setup time: 2-4 minutes\n`;
+      deploymentLog += `   The application will be live once setup completes.\n\n`;
+      
+      deploymentLog += `--- Important Security Note ---\n`;
+      deploymentLog += `⚠️  Configure Security Group to allow HTTP traffic:\n`;
+      deploymentLog += `   1. Go to AWS Console → EC2 → Security Groups\n`;
+      deploymentLog += `   2. Add Inbound Rule: HTTP (Port 80) from 0.0.0.0/0\n`;
+      deploymentLog += `   3. Optionally add HTTPS (Port 443) for SSL\n\n`;
+      
+      deploymentLog += `📝 View setup logs on the instance:\n`;
+      deploymentLog += `   SSH: tail -f /var/log/user-data.log\n\n`;
+      
+      deploymentLog += `🔗 AWS Console:\n`;
+      deploymentLog += `   https://console.aws.amazon.com/ec2/home?region=${region}#Instances:instanceId=${instanceId}\n\n`;
       deploymentLog += `=== End of Deployment Log ===\n`;
 
       console.log('Deployment completed successfully');
