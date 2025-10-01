@@ -40,6 +40,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 import { NavLink, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { AdminModuleStatus } from "@/components/admin/AdminModuleStatus";
 
 import {
   Sidebar,
@@ -479,6 +480,15 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+
+            {/* Live System Status */}
+            {!collapsed && (
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <AdminModuleStatus />
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
             <SidebarGroup>
               <SidebarGroupLabel>Site Management</SidebarGroupLabel>
