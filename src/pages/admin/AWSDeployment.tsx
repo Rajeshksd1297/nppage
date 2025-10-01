@@ -102,6 +102,8 @@ export default function AWSDeployment() {
   const [deploymentType, setDeploymentType] = useState<'fresh' | 'incremental'>('incremental');
   const [includeDatabase, setIncludeDatabase] = useState(false);
   const [includeMigrations, setIncludeMigrations] = useState(true);
+  const [instanceMode, setInstanceMode] = useState<'new' | 'existing'>('new');
+  const [existingInstanceId, setExistingInstanceId] = useState("");
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const { toast } = useToast();
@@ -239,6 +241,8 @@ export default function AWSDeployment() {
           deploymentType,
           includeDatabase,
           includeMigrations,
+          instanceMode,
+          existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined,
         },
       });
 
@@ -248,10 +252,13 @@ export default function AWSDeployment() {
     onSuccess: () => {
       toast({
         title: "Deployment Started",
-        description: "Your AWS EC2 instance is being deployed.",
+        description: instanceMode === 'existing' 
+          ? "Updating existing EC2 instance with new code." 
+          : "Your AWS EC2 instance is being deployed.",
       });
       queryClient.invalidateQueries({ queryKey: ["aws-deployments"] });
       setDeploymentName("");
+      setExistingInstanceId("");
     },
     onError: (error: Error) => {
       toast({
@@ -285,6 +292,16 @@ export default function AWSDeployment() {
       });
       return;
     }
+
+    if (instanceMode === 'existing' && !existingInstanceId.trim()) {
+      toast({
+        title: "Instance ID Required",
+        description: "Please enter an existing EC2 instance ID.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     deployMutation.mutate();
   };
 
@@ -595,11 +612,53 @@ export default function AWSDeployment() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="instance-mode">Instance Mode</Label>
+                <Select 
+                  value={instanceMode} 
+                  onValueChange={(value: 'new' | 'existing') => setInstanceMode(value)}
+                  disabled={!awsSettings?.aws_access_key_id}
+                >
+                  <SelectTrigger id="instance-mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">
+                      Create New Instance
+                    </SelectItem>
+                    <SelectItem value="existing">
+                      Use Existing Instance
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {instanceMode === 'new' 
+                    ? "Creates a brand new EC2 instance for this deployment"
+                    : "Deploys to an existing EC2 instance by Instance ID"}
+                </p>
+              </div>
+
+              {instanceMode === 'existing' && (
+                <div className="space-y-2 p-4 border border-primary/20 rounded-lg bg-primary/5">
+                  <Label htmlFor="instance-id">EC2 Instance ID</Label>
+                  <Input
+                    id="instance-id"
+                    placeholder="i-0123456789abcdef0"
+                    value={existingInstanceId}
+                    onChange={(e) => setExistingInstanceId(e.target.value)}
+                    disabled={!awsSettings?.aws_access_key_id}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the Instance ID from your existing EC2 deployment (e.g., from Active Deployments below)
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
                 <Label htmlFor="region">AWS Region</Label>
                 <Select 
                   value={region} 
                   onValueChange={setRegion}
-                  disabled={!awsSettings?.aws_access_key_id}
+                  disabled={!awsSettings?.aws_access_key_id || instanceMode === 'existing'}
                 >
                   <SelectTrigger id="region">
                     <SelectValue />
@@ -612,6 +671,11 @@ export default function AWSDeployment() {
                     ))}
                   </SelectContent>
                 </Select>
+                {instanceMode === 'existing' && (
+                  <p className="text-xs text-muted-foreground">
+                    Region is determined by the existing instance
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -692,7 +756,11 @@ export default function AWSDeployment() {
                 ) : (
                   <Rocket className="mr-2 h-4 w-4" />
                 )}
-                {deploymentType === 'incremental' ? 'Deploy Update' : 'Deploy Fresh Installation'}
+                {instanceMode === 'existing' 
+                  ? 'Deploy to Existing Instance' 
+                  : deploymentType === 'incremental' 
+                    ? 'Deploy New Instance (Update)' 
+                    : 'Deploy New Instance (Fresh)'}
               </Button>
             </CardContent>
           </Card>

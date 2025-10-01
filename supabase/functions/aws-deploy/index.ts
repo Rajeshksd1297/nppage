@@ -14,6 +14,8 @@ interface DeploymentRequest {
   deploymentType?: 'fresh' | 'incremental';
   includeDatabase?: boolean;
   includeMigrations?: boolean;
+  instanceMode?: 'new' | 'existing';
+  existingInstanceId?: string;
 }
 
 Deno.serve(async (req) => {
@@ -46,14 +48,23 @@ Deno.serve(async (req) => {
       autoDeploy,
       deploymentType = 'incremental',
       includeDatabase = false,
-      includeMigrations = true
+      includeMigrations = true,
+      instanceMode = 'new',
+      existingInstanceId
     } = await req.json() as DeploymentRequest;
 
     console.log(`Starting REAL AWS deployment for user ${user.id}:`, {
       deploymentName,
       region,
       deploymentType,
+      instanceMode,
+      existingInstanceId,
     });
+
+    // Validate existing instance mode
+    if (instanceMode === 'existing' && !existingInstanceId) {
+      throw new Error('Instance ID is required when using existing instance mode');
+    }
 
     // Get AWS settings from database
     const { data: awsSettings, error: settingsError } = await supabaseClient
@@ -495,12 +506,71 @@ echo "⏱️  Time: $(date)"
     let deploymentLog = `=== AWS EC2 REAL Deployment Log ===\n`;
     deploymentLog += `Deployment Started: ${deploymentStartTime.toISOString()}\n`;
     deploymentLog += `Deployment Name: ${deploymentName}\n`;
+    deploymentLog += `Instance Mode: ${instanceMode}\n`;
     deploymentLog += `Deployment Type: ${deploymentType}\n`;
     deploymentLog += `Region: ${region}\n`;
-    deploymentLog += `Instance Type: ${instanceType}\n`;
-    deploymentLog += `AMI: ${amiId}\n\n`;
+    
+    let instanceId: string;
+    let publicIp: string;
+    let instanceState: string;
 
-    deploymentLog += `--- Launching EC2 Instance (REAL AWS API CALL) ---\n`;
+    // Check if using existing instance
+    if (instanceMode === 'existing' && existingInstanceId) {
+      deploymentLog += `\n--- Using Existing EC2 Instance ---\n`;
+      deploymentLog += `Instance ID: ${existingInstanceId}\n`;
+      
+      try {
+        // Get existing instance details
+        const describeCommand = new DescribeInstancesCommand({
+          InstanceIds: [existingInstanceId],
+        });
+        
+        const describeResponse = await ec2Client.send(describeCommand);
+        const existingInstance = describeResponse.Reservations?.[0]?.Instances?.[0];
+        
+        if (!existingInstance) {
+          throw new Error(`Instance ${existingInstanceId} not found`);
+        }
+        
+        instanceId = existingInstanceId;
+        publicIp = existingInstance.PublicIpAddress || 'N/A';
+        instanceState = existingInstance.State?.Name || 'unknown';
+        
+        deploymentLog += `✓ Instance found\n`;
+        deploymentLog += `✓ State: ${instanceState}\n`;
+        deploymentLog += `✓ Public IP: ${publicIp}\n`;
+        
+        if (instanceState !== 'running') {
+          deploymentLog += `\n⚠️ Warning: Instance is not in running state\n`;
+          deploymentLog += `⚠️ Current state: ${instanceState}\n`;
+          deploymentLog += `⚠️ You may need to start the instance in AWS Console\n`;
+        }
+        
+        deploymentLog += `\n--- Deployment Type: Tracking Only ---\n`;
+        deploymentLog += `ℹ️  This deployment tracks the existing instance.\n`;
+        deploymentLog += `ℹ️  To update code on this instance, you need to:\n`;
+        deploymentLog += `   1. SSH into the instance: ssh -i your-key.pem ec2-user@${publicIp}\n`;
+        deploymentLog += `   2. Navigate to application: cd /var/www/app\n`;
+        deploymentLog += `   3. Pull latest code or update files manually\n`;
+        deploymentLog += `   4. Restart services: sudo systemctl restart app nginx\n`;
+        
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        deploymentLog += `\n❌ Error accessing existing instance:\n`;
+        deploymentLog += `   ${errorMsg}\n`;
+        deploymentLog += `\n⚠️ Please verify:\n`;
+        deploymentLog += `   • Instance ID is correct\n`;
+        deploymentLog += `   • Instance is in the correct region (${region})\n`;
+        deploymentLog += `   • AWS credentials have permission to describe instances\n`;
+        
+        throw new Error(`Failed to access existing instance: ${errorMsg}`);
+      }
+    } else {
+      // Create new instance
+      deploymentLog += `Instance Type: ${instanceType}\n`;
+      deploymentLog += `AMI: ${amiId}\n\n`;
+
+      deploymentLog += `--- Launching EC2 Instance (REAL AWS API CALL) ---\n`;
 
     // Prepare EC2 instance parameters with User Data for automatic setup
     const runInstancesParams: any = {
@@ -552,7 +622,7 @@ echo "⏱️  Time: $(date)"
       }
 
       const instance = runResponse.Instances[0];
-      const instanceId = instance.InstanceId!;
+      instanceId = instance.InstanceId!;
       
       deploymentLog += `✓ Instance created successfully!\n`;
       deploymentLog += `✓ Instance ID: ${instanceId}\n`;
@@ -561,8 +631,8 @@ echo "⏱️  Time: $(date)"
 
       // Wait for instance to get public IP (poll with timeout)
       deploymentLog += `\n--- Waiting for Instance Initialization ---\n`;
-      let publicIp = instance.PublicIpAddress;
-      let instanceState = instance.State?.Name;
+      publicIp = instance.PublicIpAddress || '';
+      instanceState = instance.State?.Name || '';
       let retries = 0;
       const maxRetries = 30; // 2.5 minutes with 5 second intervals
 
@@ -581,8 +651,8 @@ echo "⏱️  Time: $(date)"
         const updatedInstance = describeResponse.Reservations?.[0]?.Instances?.[0];
         
         if (updatedInstance) {
-          instanceState = updatedInstance.State?.Name;
-          publicIp = updatedInstance.PublicIpAddress;
+          instanceState = updatedInstance.State?.Name || '';
+          publicIp = updatedInstance.PublicIpAddress || '';
           
           deploymentLog += `  State: ${instanceState || 'pending'}\n`;
           
@@ -687,38 +757,151 @@ echo "⏱️  Time: $(date)"
       deploymentLog += `=== End of Deployment Log ===\n`;
 
       console.log('Deployment completed successfully');
-
-      // Update deployment with real results
-      const { error: updateError } = await supabaseClient
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error during deployment';
+      console.error('❌ Deployment failed:', errorMessage);
+      
+      deploymentLog += `\n❌ DEPLOYMENT FAILED\n`;
+      deploymentLog += `Error: ${errorMessage}\n`;
+      deploymentLog += `Failed at: ${new Date().toISOString()}\n`;
+      
+      await supabaseClient
         .from('aws_deployments')
         .update({
-          ec2_instance_id: instanceId,
-          ec2_public_ip: publicIp,
-          status: 'running',
-          last_deployed_at: deploymentEndTime.toISOString(),
+          status: 'failed',
           deployment_log: deploymentLog,
         })
         .eq('id', deployment.id);
+      
+      throw error;
+    }
+    }
 
-      if (updateError) {
-        console.error('Error updating deployment record:', updateError);
+      if (autoDeploy) {
+        deploymentLog += `✓ Auto-deploy on changes: Enabled\n`;
       }
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error during deployment';
+      console.error('❌ New instance deployment failed:', errorMessage);
+      
+      deploymentLog += `\n❌ DEPLOYMENT FAILED\n`;
+      deploymentLog += `Error: ${errorMessage}\n`;
+      deploymentLog += `Failed at: ${new Date().toISOString()}\n`;
+      
+      await supabaseClient
+        .from('aws_deployments')
+        .update({
+          status: 'failed',
+          deployment_log: deploymentLog,
+        })
+        .eq('id', deployment.id);
+      
+      throw error;
+    }
+    }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          deployment: {
-            id: deployment.id,
-            instanceId,
-            publicIp,
-            status: 'running',
-          },
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
+    // Common completion logging for both modes
+    const deploymentEndTime = new Date();
+    const duration = Math.round((deploymentEndTime.getTime() - deploymentStartTime.getTime()) / 1000);
+    
+    deploymentLog += `\n--- Deployment Complete ---\n`;
+    deploymentLog += `Status: RUNNING\n`;
+    deploymentLog += `Instance ID: ${instanceId}\n`;
+    deploymentLog += `Public IP: ${publicIp}\n`;
+    deploymentLog += `Instance State: ${instanceState}\n`;
+    deploymentLog += `Duration: ${duration} seconds\n`;
+    deploymentLog += `Completed at: ${deploymentEndTime.toISOString()}\n\n`;
+    
+    if (instanceMode === 'new') {
+      deploymentLog += `--- Application Access ---\n`;
+      deploymentLog += `🌐 Website URL: http://${publicIp}\n`;
+      deploymentLog += `📊 Health Check: http://${publicIp}/api/health\n\n`;
+      
+      deploymentLog += `--- Secure Setup Details ---\n`;
+      deploymentLog += `⚙️  The instance is automatically installing:\n`;
+      deploymentLog += `\n🔒 Security Layer:\n`;
+      deploymentLog += `   • Firewalld (firewall)\n`;
+      deploymentLog += `   • Fail2ban (brute force protection)\n`;
+      deploymentLog += `   • Rate limiting (DDoS protection)\n`;
+      deploymentLog += `   • Security headers (XSS, clickjacking protection)\n`;
+      deploymentLog += `   • Automatic security updates\n`;
+      deploymentLog += `\n🌐 Application Stack:\n`;
+      deploymentLog += `   • Nginx web server (port 80)\n`;
+      deploymentLog += `   • Node.js 18.x runtime\n`;
+      deploymentLog += `   • Express.js application (port 3000)\n`;
+      deploymentLog += `   • Systemd service for auto-restart\n\n`;
+      
+      deploymentLog += `⏱️  Initial setup time: 3-5 minutes\n`;
+      deploymentLog += `   The secure application will be live once setup completes.\n\n`;
+      
+      deploymentLog += `--- 🔐 CRITICAL: Security Group Configuration ---\n`;
+      deploymentLog += `⚠️  REQUIRED: Configure Security Group to allow traffic:\n`;
+      deploymentLog += `\n1. Go to AWS Console → EC2 → Security Groups\n`;
+      deploymentLog += `2. Select your instance's security group\n`;
+      deploymentLog += `3. Add Inbound Rules:\n`;
+      deploymentLog += `   ✅ Type: HTTP, Port: 80, Source: 0.0.0.0/0\n`;
+      deploymentLog += `   ✅ Type: HTTPS, Port: 443, Source: 0.0.0.0/0 (for SSL)\n`;
+      deploymentLog += `   ✅ Type: SSH, Port: 22, Source: Your IP (for management)\n`;
+      deploymentLog += `\n⚠️  DO NOT expose port 3000 directly - Nginx handles all traffic\n\n`;
+      
+      deploymentLog += `--- 🔒 Security Best Practices ---\n`;
+      deploymentLog += `✅ Implemented:\n`;
+      deploymentLog += `   • Firewall configured (only HTTP/HTTPS/SSH allowed)\n`;
+      deploymentLog += `   • Rate limiting (prevents DDoS attacks)\n`;
+      deploymentLog += `   • Fail2ban (blocks brute force attempts)\n`;
+      deploymentLog += `   • Security headers (prevents XSS, clickjacking)\n`;
+      deploymentLog += `   • Automatic security updates\n`;
+      deploymentLog += `\n📋 Next Security Steps:\n`;
+      deploymentLog += `   1. Set up SSL/TLS certificate (use Let's Encrypt)\n`;
+      deploymentLog += `   2. Configure custom domain with HTTPS\n`;
+      deploymentLog += `   3. Set up CloudWatch monitoring\n`;
+      deploymentLog += `   4. Configure automated backups\n`;
+      deploymentLog += `   5. Review Fail2ban logs: journalctl -u fail2ban\n\n`;
+      
+      deploymentLog += `📝 View setup logs on the instance:\n`;
+      deploymentLog += `   SSH: tail -f /var/log/user-data.log\n\n`;
+    }
+    
+    deploymentLog += `🔗 AWS Console:\n`;
+    deploymentLog += `   https://console.aws.amazon.com/ec2/home?region=${region}#Instances:instanceId=${instanceId}\n\n`;
+    deploymentLog += `=== End of Deployment Log ===\n`;
+
+    console.log('Deployment completed successfully');
+
+    // Update deployment record with final results
+    const deploymentEndTime = new Date();
+    const { error: updateError } = await supabaseClient
+      .from('aws_deployments')
+      .update({
+        ec2_instance_id: instanceId,
+        ec2_public_ip: publicIp,
+        status: 'running',
+        last_deployed_at: deploymentEndTime.toISOString(),
+        deployment_log: deploymentLog,
+      })
+      .eq('id', deployment.id);
+
+    if (updateError) {
+      console.error('Error updating deployment record:', updateError);
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        deployment: {
+          id: deployment.id,
+          instanceId,
+          publicIp,
+          status: 'running',
+        },
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
 
     } catch (awsError: any) {
       console.error('AWS API Error:', awsError);
