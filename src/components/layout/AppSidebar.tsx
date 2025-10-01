@@ -277,28 +277,6 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        {/* Subscription Status Header */}
-        {!isAdmin && subscription && (
-          <div className="p-4 border-b">
-            <div className="flex items-center gap-2 mb-2">
-              {isPro() ? (
-                <Crown className="w-4 h-4 text-amber-500" />
-              ) : (
-                <BadgeIcon className="w-4 h-4 text-muted-foreground" />
-              )}
-              <Badge variant={isPro() ? 'default' : 'secondary'} className="text-xs">
-                {subscription.subscription_plans.name}
-              </Badge>
-            </div>
-            {isOnTrial() && !collapsed && (
-              <p className="text-xs text-amber-600 font-medium">
-                Trial: {trialDaysLeft} days left
-              </p>
-            )}
-          </div>
-        )}
-
-
         {/* Main Features */}
         {!isAdmin && (
           <SidebarGroup>
