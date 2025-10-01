@@ -67,7 +67,20 @@ Deno.serve(async (req) => {
     });
 
     const response = await ec2Client.send(command);
-    const consoleOutput = response.Output ? atob(response.Output) : '';
+    
+    // Decode base64 output (AWS returns it base64 encoded)
+    let consoleOutput = '';
+    if (response.Output) {
+      try {
+        // Deno way to decode base64
+        const decoder = new TextDecoder();
+        const data = Uint8Array.from(atob(response.Output), c => c.charCodeAt(0));
+        consoleOutput = decoder.decode(data);
+      } catch (decodeError) {
+        console.error('Error decoding console output:', decodeError);
+        consoleOutput = response.Output; // Use as-is if decode fails
+      }
+    }
 
     console.log(`Console output length: ${consoleOutput.length} bytes`);
 
