@@ -984,76 +984,158 @@ export default function AWSDeployment() {
                           </details>
                         )}
                         
-                        {/* Security Group Configuration Alert */}
-                        {getDeploymentStatus(deployment) === 'running' && deployment.ec2_public_ip && (
-                          <div className="mt-4 p-4 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 rounded-lg">
-                            <div className="flex gap-3">
-                              <div className="flex-shrink-0">
-                                <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center">
-                                  <span className="text-white text-lg">⚠️</span>
-                                </div>
-                              </div>
-                              <div className="flex-1 space-y-3">
-                                <div>
-                                  <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">
-                                    Configure AWS Security Group to Access Your Site
-                                  </h4>
-                                  <p className="text-xs text-amber-800 dark:text-amber-200">
-                                    Your EC2 instance is running but AWS Security Group is blocking HTTP traffic.
-                                  </p>
-                                </div>
-                                
-                                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
-                                  <div className="font-semibold text-amber-900 dark:text-amber-100">
-                                    Follow these steps in AWS Console:
+                        {/* Application Setup Status Alert */}
+                        {getDeploymentStatus(deployment) === 'running' && deployment.ec2_public_ip && (() => {
+                          const deployedAt = new Date(deployment.last_deployed_at || deployment.created_at);
+                          const now = new Date();
+                          const elapsedMinutes = Math.floor((now.getTime() - deployedAt.getTime()) / 60000);
+                          const setupTimeMinutes = 5; // 3-5 minutes typical setup time
+                          const isSetupComplete = elapsedMinutes >= setupTimeMinutes;
+                          
+                          return (
+                            <div className={`mt-4 p-4 border-2 rounded-lg ${
+                              isSetupComplete 
+                                ? 'border-green-500 bg-green-50 dark:bg-green-950' 
+                                : 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                            }`}>
+                              <div className="flex gap-3">
+                                <div className="flex-shrink-0">
+                                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                                    isSetupComplete 
+                                      ? 'bg-green-500' 
+                                      : 'bg-blue-500'
+                                  }`}>
+                                    {isSetupComplete ? (
+                                      <CheckCircle2 className="h-5 w-5 text-white" />
+                                    ) : (
+                                      <Clock className="h-5 w-5 text-white" />
+                                    )}
                                   </div>
-                                  <ol className="list-decimal list-inside space-y-1.5 text-amber-800 dark:text-amber-200">
-                                    <li>Go to <strong>EC2 Dashboard</strong> → <strong>Instances</strong></li>
-                                    <li>Select instance: <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded font-mono">{deployment.ec2_instance_id}</code></li>
-                                    <li>Click <strong>Security</strong> tab → Click the Security Group name</li>
-                                    <li>Click <strong>Edit inbound rules</strong> → <strong>Add rule</strong></li>
-                                    <li>Configure:
-                                      <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
-                                        <li><strong>Type:</strong> HTTP</li>
-                                        <li><strong>Port:</strong> 80</li>
-                                        <li><strong>Source:</strong> 0.0.0.0/0 (Anywhere)</li>
-                                      </ul>
-                                    </li>
-                                    <li>Click <strong>Save rules</strong></li>
-                                    <li>Wait 30 seconds, then test your site</li>
-                                  </ol>
                                 </div>
-                                
-                                <div className="flex flex-wrap gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs"
-                                    asChild
-                                  >
-                                    <a
-                                      href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
+                                <div className="flex-1 space-y-3">
+                                  <div>
+                                    <h4 className={`text-sm font-semibold mb-1 ${
+                                      isSetupComplete 
+                                        ? 'text-green-900 dark:text-green-100' 
+                                        : 'text-blue-900 dark:text-blue-100'
+                                    }`}>
+                                      {isSetupComplete 
+                                        ? 'Application Setup Should Be Complete' 
+                                        : `Application Setup In Progress (${elapsedMinutes}/${setupTimeMinutes} min)`}
+                                    </h4>
+                                    <p className={`text-xs ${
+                                      isSetupComplete 
+                                        ? 'text-green-800 dark:text-green-200' 
+                                        : 'text-blue-800 dark:text-blue-200'
+                                    }`}>
+                                      {isSetupComplete 
+                                        ? 'The EC2 instance has been running long enough for setup to complete. Your application should be accessible now.' 
+                                        : 'Your EC2 instance is running, but the application setup (Nginx, Node.js, security tools) takes 3-5 minutes to complete.'}
+                                    </p>
+                                  </div>
+                                  
+                                  {!isSetupComplete && (
+                                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
+                                      <div className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Setup Progress
+                                      </div>
+                                      <div className="space-y-1 text-blue-800 dark:text-blue-200">
+                                        <div className="flex items-center gap-2">
+                                          <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                          <span>EC2 instance launched and running</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                                          <span>Installing Nginx web server...</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                                          <span>Installing Node.js runtime...</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                                          <span>Configuring security (firewall, fail2ban)...</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                                          <span>Starting application services...</span>
+                                        </div>
+                                      </div>
+                                      <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
+                                        <div className="text-blue-800 dark:text-blue-200">
+                                          <strong>Estimated completion:</strong> {setupTimeMinutes - elapsedMinutes} minute(s) remaining
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
+                                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                      AWS Security Group Configuration:
+                                    </div>
+                                    <ol className="list-decimal list-inside space-y-1.5 text-gray-700 dark:text-gray-300">
+                                      <li>Go to <strong>EC2 Dashboard</strong> → <strong>Instances</strong></li>
+                                      <li>Select instance: <code className="bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">{deployment.ec2_instance_id}</code></li>
+                                      <li>Click <strong>Security</strong> tab → Click the Security Group name</li>
+                                      <li>Click <strong>Edit inbound rules</strong> → <strong>Add rule</strong> (if not already added):
+                                        <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
+                                          <li><strong>Type:</strong> HTTP</li>
+                                          <li><strong>Port:</strong> 80</li>
+                                          <li><strong>Source:</strong> 0.0.0.0/0 (Anywhere)</li>
+                                        </ul>
+                                      </li>
+                                      <li>Click <strong>Save rules</strong></li>
+                                    </ol>
+                                    
+                                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+                                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                        Connection Error Meanings:
+                                      </div>
+                                      <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+                                        <li className="flex items-start gap-2">
+                                          <span className="text-red-600">•</span>
+                                          <span><strong>ERR_CONNECTION_TIMED_OUT:</strong> Security group not configured (add HTTP rule)</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                          <span className="text-yellow-600">•</span>
+                                          <span><strong>ERR_CONNECTION_REFUSED:</strong> Security group is OK, but application setup still in progress (wait 3-5 min)</span>
+                                        </li>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs"
+                                      asChild
+                                    >
+                                      <a
+                                        href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        Open AWS Console
+                                      </a>
+                                    </Button>
+                                    <Button
+                                      variant={isSetupComplete ? "default" : "outline"}
+                                      size="sm"
+                                      className="text-xs"
+                                      onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}
                                     >
                                       <ExternalLink className="h-3 w-3 mr-1" />
-                                      Open in AWS Console
-                                    </a>
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs"
-                                    onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}
-                                  >
-                                    <ExternalLink className="h-3 w-3 mr-1" />
-                                    Test Connection
-                                  </Button>
+                                      {isSetupComplete ? 'Access Application' : 'Test Connection'}
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </CardContent>
                     </Card>
                   ))}
