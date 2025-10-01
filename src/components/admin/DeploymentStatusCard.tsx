@@ -46,11 +46,6 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [isUnblocking, setIsUnblocking] = useState(false);
 
-  // Hide this card if the instance is terminated
-  if (awsStatus?.status?.state === 'terminated') {
-    return null;
-  }
-
   const checkAwsStatus = async () => {
     setIsCheckingStatus(true);
     try {
@@ -236,6 +231,11 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   };
 
   const isSetupInProgress = setupStatus && setupStatus.phase !== 'complete' && setupStatus.status !== 'success';
+
+  // Hide this card if the instance is terminated
+  if (awsStatus?.status?.state === 'terminated') {
+    return null;
+  }
 
   return (
     <Card className="border-2">
