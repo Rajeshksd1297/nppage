@@ -951,9 +951,9 @@ export default function AWSDeployment() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Website Health Status</CardTitle>
+                  <CardTitle>Active Deployments Health Status</CardTitle>
                   <CardDescription>
-                    Monitor your deployed website's components and connectivity
+                    Real-time monitoring of running AWS EC2 instances
                   </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({
@@ -965,26 +965,40 @@ export default function AWSDeployment() {
               </div>
             </CardHeader>
             <CardContent>
-              {deployments && deployments.length > 0 ? <div className="space-y-6">
-                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').map(deployment => <DeploymentStatusCard key={deployment.id} deployment={deployment} />)}
-                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').length === 0 && <div className="text-center py-12">
+              {(() => {
+                // Filter to only show valid running deployments
+                const activeDeployments = deployments?.filter(d => 
+                  d.ec2_instance_id && 
+                  d.ec2_public_ip && 
+                  getDeploymentStatus(d) === 'running' &&
+                  d.ec2_instance_id.match(/^i-[a-f0-9]{8,17}$/) // Valid instance ID format
+                ) || [];
+
+                if (activeDeployments.length === 0) {
+                  return (
+                    <div className="text-center py-12">
                       <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">
-                        No running deployments to monitor
+                      <p className="text-muted-foreground font-medium">
+                        No active deployments to monitor
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
-                        Deploy an instance from the Deployments tab to see status here
+                        Deploy an instance from the Deployments tab to see its health status here
                       </p>
-                    </div>}
-                </div> : <div className="text-center py-12">
-                  <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    No deployments found
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Create your first deployment to monitor its status
-                  </p>
-                </div>}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-6">
+                    {activeDeployments.map(deployment => (
+                      <DeploymentStatusCard 
+                        key={deployment.id} 
+                        deployment={deployment} 
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

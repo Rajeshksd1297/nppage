@@ -39,6 +39,29 @@ Deno.serve(async (req) => {
 
     console.log(`Checking status for instance ${instanceId} in ${region}`);
 
+    // Validate instance ID format
+    if (!instanceId || !instanceId.match(/^i-[a-f0-9]{8,17}$/)) {
+      console.error(`Invalid instance ID format: ${instanceId}`);
+      
+      // Update deployment status to terminated in database
+      await supabaseClient
+        .from('aws_deployments')
+        .update({ status: 'terminated' })
+        .eq('ec2_instance_id', instanceId);
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid instance ID format',
+          instanceNotFound: true,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
+      );
+    }
+
     // Get AWS settings
     const { data: awsSettings, error: settingsError } = await supabaseClient
       .from('aws_settings')
@@ -61,15 +84,64 @@ Deno.serve(async (req) => {
     });
 
     // Get detailed instance information
-    const describeCommand = new DescribeInstancesCommand({
-      InstanceIds: [instanceId],
-    });
+    let describeResponse;
+    try {
+      const describeCommand = new DescribeInstancesCommand({
+        InstanceIds: [instanceId],
+      });
+      describeResponse = await ec2Client.send(describeCommand);
+    } catch (error: any) {
+      console.error(`Instance ${instanceId} not found in AWS:`, error.message);
+      
+      // Update deployment status to terminated
+      await supabaseClient
+        .from('aws_deployments')
+        .update({ status: 'terminated' })
+        .eq('ec2_instance_id', instanceId);
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Instance ${instanceId} does not exist in AWS`,
+          instanceNotFound: true,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
+      );
+    }
 
-    const describeResponse = await ec2Client.send(describeCommand);
     const instance = describeResponse.Reservations?.[0]?.Instances?.[0];
 
     if (!instance) {
-      throw new Error(`Instance ${instanceId} not found`);
+      console.error(`Instance ${instanceId} not found in AWS response`);
+      
+      // Update deployment status to terminated
+      await supabaseClient
+        .from('aws_deployments')
+        .update({ status: 'terminated' })
+        .eq('ec2_instance_id', instanceId);
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Instance ${instanceId} does not exist`,
+          instanceNotFound: true,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        }
+      );
+    }
+
+    // If instance is terminated or stopping, update database
+    if (instance.State?.Name === 'terminated' || instance.State?.Name === 'terminating') {
+      await supabaseClient
+        .from('aws_deployments')
+        .update({ status: 'terminated' })
+        .eq('ec2_instance_id', instanceId);
     }
 
     // Get instance status (system status checks)
