@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Server, ExternalLink, Eye, EyeOff, Save, CheckCircle2, Circle, Rocket } from "lucide-react";
+import { Loader2, Server, ExternalLink, Eye, EyeOff, Save, CheckCircle2, Circle, Rocket, RefreshCw, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 
 const awsRegions = [
@@ -640,10 +641,27 @@ export default function AWSDeployment() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Active Deployments</CardTitle>
-              <CardDescription>
-                View and manage your EC2 instances
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Active Deployments</CardTitle>
+                  <CardDescription>
+                    View and manage your EC2 instances
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["aws-deployments"] })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  <span className="ml-2">Refresh</span>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {deployments && deployments.length > 0 ? (
@@ -698,6 +716,83 @@ export default function AWSDeployment() {
                             )}
                           </div>
                         </div>
+
+                        {/* Progress Bar with Percentage */}
+                        {(() => {
+                          const log = deployment.deployment_log || '';
+                          const status = deployment.status;
+                          
+                          // Calculate progress percentage based on status and logs
+                          let progress = 0;
+                          let statusText = '';
+                          let estimatedTime = '';
+                          
+                          if (status === 'running') {
+                            progress = 100;
+                            statusText = 'Completed';
+                          } else if (status === 'failed') {
+                            progress = 0;
+                            statusText = 'Failed';
+                          } else {
+                            // Count completed steps from logs
+                            const completedSteps = (log.match(/✓/g) || []).length;
+                            const totalExpectedSteps = 8; // Typical deployment has ~8 steps
+                            
+                            // Calculate progress
+                            progress = Math.min(95, (completedSteps / totalExpectedSteps) * 100);
+                            
+                            // Extract timestamps for time estimation
+                            const startMatch = log.match(/Deployment Creation Started: (.+)/);
+                            if (startMatch) {
+                              const startTime = new Date(startMatch[1]);
+                              const now = new Date();
+                              const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+                              
+                              if (progress > 0) {
+                                const estimatedTotalSeconds = (elapsedSeconds / progress) * 100;
+                                const remainingSeconds = Math.max(0, estimatedTotalSeconds - elapsedSeconds);
+                                
+                                const formatTime = (seconds: number) => {
+                                  if (seconds < 60) return `${Math.floor(seconds)}s`;
+                                  const mins = Math.floor(seconds / 60);
+                                  const secs = Math.floor(seconds % 60);
+                                  return `${mins}m ${secs}s`;
+                                };
+                                
+                                statusText = `${Math.floor(progress)}% complete`;
+                                estimatedTime = `~${formatTime(remainingSeconds)} remaining`;
+                              } else {
+                                statusText = 'Starting...';
+                                estimatedTime = `${elapsedSeconds}s elapsed`;
+                              }
+                            } else {
+                              statusText = 'Initializing...';
+                            }
+                          }
+                          
+                          return (
+                            <div className="mt-4 space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                  {status === 'pending' && (
+                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                  )}
+                                  <span className="font-medium">{statusText}</span>
+                                </div>
+                                {estimatedTime && status === 'pending' && (
+                                  <div className="flex items-center gap-1 text-muted-foreground">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    <span className="text-xs">{estimatedTime}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <Progress 
+                                value={progress} 
+                                className={status === 'failed' ? 'bg-destructive/20' : ''}
+                              />
+                            </div>
+                          );
+                        })()}
 
                         {/* Deployment Progress Report */}
                         {deployment.deployment_log && (() => {
