@@ -71,6 +71,7 @@ import HomePageEditor from "./pages/admin/HomePageEditor";
 import Home from "./pages/Home";
 import PublicPage from "./pages/PublicPage";
 import AWSDeployment from "./pages/admin/AWSDeployment";
+import BackupSecurityCenter from "./pages/admin/BackupSecurityCenter";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -441,6 +442,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <AWSDeployment />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/backup-security" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <BackupSecurityCenter />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

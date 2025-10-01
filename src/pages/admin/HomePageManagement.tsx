@@ -21,7 +21,6 @@ import EnhancedHomePageEditor from '@/components/admin/EnhancedHomePageEditor';
 import { SEOAnalyzer } from '@/components/seo/SEOAnalyzer';
 import { SchemaGenerator } from '@/components/seo/SchemaGenerator';
 import AISEOAssistant from '@/components/seo/AISEOAssistant';
-import { BackupSecurityCenter } from '@/components/admin/BackupSecurityCenter';
 // Import Chart.js components if needed in the future
 interface HeroBlock {
   id: string;
@@ -2057,7 +2056,6 @@ const HomePageManagement = () => {
           <TabsTrigger value="hero" className="flex-shrink-0 text-xs sm:text-sm">Hero Blocks</TabsTrigger>
           <TabsTrigger value="seo" className="flex-shrink-0 text-xs sm:text-sm">SEO</TabsTrigger>
           <TabsTrigger value="cookies" className="flex-shrink-0 text-xs sm:text-sm">Cookie Analytics</TabsTrigger>
-          <TabsTrigger value="backup" className="flex-shrink-0 text-xs sm:text-sm">Backup & Security</TabsTrigger>
           <TabsTrigger value="settings" className="flex-shrink-0 text-xs sm:text-sm">Settings</TabsTrigger>
         </TabsList>
 
@@ -4280,13 +4278,6 @@ const HomePageManagement = () => {
 
         <TabsContent value="cookies" className="space-y-6">
           <EnhancedCookieManagement />
-        </TabsContent>
-
-        
-
-
-        <TabsContent value="backup" className="space-y-6">
-          <BackupSecurityCenter />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
