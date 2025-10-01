@@ -4,10 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Users, Crown, Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Users, Crown, Lock, CheckCircle, XCircle, AlertTriangle, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useModeratorPermissions, AVAILABLE_FEATURES } from '@/hooks/useModeratorPermissions';
 
 interface UserWithRole {
   id: string;
@@ -21,6 +25,7 @@ export default function RoleManagement() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [roleStats, setRoleStats] = useState({ admin: 0, user: 0, moderator: 0 });
+  const [selectedModerator, setSelectedModerator] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -339,34 +344,58 @@ export default function RoleManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={user.role}
-                        onValueChange={(value) => updateUserRole(user.id, value)}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4" />
-                              User
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="moderator">
-                            <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4" />
-                              Moderator
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="admin">
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-4 h-4" />
-                              Admin
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={user.role}
+                          onValueChange={(value) => updateUserRole(user.id, value)}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">
+                              <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                User
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="moderator">
+                              <div className="flex items-center gap-2">
+                                <Shield className="w-4 h-4" />
+                                Moderator
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              <div className="flex items-center gap-2">
+                                <Crown className="w-4 h-4" />
+                                Admin
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {user.role === 'moderator' && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedModerator(user.id)}
+                              >
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Moderator Permissions - {user.full_name}</DialogTitle>
+                                <DialogDescription>
+                                  Configure what features this moderator can access and manage
+                                </DialogDescription>
+                              </DialogHeader>
+                              <ModeratorPermissionsEditor userId={user.id} />
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(user.created_at).toLocaleDateString()}
@@ -404,6 +433,114 @@ export default function RoleManagement() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ModeratorPermissionsEditor({ userId }: { userId: string }) {
+  const { permissions, loading, updatePermission } = useModeratorPermissions(userId);
+  const { toast } = useToast();
+
+  const handlePermissionToggle = async (
+    feature: string,
+    permissionType: 'can_view' | 'can_create' | 'can_edit' | 'can_delete' | 'can_approve',
+    value: boolean
+  ) => {
+    try {
+      await updatePermission(feature, permissionType, value);
+      toast({
+        title: 'Success',
+        description: 'Permission updated successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update permission',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getPermission = (feature: string) => {
+    return permissions.find(p => p.feature === feature) || {
+      can_view: false,
+      can_create: false,
+      can_edit: false,
+      can_delete: false,
+      can_approve: false,
+    };
+  };
+
+  if (loading) {
+    return <div className="flex justify-center p-8">Loading permissions...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {AVAILABLE_FEATURES.map((feature) => {
+        const perm = getPermission(feature.value);
+        return (
+          <Card key={feature.value}>
+            <CardHeader>
+              <CardTitle className="text-base">{feature.label}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={`${feature.value}-view`}
+                    checked={perm.can_view}
+                    onCheckedChange={(value) =>
+                      handlePermissionToggle(feature.value, 'can_view', value)
+                    }
+                  />
+                  <Label htmlFor={`${feature.value}-view`}>View</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={`${feature.value}-create`}
+                    checked={perm.can_create}
+                    onCheckedChange={(value) =>
+                      handlePermissionToggle(feature.value, 'can_create', value)
+                    }
+                  />
+                  <Label htmlFor={`${feature.value}-create`}>Create</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={`${feature.value}-edit`}
+                    checked={perm.can_edit}
+                    onCheckedChange={(value) =>
+                      handlePermissionToggle(feature.value, 'can_edit', value)
+                    }
+                  />
+                  <Label htmlFor={`${feature.value}-edit`}>Edit</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={`${feature.value}-delete`}
+                    checked={perm.can_delete}
+                    onCheckedChange={(value) =>
+                      handlePermissionToggle(feature.value, 'can_delete', value)
+                    }
+                  />
+                  <Label htmlFor={`${feature.value}-delete`}>Delete</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id={`${feature.value}-approve`}
+                    checked={perm.can_approve}
+                    onCheckedChange={(value) =>
+                      handlePermissionToggle(feature.value, 'can_approve', value)
+                    }
+                  />
+                  <Label htmlFor={`${feature.value}-approve`}>Approve</Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

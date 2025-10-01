@@ -1469,6 +1469,45 @@ export type Database = {
         }
         Relationships: []
       }
+      moderator_permissions: {
+        Row: {
+          can_approve: boolean
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          feature: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_approve?: boolean
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          feature: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_approve?: boolean
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          feature?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       newsletter_audit_log: {
         Row: {
           affected_email: string
@@ -3149,6 +3188,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      has_moderator_permission: {
+        Args: { _feature: string; _permission: string; _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

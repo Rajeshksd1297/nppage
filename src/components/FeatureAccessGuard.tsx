@@ -1,8 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, AlertCircle } from 'lucide-react';
 import { useAdminSettings } from '@/hooks/useAdminSettings';
+import { supabase } from '@/integrations/supabase/client';
+import { useModeratorPermissions } from '@/hooks/useModeratorPermissions';
 
 interface FeatureAccessGuardProps {
   feature: 'newsletter' | 'blog' | 'events' | 'awards' | 'faq';
@@ -13,6 +15,26 @@ interface FeatureAccessGuardProps {
 
 export const FeatureAccessGuard = ({ feature, children, fallback, fallbackMessage }: FeatureAccessGuardProps) => {
   const { hasFeatureAccess, loading, error } = useAdminSettings();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const { hasPermission } = useModeratorPermissions(userId || undefined);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        // Check user role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        setUserRole(roleData?.role || 'user');
+      }
+    };
+    checkUser();
+  }, []);
 
   if (loading) {
     return (
@@ -36,7 +58,14 @@ export const FeatureAccessGuard = ({ feature, children, fallback, fallbackMessag
     );
   }
 
-  if (!hasFeatureAccess(feature)) {
+  // Allow access if:
+  // 1. Admin settings allow the feature
+  // 2. User is admin (already handled by hasFeatureAccess)
+  // 3. User is moderator with view permission for this feature
+  const canAccess = hasFeatureAccess(feature) || 
+    (userRole === 'moderator' && hasPermission(feature, 'view'));
+
+  if (!canAccess) {
     if (fallback) {
       return <>{fallback}</>;
     }
