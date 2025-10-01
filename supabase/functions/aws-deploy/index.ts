@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { EC2Client, RunInstancesCommand, DescribeInstancesCommand } from "npm:@aws-sdk/client-ec2@3.709.0";
-import { encode as base64Encode } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -489,7 +489,7 @@ echo "⏱️  Time: $(date)"
     // Properly encode UserData with UTF-8 support
     const encoder = new TextEncoder();
     const userDataBytes = encoder.encode(userData);
-    const userDataBase64 = base64Encode(userDataBytes);
+    const userDataBase64 = encodeBase64(userDataBytes);
     
     const deploymentStartTime = new Date();
     let deploymentLog = `=== AWS EC2 REAL Deployment Log ===\n`;
