@@ -124,6 +124,8 @@ export default function AWSDeployment() {
   const [includeMigrations, setIncludeMigrations] = useState(true);
   const [instanceMode, setInstanceMode] = useState<'new' | 'existing'>('new');
   const [existingInstanceId, setExistingInstanceId] = useState("");
+  const [autoCreateSecurityGroup, setAutoCreateSecurityGroup] = useState(true);
+  const [autoCreateKeyPair, setAutoCreateKeyPair] = useState(true);
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const {
@@ -262,7 +264,9 @@ export default function AWSDeployment() {
           includeDatabase,
           includeMigrations,
           instanceMode,
-          existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined
+          existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined,
+          autoCreateSecurityGroup: instanceMode === 'new' ? autoCreateSecurityGroup : false,
+          autoCreateKeyPair: instanceMode === 'new' ? autoCreateKeyPair : false
         }
       });
       if (error) throw error;
@@ -597,6 +601,54 @@ export default function AWSDeployment() {
                 <Label htmlFor="auto-deploy-new">Enable Auto Deploy</Label>
               </div>
 
+              {instanceMode === 'new' && (
+                <>
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="auto-create-sg">Auto-Create Security Group</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Automatically create security group with HTTP, HTTPS, and SSH access
+                      </p>
+                    </div>
+                    <Switch 
+                      id="auto-create-sg" 
+                      checked={autoCreateSecurityGroup} 
+                      onCheckedChange={setAutoCreateSecurityGroup} 
+                      disabled={!awsSettings?.aws_access_key_id || !!awsSettings?.security_group_id} 
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="auto-create-kp">Auto-Create SSH Key Pair</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Generate SSH key pair for secure instance access
+                      </p>
+                    </div>
+                    <Switch 
+                      id="auto-create-kp" 
+                      checked={autoCreateKeyPair} 
+                      onCheckedChange={setAutoCreateKeyPair} 
+                      disabled={!awsSettings?.aws_access_key_id || !!awsSettings?.key_pair_name} 
+                    />
+                  </div>
+
+                  {(autoCreateSecurityGroup || autoCreateKeyPair) && (
+                    <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                      <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">✅ Automatic Setup Enabled</h4>
+                      <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                        {autoCreateSecurityGroup && (
+                          <li>• Security group will be created with proper web access rules</li>
+                        )}
+                        {autoCreateKeyPair && (
+                          <li>• SSH key pair will be generated and shown in deployment log</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+
               <Button onClick={handleDeploy} disabled={deployMutation.isPending || !awsSettings?.aws_access_key_id} className="w-full">
                 {deployMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
                 {instanceMode === 'existing' ? 'Deploy to Existing Instance' : deploymentType === 'incremental' ? 'Deploy New Instance (Update)' : 'Deploy New Instance (Fresh)'}
@@ -769,6 +821,44 @@ export default function AWSDeployment() {
                       3
                     </div>
                     <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold text-base">Automatic Security Setup (Recommended)</h4>
+                      <div className="space-y-3 ml-4">
+                        <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-950">
+                          <h5 className="font-medium text-sm mb-2 text-green-900 dark:text-green-100">✅ Auto-Create Security Group</h5>
+                          <ul className="space-y-1 text-sm text-green-700 dark:text-green-300">
+                            <li>• Automatically creates security group with proper rules</li>
+                            <li>• Enables HTTP (port 80) for web traffic</li>
+                            <li>• Enables HTTPS (port 443) for SSL/TLS</li>
+                            <li>• Enables SSH (port 22) for instance management</li>
+                            <li>• No manual AWS Console configuration needed</li>
+                          </ul>
+                        </div>
+                        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                          <h5 className="font-medium text-sm mb-2 text-blue-900 dark:text-blue-100">🔐 Auto-Create SSH Key Pair</h5>
+                          <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                            <li>• Generates secure RSA key pair automatically</li>
+                            <li>• Private key shown in deployment log (save it!)</li>
+                            <li>• Use for SSH access: ssh -i key.pem ec2-user@ip</li>
+                            <li>• Key is unique to each deployment</li>
+                          </ul>
+                        </div>
+                        <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <p className="text-sm text-amber-900 dark:text-amber-100">
+                            💡 <strong>Pro Tip:</strong> Enable both options for hassle-free deployment. The platform handles all AWS security configuration automatically.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 4 (previously Step 3) */}
+                <div className="space-y-3 border-t pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                      4
+                    </div>
+                    <div className="flex-1 space-y-2">
                       <h4 className="font-semibold text-base">Understanding Deployment Types</h4>
                       <div className="space-y-3 ml-4">
                         <div className="p-4 border rounded-lg">
@@ -795,11 +885,11 @@ export default function AWSDeployment() {
                   </div>
                 </div>
 
-                {/* Step 4 */}
+                {/* Step 5 (previously Step 4) */}
                 <div className="space-y-3 border-t pt-6">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                      4
+                      5
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="font-semibold text-base">Deploy Your Application</h4>
@@ -821,11 +911,11 @@ export default function AWSDeployment() {
                   </div>
                 </div>
 
-                {/* Step 5 */}
+                {/* Step 6 (previously Step 5) */}
                 <div className="space-y-3 border-t pt-6">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                      5
+                      6
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="font-semibold text-base">Monitor Deployment Progress</h4>
@@ -846,11 +936,11 @@ export default function AWSDeployment() {
                   </div>
                 </div>
 
-                {/* Step 6 */}
+                {/* Step 7 (previously Step 6) */}
                 <div className="space-y-3 border-t pt-6">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                      6
+                      7
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="font-semibold text-base">Verify Deployment</h4>

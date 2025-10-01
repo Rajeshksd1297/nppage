@@ -1,5 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
-import { EC2Client, RunInstancesCommand, DescribeInstancesCommand } from "npm:@aws-sdk/client-ec2@3.709.0";
+import { 
+  EC2Client, 
+  RunInstancesCommand, 
+  DescribeInstancesCommand,
+  CreateSecurityGroupCommand,
+  AuthorizeSecurityGroupIngressCommand,
+  CreateKeyPairCommand,
+  DescribeSecurityGroupsCommand
+} from "npm:@aws-sdk/client-ec2@3.709.0";
 import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
@@ -16,6 +24,8 @@ interface DeploymentRequest {
   includeMigrations?: boolean;
   instanceMode?: 'new' | 'existing';
   existingInstanceId?: string;
+  autoCreateSecurityGroup?: boolean;
+  autoCreateKeyPair?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -50,7 +60,9 @@ Deno.serve(async (req) => {
       includeDatabase = false,
       includeMigrations = true,
       instanceMode = 'new',
-      existingInstanceId
+      existingInstanceId,
+      autoCreateSecurityGroup = true,
+      autoCreateKeyPair = true
     } = await req.json() as DeploymentRequest;
 
     console.log(`Starting REAL AWS deployment for user ${user.id}:`, {
@@ -115,6 +127,102 @@ Deno.serve(async (req) => {
     });
 
     console.log('✓ EC2 client initialized for region:', region);
+
+    // Auto-create security group if requested
+    let securityGroupId = awsSettings.security_group_id;
+    let createdSecurityGroup = false;
+
+    if (autoCreateSecurityGroup && !securityGroupId && instanceMode === 'new') {
+      try {
+        console.log('Creating security group...');
+        
+        const sgName = `${deploymentName}-sg-${Date.now()}`;
+        const createSGCommand = new CreateSecurityGroupCommand({
+          GroupName: sgName,
+          Description: `Security group for ${deploymentName} - Auto-created by Lovable Platform`,
+        });
+
+        const sgResponse = await ec2Client.send(createSGCommand);
+        securityGroupId = sgResponse.GroupId!;
+        createdSecurityGroup = true;
+
+        console.log(`✓ Security group created: ${securityGroupId}`);
+
+        // Add inbound rules for HTTP, HTTPS, and SSH
+        const authorizeCommand = new AuthorizeSecurityGroupIngressCommand({
+          GroupId: securityGroupId,
+          IpPermissions: [
+            {
+              // HTTP
+              IpProtocol: 'tcp',
+              FromPort: 80,
+              ToPort: 80,
+              IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Allow HTTP from anywhere' }],
+              Ipv6Ranges: [{ CidrIpv6: '::/0', Description: 'Allow HTTP from anywhere (IPv6)' }],
+            },
+            {
+              // HTTPS
+              IpProtocol: 'tcp',
+              FromPort: 443,
+              ToPort: 443,
+              IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Allow HTTPS from anywhere' }],
+              Ipv6Ranges: [{ CidrIpv6: '::/0', Description: 'Allow HTTPS from anywhere (IPv6)' }],
+            },
+            {
+              // SSH
+              IpProtocol: 'tcp',
+              FromPort: 22,
+              ToPort: 22,
+              IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Allow SSH from anywhere' }],
+            },
+          ],
+        });
+
+        await ec2Client.send(authorizeCommand);
+        console.log('✓ Security group rules configured (HTTP, HTTPS, SSH)');
+
+      } catch (error) {
+        console.error('Failed to create security group:', error);
+        // Continue without security group - AWS will use default
+      }
+    }
+
+    // Auto-create key pair if requested
+    let keyPairName = awsSettings.key_pair_name;
+    let privateKeyMaterial: string | undefined;
+    let createdKeyPair = false;
+
+    if (autoCreateKeyPair && !keyPairName && instanceMode === 'new') {
+      try {
+        console.log('Creating key pair...');
+        
+        const kpName = `${deploymentName}-key-${Date.now()}`;
+        const createKPCommand = new CreateKeyPairCommand({
+          KeyName: kpName,
+          KeyType: 'rsa',
+        });
+
+        const kpResponse = await ec2Client.send(createKPCommand);
+        keyPairName = kpResponse.KeyName!;
+        privateKeyMaterial = kpResponse.KeyMaterial!;
+        createdKeyPair = true;
+
+        console.log(`✓ Key pair created: ${keyPairName}`);
+
+        // Store the private key in the deployment record (encrypted by Supabase)
+        // User can download it from the UI
+        await supabaseClient
+          .from('aws_deployments')
+          .update({ 
+            deployment_log: `Key Pair: ${keyPairName}\n\nPrivate Key:\n${privateKeyMaterial}\n\n⚠️ IMPORTANT: Save this private key securely. You will need it to SSH into your instance.\n\n`
+          })
+          .eq('id', deployment.id);
+
+      } catch (error) {
+        console.error('Failed to create key pair:', error);
+        // Continue without key pair - instance will be launched without SSH access
+      }
+    }
 
     // Determine AMI ID for the region (Ubuntu 22.04 LTS)
     const amiMap: Record<string, string> = {
@@ -604,6 +712,27 @@ echo "⏱️  Time: $(date)"
     deploymentLog += `Deployment Type: ${deploymentType}\n`;
     deploymentLog += `Region: ${region}\n`;
     
+    if (createdSecurityGroup) {
+      deploymentLog += `\n--- Auto-Created Security Group ---\n`;
+      deploymentLog += `✓ Security Group ID: ${securityGroupId}\n`;
+      deploymentLog += `✓ Rules: HTTP (80), HTTPS (443), SSH (22)\n`;
+      deploymentLog += `✓ Access: Configured for web traffic\n`;
+    }
+    
+    if (createdKeyPair && privateKeyMaterial) {
+      deploymentLog += `\n--- Auto-Created SSH Key Pair ---\n`;
+      deploymentLog += `✓ Key Pair Name: ${keyPairName}\n`;
+      deploymentLog += `\n🔐 PRIVATE KEY (Save this securely!):\n`;
+      deploymentLog += `${'='.repeat(60)}\n`;
+      deploymentLog += `${privateKeyMaterial}\n`;
+      deploymentLog += `${'='.repeat(60)}\n`;
+      deploymentLog += `\n⚠️ IMPORTANT:\n`;
+      deploymentLog += `   • Save this private key to a .pem file (e.g., ${keyPairName}.pem)\n`;
+      deploymentLog += `   • Set permissions: chmod 400 ${keyPairName}.pem\n`;
+      deploymentLog += `   • This key will NOT be shown again\n`;
+      deploymentLog += `   • Use it to SSH: ssh -i ${keyPairName}.pem ec2-user@<instance-ip>\n`;
+    }
+    
     let instanceId: string;
     let publicIp: string;
     let instanceState: string;
@@ -688,14 +817,14 @@ echo "⏱️  Time: $(date)"
     };
 
     // Add optional configurations
-    if (awsSettings.key_pair_name) {
-      runInstancesParams.KeyName = awsSettings.key_pair_name;
-      deploymentLog += `✓ Using Key Pair: ${awsSettings.key_pair_name}\n`;
+    if (keyPairName) {
+      runInstancesParams.KeyName = keyPairName;
+      deploymentLog += `✓ Using Key Pair: ${keyPairName}${createdKeyPair ? ' (auto-created)' : ''}\n`;
     }
 
-    if (awsSettings.security_group_id) {
-      runInstancesParams.SecurityGroupIds = [awsSettings.security_group_id];
-      deploymentLog += `✓ Using Security Group: ${awsSettings.security_group_id}\n`;
+    if (securityGroupId) {
+      runInstancesParams.SecurityGroupIds = [securityGroupId];
+      deploymentLog += `✓ Using Security Group: ${securityGroupId}${createdSecurityGroup ? ' (auto-created)' : ''}\n`;
     }
 
     if (awsSettings.subnet_id) {
