@@ -161,6 +161,7 @@ const communicationsItems = [
 const infrastructureItems = [
   { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
   { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
+  { title: "GoDaddy Deployment", url: "/admin/godaddy-deployment", icon: Globe },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
 ];
 
