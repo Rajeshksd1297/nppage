@@ -20,6 +20,10 @@ interface ModuleStatus {
   lastUpdate: Date;
   recordCount?: number;
   errorCount?: number;
+  hasSettings?: boolean;
+  settingsConfigured?: boolean;
+  dbSynced?: boolean;
+  details?: string;
 }
 
 export default function LiveModuleStatus() {
@@ -64,35 +68,159 @@ export default function LiveModuleStatus() {
 
   const checkAllModules = async () => {
     const moduleChecks: ModuleStatus[] = [
-      {
+      await checkAuthModule(),
+      await checkModuleWithSettings('books', 'Book Management', BookOpen, 'book_field_settings'),
+      await checkModuleWithSettings('blog_posts', 'Blog', Newspaper, 'blog_settings'),
+      await checkModuleWithSettings('events', 'Events', Calendar, 'event_settings'),
+      await checkModuleWithSettings('awards', 'Awards', Award, 'awards_settings'),
+      await checkModuleWithSettings('faqs', 'FAQ', HelpCircle, 'faq_settings'),
+      await checkModuleWithSettings('newsletter_campaigns', 'Newsletter', Mail, 'newsletter_settings'),
+      await checkModuleWithSettings('contact_submissions', 'Contact Forms', MessageSquare, 'admin_contact_form_settings'),
+      await checkModuleWithSettings('tickets', 'Help Desk', Users, 'helpdesk_settings'),
+      await checkModule('user_subscriptions', 'Subscriptions', Crown),
+      await checkModule('themes', 'Themes', Palette),
+      await checkModuleWithSettings('backup_jobs', 'Backup & Security', Shield, 'backup_settings'),
+      await checkModuleWithSettings('aws_deployments', 'AWS Deployment', Cloud, 'aws_settings'),
+      await checkDatabaseModule()
+    ];
+
+    setModules(moduleChecks);
+  };
+
+  const checkAuthModule = async (): Promise<ModuleStatus> => {
+    try {
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true });
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (rolesError || profilesError) {
+        return {
+          id: 'auth',
+          name: 'Authentication',
+          icon: Lock,
+          status: 'warning',
+          lastUpdate: new Date(),
+          dbSynced: false,
+          details: 'Role/Profile sync issues detected'
+        };
+      }
+
+      return {
         id: 'auth',
         name: 'Authentication',
         icon: Lock,
         status: 'online',
         lastUpdate: new Date(),
-      },
-      await checkModule('books', 'Book Management', BookOpen),
-      await checkModule('blog_posts', 'Blog', Newspaper),
-      await checkModule('events', 'Events', Calendar),
-      await checkModule('awards', 'Awards', Award),
-      await checkModule('faqs', 'FAQ', HelpCircle),
-      await checkModule('newsletter_campaigns', 'Newsletter', Mail),
-      await checkModule('contact_submissions', 'Contact Forms', MessageSquare),
-      await checkModule('tickets', 'Help Desk', Users),
-      await checkModule('user_subscriptions', 'Subscriptions', Crown),
-      await checkModule('themes', 'Themes', Palette),
-      await checkModule('backup_jobs', 'Backup & Security', Shield),
-      await checkModule('aws_deployments', 'AWS Deployment', Cloud),
-      {
+        dbSynced: true,
+        details: 'Auth system operational'
+      };
+    } catch (error) {
+      return {
+        id: 'auth',
+        name: 'Authentication',
+        icon: Lock,
+        status: 'offline',
+        lastUpdate: new Date(),
+        dbSynced: false,
+        errorCount: 1
+      };
+    }
+  };
+
+  const checkDatabaseModule = async (): Promise<ModuleStatus> => {
+    try {
+      // Check if we can connect to database
+      const { error } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .limit(1);
+
+      return {
         id: 'database',
         name: 'Database',
         icon: Database,
-        status: 'online',
+        status: error ? 'warning' : 'online',
         lastUpdate: new Date(),
-      }
-    ];
+        dbSynced: !error,
+        details: error ? 'Connection issues' : 'Connected'
+      };
+    } catch (error) {
+      return {
+        id: 'database',
+        name: 'Database',
+        icon: Database,
+        status: 'offline',
+        lastUpdate: new Date(),
+        dbSynced: false
+      };
+    }
+  };
 
-    setModules(moduleChecks);
+  const checkModuleWithSettings = async (
+    table: string, 
+    name: string, 
+    icon: any, 
+    settingsTable: string
+  ): Promise<ModuleStatus> => {
+    try {
+      // Check main table
+      const { count: dataCount, error: dataError } = await supabase
+        .from(table as any)
+        .select('*', { count: 'exact', head: true });
+
+      // Check settings table
+      const { data: settings, error: settingsError } = await supabase
+        .from(settingsTable as any)
+        .select('*')
+        .limit(1)
+        .single();
+
+      const hasData = !dataError;
+      const hasSettings = !settingsError && settings !== null;
+      
+      let status: 'online' | 'warning' | 'offline' = 'online';
+      let details = 'Fully configured and synced';
+
+      if (!hasData) {
+        status = 'warning';
+        details = 'Table access issues';
+      } else if (!hasSettings) {
+        status = 'warning';
+        details = 'Admin settings not configured';
+      }
+
+      return {
+        id: table,
+        name,
+        icon,
+        status,
+        lastUpdate: new Date(),
+        recordCount: dataCount || 0,
+        hasSettings: true,
+        settingsConfigured: hasSettings,
+        dbSynced: hasData,
+        details,
+        errorCount: (!hasData || !hasSettings) ? 1 : 0
+      };
+    } catch (error) {
+      console.error(`Error checking ${table}:`, error);
+      return {
+        id: table,
+        name,
+        icon,
+        status: 'offline',
+        lastUpdate: new Date(),
+        hasSettings: true,
+        settingsConfigured: false,
+        dbSynced: false,
+        errorCount: 1,
+        details: 'Module offline'
+      };
+    }
   };
 
   const checkModule = async (table: string, name: string, icon: any): Promise<ModuleStatus> => {
@@ -309,6 +437,33 @@ export default function LiveModuleStatus() {
                       <span className="text-sm font-medium text-red-600">{module.errorCount}</span>
                     </div>
                   )}
+
+                  {module.hasSettings && (
+                    <div className="pt-2 border-t border-border space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Admin Settings</span>
+                        {module.settingsConfigured ? (
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                        ) : (
+                          <XCircle className="w-3 h-3 text-red-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">DB Synced</span>
+                        {module.dbSynced ? (
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                        ) : (
+                          <XCircle className="w-3 h-3 text-red-500" />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {module.details && (
+                    <p className="text-xs text-muted-foreground pt-2 border-t border-border">
+                      {module.details}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -323,6 +478,8 @@ export default function LiveModuleStatus() {
                   <TableHead className="w-[50px]"></TableHead>
                   <TableHead>Module Name</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Settings</TableHead>
+                  <TableHead className="text-center">DB Sync</TableHead>
                   <TableHead className="text-right">Records</TableHead>
                   <TableHead className="text-right">Errors</TableHead>
                   <TableHead>Last Update</TableHead>
@@ -343,6 +500,28 @@ export default function LiveModuleStatus() {
                         {getStatusBadge(module.status)}
                       </div>
                     </TableCell>
+                    <TableCell className="text-center">
+                      {module.hasSettings ? (
+                        module.settingsConfigured ? (
+                          <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                        )
+                      ) : (
+                        <span className="text-xs text-muted-foreground">N/A</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {module.dbSynced !== undefined ? (
+                        module.dbSynced ? (
+                          <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                        )
+                      ) : (
+                        <span className="text-xs text-muted-foreground">N/A</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
                       {module.recordCount !== undefined ? module.recordCount : '-'}
                     </TableCell>
@@ -354,7 +533,10 @@ export default function LiveModuleStatus() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {module.lastUpdate.toLocaleTimeString()}
+                      <div>{module.lastUpdate.toLocaleTimeString()}</div>
+                      {module.details && (
+                        <div className="text-xs text-muted-foreground">{module.details}</div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
