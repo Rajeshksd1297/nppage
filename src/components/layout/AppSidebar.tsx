@@ -31,7 +31,8 @@ import {
   HelpCircle,
   Cookie,
   Server,
-  Shield
+  Shield,
+  CheckCircle
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -112,6 +113,7 @@ const coreAdminItems = [
 
 // Site Management
 const siteManagementItems = [
+  { title: "Production Readiness", url: "/admin/production-readiness", icon: CheckCircle },
   { title: "Home Page Management", url: "/admin/home-page-management", icon: Home },
   { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
   { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
