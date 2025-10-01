@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
-import { EC2Client, AuthorizeSecurityGroupIngressCommand, DescribeSecurityGroupsCommand } from "npm:@aws-sdk/client-ec2@3.709.0";
+import { EC2Client, AuthorizeSecurityGroupIngressCommand, DescribeSecurityGroupsCommand, DescribeInstancesCommand } from "npm:@aws-sdk/client-ec2@3.709.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,26 +61,22 @@ Deno.serve(async (req) => {
     });
 
     // Get instance details to find security groups
-    const { data: deployment } = await supabaseClient
-      .from('aws_deployments')
-      .select('*')
-      .eq('ec2_instance_id', instanceId)
-      .single();
-
-    if (!deployment) {
-      throw new Error('Deployment not found');
-    }
-
-    // Get deployment's security groups from AWS
-    const statusResponse = await supabaseClient.functions.invoke('aws-instance-status', {
-      body: { instanceId, region }
+    const describeInstanceCommand = new DescribeInstancesCommand({
+      InstanceIds: [instanceId],
     });
 
-    if (!statusResponse.data?.success || !statusResponse.data.status?.securityGroups?.[0]) {
-      throw new Error('Could not retrieve instance security groups');
+    const instanceResponse = await ec2Client.send(describeInstanceCommand);
+    const instance = instanceResponse.Reservations?.[0]?.Instances?.[0];
+
+    if (!instance) {
+      throw new Error(`Instance ${instanceId} not found`);
     }
 
-    const securityGroupId = statusResponse.data.status.securityGroups[0].id;
+    if (!instance.SecurityGroups || instance.SecurityGroups.length === 0) {
+      throw new Error('No security groups found for this instance');
+    }
+
+    const securityGroupId = instance.SecurityGroups[0].GroupId!;
     console.log(`Using security group: ${securityGroupId}`);
 
     // Check if HTTP rule already exists
