@@ -101,26 +101,24 @@ export function DashboardLayout({
             <div className="h-16 flex items-center justify-between px-4">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
-                <div>
+                <div className="flex items-center gap-3">
                   <h1 className="text-lg font-semibold">
                     {getGreeting()}, {userName || "Author"}! 👋
                   </h1>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {subscription?.subscription_plans?.name && (
-                      <Badge 
-                        variant={isPro() ? "default" : "secondary"}
-                        className="flex items-center gap-1 text-xs"
-                      >
-                        {isPro() && <Crown className="h-3 w-3" />}
-                        {subscription.subscription_plans.name}
-                      </Badge>
-                    )}
-                    {isOnTrial() && (
-                      <Badge variant="outline" className="text-xs">
-                        Trial: {trialDaysLeft} days left
-                      </Badge>
-                    )}
-                  </div>
+                  {subscription?.subscription_plans?.name && (
+                    <Badge 
+                      variant={isPro() ? "default" : "secondary"}
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      {isPro() && <Crown className="h-3 w-3" />}
+                      {subscription.subscription_plans.name}
+                    </Badge>
+                  )}
+                  {isOnTrial() && (
+                    <Badge variant="outline" className="text-xs">
+                      Trial: {trialDaysLeft} days left
+                    </Badge>
+                  )}
                 </div>
               </div>
               
