@@ -682,22 +682,6 @@ export default function LiveModuleStatus() {
                     </div>
                   )}
 
-                  {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        <span className="text-xs font-medium">Troubleshooting Steps:</span>
-                      </div>
-                      <div className="space-y-1">
-                        {module.troubleshootingSteps.slice(0, 3).map((step, idx) => (
-                          <p key={idx} className="text-xs text-muted-foreground pl-2">
-                            {step}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div className="mt-3 pt-3 border-t border-border">
                     <Button 
                       variant="outline" 
@@ -798,27 +782,6 @@ export default function LiveModuleStatus() {
                       </Button>
                     </TableCell>
                   </TableRow>
-                  {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
-                    <TableRow className="bg-orange-50 dark:bg-orange-950/20">
-                      <TableCell colSpan={9} className="py-3">
-                          <div className="flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">
-                                Troubleshooting Steps for {module.name}:
-                              </p>
-                              <div className="space-y-1">
-                                {module.troubleshootingSteps.map((step, idx) => (
-                                  <p key={idx} className="text-xs text-muted-foreground">
-                                    {step}
-                                  </p>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </>
                 ))}
               </TableBody>
