@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { AISEOAssistant } from '@/components/seo/AISEOAssistant';
 import { 
   Save, 
   ArrowLeft,
@@ -218,13 +219,32 @@ export function ProfileSEOSettings({ profile, onProfileUpdate, onPrevious, isPro
             <span>Quick SEO Setup</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            Let us generate SEO-optimized content based on your profile information.
-          </p>
-          <Button variant="outline" onClick={applySuggestions}>
-            Generate SEO Content
-          </Button>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Let us generate SEO-optimized content based on your profile information.
+            </p>
+            <Button variant="outline" onClick={applySuggestions}>
+              Generate SEO Content
+            </Button>
+          </div>
+          
+          <div className="pt-4 border-t">
+            <AISEOAssistant
+              content={`${profile.full_name || ''}\n${profile.bio || ''}\n${profile.specializations?.join(', ') || ''}`}
+              currentTitle={profile.seo_title}
+              currentDescription={profile.seo_description}
+              currentKeywords={profile.seo_keywords}
+              contentType="profile"
+              onApplySuggestions={(suggestions) => {
+                onProfileUpdate({
+                  seo_title: suggestions.title,
+                  seo_description: suggestions.description,
+                  seo_keywords: suggestions.keywords
+                });
+              }}
+            />
+          </div>
         </CardContent>
       </Card>
 
