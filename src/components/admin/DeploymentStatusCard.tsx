@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Server, ExternalLink, CheckCircle2, Clock } from "lucide-react";
+import { Server, ExternalLink, CheckCircle2, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface DeploymentStatusCardProps {
   deployment: {
     id: string;
     deployment_name: string;
+    ec2_instance_id: string;
     ec2_public_ip: string;
     region: string;
     last_deployed_at: string | null;
@@ -39,6 +42,45 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   });
 
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+  const [awsStatus, setAwsStatus] = useState<any>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+
+  const checkAwsStatus = async () => {
+    setIsCheckingStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('aws-instance-status', {
+        body: {
+          instanceId: deployment.ec2_instance_id,
+          region: deployment.region,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setAwsStatus(data);
+        if (data.recommendations?.length > 0) {
+          console.log('AWS Status Recommendations:', data.recommendations);
+        }
+      } else if (data.needsPermissions) {
+        toast.error('IAM Permissions Required', {
+          description: `Add these permissions: ${data.requiredPermissions?.join(', ')}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check AWS status:', error);
+      toast.error('Failed to check instance status');
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    // Check AWS status on mount and every 30 seconds
+    checkAwsStatus();
+    const interval = setInterval(checkAwsStatus, 30000);
+    return () => clearInterval(interval);
+  }, [deployment.ec2_instance_id, deployment.region]);
 
   useEffect(() => {
     const checkSetupStatus = async () => {
@@ -178,6 +220,16 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
           <Button
             variant="outline"
             size="sm"
+            onClick={() => checkAwsStatus()}
+            disabled={isCheckingStatus}
+            className="mr-2"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingStatus ? 'animate-spin' : ''}`} />
+            Check Status
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             asChild
           >
             <a
@@ -273,14 +325,25 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
             <div className="p-4 border rounded-lg space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">EC2 Instance</span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                  Running
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  awsStatus?.status?.state === 'running' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                }`}>
+                  {awsStatus?.status?.state || 'Checking...'}
                 </span>
               </div>
-              <div className="text-2xl font-bold">✓</div>
+              <div className="text-2xl font-bold">
+                {awsStatus?.status?.state === 'running' ? '✓' : '...'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {deployment.region}
               </p>
+              {awsStatus?.status?.availabilityZone && (
+                <p className="text-xs text-muted-foreground">
+                  AZ: {awsStatus.status.availabilityZone}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -361,6 +424,92 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
             </div>
           </div>
         </div>
+
+        {/* AWS Diagnostics */}
+        {awsStatus?.status && (
+          <div className="p-4 border rounded-lg space-y-3">
+            <h4 className="font-semibold flex items-center gap-2">
+              <Server className="h-4 w-4" />
+              AWS Instance Diagnostics
+            </h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                <span>System Status</span>
+                <span className={awsStatus.status.diagnostics?.systemChecksOk ? 'text-green-600' : 'text-yellow-600'}>
+                  {awsStatus.status.systemStatus || 'Initializing'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                <span>Instance Status</span>
+                <span className={awsStatus.status.diagnostics?.instanceChecksOk ? 'text-green-600' : 'text-yellow-600'}>
+                  {awsStatus.status.instanceStatus || 'Initializing'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                <span>Public IP</span>
+                <span className={awsStatus.status.diagnostics?.hasPublicIp ? 'text-green-600' : 'text-red-600'}>
+                  {awsStatus.status.diagnostics?.hasPublicIp ? 'Assigned' : 'Missing'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                <span>HTTP Access</span>
+                <span className={awsStatus.httpAccessible ? 'text-green-600' : 'text-red-600'}>
+                  {awsStatus.httpAccessible ? 'Open' : 'Blocked'}
+                </span>
+              </div>
+            </div>
+            
+            {awsStatus.status.securityGroups && awsStatus.status.securityGroups.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Security Groups:</p>
+                <div className="space-y-1">
+                  {awsStatus.status.securityGroups.map((sg: any) => (
+                    <div key={sg.id} className="text-xs p-2 bg-muted/30 rounded">
+                      {sg.name} ({sg.id})
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Recommendations */}
+        {awsStatus?.recommendations && awsStatus.recommendations.length > 0 && (
+          <div className={`p-4 border rounded-lg ${
+            awsStatus.httpAccessible 
+              ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+              : 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800'
+          }`}>
+            <h4 className={`font-semibold mb-2 flex items-center gap-2 ${
+              awsStatus.httpAccessible ? 'text-green-900 dark:text-green-100' : 'text-amber-900 dark:text-amber-100'
+            }`}>
+              {awsStatus.httpAccessible ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Status: Healthy
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-4 w-4" />
+                  Diagnostics
+                </>
+              )}
+            </h4>
+            <ul className={`space-y-1 text-sm ${
+              awsStatus.httpAccessible 
+                ? 'text-green-800 dark:text-green-200'
+                : 'text-amber-800 dark:text-amber-200'
+            }`}>
+              {awsStatus.recommendations.map((rec: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="mt-0.5">{rec.startsWith('✓') ? '' : '•'}</span>
+                  <span>{rec}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Status Message */}
         {isSetupInProgress && (
