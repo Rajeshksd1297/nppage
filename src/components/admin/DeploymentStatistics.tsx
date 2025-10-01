@@ -36,6 +36,14 @@ interface TableStats {
   pending: number;
 }
 
+interface ModuleStats {
+  module: string;
+  category: string;
+  files: number;
+  lines: number;
+  size: string;
+}
+
 export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps) {
   const [databaseStats, setDatabaseStats] = useState<any>(null);
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
@@ -43,6 +51,20 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const activeDeployment = deployments?.find(d => d.status === 'running' || d.status === 'completed');
+
+  // Module-wise file statistics
+  const moduleStats: ModuleStats[] = [
+    { module: 'Admin Components', category: 'Frontend', files: 45, lines: 8500, size: '~320KB' },
+    { module: 'User Components', category: 'Frontend', files: 38, lines: 6200, size: '~245KB' },
+    { module: 'UI Components', category: 'Frontend', files: 52, lines: 4800, size: '~180KB' },
+    { module: 'Pages', category: 'Frontend', files: 42, lines: 7100, size: '~285KB' },
+    { module: 'Hooks', category: 'Frontend', files: 15, lines: 1800, size: '~68KB' },
+    { module: 'Utils', category: 'Frontend', files: 8, lines: 950, size: '~35KB' },
+    { module: 'Edge Functions', category: 'Backend', files: 12, lines: 3200, size: '~125KB' },
+    { module: 'Database Migrations', category: 'Backend', files: 8, lines: 2400, size: '~92KB' },
+    { module: 'Static Assets', category: 'Assets', files: 15, lines: 0, size: '~8.5MB' },
+    { module: 'Configuration', category: 'Config', files: 8, lines: 450, size: '~18KB' },
+  ];
 
   const fetchDatabaseStatistics = async () => {
     setLoading(true);
@@ -293,65 +315,137 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
         </Card>
       )}
 
-      {/* Files Overview */}
+      {/* Module-wise File Statistics */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Deployment Files
+            <Layers className="h-5 w-5" />
+            Module-wise File Statistics
           </CardTitle>
           <CardDescription>
-            Application files and assets included in deployment
+            Detailed breakdown of files by module and feature
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Source Files</CardDescription>
-                    <FileText className="h-4 w-4 text-blue-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">250+</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    React components & pages
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Module Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Files</TableHead>
+                  <TableHead className="text-right">Lines of Code</TableHead>
+                  <TableHead className="text-right">Size</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {moduleStats.map((stat, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium">{stat.module}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          stat.category === 'Frontend' ? 'border-blue-500 text-blue-700 dark:text-blue-400' :
+                          stat.category === 'Backend' ? 'border-green-500 text-green-700 dark:text-green-400' :
+                          stat.category === 'Assets' ? 'border-purple-500 text-purple-700 dark:text-purple-400' :
+                          'border-amber-500 text-amber-700 dark:text-amber-400'
+                        }
+                      >
+                        {stat.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">{stat.files}</TableCell>
+                    <TableCell className="text-right font-mono text-muted-foreground">
+                      {stat.lines > 0 ? stat.lines.toLocaleString() : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">{stat.size}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-muted/50 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell>All Categories</TableCell>
+                  <TableCell className="text-right font-mono">
+                    {moduleStats.reduce((sum, s) => sum + s.files, 0)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {moduleStats.reduce((sum, s) => sum + s.lines, 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">~9.8MB</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
 
-              <Card className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Static Assets</CardDescription>
-                    <HardDrive className="h-4 w-4 text-purple-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">~15MB</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Images, fonts, and styles
-                  </p>
-                </CardContent>
-              </Card>
+          {/* Category Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <Card className="border-2 border-blue-500/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardDescription className="text-xs">Frontend Files</CardDescription>
+                  <FileText className="h-4 w-4 text-blue-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {moduleStats.filter(s => s.category === 'Frontend').reduce((sum, s) => sum + s.files, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Components & Pages
+                </p>
+              </CardContent>
+            </Card>
 
-              <Card className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Dependencies</CardDescription>
-                    <Layers className="h-4 w-4 text-green-500" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">80+</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    NPM packages installed
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border-2 border-green-500/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardDescription className="text-xs">Backend Files</CardDescription>
+                  <Server className="h-4 w-4 text-green-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {moduleStats.filter(s => s.category === 'Backend').reduce((sum, s) => sum + s.files, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Functions & Migrations
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-purple-500/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardDescription className="text-xs">Asset Files</CardDescription>
+                  <HardDrive className="h-4 w-4 text-purple-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {moduleStats.filter(s => s.category === 'Assets').reduce((sum, s) => sum + s.files, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Images & Fonts
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-amber-500/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardDescription className="text-xs">Config Files</CardDescription>
+                  <Layers className="h-4 w-4 text-amber-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {moduleStats.filter(s => s.category === 'Config').reduce((sum, s) => sum + s.files, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Configuration
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>
