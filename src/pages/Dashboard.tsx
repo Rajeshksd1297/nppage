@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TrialBanner } from "@/components/TrialBanner";
 import { useSubscription } from "@/hooks/useSubscription";
-import { DashboardWelcome } from "@/components/DashboardWelcome";
 import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 import { DashboardFeatures } from "@/components/DashboardFeatures";
 import { DynamicUserDashboard } from "@/components/DynamicUserDashboard";
@@ -246,8 +245,6 @@ export default function Dashboard() {
       </div>
     </div>;
   const renderUserDashboard = () => <div className="space-y-6">
-      <DashboardWelcome userName={userProfile?.full_name} subscriptionPlan={subscription?.subscription_plans?.name || 'Free'} isPro={isPro()} isOnTrial={isOnTrial()} trialDaysLeft={trialDaysLeft} />
-      
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Your Author Stats</h2>
         <div className="flex gap-3">
