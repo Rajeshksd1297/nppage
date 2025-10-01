@@ -6,7 +6,8 @@ import {
   CheckCircle, AlertCircle, XCircle, Activity, RefreshCw,
   BookOpen, Newspaper, Calendar, Award, HelpCircle, Mail, 
   MessageSquare, Lock, Users, BarChart3, Palette, Crown,
-  Shield, Cloud, Database, Grid3x3, Table as TableIcon
+  Shield, Cloud, Database, Grid3x3, Table as TableIcon,
+  Zap, Network, HardDrive, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -24,6 +25,9 @@ interface ModuleStatus {
   settingsConfigured?: boolean;
   dbSynced?: boolean;
   details?: string;
+  rlsEnabled?: boolean;
+  responseTime?: number;
+  troubleshootingSteps?: string[];
 }
 
 export default function LiveModuleStatus() {
@@ -31,6 +35,11 @@ export default function LiveModuleStatus() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [systemMetrics, setSystemMetrics] = useState({
+    avgResponseTime: 0,
+    totalRequests: 0,
+    activeConnections: 0
+  });
 
   useEffect(() => {
     checkAllModules();
@@ -67,6 +76,8 @@ export default function LiveModuleStatus() {
   };
 
   const checkAllModules = async () => {
+    const startTime = Date.now();
+    
     const moduleChecks: ModuleStatus[] = [
       await checkAuthModule(),
       await checkModuleWithSettings('books', 'Book Management', BookOpen, 'book_field_settings'),
@@ -81,13 +92,25 @@ export default function LiveModuleStatus() {
       await checkModule('themes', 'Themes', Palette),
       await checkModuleWithSettings('backup_jobs', 'Backup & Security', Shield, 'backup_settings'),
       await checkModuleWithSettings('aws_deployments', 'AWS Deployment', Cloud, 'aws_settings'),
-      await checkDatabaseModule()
+      await checkDatabaseModule(),
+      await checkStorageModule(),
+      await checkRLSModule()
     ];
+
+    const endTime = Date.now();
+    const avgResponseTime = (endTime - startTime) / moduleChecks.length;
+    
+    setSystemMetrics({
+      avgResponseTime: Math.round(avgResponseTime),
+      totalRequests: moduleChecks.length,
+      activeConnections: moduleChecks.filter(m => m.status === 'online').length
+    });
 
     setModules(moduleChecks);
   };
 
   const checkAuthModule = async (): Promise<ModuleStatus> => {
+    const startTime = Date.now();
     try {
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
@@ -97,6 +120,8 @@ export default function LiveModuleStatus() {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
+      const responseTime = Date.now() - startTime;
+
       if (rolesError || profilesError) {
         return {
           id: 'auth',
@@ -105,7 +130,14 @@ export default function LiveModuleStatus() {
           status: 'warning',
           lastUpdate: new Date(),
           dbSynced: false,
-          details: 'Role/Profile sync issues detected'
+          responseTime,
+          details: 'Role/Profile sync issues detected',
+          troubleshootingSteps: [
+            '1. Check if user_roles table exists and has RLS enabled',
+            '2. Verify profiles table has proper foreign key to auth.users',
+            '3. Check RLS policies on both tables',
+            '4. Test with: SELECT * FROM user_roles LIMIT 1'
+          ]
         };
       }
 
@@ -116,6 +148,7 @@ export default function LiveModuleStatus() {
         status: 'online',
         lastUpdate: new Date(),
         dbSynced: true,
+        responseTime,
         details: 'Auth system operational'
       };
     } catch (error) {
@@ -126,18 +159,134 @@ export default function LiveModuleStatus() {
         status: 'offline',
         lastUpdate: new Date(),
         dbSynced: false,
-        errorCount: 1
+        errorCount: 1,
+        troubleshootingSteps: [
+          '1. Check database connection',
+          '2. Verify Supabase project is running',
+          '3. Check auth service status in Supabase dashboard',
+          '4. Review error logs in browser console'
+        ]
+      };
+    }
+  };
+
+  const checkStorageModule = async (): Promise<ModuleStatus> => {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .listBuckets();
+
+      const avatarBucket = data?.find(b => b.id === 'avatars');
+
+      return {
+        id: 'storage',
+        name: 'Storage & Files',
+        icon: HardDrive,
+        status: error ? 'warning' : 'online',
+        lastUpdate: new Date(),
+        recordCount: data?.length || 0,
+        dbSynced: !error,
+        details: avatarBucket ? `${data?.length || 0} buckets configured` : 'Buckets not configured',
+        troubleshootingSteps: error ? [
+          '1. Check storage service is enabled in Supabase',
+          '2. Verify storage policies are configured',
+          '3. Check bucket permissions',
+          '4. Review storage limits in project settings'
+        ] : undefined
+      };
+    } catch (error) {
+      return {
+        id: 'storage',
+        name: 'Storage & Files',
+        icon: HardDrive,
+        status: 'offline',
+        lastUpdate: new Date(),
+        errorCount: 1,
+        troubleshootingSteps: [
+          '1. Enable storage in Supabase dashboard',
+          '2. Create required storage buckets',
+          '3. Configure storage policies',
+          '4. Check API permissions'
+        ]
+      };
+    }
+  };
+
+  const checkRLSModule = async (): Promise<ModuleStatus> => {
+    try {
+      // Check if RLS is enabled on critical tables
+      const criticalTables = [
+        'profiles', 'books', 'blog_posts', 'events', 
+        'awards', 'contact_submissions', 'user_subscriptions'
+      ];
+
+      let rlsIssues = 0;
+      const issueDetails: string[] = [];
+
+      for (const table of criticalTables) {
+        try {
+          // Try to access the table
+          const { error } = await supabase
+            .from(table as any)
+            .select('id', { count: 'exact', head: true })
+            .limit(1);
+
+          if (error && error.message.includes('policy')) {
+            rlsIssues++;
+            issueDetails.push(`${table}: RLS policy issue`);
+          }
+        } catch (err) {
+          rlsIssues++;
+        }
+      }
+
+      return {
+        id: 'rls',
+        name: 'Row Level Security',
+        icon: Network,
+        status: rlsIssues > 0 ? 'warning' : 'online',
+        lastUpdate: new Date(),
+        recordCount: criticalTables.length - rlsIssues,
+        errorCount: rlsIssues,
+        rlsEnabled: rlsIssues === 0,
+        details: rlsIssues > 0 
+          ? `${rlsIssues} tables with RLS issues` 
+          : 'All tables properly secured',
+        troubleshootingSteps: rlsIssues > 0 ? [
+          '1. Run: ALTER TABLE [table_name] ENABLE ROW LEVEL SECURITY',
+          '2. Create appropriate RLS policies for each table',
+          '3. Test policies with different user roles',
+          '4. Check Supabase dashboard > Authentication > Policies',
+          ...issueDetails.map(d => `   - ${d}`)
+        ] : undefined
+      };
+    } catch (error) {
+      return {
+        id: 'rls',
+        name: 'Row Level Security',
+        icon: Network,
+        status: 'warning',
+        lastUpdate: new Date(),
+        errorCount: 1,
+        troubleshootingSteps: [
+          '1. Check database permissions',
+          '2. Verify RLS is enabled on all user-facing tables',
+          '3. Review security policies documentation'
+        ]
       };
     }
   };
 
   const checkDatabaseModule = async (): Promise<ModuleStatus> => {
+    const startTime = Date.now();
     try {
       // Check if we can connect to database
       const { error } = await supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true })
         .limit(1);
+
+      const responseTime = Date.now() - startTime;
 
       return {
         id: 'database',
@@ -146,7 +295,15 @@ export default function LiveModuleStatus() {
         status: error ? 'warning' : 'online',
         lastUpdate: new Date(),
         dbSynced: !error,
-        details: error ? 'Connection issues' : 'Connected'
+        responseTime,
+        details: error ? 'Connection issues' : `Response time: ${responseTime}ms`,
+        troubleshootingSteps: error ? [
+          '1. Check Supabase project status in dashboard',
+          '2. Verify database is not paused',
+          '3. Check connection pooling settings',
+          '4. Review database logs for errors',
+          '5. Test connection with: SELECT 1'
+        ] : undefined
       };
     } catch (error) {
       return {
@@ -155,7 +312,14 @@ export default function LiveModuleStatus() {
         icon: Database,
         status: 'offline',
         lastUpdate: new Date(),
-        dbSynced: false
+        dbSynced: false,
+        troubleshootingSteps: [
+          '1. Verify Supabase project is active',
+          '2. Check API keys are correct',
+          '3. Review network/firewall settings',
+          '4. Check project billing status',
+          '5. Contact Supabase support if issue persists'
+        ]
       };
     }
   };
@@ -166,6 +330,7 @@ export default function LiveModuleStatus() {
     icon: any, 
     settingsTable: string
   ): Promise<ModuleStatus> => {
+    const startTime = Date.now();
     try {
       // Check main table
       const { count: dataCount, error: dataError } = await supabase
@@ -179,18 +344,42 @@ export default function LiveModuleStatus() {
         .limit(1)
         .single();
 
+      const responseTime = Date.now() - startTime;
       const hasData = !dataError;
       const hasSettings = !settingsError && settings !== null;
       
       let status: 'online' | 'warning' | 'offline' = 'online';
       let details = 'Fully configured and synced';
+      let troubleshootingSteps: string[] | undefined;
 
-      if (!hasData) {
+      if (!hasData && !hasSettings) {
+        status = 'offline';
+        details = 'Module offline - table and settings missing';
+        troubleshootingSteps = [
+          '1. Verify table exists in database',
+          '2. Check RLS policies allow access',
+          '3. Create settings table if missing',
+          '4. Run database migrations',
+          `5. Test query: SELECT * FROM ${table} LIMIT 1`
+        ];
+      } else if (!hasData) {
         status = 'warning';
         details = 'Table access issues';
+        troubleshootingSteps = [
+          '1. Check RLS policies on table',
+          '2. Verify user has proper permissions',
+          `3. Test: SELECT * FROM ${table} LIMIT 1`,
+          '4. Check if table has any data'
+        ];
       } else if (!hasSettings) {
         status = 'warning';
         details = 'Admin settings not configured';
+        troubleshootingSteps = [
+          '1. Navigate to admin settings page',
+          `2. Configure ${name} settings`,
+          '3. Save default configuration',
+          `4. Verify settings in ${settingsTable} table`
+        ];
       }
 
       return {
@@ -203,8 +392,10 @@ export default function LiveModuleStatus() {
         hasSettings: true,
         settingsConfigured: hasSettings,
         dbSynced: hasData,
+        responseTime,
         details,
-        errorCount: (!hasData || !hasSettings) ? 1 : 0
+        errorCount: (!hasData || !hasSettings) ? 1 : 0,
+        troubleshootingSteps
       };
     } catch (error) {
       console.error(`Error checking ${table}:`, error);
@@ -218,7 +409,14 @@ export default function LiveModuleStatus() {
         settingsConfigured: false,
         dbSynced: false,
         errorCount: 1,
-        details: 'Module offline'
+        details: 'Module offline',
+        troubleshootingSteps: [
+          '1. Check database connection',
+          '2. Verify table exists',
+          '3. Review error logs',
+          '4. Run database migrations',
+          '5. Contact system administrator'
+        ]
       };
     }
   };
@@ -331,7 +529,7 @@ export default function LiveModuleStatus() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -376,6 +574,18 @@ export default function LiveModuleStatus() {
                 <p className="text-3xl font-bold text-red-600">{offlineCount}</p>
               </div>
               <XCircle className="w-10 h-10 text-red-500/20" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Avg Response</p>
+                <p className="text-3xl font-bold text-blue-600">{systemMetrics.avgResponseTime}ms</p>
+              </div>
+              <Zap className="w-10 h-10 text-blue-500/20" />
             </div>
           </CardContent>
         </Card>
@@ -464,6 +674,29 @@ export default function LiveModuleStatus() {
                       {module.details}
                     </p>
                   )}
+
+                  {module.responseTime && (
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <span className="text-muted-foreground">Response Time</span>
+                      <span className="font-medium">{module.responseTime}ms</span>
+                    </div>
+                  )}
+
+                  {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        <span className="text-xs font-medium">Troubleshooting Steps:</span>
+                      </div>
+                      <div className="space-y-1">
+                        {module.troubleshootingSteps.map((step, idx) => (
+                          <p key={idx} className="text-xs text-muted-foreground pl-2">
+                            {step}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -487,58 +720,84 @@ export default function LiveModuleStatus() {
               </TableHeader>
               <TableBody>
                 {modules.map((module) => (
-                  <TableRow key={module.id} className="hover:bg-muted/50">
-                    <TableCell>
-                      <div className="p-2 bg-primary/10 rounded-lg inline-block">
-                        <module.icon className="w-4 h-4 text-primary" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{module.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(module.status)}
-                        {getStatusBadge(module.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {module.hasSettings ? (
-                        module.settingsConfigured ? (
-                          <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                  <>
+                    <TableRow key={module.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="p-2 bg-primary/10 rounded-lg inline-block">
+                          <module.icon className="w-4 h-4 text-primary" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{module.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(module.status)}
+                          {getStatusBadge(module.status)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {module.hasSettings ? (
+                          module.settingsConfigured ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                          )
                         ) : (
-                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
-                        )
-                      ) : (
-                        <span className="text-xs text-muted-foreground">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {module.dbSynced !== undefined ? (
-                        module.dbSynced ? (
-                          <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {module.dbSynced !== undefined ? (
+                          module.dbSynced ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                          )
                         ) : (
-                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
-                        )
-                      ) : (
-                        <span className="text-xs text-muted-foreground">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {module.recordCount !== undefined ? module.recordCount : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {module.errorCount !== undefined && module.errorCount > 0 ? (
-                        <span className="text-red-600 font-medium">{module.errorCount}</span>
-                      ) : (
-                        <span className="text-muted-foreground">0</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <div>{module.lastUpdate.toLocaleTimeString()}</div>
-                      {module.details && (
-                        <div className="text-xs text-muted-foreground">{module.details}</div>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {module.recordCount !== undefined ? module.recordCount : '-'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {module.errorCount !== undefined && module.errorCount > 0 ? (
+                          <span className="text-red-600 font-medium">{module.errorCount}</span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        <div>{module.lastUpdate.toLocaleTimeString()}</div>
+                        {module.details && (
+                          <div className="text-xs text-muted-foreground">{module.details}</div>
+                        )}
+                        {module.responseTime && (
+                          <div className="text-xs text-blue-600">⚡ {module.responseTime}ms</div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
+                      <TableRow className="bg-orange-50 dark:bg-orange-950/20">
+                        <TableCell colSpan={8} className="py-3">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">
+                                Troubleshooting Steps for {module.name}:
+                              </p>
+                              <div className="space-y-1">
+                                {module.troubleshootingSteps.map((step, idx) => (
+                                  <p key={idx} className="text-xs text-muted-foreground">
+                                    {step}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))}
               </TableBody>
             </Table>
