@@ -46,6 +46,11 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [isUnblocking, setIsUnblocking] = useState(false);
 
+  // Hide this card if the instance is terminated
+  if (awsStatus?.status?.state === 'terminated') {
+    return null;
+  }
+
   const checkAwsStatus = async () => {
     setIsCheckingStatus(true);
     try {
