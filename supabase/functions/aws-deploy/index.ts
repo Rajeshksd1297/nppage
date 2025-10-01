@@ -135,30 +135,73 @@ Deno.serve(async (req) => {
     
     console.log('Using AMI:', amiId, 'Instance Type:', instanceType);
 
-    // Create comprehensive User Data script with security hardening
+    // Create comprehensive User Data script with security hardening and status reporting
     const userData = `#!/bin/bash
 set -e
 exec > >(tee /var/log/user-data.log)
 exec 2>&1
+
+# Function to update setup status
+update_status() {
+  local phase="$1"
+  local status="$2"
+  local message="$3"
+  mkdir -p /var/www/status
+  cat > /var/www/status/setup.json << EOF
+{
+  "phase": "$phase",
+  "status": "$status",
+  "message": "$message",
+  "timestamp": "$(date -Iseconds)",
+  "phases": {
+    "security": {"status": "pending", "message": ""},
+    "packages": {"status": "pending", "message": ""},
+    "nginx": {"status": "pending", "message": ""},
+    "application": {"status": "pending", "message": ""},
+    "services": {"status": "pending", "message": ""}
+  }
+}
+EOF
+  chmod 644 /var/www/status/setup.json
+}
+
+# Function to update individual phase status
+update_phase_status() {
+  local phase_name="$1"
+  local phase_status="$2"
+  local phase_message="$3"
+  
+  if [ -f /var/www/status/setup.json ]; then
+    # Update the specific phase using jq if available, otherwise use sed
+    if command -v jq &> /dev/null; then
+      jq ".phases.$phase_name.status = \\"$phase_status\\" | .phases.$phase_name.message = \\"$phase_message\\"" /var/www/status/setup.json > /tmp/setup.json && mv /tmp/setup.json /var/www/status/setup.json
+    fi
+  fi
+}
 
 echo "=== Starting Secure Automated Deployment ==="
 echo "Deployment: ${deploymentName}"
 echo "Region: ${region}"
 echo "Time: $(date)"
 
+update_status "initializing" "running" "Starting deployment process"
+
 # ============================================
 # PHASE 1: SYSTEM SECURITY HARDENING
 # ============================================
 echo ""
 echo "🔒 Phase 1: Security Hardening..."
+update_status "security" "running" "Installing security tools"
 
 # Update system packages
 echo "📦 Updating all system packages..."
 yum update -y
+update_phase_status "security" "running" "System packages updated"
 
 # Install security tools
 echo "🛡️ Installing security tools..."
-yum install -y fail2ban firewalld
+yum install -y fail2ban firewalld jq
+update_phase_status "security" "completed" "Security tools installed"
 
 # Configure automatic security updates
 echo "⚙️ Configuring automatic security updates..."
@@ -221,21 +264,27 @@ chmod 600 /root/.ssh/authorized_keys 2>/dev/null || true
 # ============================================
 echo ""
 echo "📦 Phase 2: Installing Application Stack..."
+update_status "packages" "running" "Installing Node.js and Nginx"
 
 # Install Node.js 18.x
 echo "📦 Installing Node.js..."
 curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
 yum install -y nodejs git
+update_phase_status "packages" "completed" "Node.js installed"
 
 # Install Nginx
 echo "🌐 Installing Nginx..."
 amazon-linux-extras install -y nginx1
 systemctl enable nginx
+update_phase_status "nginx" "running" "Nginx installed, configuring..."
 
 # Create application directory with secure permissions
 echo "📁 Setting up application directory..."
+update_status "application" "running" "Creating application structure"
 mkdir -p /var/www/app
+mkdir -p /var/www/status
 chmod 755 /var/www/app
+chmod 755 /var/www/status
 cd /var/www/app
 
 # Create Node.js application
@@ -251,6 +300,7 @@ EOF
 
 cat > server.js << 'EOF'
 const express = require('express');
+const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
@@ -258,6 +308,25 @@ app.use(express.json());
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', deployment: '${deploymentName}', region: '${region}' });
+});
+
+app.get('/api/setup-status', (req, res) => {
+  try {
+    const statusFile = '/var/www/status/setup.json';
+    if (fs.existsSync(statusFile)) {
+      const status = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+      res.json(status);
+    } else {
+      res.json({ 
+        phase: 'complete',
+        status: 'success',
+        message: 'Setup completed',
+        timestamp: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read setup status' });
+  }
 });
 
 app.get('/', (req, res) => {
@@ -311,7 +380,9 @@ app.listen(PORT, () => console.log(\\\`Server running on port \${PORT}\\\`));
 EOF
 
 # Install dependencies
+echo "📦 Installing application dependencies..."
 npm install
+update_phase_status "application" "completed" "Application ready"
 
 # ============================================
 # PHASE 3: SECURE NGINX CONFIGURATION
@@ -426,6 +497,7 @@ EOF
 # ============================================
 echo ""
 echo "🚀 Phase 4: Starting Services..."
+update_status "services" "running" "Starting application and web server"
 
 systemctl daemon-reload
 systemctl enable app
@@ -437,8 +509,10 @@ sleep 5
 # Verify application is running
 if systemctl is-active --quiet app; then
     echo "✅ Application service started successfully"
+    update_phase_status "services" "completed" "Application service running"
 else
     echo "❌ Application service failed to start"
+    update_phase_status "services" "failed" "Application service failed to start"
     systemctl status app --no-pager
 fi
 
@@ -448,8 +522,10 @@ systemctl restart nginx
 # Verify Nginx is running
 if systemctl is-active --quiet nginx; then
     echo "✅ Nginx started successfully"
+    update_phase_status "nginx" "completed" "Nginx running"
 else
     echo "❌ Nginx failed to start"
+    update_phase_status "nginx" "failed" "Nginx failed to start"
     systemctl status nginx --no-pager
 fi
 
@@ -476,6 +552,24 @@ ss -tuln | grep LISTEN
 # ============================================
 echo ""
 echo "=== ✅ SECURE DEPLOYMENT COMPLETE ==="
+update_status "complete" "success" "All setup phases completed successfully"
+
+# Create final completion marker
+cat > /var/www/status/setup.json << 'FINALEOF'
+{
+  "phase": "complete",
+  "status": "success",
+  "message": "All setup phases completed successfully",
+  "timestamp": "$(date -Iseconds)",
+  "phases": {
+    "security": {"status": "completed", "message": "Security tools installed and configured"},
+    "packages": {"status": "completed", "message": "Node.js and system packages installed"},
+    "nginx": {"status": "completed", "message": "Nginx web server running"},
+    "application": {"status": "completed", "message": "Application deployed and running"},
+    "services": {"status": "completed", "message": "All services active"}
+  }
+}
+FINALEOF
 echo ""
 echo "📊 System Information:"
 echo "   Node.js: $(node --version)"

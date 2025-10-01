@@ -13,6 +13,20 @@ interface DeploymentStatusCardProps {
   };
 }
 
+interface SetupStatus {
+  phase: string;
+  status: string;
+  message: string;
+  timestamp: string;
+  phases?: {
+    security: { status: string; message: string };
+    packages: { status: string; message: string };
+    nginx: { status: string; message: string };
+    application: { status: string; message: string };
+    services: { status: string; message: string };
+  };
+}
+
 export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) {
   const [healthStatus, setHealthStatus] = useState<{
     http: 'checking' | 'online' | 'offline';
@@ -23,6 +37,32 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
     responseTime: null,
     lastChecked: null,
   });
+
+  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+
+  useEffect(() => {
+    const checkSetupStatus = async () => {
+      try {
+        const response = await fetch(`http://${deployment.ec2_public_ip}/api/setup-status`, {
+          mode: 'cors',
+          cache: 'no-cache',
+        });
+        if (response.ok) {
+          const status = await response.json();
+          setSetupStatus(status);
+        }
+      } catch (error) {
+        // Setup status not available yet - this is normal during initial deployment
+        console.log('Setup status not yet available');
+      }
+    };
+
+    // Check setup status more frequently initially
+    checkSetupStatus();
+    const interval = setInterval(checkSetupStatus, 10000); // Every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [deployment.ec2_public_ip]);
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -94,6 +134,22 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   const uptime = deployment.last_deployed_at 
     ? Math.floor((Date.now() - new Date(deployment.last_deployed_at).getTime()) / 1000 / 60)
     : 0;
+
+  const getPhaseIcon = (status: string) => {
+    if (status === 'completed') return '✓';
+    if (status === 'running') return '⏳';
+    if (status === 'failed') return '✗';
+    return '○';
+  };
+
+  const getPhaseColor = (status: string) => {
+    if (status === 'completed') return 'text-green-600 dark:text-green-400';
+    if (status === 'running') return 'text-yellow-600 dark:text-yellow-400';
+    if (status === 'failed') return 'text-red-600 dark:text-red-400';
+    return 'text-gray-400';
+  };
+
+  const isSetupInProgress = setupStatus && setupStatus.phase !== 'complete' && setupStatus.status !== 'success';
 
   return (
     <Card className="border-2">
@@ -307,7 +363,80 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
         </div>
 
         {/* Status Message */}
-        {healthStatus.http === 'offline' && (
+        {isSetupInProgress && (
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+              <Clock className="h-5 w-5 animate-spin" />
+              Application Setup In Progress
+            </h4>
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
+              Your EC2 instance is running, but the application setup (Nginx, Node.js, security tools) is in progress.
+            </p>
+            
+            {setupStatus?.phases && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-3">Installation Progress:</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded">
+                    <span className="text-sm flex items-center gap-2">
+                      <span className={getPhaseColor(setupStatus.phases.security.status)}>
+                        {getPhaseIcon(setupStatus.phases.security.status)}
+                      </span>
+                      Security Tools (Firewall, Fail2ban)
+                    </span>
+                    <span className="text-xs text-muted-foreground">{setupStatus.phases.security.message}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded">
+                    <span className="text-sm flex items-center gap-2">
+                      <span className={getPhaseColor(setupStatus.phases.packages.status)}>
+                        {getPhaseIcon(setupStatus.phases.packages.status)}
+                      </span>
+                      Node.js Runtime & Dependencies
+                    </span>
+                    <span className="text-xs text-muted-foreground">{setupStatus.phases.packages.message}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded">
+                    <span className="text-sm flex items-center gap-2">
+                      <span className={getPhaseColor(setupStatus.phases.nginx.status)}>
+                        {getPhaseIcon(setupStatus.phases.nginx.status)}
+                      </span>
+                      Nginx Web Server
+                    </span>
+                    <span className="text-xs text-muted-foreground">{setupStatus.phases.nginx.message}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded">
+                    <span className="text-sm flex items-center gap-2">
+                      <span className={getPhaseColor(setupStatus.phases.application.status)}>
+                        {getPhaseIcon(setupStatus.phases.application.status)}
+                      </span>
+                      Application Deployment
+                    </span>
+                    <span className="text-xs text-muted-foreground">{setupStatus.phases.application.message}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded">
+                    <span className="text-sm flex items-center gap-2">
+                      <span className={getPhaseColor(setupStatus.phases.services.status)}>
+                        {getPhaseIcon(setupStatus.phases.services.status)}
+                      </span>
+                      Service Startup & Verification
+                    </span>
+                    <span className="text-xs text-muted-foreground">{setupStatus.phases.services.message}</span>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-4">
+                  Last updated: {setupStatus.timestamp ? new Date(setupStatus.timestamp).toLocaleTimeString() : 'Unknown'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {healthStatus.http === 'offline' && !isSetupInProgress && (
           <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
             <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">⚠️ Unable to Connect</h4>
             <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
