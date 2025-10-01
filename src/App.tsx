@@ -75,6 +75,7 @@ import ProductionReadiness from "./pages/admin/ProductionReadiness";
 import RoleManagement from "./pages/admin/RoleManagement";
 import ModuleArchitecture from "./pages/admin/ModuleArchitecture";
 import LiveModuleStatus from "./pages/admin/LiveModuleStatus";
+import ModuleDetails from "./pages/admin/ModuleDetails";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -476,6 +477,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <LiveModuleStatus />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/module-details/:moduleId" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <ModuleDetails />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

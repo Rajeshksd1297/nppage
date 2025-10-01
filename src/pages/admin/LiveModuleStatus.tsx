@@ -689,12 +689,20 @@ export default function LiveModuleStatus() {
                         <span className="text-xs font-medium">Troubleshooting Steps:</span>
                       </div>
                       <div className="space-y-1">
-                        {module.troubleshootingSteps.map((step, idx) => (
+                        {module.troubleshootingSteps.slice(0, 3).map((step, idx) => (
                           <p key={idx} className="text-xs text-muted-foreground pl-2">
                             {step}
                           </p>
                         ))}
                       </div>
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="mt-2 h-auto p-0 text-xs"
+                        onClick={() => window.location.href = `/admin/module-details/${module.id}`}
+                      >
+                        View Full Details →
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -716,6 +724,7 @@ export default function LiveModuleStatus() {
                   <TableHead className="text-right">Records</TableHead>
                   <TableHead className="text-right">Errors</TableHead>
                   <TableHead>Last Update</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -771,14 +780,23 @@ export default function LiveModuleStatus() {
                         {module.details && (
                           <div className="text-xs text-muted-foreground">{module.details}</div>
                         )}
-                        {module.responseTime && (
-                          <div className="text-xs text-blue-600">⚡ {module.responseTime}ms</div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                    {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
-                      <TableRow className="bg-orange-50 dark:bg-orange-950/20">
-                        <TableCell colSpan={8} className="py-3">
+                      {module.responseTime && (
+                        <div className="text-xs text-blue-600">⚡ {module.responseTime}ms</div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => window.location.href = `/admin/module-details/${module.id}`}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  {module.troubleshootingSteps && module.troubleshootingSteps.length > 0 && (
+                    <TableRow className="bg-orange-50 dark:bg-orange-950/20">
+                      <TableCell colSpan={9} className="py-3">
                           <div className="flex items-start gap-2">
                             <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
