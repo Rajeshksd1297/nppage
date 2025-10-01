@@ -173,7 +173,7 @@ const HomePageEditor = ({ onBack, onSave }: HomePageEditorProps) => {
       enabled: true,
       order: 1,
       config: {
-        title: 'Welcome to NP Page',
+        title: 'Welcome to Go My Page',
         subtitle: 'Create professional author profiles and showcase your books',
         backgroundColor: 'gradient-to-br from-primary/5 to-primary/10',
         buttons: [
@@ -650,13 +650,13 @@ const HomePageEditor = ({ onBack, onSave }: HomePageEditorProps) => {
                   <div className="grid gap-4">
                     <div>
                       <Label htmlFor="site-title">Site Title</Label>
-                      <Input id="site-title" defaultValue="NP Page - Author Platform" />
+                      <Input id="site-title" defaultValue="Go My Page - Author Platform" />
                     </div>
                     <div>
                       <Label htmlFor="site-description">Meta Description</Label>
                       <Textarea 
                         id="site-description" 
-                        defaultValue="Create professional author profiles and showcase your books with NP Page"
+                        defaultValue="Create professional author profiles and showcase your books with Go My Page"
                       />
                     </div>
                   </div>
