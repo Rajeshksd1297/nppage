@@ -15,7 +15,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Loader2
+  Loader2,
+  Package,
+  Shield,
+  Globe,
+  Database,
+  Settings
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -29,6 +34,13 @@ interface ComponentStatus {
   name: string;
   status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
   message: string;
+}
+
+interface DeploymentStep {
+  name: string;
+  status: 'complete' | 'in_progress' | 'pending' | 'failed';
+  message: string;
+  icon: any;
 }
 
 interface InstanceHealth {
@@ -51,6 +63,114 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
     d.ec2_instance_id && 
     d.ec2_public_ip
   ) || [];
+
+  const pendingDeployments = deployments?.filter(d => 
+    d.status === 'pending'
+  ) || [];
+
+  // Parse deployment log to extract component status
+  const parseDeploymentSteps = (log: string): DeploymentStep[] => {
+    const steps: DeploymentStep[] = [
+      {
+        name: 'EC2 Instance',
+        status: 'pending',
+        message: 'Waiting to start',
+        icon: Server
+      },
+      {
+        name: 'Security Configuration',
+        status: 'pending',
+        message: 'Pending',
+        icon: Shield
+      },
+      {
+        name: 'HTTP Access',
+        status: 'pending',
+        message: 'Pending',
+        icon: Globe
+      },
+      {
+        name: 'Application Setup',
+        status: 'pending',
+        message: 'Pending',
+        icon: Package
+      },
+      {
+        name: 'Database Migration',
+        status: 'pending',
+        message: 'Pending',
+        icon: Database
+      }
+    ];
+
+    if (!log) return steps;
+
+    // EC2 Instance
+    if (log.includes('✓ Instance created successfully') || log.includes('✓ Instance found')) {
+      steps[0].status = 'complete';
+      steps[0].message = log.includes('Instance found') ? 'Existing instance found' : 'Instance created';
+    } else if (log.includes('Launching EC2 Instance') || log.includes('Using Existing EC2 Instance')) {
+      steps[0].status = 'in_progress';
+      steps[0].message = 'Setting up instance...';
+    }
+
+    // Security Configuration
+    if (log.includes('Secure Deployment Configuration') || log.includes('Security Features')) {
+      steps[1].status = 'complete';
+      steps[1].message = 'Security configured';
+    } else if (steps[0].status === 'complete') {
+      steps[1].status = 'in_progress';
+      steps[1].message = 'Configuring security...';
+    }
+
+    // HTTP Access
+    if (log.includes('HTTP port 80 automatically configured') || log.includes('✓ Your website is now accessible')) {
+      steps[2].status = 'complete';
+      steps[2].message = 'HTTP access enabled';
+    } else if (log.includes('Auto-Configuring HTTP Access')) {
+      steps[2].status = 'in_progress';
+      steps[2].message = 'Enabling HTTP access...';
+    } else if (steps[1].status === 'complete') {
+      steps[2].status = 'in_progress';
+      steps[2].message = 'Setting up web access...';
+    }
+
+    // Application Setup
+    if (log.includes('Application Stack:') || log.includes('Express.js application')) {
+      steps[3].status = 'complete';
+      steps[3].message = 'Application configured';
+    } else if (log.includes('installing:') || log.includes('setup time:')) {
+      steps[3].status = 'in_progress';
+      steps[3].message = 'Installing application...';
+    } else if (steps[2].status === 'complete') {
+      steps[3].status = 'in_progress';
+      steps[3].message = 'Setting up application...';
+    }
+
+    // Database Migration
+    if (log.includes('✓ Database initialization: Enabled') || log.includes('✓ Database migrations: Enabled')) {
+      steps[4].status = 'complete';
+      steps[4].message = 'Database ready';
+    } else if (log.includes('Database') && !log.includes('Pending')) {
+      steps[4].status = 'in_progress';
+      steps[4].message = 'Running migrations...';
+    } else if (steps[3].status === 'complete') {
+      steps[4].status = 'in_progress';
+      steps[4].message = 'Initializing database...';
+    }
+
+    // Check for failures
+    if (log.includes('❌') || log.includes('failed') || log.includes('error')) {
+      steps.forEach(step => {
+        if (step.status === 'in_progress') {
+          step.status = 'failed';
+          step.message = 'Failed';
+        }
+      });
+    }
+
+    return steps;
+  };
 
   const checkInstanceHealth = async (deployment: any) => {
     const instanceId = deployment.ec2_instance_id;
@@ -257,6 +377,116 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
 
   return (
     <div className="space-y-4">
+      {/* Pending Deployments with Process Status */}
+      {pendingDeployments.length > 0 && (
+        <div className="space-y-4">
+          {pendingDeployments.map((deployment) => {
+            const steps = parseDeploymentSteps(deployment.deployment_log || '');
+            const completedSteps = steps.filter(s => s.status === 'complete').length;
+            const totalSteps = steps.length;
+            const progressPercent = (completedSteps / totalSteps) * 100;
+
+            return (
+              <Card key={deployment.id} className="border-2 border-blue-500/50 bg-blue-50/20 dark:bg-blue-950/20">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                      <div>
+                        <CardTitle className="text-lg">{deployment.deployment_name}</CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Deployment in progress • {deployment.region}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="border-blue-500 text-blue-600">
+                      Deploying
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Overall Progress */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="font-medium">Deployment Progress</span>
+                      <span className="text-muted-foreground">
+                        {completedSteps} of {totalSteps} steps complete
+                      </span>
+                    </div>
+                    <Progress value={progressPercent} className="h-2" />
+                  </div>
+
+                  {/* Component-wise Status */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Deployment Steps
+                    </h4>
+                    
+                    {steps.map((step, idx) => {
+                      const StepIcon = step.icon;
+                      return (
+                        <div 
+                          key={idx}
+                          className="flex items-center justify-between p-3 rounded-lg border"
+                          style={{
+                            backgroundColor: 
+                              step.status === 'complete' ? 'rgba(34, 197, 94, 0.05)' :
+                              step.status === 'in_progress' ? 'rgba(59, 130, 246, 0.05)' :
+                              step.status === 'failed' ? 'rgba(239, 68, 68, 0.05)' :
+                              'rgba(148, 163, 184, 0.03)',
+                            borderColor:
+                              step.status === 'complete' ? 'rgba(34, 197, 94, 0.2)' :
+                              step.status === 'in_progress' ? 'rgba(59, 130, 246, 0.2)' :
+                              step.status === 'failed' ? 'rgba(239, 68, 68, 0.2)' :
+                              'rgba(148, 163, 184, 0.1)'
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            {step.status === 'complete' ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : step.status === 'in_progress' ? (
+                              <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                            ) : step.status === 'failed' ? (
+                              <XCircle className="h-5 w-5 text-red-500" />
+                            ) : (
+                              <StepIcon className="h-5 w-5 text-muted-foreground" />
+                            )}
+                            <div>
+                              <p className="text-sm font-medium">{step.name}</p>
+                              <p className="text-xs text-muted-foreground">{step.message}</p>
+                            </div>
+                          </div>
+                          <Badge 
+                            variant={
+                              step.status === 'complete' ? 'default' :
+                              step.status === 'in_progress' ? 'secondary' :
+                              step.status === 'failed' ? 'destructive' :
+                              'outline'
+                            }
+                            className="capitalize"
+                          >
+                            {step.status === 'in_progress' ? 'In Progress' : step.status}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Estimated Time */}
+                  <div className="mt-4 p-3 bg-muted rounded-lg flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      Estimated completion time: 3-5 minutes
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       {/* Summary Dashboard */}
       <Card className="border-2">
         <CardHeader>
