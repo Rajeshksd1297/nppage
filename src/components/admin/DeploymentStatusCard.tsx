@@ -232,9 +232,16 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
 
   const isSetupInProgress = setupStatus && setupStatus.phase !== 'complete' && setupStatus.status !== 'success';
 
-  // Don't render anything if instance is terminated
-  if (awsStatus?.status?.state === 'terminated') {
-    return null;
+  // Don't render if instance is terminated, not found, or had an error checking status
+  if (awsStatus) {
+    // Instance is terminated
+    if (awsStatus.status?.state === 'terminated') {
+      return null;
+    }
+    // AWS returned an error (instance not found, deleted, etc.)
+    if (!awsStatus.success) {
+      return null;
+    }
   }
 
   // Show minimal loading state while checking status
