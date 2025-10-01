@@ -328,7 +328,7 @@ export default function RoleManagement() {
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Current Role</TableHead>
-                  <TableHead>Change Role</TableHead>
+                  <TableHead>Manage Role</TableHead>
                   <TableHead>Joined</TableHead>
                 </TableRow>
               </TableHeader>
@@ -377,18 +377,18 @@ export default function RoleManagement() {
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedModerator(user.id)}
+                                variant="ghost"
+                                size="icon"
+                                title="Configure Permissions"
                               >
                                 <Settings className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>Moderator Permissions - {user.full_name}</DialogTitle>
                                 <DialogDescription>
-                                  Configure what features this moderator can access and manage
+                                  Configure which features this moderator can view, create, edit, delete, or approve
                                 </DialogDescription>
                               </DialogHeader>
                               <ModeratorPermissionsEditor userId={user.id} />
@@ -453,6 +453,7 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
         description: 'Permission updated successfully',
       });
     } catch (error) {
+      console.error('Permission update error:', error);
       toast({
         title: 'Error',
         description: 'Failed to update permission',
@@ -472,20 +473,30 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading permissions...</div>;
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          Configure granular permissions for each feature. Toggle switches to enable/disable specific actions.
+        </p>
+      </div>
+      
       {AVAILABLE_FEATURES.map((feature) => {
         const perm = getPermission(feature.value);
         return (
-          <Card key={feature.value}>
-            <CardHeader>
-              <CardTitle className="text-base">{feature.label}</CardTitle>
+          <Card key={feature.value} className="border-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold">{feature.label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 <div className="flex items-center space-x-2">
                   <Switch
                     id={`${feature.value}-view`}
@@ -494,7 +505,9 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
                       handlePermissionToggle(feature.value, 'can_view', value)
                     }
                   />
-                  <Label htmlFor={`${feature.value}-view`}>View</Label>
+                  <Label htmlFor={`${feature.value}-view`} className="text-sm cursor-pointer">
+                    View
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -504,7 +517,9 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
                       handlePermissionToggle(feature.value, 'can_create', value)
                     }
                   />
-                  <Label htmlFor={`${feature.value}-create`}>Create</Label>
+                  <Label htmlFor={`${feature.value}-create`} className="text-sm cursor-pointer">
+                    Create
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -514,7 +529,9 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
                       handlePermissionToggle(feature.value, 'can_edit', value)
                     }
                   />
-                  <Label htmlFor={`${feature.value}-edit`}>Edit</Label>
+                  <Label htmlFor={`${feature.value}-edit`} className="text-sm cursor-pointer">
+                    Edit
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -524,7 +541,9 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
                       handlePermissionToggle(feature.value, 'can_delete', value)
                     }
                   />
-                  <Label htmlFor={`${feature.value}-delete`}>Delete</Label>
+                  <Label htmlFor={`${feature.value}-delete`} className="text-sm cursor-pointer">
+                    Delete
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -534,7 +553,9 @@ function ModeratorPermissionsEditor({ userId }: { userId: string }) {
                       handlePermissionToggle(feature.value, 'can_approve', value)
                     }
                   />
-                  <Label htmlFor={`${feature.value}-approve`}>Approve</Label>
+                  <Label htmlFor={`${feature.value}-approve`} className="text-sm cursor-pointer">
+                    Approve
+                  </Label>
                 </div>
               </div>
             </CardContent>
