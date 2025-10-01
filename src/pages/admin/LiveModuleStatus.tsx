@@ -614,8 +614,9 @@ export default function LiveModuleStatus() {
 
       {/* Tabs */}
       <Tabs defaultValue="modules" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-3xl grid-cols-3">
           <TabsTrigger value="modules">Module Status</TabsTrigger>
+          <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
           <TabsTrigger value="structure">Website Structure</TabsTrigger>
         </TabsList>
 
