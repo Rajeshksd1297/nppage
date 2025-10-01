@@ -711,85 +711,69 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                   } else if (!isNewDeployment && hasWebServerIssue) {
                     const isFixing = fixingHttp.has(deployment.ec2_instance_id);
                     
+                    // Calculate time since deployment
+                    const deploymentAge = deployment.created_at ? 
+                      (Date.now() - new Date(deployment.created_at).getTime()) / 1000 / 60 : 999;
+                    const estimatedProgress = Math.min(100, Math.round((deploymentAge / 5) * 100));
+                    
                     return (
-                      <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
                           <div className="flex-1">
-                            <h5 className="font-semibold text-red-900 dark:text-red-100 mb-1">
-                              Web Server Not Responding
+                            <h5 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                              Web Server Setup Still In Progress
                             </h5>
-                            <p className="text-sm text-red-700 dark:text-red-300 mb-2">
-                              Connection refused - Nginx may not be installed or running on the instance.
+                            <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                              Connection refused - the automated setup script is still installing Nginx, Node.js, and your application.
                             </p>
-                            <div className="text-xs text-red-600 dark:text-red-400 space-y-1 mb-3">
-                              <p><strong>Possible Issues:</strong></p>
-                              <p>• Nginx not installed or not running</p>
-                              <p>• Application not deployed correctly</p>
-                              <p>• Port 80 not configured in Nginx</p>
+                            
+                            {/* Progress Indicator */}
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <span className="font-medium text-amber-900 dark:text-amber-100">
+                                  Estimated Setup Progress
+                                </span>
+                                <span className="text-amber-600 dark:text-amber-400">
+                                  {Math.round(deploymentAge * 10) / 10} / 5 min
+                                </span>
+                              </div>
+                              <Progress value={estimatedProgress} className="h-2" />
                             </div>
+
+                            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-2 mb-3">
+                              <p><strong>What's Happening Now:</strong></p>
+                              <ul className="list-disc list-inside space-y-1">
+                                {deploymentAge < 1 && <li>Starting instance initialization...</li>}
+                                {deploymentAge >= 1 && deploymentAge < 2 && <li>Updating system packages (apt-get update)...</li>}
+                                {deploymentAge >= 2 && deploymentAge < 3 && <li>Installing Nginx web server...</li>}
+                                {deploymentAge >= 3 && deploymentAge < 4 && <li>Installing Node.js 18.x runtime...</li>}
+                                {deploymentAge >= 4 && deploymentAge < 5 && <li>Configuring security (Fail2ban, firewall, rate limiting)...</li>}
+                                {deploymentAge >= 5 && <li>Setup should be complete. Checking status...</li>}
+                              </ul>
+                              
+                              {deploymentAge < 5 && (
+                                <p className="mt-2 font-medium">
+                                  ⏱️ Please wait approximately {Math.ceil(5 - deploymentAge)} more minute(s)...
+                                </p>
+                              )}
+                              
+                              {deploymentAge >= 5 && (
+                                <p className="mt-2 font-medium text-red-600 dark:text-red-400">
+                                  ⚠️ Setup time exceeded. There may be an issue.
+                                </p>
+                              )}
+                            </div>
+                            
                             <div className="flex gap-2">
                               <Button
-                                variant="default"
+                                variant="outline"
                                 size="sm"
                                 className="text-xs"
-                                disabled={isFixing}
-                                onClick={async () => {
-                                  setFixingHttp(prev => new Set(prev).add(deployment.ec2_instance_id));
-                                  try {
-                                    toast.info('Checking setup progress...');
-                                    
-                                    const { data, error } = await supabase.functions.invoke('aws-ssh-diagnostic', {
-                                      body: {
-                                        instanceId: deployment.ec2_instance_id,
-                                        region: deployment.region,
-                                      },
-                                    });
-
-                                    if (error) throw error;
-
-                                    if (data.success) {
-                                      const diag = data.diagnostics;
-                                      
-                                      if (diag.setupComplete) {
-                                        toast.success('Setup is complete! Checking status...');
-                                        setTimeout(() => checkInstanceHealth(deployment), 2000);
-                                      } else if (diag.setupStarted) {
-                                        toast.info(`Setup in progress: ${diag.currentStep} (${diag.progressPercent}%)`);
-                                      } else {
-                                        toast.warning('Setup has not started yet. Please wait a few more minutes.');
-                                      }
-
-                                      if (diag.errors.length > 0) {
-                                        console.error('Setup errors:', diag.errors);
-                                        toast.error(`Setup errors detected: ${diag.errors[0]}`);
-                                      }
-                                    } else {
-                                      throw new Error(data.error || 'Diagnostic failed');
-                                    }
-                                  } catch (error: any) {
-                                    console.error('Diagnostic error:', error);
-                                    toast.error(error.message || 'Failed to check setup progress');
-                                  } finally {
-                                    setFixingHttp(prev => {
-                                      const next = new Set(prev);
-                                      next.delete(deployment.ec2_instance_id);
-                                      return next;
-                                    });
-                                  }
-                                }}
+                                onClick={() => checkInstanceHealth(deployment)}
                               >
-                                {isFixing ? (
-                                  <>
-                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                    Checking...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Wrench className="h-3 w-3 mr-1" />
-                                    Check Setup Progress
-                                  </>
-                                )}
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Refresh Status
                               </Button>
                               <Button
                                 variant="outline"
@@ -801,7 +785,7 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 )}
                               >
                                 <ExternalLink className="h-3 w-3 mr-1" />
-                                AWS Console
+                                View in AWS Console
                               </Button>
                             </div>
                           </div>
