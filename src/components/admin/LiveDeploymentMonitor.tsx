@@ -403,8 +403,104 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
     return acc;
   }, {} as Record<string, number>);
 
+  // Check if any deployment has HTTP issues
+  const hasHttpIssues = activeDeployments.some(d => {
+    const health = healthStatuses.get(d.ec2_instance_id);
+    return health && !health.httpAccessible;
+  });
+
   return (
     <div className="space-y-4">
+      {/* Security Group Troubleshooting Alert */}
+      {hasHttpIssues && activeDeployments.length > 0 && (
+        <Card className="border-2 border-red-500 bg-red-50 dark:bg-red-950/20">
+          <CardHeader>
+            <CardTitle className="text-red-900 dark:text-red-100 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              🔧 Connection Timeout? Fix Security Group
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-red-800 dark:text-red-200">
+              Your instance is <strong>running</strong> but not accessible from your browser. This is a <strong>firewall/security group</strong> issue.
+            </p>
+            
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-red-200 dark:border-red-800">
+              <h4 className="font-semibold text-red-900 dark:text-red-100 mb-3">Step-by-Step Fix:</h4>
+              <ol className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">1.</span>
+                  <span>Go to <strong>AWS Console</strong> → <strong>EC2</strong> → <strong>Instances</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">2.</span>
+                  <span>Click your instance → <strong>Security</strong> tab → Click security group name</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">3.</span>
+                  <span>Click <strong>"Edit inbound rules"</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">4.</span>
+                  <div className="flex-1">
+                    <span className="block mb-1">Add this rule if missing:</span>
+                    <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono text-xs">
+                      Type: <strong>HTTP</strong><br/>
+                      Protocol: <strong>TCP</strong><br/>
+                      Port: <strong>80</strong><br/>
+                      Source: <strong>0.0.0.0/0</strong> (Anywhere IPv4)<br/>
+                      Description: <strong>Allow HTTP traffic</strong>
+                    </div>
+                  </div>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">5.</span>
+                  <span>Click <strong>"Save rules"</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-red-600">6.</span>
+                  <span>Wait 10-20 seconds, then try accessing: <strong>http://{activeDeployments[0]?.ec2_public_ip}</strong></span>
+                </li>
+              </ol>
+            </div>
+
+            <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <div className="text-xs text-amber-900 dark:text-amber-100">
+                <strong>Common mistake:</strong> Make sure the source is <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded">0.0.0.0/0</code>, not your specific IP. This allows access from anywhere.
+              </div>
+            </div>
+
+            {activeDeployments.length > 0 && (
+              <div className="pt-3 border-t">
+                <p className="text-xs text-muted-foreground mb-2">Quick Links:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(
+                      `https://console.aws.amazon.com/ec2/home?region=${activeDeployments[0].region}#Instances:instanceId=${activeDeployments[0].ec2_instance_id}`,
+                      '_blank'
+                    )}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    AWS Console
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`http://${activeDeployments[0].ec2_public_ip}`, '_blank')}
+                  >
+                    <Globe className="h-3 w-3 mr-1" />
+                    Test Website
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Deployments with Process Status */}
       {pendingDeployments.length > 0 && (
         <div className="space-y-4">
