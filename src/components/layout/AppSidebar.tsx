@@ -298,29 +298,6 @@ export function AppSidebar() {
           </div>
         )}
 
-        {/* Publisher Dashboard - Special access */}
-        {!isAdmin && isPublisher && (
-          <SidebarGroup>
-            <SidebarGroupLabel>
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Publisher
-              </div>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/publisher-dashboard" className={getNavCls}>
-                      <Building2 className="h-4 w-4" />
-                      {!collapsed && <span>Publisher Dashboard</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
 
         {/* Main Features */}
         {!isAdmin && (
@@ -423,6 +400,26 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                {/* Publisher Dashboard */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={isPublisher ? '/publisher-dashboard' : '/subscription'} 
+                      className={`${getNavCls} ${!isPublisher ? 'opacity-60' : ''}`}
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        <Building2 className="h-4 w-4" />
+                        {!collapsed && (
+                          <div className="flex items-center justify-between flex-1">
+                            <span>Publisher Dashboard</span>
+                            {!isPublisher && <Lock className="w-3 h-3 text-muted-foreground" />}
+                          </div>
+                        )}
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
                 {proItems.map((item) => {
                   const canAccess = hasFeature(item.feature as any);
                   return (
