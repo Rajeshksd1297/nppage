@@ -983,6 +983,77 @@ export default function AWSDeployment() {
                             </pre>
                           </details>
                         )}
+                        
+                        {/* Security Group Configuration Alert */}
+                        {getDeploymentStatus(deployment) === 'running' && deployment.ec2_public_ip && (
+                          <div className="mt-4 p-4 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                            <div className="flex gap-3">
+                              <div className="flex-shrink-0">
+                                <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center">
+                                  <span className="text-white text-lg">⚠️</span>
+                                </div>
+                              </div>
+                              <div className="flex-1 space-y-3">
+                                <div>
+                                  <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                                    Configure AWS Security Group to Access Your Site
+                                  </h4>
+                                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                                    Your EC2 instance is running but AWS Security Group is blocking HTTP traffic.
+                                  </p>
+                                </div>
+                                
+                                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
+                                  <div className="font-semibold text-amber-900 dark:text-amber-100">
+                                    Follow these steps in AWS Console:
+                                  </div>
+                                  <ol className="list-decimal list-inside space-y-1.5 text-amber-800 dark:text-amber-200">
+                                    <li>Go to <strong>EC2 Dashboard</strong> → <strong>Instances</strong></li>
+                                    <li>Select instance: <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded font-mono">{deployment.ec2_instance_id}</code></li>
+                                    <li>Click <strong>Security</strong> tab → Click the Security Group name</li>
+                                    <li>Click <strong>Edit inbound rules</strong> → <strong>Add rule</strong></li>
+                                    <li>Configure:
+                                      <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
+                                        <li><strong>Type:</strong> HTTP</li>
+                                        <li><strong>Port:</strong> 80</li>
+                                        <li><strong>Source:</strong> 0.0.0.0/0 (Anywhere)</li>
+                                      </ul>
+                                    </li>
+                                    <li>Click <strong>Save rules</strong></li>
+                                    <li>Wait 30 seconds, then test your site</li>
+                                  </ol>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs"
+                                    asChild
+                                  >
+                                    <a
+                                      href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <ExternalLink className="h-3 w-3 mr-1" />
+                                      Open in AWS Console
+                                    </a>
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs"
+                                    onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}
+                                  >
+                                    <ExternalLink className="h-3 w-3 mr-1" />
+                                    Test Connection
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
