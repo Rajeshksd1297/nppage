@@ -604,346 +604,75 @@ export default function AWSDeployment() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Active Deployments</CardTitle>
-                  <CardDescription>
-                    View and manage your EC2 instances
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({
-                queryKey: ["aws-deployments"]
-              })} disabled={isLoading}>
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  <span className="ml-2">Refresh</span>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {deployments && deployments.length > 0 ? <div className="space-y-4">
-                  {deployments.map(deployment => <Card key={deployment.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Server className="h-4 w-4" />
-                              <h3 className="font-semibold">{deployment.deployment_name}</h3>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              Region: {deployment.region}
-                            </p>
-                            {deployment.ec2_instance_id && <p className="text-sm text-muted-foreground">
-                                Instance: {deployment.ec2_instance_id}
-                              </p>}
-                            {deployment.ec2_public_ip && <div className="flex items-center gap-2">
-                                <a href={`http://${deployment.ec2_public_ip}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
-                                  {deployment.ec2_public_ip}
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              </div>}
-                          </div>
-                          <div className="text-right">
-                            {(() => {
-                        const actualStatus = getDeploymentStatus(deployment);
-                        const displayStatus = getStatusDisplay(actualStatus);
-                        return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${actualStatus === "running" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : actualStatus === "pending" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100" : actualStatus === "failed" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"}`}>
-                                  {displayStatus}
-                                </span>;
-                      })()}
-                            {deployment.last_deployed_at && <p className="text-xs text-muted-foreground mt-1">
-                                {new Date(deployment.last_deployed_at).toLocaleString()}
-                              </p>}
-                          </div>
-                        </div>
-
-                        {/* Progress Bar with Percentage */}
-                        {(() => {
-                    const log = deployment.deployment_log || '';
-                    const actualStatus = getDeploymentStatus(deployment);
-                    const displayStatus = getStatusDisplay(actualStatus);
-
-                    // Calculate progress percentage based on status and logs
-                    let progress = 0;
-                    let statusText = '';
-                    let estimatedTime = '';
-                    if (actualStatus === 'running') {
-                      progress = 100;
-                      statusText = 'Completed';
-                    } else if (actualStatus === 'failed') {
-                      progress = 0;
-                      statusText = 'Failed';
-                    } else {
-                      // Count completed steps from logs
-                      const completedSteps = (log.match(/✓/g) || []).length;
-                      const totalExpectedSteps = 8; // Typical deployment has ~8 steps
-
-                      // Calculate progress
-                      progress = Math.min(95, completedSteps / totalExpectedSteps * 100);
-
-                      // Extract timestamps for time estimation
-                      const startMatch = log.match(/Deployment Creation Started: (.+)/);
-                      if (startMatch) {
-                        const startTime = new Date(startMatch[1]);
-                        const now = new Date();
-                        const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-                        if (progress > 0) {
-                          const estimatedTotalSeconds = elapsedSeconds / progress * 100;
-                          const remainingSeconds = Math.max(0, estimatedTotalSeconds - elapsedSeconds);
-                          const formatTime = (seconds: number) => {
-                            if (seconds < 60) return `${Math.floor(seconds)}s`;
-                            const mins = Math.floor(seconds / 60);
-                            const secs = Math.floor(seconds % 60);
-                            return `${mins}m ${secs}s`;
-                          };
-                          statusText = `${Math.floor(progress)}% complete`;
-                          estimatedTime = `~${formatTime(remainingSeconds)} remaining`;
-                        } else {
-                          statusText = 'Starting...';
-                          estimatedTime = `${elapsedSeconds}s elapsed`;
+          {deployments && deployments.length > 0 && (
+            <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Server className="h-5 w-5" />
+                      Previous Deployments Detected
+                    </CardTitle>
+                    <CardDescription>
+                      {deployments.length} old deployment{deployments.length > 1 ? 's' : ''} found. View in Status Check tab or clear to start fresh.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to clear all old deployment records? This will not delete your EC2 instances, only remove them from this dashboard.')) {
+                        try {
+                          const { error } = await supabase
+                            .from('aws_deployments')
+                            .delete()
+                            .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+                          
+                          if (error) throw error;
+                          
+                          toast({
+                            title: "Deployments Cleared",
+                            description: "All old deployment records have been removed."
+                          });
+                          
+                          queryClient.invalidateQueries({ queryKey: ["aws-deployments"] });
+                        } catch (error: any) {
+                          toast({
+                            title: "Clear Failed",
+                            description: error.message,
+                            variant: "destructive"
+                          });
                         }
-                      } else {
-                        statusText = 'Initializing...';
                       }
-                    }
-                    return <div className="mt-4 space-y-2">
-                              <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                  {actualStatus === 'pending' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
-                                  <span className="font-medium">{statusText}</span>
-                                </div>
-                                {estimatedTime && actualStatus === 'pending' && <div className="flex items-center gap-1 text-muted-foreground">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    <span className="text-xs">{estimatedTime}</span>
-                                  </div>}
-                              </div>
-                              <Progress value={progress} className={actualStatus === 'failed' ? 'bg-destructive/20' : ''} />
-                            </div>;
-                  })()}
-
-                        {/* Deployment Progress Report */}
-                        {deployment.deployment_log && (() => {
-                    const log = deployment.deployment_log;
-
-                    // Extract timestamps
-                    const startMatch = log.match(/Deployment Creation Started: (.+)/);
-                    const completeMatch = log.match(/Deployment completed at: (.+)/);
-                    const startTime = startMatch ? new Date(startMatch[1]) : null;
-                    const endTime = completeMatch ? new Date(completeMatch[1]) : null;
-
-                    // Calculate duration
-                    let duration = '';
-                    if (startTime && endTime) {
-                      const diff = endTime.getTime() - startTime.getTime();
-                      const seconds = Math.floor(diff / 1000);
-                      duration = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-                    }
-
-                    // Extract completed steps
-                    const completedSteps = log.split('\n').filter(line => line.trim().startsWith('✓')).map(line => line.trim().substring(2));
-
-                    // Extract deployment type and configuration
-                    const deployTypeMatch = log.match(/Deployment Type: (.+)/);
-                    const deployType = deployTypeMatch ? deployTypeMatch[1] : 'Unknown';
-                    return <div className="mt-3 border-t pt-3 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-semibold flex items-center gap-2">
-                                  <Server className="h-4 w-4 text-primary" />
-                                  Deployment Progress Report
-                                </h4>
-                                {duration && <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                                    {duration}
-                                  </span>}
-                              </div>
-
-                              {/* Timeline */}
-                              <div className="grid grid-cols-2 gap-3 text-xs bg-muted/50 p-3 rounded-lg">
-                                <div>
-                                  <div className="text-muted-foreground mb-1">Started</div>
-                                  <div className="font-mono font-medium">
-                                    {startTime ? startTime.toLocaleTimeString() : 'N/A'}
-                                  </div>
-                                </div>
-                                <div>
-                                  <div className="text-muted-foreground mb-1">
-                                    {getDeploymentStatus(deployment) === 'running' ? 'Completed' : 'Status'}
-                                  </div>
-                                  <div className="font-mono font-medium capitalize">
-                                    {endTime ? endTime.toLocaleTimeString() : getStatusDisplay(getDeploymentStatus(deployment))}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Deployment Type */}
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Type:</span>{" "}
-                                <span className="font-medium">{deployType}</span>
-                              </div>
-
-                              {/* Completed Steps */}
-                              {completedSteps.length > 0 && <div className="space-y-2">
-                                  <div className="text-xs font-semibold text-green-700 dark:text-green-400 flex items-center gap-1">
-                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                    Completed ({completedSteps.length} steps)
-                                  </div>
-                                  <div className="space-y-1 pl-5">
-                                    {completedSteps.slice(0, 6).map((step, idx) => <div key={idx} className="text-xs flex items-start gap-2 text-muted-foreground">
-                                        <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                                        <span>{step}</span>
-                                      </div>)}
-                                    {completedSteps.length > 6 && <div className="text-xs text-muted-foreground pl-5">
-                                        + {completedSteps.length - 6} more completed
-                                      </div>}
-                                  </div>
-                                </div>}
-
-                              {/* Pending Items */}
-                              {getDeploymentStatus(deployment) === 'pending' && <div className="space-y-2 border-t pt-2">
-                                  <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Deploying
-                                  </div>
-                                  <div className="space-y-1 pl-5">
-                                    <div className="text-xs flex items-start gap-2 text-muted-foreground">
-                                      <Circle className="h-3 w-3 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                                      <span>Waiting for instance initialization...</span>
-                                    </div>
-                                    <div className="text-xs flex items-start gap-2 text-muted-foreground">
-                                      <Circle className="h-3 w-3 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                                      <span>Finalizing network configuration</span>
-                                    </div>
-                                  </div>
-                                </div>}
-                            </div>;
-                  })()}
-
-                        {/* Full Deployment Log */}
-                        {deployment.deployment_log && <details className="mt-3">
-                            <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">
-                              View Full Deployment Log
-                            </summary>
-                            <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-96">
-                              {deployment.deployment_log}
-                            </pre>
-                          </details>}
-                        
-                        {/* Application Setup Status Alert */}
-                        {getDeploymentStatus(deployment) === 'running' && deployment.ec2_public_ip && (() => {
-                    const deployedAt = new Date(deployment.last_deployed_at || deployment.created_at);
-                    const now = new Date();
-                    const elapsedMinutes = Math.floor((now.getTime() - deployedAt.getTime()) / 60000);
-                    const setupTimeMinutes = 5; // 3-5 minutes typical setup time
-                    const isSetupComplete = elapsedMinutes >= setupTimeMinutes;
-                    return <div className={`mt-4 p-4 border-2 rounded-lg ${isSetupComplete ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-blue-500 bg-blue-50 dark:bg-blue-950'}`}>
-                              <div className="flex gap-3">
-                                <div className="flex-shrink-0">
-                                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isSetupComplete ? 'bg-green-500' : 'bg-blue-500'}`}>
-                                    {isSetupComplete ? <CheckCircle2 className="h-5 w-5 text-white" /> : <Clock className="h-5 w-5 text-white" />}
-                                  </div>
-                                </div>
-                                <div className="flex-1 space-y-3">
-                                  <div>
-                                    <h4 className={`text-sm font-semibold mb-1 ${isSetupComplete ? 'text-green-900 dark:text-green-100' : 'text-blue-900 dark:text-blue-100'}`}>
-                                      {isSetupComplete ? 'Application Setup Should Be Complete' : `Application Setup In Progress (${elapsedMinutes}/${setupTimeMinutes} min)`}
-                                    </h4>
-                                    <p className={`text-xs ${isSetupComplete ? 'text-green-800 dark:text-green-200' : 'text-blue-800 dark:text-blue-200'}`}>
-                                      {isSetupComplete ? 'The EC2 instance has been running long enough for setup to complete. Your application should be accessible now.' : 'Your EC2 instance is running, but the application setup (Nginx, Node.js, security tools) takes 3-5 minutes to complete.'}
-                                    </p>
-                                  </div>
-                                  
-                                  {!isSetupComplete && <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
-                                      <div className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        Setup Progress
-                                      </div>
-                                      <div className="space-y-1 text-blue-800 dark:text-blue-200">
-                                        <div className="flex items-center gap-2">
-                                          <CheckCircle2 className="h-3 w-3 text-green-600" />
-                                          <span>EC2 instance launched and running</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                                          <span>Installing Nginx web server...</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                                          <span>Installing Node.js runtime...</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                                          <span>Configuring security (firewall, fail2ban)...</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                                          <span>Starting application services...</span>
-                                        </div>
-                                      </div>
-                                      <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
-                                        <div className="text-blue-800 dark:text-blue-200">
-                                          <strong>Estimated completion:</strong> {setupTimeMinutes - elapsedMinutes} minute(s) remaining
-                                        </div>
-                                      </div>
-                                    </div>}
-                                  
-                                  <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
-                                    <div className="font-semibold text-gray-900 dark:text-gray-100">
-                                      AWS Security Group Configuration:
-                                    </div>
-                                    <ol className="list-decimal list-inside space-y-1.5 text-gray-700 dark:text-gray-300">
-                                      <li>Go to <strong>EC2 Dashboard</strong> → <strong>Instances</strong></li>
-                                      <li>Select instance: <code className="bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">{deployment.ec2_instance_id}</code></li>
-                                      <li>Click <strong>Security</strong> tab → Click the Security Group name</li>
-                                      <li>Click <strong>Edit inbound rules</strong> → <strong>Add rule</strong> (if not already added):
-                                        <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5">
-                                          <li><strong>Type:</strong> HTTP</li>
-                                          <li><strong>Port:</strong> 80</li>
-                                          <li><strong>Source:</strong> 0.0.0.0/0 (Anywhere)</li>
-                                        </ul>
-                                      </li>
-                                      <li>Click <strong>Save rules</strong></li>
-                                    </ol>
-                                    
-                                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800">
-                                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                                        Connection Error Meanings:
-                                      </div>
-                                      <ul className="space-y-1 text-gray-700 dark:text-gray-300">
-                                        <li className="flex items-start gap-2">
-                                          <span className="text-red-600">•</span>
-                                          <span><strong>ERR_CONNECTION_TIMED_OUT:</strong> Security group not configured (add HTTP rule)</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                          <span className="text-yellow-600">•</span>
-                                          <span><strong>ERR_CONNECTION_REFUSED:</strong> Security group is OK, but application setup still in progress (wait 3-5 min)</span>
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex flex-wrap gap-2">
-                                    <Button variant="outline" size="sm" className="text-xs" asChild>
-                                      <a href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="h-3 w-3 mr-1" />
-                                        Open AWS Console
-                                      </a>
-                                    </Button>
-                                    <Button variant={isSetupComplete ? "default" : "outline"} size="sm" className="text-xs" onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}>
-                                      <ExternalLink className="h-3 w-3 mr-1" />
-                                      {isSetupComplete ? 'Access Application' : 'Test Connection'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>;
-                  })()}
-                      </CardContent>
-                    </Card>)}
-                </div> : <p className="text-center text-muted-foreground py-8">
-                  No deployments yet. Create your first deployment above.
-                </p>}
-            </CardContent>
-          </Card>
+                    }}
+                  >
+                    Clear All Records
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    To view detailed health status and manage your active EC2 instances, go to the <strong>Status Check</strong> tab.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const statusTab = document.querySelector('[value="status"]');
+                        if (statusTab instanceof HTMLElement) {
+                          statusTab.click();
+                        }
+                      }}
+                    >
+                      View in Status Check
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="status" className="space-y-6">
