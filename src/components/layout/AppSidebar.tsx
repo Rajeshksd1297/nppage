@@ -33,14 +33,14 @@ import {
   Server,
   Shield,
   CheckCircle,
-  Package
+  Package,
+  Activity
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 import { NavLink, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { AdminModuleStatus } from "@/components/admin/AdminModuleStatus";
 
 import {
   Sidebar,
@@ -477,18 +477,17 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink to="/admin/live-module-status" className={getNavCls}>
+                        <Activity className="h-4 w-4" />
+                        {!collapsed && <span>Live Module Status</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-
-            {/* Live System Status */}
-            {!collapsed && (
-              <SidebarGroup>
-                <SidebarGroupContent>
-                  <AdminModuleStatus />
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
 
             <SidebarGroup>
               <SidebarGroupLabel>Site Management</SidebarGroupLabel>
