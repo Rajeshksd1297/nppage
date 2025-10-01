@@ -72,6 +72,7 @@ import PublisherPublicView from "./pages/PublisherPublicView";
 import AWSDeployment from "./pages/admin/AWSDeployment";
 import BackupSecurityCenter from "./pages/admin/BackupSecurityCenter";
 import ProductionReadiness from "./pages/admin/ProductionReadiness";
+import RoleManagement from "./pages/admin/RoleManagement";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -452,6 +453,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <ProductionReadiness />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/role-management" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <RoleManagement />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />

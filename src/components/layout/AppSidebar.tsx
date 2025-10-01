@@ -108,6 +108,7 @@ const supportItems = [
 const coreAdminItems = [
   { title: "Admin Dashboard", url: "/admin", icon: BarChart3 },
   { title: "Manage Users", url: "/admin/users", icon: Users },
+  { title: "Role Management", url: "/admin/role-management", icon: Shield },
   { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
 ];
 
