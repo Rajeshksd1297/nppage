@@ -65,6 +65,35 @@ const deploymentSteps = [
   },
 ];
 
+// Helper function to get display status and check for auto-fail
+const getDeploymentStatus = (deployment: any) => {
+  const THREE_MINUTES = 3 * 60 * 1000; // 3 minutes in milliseconds
+  const createdAt = new Date(deployment.created_at).getTime();
+  const now = Date.now();
+  const elapsed = now - createdAt;
+
+  // Auto-fail pending deployments older than 3 minutes
+  if (deployment.status === 'pending' && elapsed > THREE_MINUTES) {
+    return 'failed';
+  }
+  
+  return deployment.status;
+};
+
+// Helper function to get user-friendly status display
+const getStatusDisplay = (status: string) => {
+  switch (status) {
+    case 'running':
+      return 'completed';
+    case 'pending':
+      return 'deploying';
+    case 'failed':
+      return 'failed';
+    default:
+      return status;
+  }
+};
+
 export default function AWSDeployment() {
   const [deploymentName, setDeploymentName] = useState("");
   const [region, setRegion] = useState("ap-south-1");
@@ -130,8 +159,35 @@ export default function AWSDeployment() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      // Auto-fail old pending deployments
+      if (data) {
+        const THREE_MINUTES = 3 * 60 * 1000;
+        const now = Date.now();
+        
+        for (const deployment of data) {
+          if (deployment.status === 'pending') {
+            const createdAt = new Date(deployment.created_at).getTime();
+            const elapsed = now - createdAt;
+            
+            if (elapsed > THREE_MINUTES) {
+              // Update status to failed
+              await supabase
+                .from("aws_deployments")
+                .update({ 
+                  status: 'failed',
+                  deployment_log: deployment.deployment_log + 
+                    `\n\n❌ Deployment timed out after ${Math.floor(elapsed / 1000)} seconds.\nDeployment was automatically marked as failed due to timeout (>3 minutes).`
+                })
+                .eq("id", deployment.id);
+            }
+          }
+        }
+      }
+      
       return data;
     },
+    refetchInterval: 5000, // Refresh every 5 seconds to catch status changes
   });
 
   const saveSettingsMutation = useMutation({
@@ -698,17 +754,26 @@ export default function AWSDeployment() {
                             )}
                           </div>
                           <div className="text-right">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                deployment.status === "running"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                  : deployment.status === "deploying"
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-                              }`}
-                            >
-                              {deployment.status}
-                            </span>
+                            {(() => {
+                              const actualStatus = getDeploymentStatus(deployment);
+                              const displayStatus = getStatusDisplay(actualStatus);
+                              
+                              return (
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                    actualStatus === "running"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                      : actualStatus === "pending"
+                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                                      : actualStatus === "failed"
+                                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                                  }`}
+                                >
+                                  {displayStatus}
+                                </span>
+                              );
+                            })()}
                             {deployment.last_deployed_at && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 {new Date(deployment.last_deployed_at).toLocaleString()}
@@ -720,17 +785,18 @@ export default function AWSDeployment() {
                         {/* Progress Bar with Percentage */}
                         {(() => {
                           const log = deployment.deployment_log || '';
-                          const status = deployment.status;
+                          const actualStatus = getDeploymentStatus(deployment);
+                          const displayStatus = getStatusDisplay(actualStatus);
                           
                           // Calculate progress percentage based on status and logs
                           let progress = 0;
                           let statusText = '';
                           let estimatedTime = '';
                           
-                          if (status === 'running') {
+                          if (actualStatus === 'running') {
                             progress = 100;
                             statusText = 'Completed';
-                          } else if (status === 'failed') {
+                          } else if (actualStatus === 'failed') {
                             progress = 0;
                             statusText = 'Failed';
                           } else {
@@ -774,12 +840,12 @@ export default function AWSDeployment() {
                             <div className="mt-4 space-y-2">
                               <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-2">
-                                  {status === 'pending' && (
+                                  {actualStatus === 'pending' && (
                                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
                                   )}
                                   <span className="font-medium">{statusText}</span>
                                 </div>
-                                {estimatedTime && status === 'pending' && (
+                                {estimatedTime && actualStatus === 'pending' && (
                                   <div className="flex items-center gap-1 text-muted-foreground">
                                     <Clock className="h-3.5 w-3.5" />
                                     <span className="text-xs">{estimatedTime}</span>
@@ -788,7 +854,7 @@ export default function AWSDeployment() {
                               </div>
                               <Progress 
                                 value={progress} 
-                                className={status === 'failed' ? 'bg-destructive/20' : ''}
+                                className={actualStatus === 'failed' ? 'bg-destructive/20' : ''}
                               />
                             </div>
                           );
@@ -845,12 +911,11 @@ export default function AWSDeployment() {
                                 </div>
                                 <div>
                                   <div className="text-muted-foreground mb-1">
-                                    {deployment.status === 'running' ? 'Completed' : 'Status'}
+                                    {getDeploymentStatus(deployment) === 'running' ? 'Completed' : 'Status'}
                                   </div>
-                                  <div className="font-mono font-medium">
+                                  <div className="font-mono font-medium capitalize">
                                     {endTime ? endTime.toLocaleTimeString() : 
-                                     deployment.status === 'pending' ? 'In Progress...' : 
-                                     deployment.status}
+                                     getStatusDisplay(getDeploymentStatus(deployment))}
                                   </div>
                                 </div>
                               </div>
@@ -885,11 +950,11 @@ export default function AWSDeployment() {
                               )}
 
                               {/* Pending Items */}
-                              {deployment.status === 'pending' && (
+                              {getDeploymentStatus(deployment) === 'pending' && (
                                 <div className="space-y-2 border-t pt-2">
                                   <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Pending
+                                    Deploying
                                   </div>
                                   <div className="space-y-1 pl-5">
                                     <div className="text-xs flex items-start gap-2 text-muted-foreground">
