@@ -28,22 +28,38 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
     const checkHealth = async () => {
       const startTime = Date.now();
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        // Try to load an image from the server as a connectivity check
+        // This works better than fetch with CORS restrictions
+        const img = new Image();
+        const timeout = setTimeout(() => {
+          setHealthStatus({
+            http: 'checking',
+            responseTime: null,
+            lastChecked: new Date(),
+          });
+        }, 5000);
 
-        await fetch(`http://${deployment.ec2_public_ip}`, {
-          method: 'HEAD',
-          mode: 'no-cors',
-          signal: controller.signal,
-        });
+        img.onload = () => {
+          clearTimeout(timeout);
+          const responseTime = Date.now() - startTime;
+          setHealthStatus({
+            http: 'online',
+            responseTime,
+            lastChecked: new Date(),
+          });
+        };
 
-        clearTimeout(timeoutId);
-        const responseTime = Date.now() - startTime;
-        setHealthStatus({
-          http: 'online',
-          responseTime,
-          lastChecked: new Date(),
-        });
+        img.onerror = () => {
+          clearTimeout(timeout);
+          setHealthStatus({
+            http: 'offline',
+            responseTime: null,
+            lastChecked: new Date(),
+          });
+        };
+
+        // Try to load favicon or a common path
+        img.src = `http://${deployment.ec2_public_ip}/favicon.ico?t=${Date.now()}`;
       } catch (error) {
         setHealthStatus({
           http: 'offline',
@@ -132,7 +148,7 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
               </div>
               <p className="text-xs text-muted-foreground">
                 {healthStatus.http === 'online' ? 'Server responding' : 
-                 healthStatus.http === 'offline' ? 'No response' : 
+                 healthStatus.http === 'offline' ? 'Cannot connect - check Security Group' : 
                  'Testing connection'}
               </p>
             </div>
@@ -273,6 +289,50 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
             </div>
           </div>
         </div>
+
+        {/* Status Message */}
+        {healthStatus.http === 'offline' && (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">⚠️ Unable to Connect</h4>
+            <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
+              The health check cannot reach your server. This usually means:
+            </p>
+            <ul className="space-y-2 text-sm text-amber-800 dark:text-amber-200 ml-4">
+              <li className="flex items-start gap-2">
+                <span>•</span>
+                <span>Security Group is blocking HTTP traffic (port 80)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>•</span>
+                <span>Application setup is still in progress (wait 3-5 minutes after deployment)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>•</span>
+                <span>Web server (Nginx) is not running on the instance</span>
+              </li>
+            </ul>
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700"
+                onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}
+              >
+                <ExternalLink className="h-3 w-3 mr-2" />
+                Try Opening Website Directly
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {healthStatus.http === 'online' && (
+          <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">✓ Website is Live</h4>
+            <p className="text-sm text-green-800 dark:text-green-200">
+              Your application is successfully deployed and accessible. All systems are operational.
+            </p>
+          </div>
+        )}
 
         {/* Last Checked */}
         {healthStatus.lastChecked && (
