@@ -31,25 +31,30 @@ export default function RoleManagement() {
     try {
       setLoading(true);
       
-      // Fetch users with their roles
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          created_at,
-          user_roles (role)
-        `)
+        .select('id, email, full_name, created_at')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      const usersWithRoles = data?.map(user => ({
+      // Fetch all user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user_id to role
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      // Combine profiles with their roles
+      const usersWithRoles = profilesData?.map(user => ({
         id: user.id,
         email: user.email || 'No email',
         full_name: user.full_name || 'Unknown',
-        role: (user.user_roles as any)?.[0]?.role || 'user',
+        role: rolesMap.get(user.id) || 'user',
         created_at: user.created_at
       })) || [];
 
