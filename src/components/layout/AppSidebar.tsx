@@ -41,6 +41,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useDynamicFeatures } from '@/hooks/useDynamicFeatures';
 import { NavLink, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import {
   Sidebar,
@@ -164,7 +165,7 @@ const infrastructureItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpen, isMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
@@ -173,6 +174,13 @@ export function AppSidebar() {
   const [isPublisher, setIsPublisher] = useState(false);
   const { hasFeature, subscription, isPro, isFree, isOnTrial, trialDaysLeft } = useSubscription();
   const { getPlanFeatures } = useDynamicFeatures();
+
+  // Auto-close sidebar on mobile after navigation
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  };
 
   useEffect(() => {
     getCurrentUserRole();
@@ -306,7 +314,7 @@ export function AppSidebar() {
                 {freeItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
+                      <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                         <item.icon className="h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -316,7 +324,7 @@ export function AppSidebar() {
                 {/* Tools moved to Main Features */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/subscription" className={getNavCls}>
+                    <NavLink to="/subscription" className={getNavCls} onClick={handleNavClick}>
                       <CreditCard className="h-4 w-4" />
                       {!collapsed && <span>Subscription</span>}
                     </NavLink>
@@ -324,7 +332,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/support-tickets" className={getNavCls}>
+                    <NavLink to="/support-tickets" className={getNavCls} onClick={handleNavClick}>
                       <MessageCircle className="h-4 w-4" />
                       {!collapsed && <span>Support Tickets</span>}
                     </NavLink>
@@ -355,6 +363,7 @@ export function AppSidebar() {
                     <NavLink 
                       to={isPublisher ? '/publisher-dashboard' : '/subscription'} 
                       className={`${getNavCls} ${!isPublisher ? 'opacity-60' : ''}`}
+                      onClick={handleNavClick}
                     >
                       <div className="flex items-center gap-2 flex-1">
                         <Building2 className="h-4 w-4" />
@@ -377,6 +386,7 @@ export function AppSidebar() {
                         <NavLink 
                           to={canAccess ? item.url : '/subscription'} 
                           className={`${getNavCls} ${!canAccess ? 'opacity-60' : ''}`}
+                          onClick={handleNavClick}
                         >
                           <div className="flex items-center gap-2 flex-1">
                             <item.icon className="h-4 w-4" />
@@ -447,6 +457,7 @@ export function AppSidebar() {
                           <NavLink 
                             to={isFeatureEnabled ? item.url : '/subscription'} 
                             className={`${getNavCls} ${!isFeatureEnabled ? 'opacity-60' : ''}`}
+                            onClick={handleNavClick}
                           >
                             <div className="flex items-center gap-2 flex-1">
                               <item.icon className="h-4 w-4" />
@@ -479,7 +490,7 @@ export function AppSidebar() {
                   {systemMonitoringItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -497,7 +508,7 @@ export function AppSidebar() {
                   {userManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -515,7 +526,7 @@ export function AppSidebar() {
                   {contentManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -533,7 +544,7 @@ export function AppSidebar() {
                   {bookManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -551,7 +562,7 @@ export function AppSidebar() {
                   {siteSettingsItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -569,7 +580,7 @@ export function AppSidebar() {
                   {communicationsItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
@@ -587,7 +598,7 @@ export function AppSidebar() {
                   {infrastructureItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
+                        <NavLink to={item.url} className={getNavCls} onClick={handleNavClick}>
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </NavLink>
