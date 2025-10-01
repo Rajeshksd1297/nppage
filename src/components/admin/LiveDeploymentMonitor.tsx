@@ -25,6 +25,12 @@ interface LiveDeploymentMonitorProps {
   deployments: any[];
 }
 
+interface ComponentStatus {
+  name: string;
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  message: string;
+}
+
 interface InstanceHealth {
   instanceId: string;
   status: 'healthy' | 'degraded' | 'unhealthy' | 'checking';
@@ -32,6 +38,7 @@ interface InstanceHealth {
   responseTime: number | null;
   lastChecked: Date;
   details: any;
+  components: ComponentStatus[];
 }
 
 export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProps) {
@@ -55,7 +62,8 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
       httpAccessible: false,
       responseTime: null,
       lastChecked: new Date(),
-      details: null
+      details: null,
+      components: []
     } as InstanceHealth));
 
     try {
@@ -75,6 +83,7 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
       }
 
       let healthStatus: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
+      const components: ComponentStatus[] = [];
       
       if (data?.success && data?.status) {
         const isRunning = data.status.state === 'running';
@@ -82,6 +91,56 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
         const instanceOk = data.status.instanceStatus === 'ok';
         const httpOk = data.httpAccessible === true;
 
+        // EC2 Instance Component
+        components.push({
+          name: 'EC2 Instance',
+          status: isRunning ? 'healthy' : 'unhealthy',
+          message: isRunning ? 'Running' : 'Not running'
+        });
+
+        // System Status Component
+        components.push({
+          name: 'System Health',
+          status: systemOk ? 'healthy' : 'degraded',
+          message: systemOk ? 'All checks passed' : 'System checks failing'
+        });
+
+        // Instance Status Component
+        components.push({
+          name: 'Instance Health',
+          status: instanceOk ? 'healthy' : 'degraded',
+          message: instanceOk ? 'All checks passed' : 'Instance checks failing'
+        });
+
+        // HTTP/Web Server Component
+        components.push({
+          name: 'Web Server (Nginx)',
+          status: httpOk ? 'healthy' : 'unhealthy',
+          message: httpOk ? 'Accessible on port 80' : 'Not accessible'
+        });
+
+        // Application Component (inferred from HTTP + response time)
+        if (httpOk && responseTime < 5000) {
+          components.push({
+            name: 'Application',
+            status: responseTime < 2000 ? 'healthy' : 'degraded',
+            message: responseTime < 2000 ? 'Responding quickly' : 'Slow response time'
+          });
+        } else if (httpOk) {
+          components.push({
+            name: 'Application',
+            status: 'degraded',
+            message: 'Very slow response'
+          });
+        } else {
+          components.push({
+            name: 'Application',
+            status: 'unknown',
+            message: 'Cannot verify'
+          });
+        }
+
+        // Overall health status
         if (isRunning && systemOk && instanceOk && httpOk) {
           healthStatus = 'healthy';
         } else if (isRunning && (systemOk || instanceOk)) {
@@ -97,7 +156,8 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
         httpAccessible: data?.httpAccessible || false,
         responseTime,
         lastChecked: new Date(),
-        details: data
+        details: data,
+        components
       }));
 
     } catch (error) {
@@ -108,7 +168,14 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
         httpAccessible: false,
         responseTime: null,
         lastChecked: new Date(),
-        details: null
+        details: null,
+        components: [
+          { name: 'EC2 Instance', status: 'unknown', message: 'Check failed' },
+          { name: 'System Health', status: 'unknown', message: 'Check failed' },
+          { name: 'Instance Health', status: 'unknown', message: 'Check failed' },
+          { name: 'Web Server (Nginx)', status: 'unknown', message: 'Check failed' },
+          { name: 'Application', status: 'unknown', message: 'Check failed' }
+        ]
       }));
     }
   };
@@ -355,20 +422,56 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                   </div>
                 </div>
 
-                {/* System Status */}
-                {details?.status && (
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">System Status</span>
-                      <Badge variant={details.status.systemStatus === 'ok' ? 'default' : 'destructive'}>
-                        {details.status.systemStatus}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Instance Checks</span>
-                      <Badge variant={details.status.instanceStatus === 'ok' ? 'default' : 'destructive'}>
-                        {details.status.instanceStatus}
-                      </Badge>
+                {/* Component Status Grid */}
+                {health?.components && health.components.length > 0 && (
+                  <div className="mt-4 border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3">Component Health</h4>
+                    <div className="grid gap-3">
+                      {health.components.map((component, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex items-center justify-between p-3 rounded-lg border"
+                          style={{
+                            backgroundColor: 
+                              component.status === 'healthy' ? 'rgba(34, 197, 94, 0.05)' :
+                              component.status === 'degraded' ? 'rgba(234, 179, 8, 0.05)' :
+                              component.status === 'unhealthy' ? 'rgba(239, 68, 68, 0.05)' :
+                              'rgba(148, 163, 184, 0.05)',
+                            borderColor:
+                              component.status === 'healthy' ? 'rgba(34, 197, 94, 0.2)' :
+                              component.status === 'degraded' ? 'rgba(234, 179, 8, 0.2)' :
+                              component.status === 'unhealthy' ? 'rgba(239, 68, 68, 0.2)' :
+                              'rgba(148, 163, 184, 0.2)'
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            {component.status === 'healthy' ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : component.status === 'degraded' ? (
+                              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                            ) : component.status === 'unhealthy' ? (
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            ) : (
+                              <Server className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <div>
+                              <p className="text-sm font-medium">{component.name}</p>
+                              <p className="text-xs text-muted-foreground">{component.message}</p>
+                            </div>
+                          </div>
+                          <Badge 
+                            variant={
+                              component.status === 'healthy' ? 'default' :
+                              component.status === 'degraded' ? 'secondary' :
+                              component.status === 'unhealthy' ? 'destructive' :
+                              'outline'
+                            }
+                            className="capitalize"
+                          >
+                            {component.status}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
