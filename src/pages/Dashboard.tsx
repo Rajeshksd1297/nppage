@@ -248,12 +248,44 @@ export default function Dashboard() {
   const renderUserDashboard = () => <div className="space-y-6">
       <DashboardWelcome userName={userProfile?.full_name} subscriptionPlan={subscription?.subscription_plans?.name || 'Free'} isPro={isPro()} isOnTrial={isOnTrial()} trialDaysLeft={trialDaysLeft} />
       
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button 
+              onClick={() => {
+                if (userProfile?.slug) {
+                  window.open(`/${userProfile.slug}`, '_blank');
+                } else {
+                  navigate('/profile');
+                }
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              View Profile Page
+            </Button>
+            <Button onClick={() => navigate('/books/new')} variant="outline" className="flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Add New Book
+            </Button>
+            <Button onClick={() => navigate('/profile')} variant="outline" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Your Author Stats</h2>
-        <Button onClick={() => navigate('/books/new')}>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add New Book
-        </Button>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

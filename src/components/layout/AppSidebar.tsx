@@ -320,34 +320,6 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-                {/* Quick Actions in Main Features */}
-                {quickActions.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      {item.external ? (
-                        <a 
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 hover:bg-sidebar-accent/50 rounded-md p-2"
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && (
-                            <>
-                              <span>{item.title}</span>
-                              <ExternalLink className="h-3 w-3 ml-auto" />
-                            </>
-                          )}
-                        </a>
-                      ) : (
-                        <NavLink to={item.url} className={getNavCls}>
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
                 {/* Tools moved to Main Features */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
