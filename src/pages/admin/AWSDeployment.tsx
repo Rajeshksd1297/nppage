@@ -214,7 +214,12 @@ export default function AWSDeployment() {
       }
       return data;
     },
-    refetchInterval: 5000 // Refresh every 5 seconds to catch status changes
+    refetchInterval: (query) => {
+      // Only refetch if there's a pending deployment
+      const hasPendingDeployment = query.state.data?.some((d: any) => d.status === 'pending');
+      return hasPendingDeployment ? 5000 : false;
+    },
+    refetchOnWindowFocus: false
   });
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: typeof settingsForm) => {

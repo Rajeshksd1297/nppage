@@ -44,10 +44,12 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
   const [isTrialActive, setIsTrialActive] = useState(false);
   const [trialDaysLeft, setTrialDaysLeft] = useState(0);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, []);
 
   const setupRealtimeSubscription = () => {
@@ -91,14 +93,16 @@ export function useSubscription() {
   };
 
   const fetchSubscription = async () => {
+    if (isFetching) return; // Prevent duplicate fetches
+    
     try {
+      setIsFetching(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
       }
 
-      console.log('Fetching subscription for user:', user.id);
       const { data: subscriptionData, error } = await supabase
         .from('user_subscriptions')
         .select(`
@@ -112,8 +116,6 @@ export function useSubscription() {
         console.error('Error fetching subscription:', error);
         return;
       }
-
-      console.log('Subscription data fetched:', subscriptionData);
       
       if (subscriptionData) {
         setSubscription(subscriptionData as UserSubscription);
@@ -144,6 +146,7 @@ export function useSubscription() {
       console.error('Error fetching subscription:', error);
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   };
 

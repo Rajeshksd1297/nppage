@@ -57,7 +57,7 @@ interface InstanceHealth {
 export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProps) {
   const [healthStatuses, setHealthStatuses] = useState<Map<string, InstanceHealth>>(new Map());
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
+  const [refreshInterval, setRefreshInterval] = useState(60); // seconds - increased from 30 to reduce load
   const [fixingHttp, setFixingHttp] = useState<Set<string>>(new Set());
 
   const activeDeployments = deployments?.filter(d => 
@@ -335,18 +335,20 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
   };
 
   useEffect(() => {
-    // Initial check
-    checkAllInstances();
+    // Only check on initial mount, not on every activeDeployments change
+    if (activeDeployments.length > 0 && healthStatuses.size === 0) {
+      checkAllInstances();
+    }
 
-    // Set up auto-refresh
-    if (autoRefresh && refreshInterval > 0) {
+    // Set up auto-refresh interval
+    if (autoRefresh && refreshInterval > 0 && activeDeployments.length > 0) {
       const interval = setInterval(() => {
         checkAllInstances();
       }, refreshInterval * 1000);
 
       return () => clearInterval(interval);
     }
-  }, [activeDeployments.length, autoRefresh, refreshInterval]);
+  }, [autoRefresh, refreshInterval]); // Removed activeDeployments.length to prevent excessive calls
 
   const getHealthIcon = (status: InstanceHealth['status']) => {
     switch (status) {
