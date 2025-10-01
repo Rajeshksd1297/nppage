@@ -462,6 +462,19 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
               </div>
             </div>
             
+            {/* HTTP Check Details */}
+            {awsStatus.httpCheckDetails?.tested && (
+              <div className="mt-3 p-3 bg-muted/30 rounded text-xs space-y-1">
+                <p className="font-medium">HTTP Connectivity Test:</p>
+                <p>Endpoint tested: <code className="px-1 py-0.5 bg-muted rounded">http://{deployment.ec2_public_ip}{awsStatus.httpCheckDetails.endpoint}</code></p>
+                {awsStatus.httpCheckDetails.status > 0 ? (
+                  <p className="text-green-600">✓ Server responded with status {awsStatus.httpCheckDetails.status}</p>
+                ) : (
+                  <p className="text-red-600">✗ Connection failed: {awsStatus.httpCheckDetails.error || 'No response from server'}</p>
+                )}
+              </div>
+            )}
+            
             {awsStatus.status.securityGroups && awsStatus.status.securityGroups.length > 0 && (
               <div className="mt-3">
                 <p className="text-sm font-medium mb-2">Security Groups:</p>

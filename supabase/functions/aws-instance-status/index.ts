@@ -145,17 +145,45 @@ Deno.serve(async (req) => {
       },
     };
 
-    // Check if HTTP port is accessible
+    // Check if HTTP port is accessible - try multiple endpoints
     let httpAccessible = false;
+    let httpCheckDetails = { tested: false, endpoint: '', error: '', status: 0 };
+    
     if (instance.PublicIpAddress) {
-      try {
-        const httpCheck = await fetch(`http://${instance.PublicIpAddress}/api/health`, {
-          method: 'GET',
-          signal: AbortSignal.timeout(5000),
-        });
-        httpAccessible = httpCheck.ok;
-      } catch (error) {
-        console.log('HTTP check failed:', error.message);
+      const endpoints = ['/', '/api/health', '/api/setup-status'];
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Testing HTTP accessibility: http://${instance.PublicIpAddress}${endpoint}`);
+          const httpCheck = await fetch(`http://${instance.PublicIpAddress}${endpoint}`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(8000),
+          });
+          
+          httpCheckDetails = {
+            tested: true,
+            endpoint: endpoint,
+            error: '',
+            status: httpCheck.status,
+          };
+          
+          // Consider it accessible if we get ANY response (even 404)
+          // This means the web server is running
+          if (httpCheck.status > 0) {
+            httpAccessible = true;
+            console.log(`✓ HTTP accessible on ${endpoint} (status: ${httpCheck.status})`);
+            break;
+          }
+        } catch (error: any) {
+          httpCheckDetails = {
+            tested: true,
+            endpoint: endpoint,
+            error: error.message,
+            status: 0,
+          };
+          console.log(`✗ HTTP check failed for ${endpoint}:`, error.message);
+          // Continue to next endpoint
+        }
       }
     }
 
@@ -163,7 +191,8 @@ Deno.serve(async (req) => {
       success: true,
       status,
       httpAccessible,
-      recommendations: generateRecommendations(status, httpAccessible),
+      httpCheckDetails,
+      recommendations: generateRecommendations(status, httpAccessible, httpCheckDetails),
     };
 
     return new Response(
@@ -199,7 +228,7 @@ Deno.serve(async (req) => {
   }
 });
 
-function generateRecommendations(status: any, httpAccessible: boolean): string[] {
+function generateRecommendations(status: any, httpAccessible: boolean, httpCheckDetails: any): string[] {
   const recommendations: string[] = [];
 
   if (status.state !== 'running') {
@@ -219,19 +248,42 @@ function generateRecommendations(status: any, httpAccessible: boolean): string[]
   }
 
   if (!httpAccessible && status.diagnostics.isRunning && status.diagnostics.hasPublicIp) {
-    recommendations.push('Instance is running with a public IP, but HTTP is not accessible. Possible causes:');
-    recommendations.push('  • Security group may not allow inbound traffic on port 80');
-    recommendations.push('  • Application setup may still be in progress (wait 3-5 minutes)');
-    recommendations.push('  • Web server (Nginx) may have failed to start');
-    recommendations.push('  • Check /var/log/user-data.log on the instance for setup errors');
+    recommendations.push('❌ HTTP port 80 is NOT accessible. Root cause analysis:');
+    
+    if (httpCheckDetails.tested) {
+      if (httpCheckDetails.error.includes('ConnectTimeout') || httpCheckDetails.error.includes('timeout')) {
+        recommendations.push('  🔴 CONNECTION TIMEOUT - Server is not responding at all');
+        recommendations.push('  → Security group inbound rules may be blocking port 80');
+        recommendations.push('  → Firewall on the instance (firewalld) may be blocking traffic');
+        recommendations.push('  → Network ACLs may be restricting traffic');
+      } else if (httpCheckDetails.error.includes('ConnectionRefused')) {
+        recommendations.push('  🔴 CONNECTION REFUSED - No service listening on port 80');
+        recommendations.push('  → Nginx web server is not running');
+        recommendations.push('  → Application setup failed - check: sudo systemctl status nginx');
+      } else if (httpCheckDetails.error.includes('NetworkError')) {
+        recommendations.push('  🔴 NETWORK ERROR - Cannot reach the instance');
+        recommendations.push('  → Instance may not have internet connectivity');
+        recommendations.push('  → VPC routing may be misconfigured');
+      } else {
+        recommendations.push(`  🔴 ERROR: ${httpCheckDetails.error}`);
+      }
+    }
+    
+    recommendations.push('');
+    recommendations.push('🔧 Troubleshooting steps:');
+    recommendations.push('  1. Verify Security Group has HTTP (port 80) rule with source 0.0.0.0/0');
+    recommendations.push('  2. SSH to instance and check: sudo systemctl status nginx');
+    recommendations.push('  3. Check setup logs: sudo tail -100 /var/log/user-data.log');
+    recommendations.push('  4. Test locally on instance: curl http://localhost');
+    recommendations.push('  5. Check firewall: sudo firewall-cmd --list-all');
   }
 
   if (status.monitoring === 'disabled') {
-    recommendations.push('CloudWatch detailed monitoring is disabled. Enable it for better insights.');
+    recommendations.push('💡 CloudWatch detailed monitoring is disabled. Enable it for better insights.');
   }
 
   if (recommendations.length === 0 && httpAccessible) {
-    recommendations.push('✓ All checks passed! Instance is healthy and serving HTTP traffic.');
+    recommendations.push('✅ All checks passed! Instance is healthy and serving HTTP traffic.');
   }
 
   return recommendations;
