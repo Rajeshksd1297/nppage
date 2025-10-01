@@ -327,7 +327,8 @@ export function AppSidebar() {
           <SidebarGroup>
             <SidebarGroupLabel>
               <div className="flex items-center gap-2">
-                Main Features
+                <Home className="w-4 h-4" />
+                {!collapsed && <span>Main Features</span>}
               </div>
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -370,6 +371,39 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+                {/* Tools moved to Main Features */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/subscription" className={getNavCls}>
+                      <CreditCard className="h-4 w-4" />
+                      {!collapsed && <span>Subscription</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/support-tickets" className={getNavCls}>
+                      <MessageCircle className="h-4 w-4" />
+                      {!collapsed && <span>Support Tickets</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/social-connections" className={getNavCls}>
+                      <Share2 className="h-4 w-4" />
+                      {!collapsed && <span>Social Connections</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/seo-dashboard" className={getNavCls}>
+                      <Search className="h-4 w-4" />
+                      {!collapsed && <span>SEO Dashboard</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -380,10 +414,10 @@ export function AppSidebar() {
           <SidebarGroup>
             <SidebarGroupLabel>
               <div className="flex items-center gap-2">
-                <Crown className="w-3 h-3 text-amber-500" />
-                Pro Features
+                <Crown className="w-4 h-4 text-amber-500" />
+                {!collapsed && <span>Pro Features</span>}
                 {isPro() && !collapsed && (
-                  <Badge variant="default" className="text-xs">Available</Badge>
+                  <Badge variant="default" className="text-xs ml-auto">Active</Badge>
                 )}
               </div>
             </SidebarGroupLabel>
@@ -488,32 +522,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Tools Features */}
-        {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Tools Features</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/subscription" className={getNavCls}>
-                      <CreditCard className="h-4 w-4" />
-                      {!collapsed && <span>Subscription</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/support-tickets" className={getNavCls}>
-                      <MessageCircle className="h-4 w-4" />
-                      {!collapsed && <span>Support Tickets</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
 
         {/* Admin Sections */}
         {isAdmin && (
