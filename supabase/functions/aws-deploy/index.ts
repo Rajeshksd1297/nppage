@@ -94,12 +94,15 @@ Deno.serve(async (req) => {
     console.log('Deployment record created:', deployment.id);
 
     // Initialize AWS EC2 Client with REAL credentials
+    // Explicitly configure to prevent file system access in Deno
     const ec2Client = new EC2Client({
       region: region || awsSettings.default_region,
       credentials: {
         accessKeyId: awsSettings.aws_access_key_id,
         secretAccessKey: awsSettings.aws_secret_access_key,
       },
+      // Prevent the SDK from trying to load config from files
+      defaultsMode: 'standard',
     });
 
     console.log('✓ EC2 client initialized for region:', region);
