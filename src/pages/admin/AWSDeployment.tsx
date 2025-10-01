@@ -698,12 +698,127 @@ export default function AWSDeployment() {
                             )}
                           </div>
                         </div>
+
+                        {/* Deployment Progress Report */}
+                        {deployment.deployment_log && (() => {
+                          const log = deployment.deployment_log;
+                          
+                          // Extract timestamps
+                          const startMatch = log.match(/Deployment Creation Started: (.+)/);
+                          const completeMatch = log.match(/Deployment completed at: (.+)/);
+                          const startTime = startMatch ? new Date(startMatch[1]) : null;
+                          const endTime = completeMatch ? new Date(completeMatch[1]) : null;
+                          
+                          // Calculate duration
+                          let duration = '';
+                          if (startTime && endTime) {
+                            const diff = endTime.getTime() - startTime.getTime();
+                            const seconds = Math.floor(diff / 1000);
+                            duration = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+                          }
+
+                          // Extract completed steps
+                          const completedSteps = log.split('\n')
+                            .filter(line => line.trim().startsWith('✓'))
+                            .map(line => line.trim().substring(2));
+                          
+                          // Extract deployment type and configuration
+                          const deployTypeMatch = log.match(/Deployment Type: (.+)/);
+                          const deployType = deployTypeMatch ? deployTypeMatch[1] : 'Unknown';
+                          
+                          return (
+                            <div className="mt-3 border-t pt-3 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-semibold flex items-center gap-2">
+                                  <Server className="h-4 w-4 text-primary" />
+                                  Deployment Progress Report
+                                </h4>
+                                {duration && (
+                                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                                    {duration}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Timeline */}
+                              <div className="grid grid-cols-2 gap-3 text-xs bg-muted/50 p-3 rounded-lg">
+                                <div>
+                                  <div className="text-muted-foreground mb-1">Started</div>
+                                  <div className="font-mono font-medium">
+                                    {startTime ? startTime.toLocaleTimeString() : 'N/A'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-muted-foreground mb-1">
+                                    {deployment.status === 'running' ? 'Completed' : 'Status'}
+                                  </div>
+                                  <div className="font-mono font-medium">
+                                    {endTime ? endTime.toLocaleTimeString() : 
+                                     deployment.status === 'pending' ? 'In Progress...' : 
+                                     deployment.status}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Deployment Type */}
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Type:</span>{" "}
+                                <span className="font-medium">{deployType}</span>
+                              </div>
+
+                              {/* Completed Steps */}
+                              {completedSteps.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="text-xs font-semibold text-green-700 dark:text-green-400 flex items-center gap-1">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    Completed ({completedSteps.length} steps)
+                                  </div>
+                                  <div className="space-y-1 pl-5">
+                                    {completedSteps.slice(0, 6).map((step, idx) => (
+                                      <div key={idx} className="text-xs flex items-start gap-2 text-muted-foreground">
+                                        <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                        <span>{step}</span>
+                                      </div>
+                                    ))}
+                                    {completedSteps.length > 6 && (
+                                      <div className="text-xs text-muted-foreground pl-5">
+                                        + {completedSteps.length - 6} more completed
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Pending Items */}
+                              {deployment.status === 'pending' && (
+                                <div className="space-y-2 border-t pt-2">
+                                  <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    Pending
+                                  </div>
+                                  <div className="space-y-1 pl-5">
+                                    <div className="text-xs flex items-start gap-2 text-muted-foreground">
+                                      <Circle className="h-3 w-3 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                                      <span>Waiting for instance initialization...</span>
+                                    </div>
+                                    <div className="text-xs flex items-start gap-2 text-muted-foreground">
+                                      <Circle className="h-3 w-3 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                                      <span>Finalizing network configuration</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        {/* Full Deployment Log */}
                         {deployment.deployment_log && (
                           <details className="mt-3">
                             <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">
-                              View Deployment Log
+                              View Full Deployment Log
                             </summary>
-                            <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto">
+                            <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-96">
                               {deployment.deployment_log}
                             </pre>
                           </details>
