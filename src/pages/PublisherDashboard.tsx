@@ -65,10 +65,7 @@ export default function PublisherDashboard() {
       // Check if user owns a publisher
       const { data: publisherData, error } = await supabase
         .from('publishers')
-        .select(`
-          *,
-          profiles!publishers_owner_id_fkey(full_name, email)
-        `)
+        .select('*')
         .eq('owner_id', user.id)
         .maybeSingle();
 
