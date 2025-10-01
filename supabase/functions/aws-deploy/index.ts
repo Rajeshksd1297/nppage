@@ -778,30 +778,6 @@ echo "⏱️  Time: $(date)"
     }
     }
 
-      if (autoDeploy) {
-        deploymentLog += `✓ Auto-deploy on changes: Enabled\n`;
-      }
-      
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during deployment';
-      console.error('❌ New instance deployment failed:', errorMessage);
-      
-      deploymentLog += `\n❌ DEPLOYMENT FAILED\n`;
-      deploymentLog += `Error: ${errorMessage}\n`;
-      deploymentLog += `Failed at: ${new Date().toISOString()}\n`;
-      
-      await supabaseClient
-        .from('aws_deployments')
-        .update({
-          status: 'failed',
-          deployment_log: deploymentLog,
-        })
-        .eq('id', deployment.id);
-      
-      throw error;
-    }
-    }
-
     // Common completion logging for both modes
     const deploymentEndTime = new Date();
     const duration = Math.round((deploymentEndTime.getTime() - deploymentStartTime.getTime()) / 1000);
