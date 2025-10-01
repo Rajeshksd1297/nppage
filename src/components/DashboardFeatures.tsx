@@ -87,12 +87,6 @@ export function DashboardFeatures({
     description: "Connect with other authors and share experiences",
     action: () => console.log("Open forum"),
     color: "bg-green-500/10 text-green-600 border-green-200"
-  }, {
-    icon: Zap,
-    title: "SEO Booster",
-    description: "Optimize your profile for better search visibility",
-    action: () => navigate("/seo-dashboard"),
-    color: "bg-orange-500/10 text-orange-600 border-orange-200"
   }];
   return <div className="space-y-6">
       

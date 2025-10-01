@@ -22,12 +22,10 @@ import Subscription from "./pages/Subscription";
 import CustomDomains from "./pages/CustomDomains";
 import PublisherDashboard from "./pages/PublisherDashboard";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
-import SEODashboard from './pages/SEODashboard';
 import SEOSettings from './pages/admin/SEOSettings';
 import PublisherManagement from './pages/admin/PublisherManagement';
 import PublisherFieldEdit from './pages/admin/PublisherFieldEdit';
 import PublisherUserAssignment from './pages/admin/PublisherUserAssignment';
-import SocialConnections from './pages/SocialConnections';
 import ONIXManager from './pages/ONIXManager';
 import Themes from "./pages/Themes";
 import ContactForm from "./pages/ContactForm";
@@ -172,11 +170,6 @@ function App() {
             <Route path="/advanced-analytics" element={
               <DashboardLayout>
                 <AdvancedAnalytics />
-              </DashboardLayout>
-            } />
-            <Route path="/seo-dashboard" element={
-              <DashboardLayout>
-                <SEODashboard />
               </DashboardLayout>
             } />
             <Route path="/admin" element={
@@ -567,11 +560,6 @@ function App() {
             <Route path="/themes" element={
               <DashboardLayout>
                 <Themes />
-              </DashboardLayout>
-            } />
-            <Route path="/social-connections" element={
-              <DashboardLayout>
-                <SocialConnections />
               </DashboardLayout>
             } />
             <Route path="/contact-form" element={
