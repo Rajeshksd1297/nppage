@@ -1361,6 +1361,84 @@ export type Database = {
         }
         Relationships: []
       }
+      godaddy_deployments: {
+        Row: {
+          build_log: string | null
+          completed_at: string | null
+          created_at: string
+          deployment_log: string | null
+          deployment_name: string
+          domain: string | null
+          id: string
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          build_log?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deployment_log?: string | null
+          deployment_name: string
+          domain?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          build_log?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deployment_log?: string | null
+          deployment_name?: string
+          domain?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      godaddy_settings: {
+        Row: {
+          created_at: string
+          deployment_path: string | null
+          domain: string
+          ftp_host: string
+          ftp_password: string
+          ftp_port: number | null
+          ftp_username: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_path?: string | null
+          domain: string
+          ftp_host: string
+          ftp_password: string
+          ftp_port?: number | null
+          ftp_username: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deployment_path?: string | null
+          domain?: string
+          ftp_host?: string
+          ftp_password?: string
+          ftp_port?: number | null
+          ftp_username?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       helpdesk_settings: {
         Row: {
           auto_assign_tickets: boolean
