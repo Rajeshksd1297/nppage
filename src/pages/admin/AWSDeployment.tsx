@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { LiveDeploymentMonitor } from "@/components/admin/LiveDeploymentMonitor";
+import { DeploymentProgressTracker } from "@/components/admin/DeploymentProgressTracker";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -128,6 +129,7 @@ export default function AWSDeployment() {
   const [autoCreateKeyPair, setAutoCreateKeyPair] = useState(true);
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
+  const [activeDeploymentId, setActiveDeploymentId] = useState<string | null>(null);
   const {
     toast
   } = useToast();
@@ -272,7 +274,7 @@ export default function AWSDeployment() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Deployment Started",
         description: instanceMode === 'existing' ? "Updating existing EC2 instance with new code." : "Your AWS EC2 instance is being deployed."
@@ -280,6 +282,12 @@ export default function AWSDeployment() {
       queryClient.invalidateQueries({
         queryKey: ["aws-deployments"]
       });
+      
+      // Set active deployment ID to track progress
+      if (data?.deployment?.id) {
+        setActiveDeploymentId(data.deployment.id);
+      }
+      
       setDeploymentName("");
       setExistingInstanceId("");
     },
@@ -492,6 +500,17 @@ export default function AWSDeployment() {
         </TabsContent>
 
         <TabsContent value="deployments" className="space-y-6">
+          {/* Active Deployment Progress */}
+          {activeDeploymentId && (
+            <DeploymentProgressTracker 
+              deploymentId={activeDeploymentId}
+              onComplete={() => {
+                setActiveDeploymentId(null);
+                queryClient.invalidateQueries({ queryKey: ["aws-deployments"] });
+              }}
+            />
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>New Deployment</CardTitle>

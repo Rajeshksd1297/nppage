@@ -717,11 +717,14 @@ echo "⏱️  Time: $(date)"
       deploymentLog += `✓ Security Group ID: ${securityGroupId}\n`;
       deploymentLog += `✓ Rules: HTTP (80), HTTPS (443), SSH (22)\n`;
       deploymentLog += `✓ Access: Configured for web traffic\n`;
+      deploymentLog += `✓ Status: Security group creation completed\n`;
+      console.log('✓ Security group auto-created:', securityGroupId);
     }
     
     if (createdKeyPair && privateKeyMaterial) {
       deploymentLog += `\n--- Auto-Created SSH Key Pair ---\n`;
       deploymentLog += `✓ Key Pair Name: ${keyPairName}\n`;
+      deploymentLog += `✓ Status: Key pair generation completed\n`;
       deploymentLog += `\n🔐 PRIVATE KEY (Save this securely!):\n`;
       deploymentLog += `${'='.repeat(60)}\n`;
       deploymentLog += `${privateKeyMaterial}\n`;
@@ -731,6 +734,7 @@ echo "⏱️  Time: $(date)"
       deploymentLog += `   • Set permissions: chmod 400 ${keyPairName}.pem\n`;
       deploymentLog += `   • This key will NOT be shown again\n`;
       deploymentLog += `   • Use it to SSH: ssh -i ${keyPairName}.pem ec2-user@<instance-ip>\n`;
+      console.log('✓ SSH key pair auto-created:', keyPairName);
     }
     
     let instanceId: string;
@@ -793,7 +797,8 @@ echo "⏱️  Time: $(date)"
       deploymentLog += `Instance Type: ${instanceType}\n`;
       deploymentLog += `AMI: ${amiId}\n\n`;
 
-      deploymentLog += `--- Launching EC2 Instance (REAL AWS API CALL) ---\n`;
+      deploymentLog += `\n--- Launching EC2 Instance (REAL AWS API CALL) ---\n`;
+      deploymentLog += `✓ Status: Starting instance launch\n`;
 
     // Prepare EC2 instance parameters with User Data for automatic setup
     const runInstancesParams: any = {
@@ -920,6 +925,7 @@ echo "⏱️  Time: $(date)"
       const duration = Math.round((deploymentEndTime.getTime() - deploymentStartTime.getTime()) / 1000);
       
       deploymentLog += `\n--- Deployment Complete ---\n`;
+      deploymentLog += `✓ Status: Deployment phase completed\n`;
       deploymentLog += `Status: RUNNING\n`;
       deploymentLog += `Instance ID: ${instanceId}\n`;
       deploymentLog += `Public IP: ${publicIp}\n`;
