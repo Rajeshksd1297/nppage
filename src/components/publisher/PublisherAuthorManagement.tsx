@@ -81,27 +81,30 @@ export default function PublisherAuthorManagement({ publisherId }: Props) {
     try {
       setLoading(true);
 
+      // Fetch profiles
       const { data: authorsData, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          email,
-          created_at,
-          user_subscriptions(plan_id, subscription_plans(name))
-        `)
+        .select('id, full_name, email, created_at')
         .eq('publisher_id', publisherId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Get book counts
+      // Get book counts and subscriptions
       const authorsWithCounts = await Promise.all(
         (authorsData || []).map(async (author: any) => {
+          // Get book count
           const { count } = await supabase
             .from('books')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', author.id);
+
+          // Get subscription info
+          const { data: subscriptionData } = await supabase
+            .from('user_subscriptions')
+            .select('plan_id, subscription_plans(name)')
+            .eq('user_id', author.id)
+            .maybeSingle();
 
           return {
             id: author.id,
@@ -109,7 +112,7 @@ export default function PublisherAuthorManagement({ publisherId }: Props) {
             email: author.email,
             created_at: author.created_at,
             book_count: count || 0,
-            subscription_plan: author.user_subscriptions?.[0]?.subscription_plans?.name || 'Free',
+            subscription_plan: subscriptionData?.subscription_plans?.name || 'Free',
           };
         })
       );
