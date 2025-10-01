@@ -7,7 +7,7 @@ import {
   BookOpen, Newspaper, Calendar, Award, HelpCircle, Mail, 
   MessageSquare, Lock, Users, BarChart3, Palette, Crown,
   Shield, Cloud, Database, Grid3x3, Table as TableIcon,
-  Zap, Network, HardDrive, AlertTriangle, Eye
+  Zap, Network, HardDrive, AlertTriangle, Eye, FileText, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -528,8 +528,16 @@ export default function LiveModuleStatus() {
         </div>
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Tabs */}
+      <Tabs defaultValue="modules" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="modules">Module Status</TabsTrigger>
+          <TabsTrigger value="structure">Website Structure</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="modules" className="space-y-6">
+          {/* Overview Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -789,6 +797,241 @@ export default function LiveModuleStatus() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="structure" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Website Structure Documentation
+              </CardTitle>
+              <CardDescription>Complete overview of application architecture</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Page Routes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Network className="w-5 h-5 text-primary" />
+                  Application Routes
+                </h3>
+                <div className="grid gap-3">
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Public Routes</h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>/ - Home Page</p>
+                        <p>/auth - Authentication</p>
+                        <p>/contact-form - Contact Form</p>
+                        <p>/books/:id - Book Details</p>
+                        <p>/:username - Public Profile</p>
+                        <p>/publisher/:slug - Publisher Public Page</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-l-4 border-l-green-500">
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">User Routes (Protected)</h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>/dashboard - User Dashboard</p>
+                        <p>/books - Book Management</p>
+                        <p>/profile - Profile Settings</p>
+                        <p>/user-blog-management - Blog Management</p>
+                        <p>/user-events-management - Events Management</p>
+                        <p>/user-awards-management - Awards Management</p>
+                        <p>/user-faq-management - FAQ Management</p>
+                        <p>/user-newsletter-management - Newsletter Management</p>
+                        <p>/contact-management - Contact Management</p>
+                        <p>/themes - Theme Customization</p>
+                        <p>/subscription - Subscription Management</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-l-4 border-l-purple-500">
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Admin Routes (Admin Only)</h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>/admin/dashboard - Admin Dashboard</p>
+                        <p>/admin/users - User Management</p>
+                        <p>/admin/live-module-status - Module Status Monitor</p>
+                        <p>/admin/home-page-management - Home Page Editor</p>
+                        <p>/admin/settings - Site Settings</p>
+                        <p>/admin/book-catalog - Book Catalog</p>
+                        <p>/admin/publisher-management - Publisher Management</p>
+                        <p>/admin/theme-management - Theme Management</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Database Structure */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Database className="w-5 h-5 text-primary" />
+                  Database Structure
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        User & Auth
+                      </h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>• profiles - User profiles</p>
+                        <p>• user_roles - Role assignments</p>
+                        <p>• user_subscriptions - Subscription data</p>
+                        <p>• subscription_plans - Available plans</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        Content
+                      </h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>• books - Book catalog</p>
+                        <p>• blog_posts - Blog content</p>
+                        <p>• events - Event listings</p>
+                        <p>• awards - Award records</p>
+                        <p>• faqs - FAQ entries</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Settings & Config
+                      </h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>• blog_settings - Blog configuration</p>
+                        <p>• event_settings - Event configuration</p>
+                        <p>• faq_settings - FAQ configuration</p>
+                        <p>• awards_settings - Awards configuration</p>
+                        <p>• newsletter_settings - Newsletter config</p>
+                        <p>• cookie_settings - Cookie consent</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Communication
+                      </h4>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>• contact_submissions - Contact forms</p>
+                        <p>• contact_replies - Reply threads</p>
+                        <p>• newsletter_campaigns - Email campaigns</p>
+                        <p>• newsletter_subscribers - Subscriber list</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Key Features */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  Key Features & Components
+                </h3>
+                <div className="grid md:grid-cols-3 gap-3">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Authentication</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Role-based access control with admin, publisher, and user roles
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Theme System</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Dynamic theming with real-time preview and customization
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Publisher Platform</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Multi-author publishing with branding and custom domains
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Dynamic Pages</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Visual page editor for home page and custom sections
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">SEO Tools</h4>
+                      <p className="text-sm text-muted-foreground">
+                        AI-powered SEO optimization with schema generation
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h4 className="font-semibold mb-2">Analytics</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Advanced analytics dashboard with book tracking
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Edge Functions */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Cloud className="w-5 h-5 text-primary" />
+                  Edge Functions (Backend)
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {[
+                    { name: 'send-contact-email', desc: 'Handles contact form submissions' },
+                    { name: 'send-reply-email', desc: 'Sends reply emails to contacts' },
+                    { name: 'send-newsletter', desc: 'Processes newsletter campaigns' },
+                    { name: 'send-auth-email', desc: 'Authentication email handling' },
+                    { name: 'ai-seo-suggestions', desc: 'AI-powered SEO recommendations' },
+                    { name: 'backup-manager', desc: 'Database backup management' },
+                    { name: 'security-monitor', desc: 'Security monitoring and alerts' },
+                    { name: 'aws-deploy', desc: 'AWS deployment automation' }
+                  ].map((func) => (
+                    <Card key={func.name}>
+                      <CardContent className="pt-6">
+                        <h4 className="font-mono text-sm font-semibold mb-1">{func.name}</h4>
+                        <p className="text-sm text-muted-foreground">{func.desc}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
