@@ -10,10 +10,18 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
-  Table,
   Layers,
   ExternalLink
 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,55 +29,93 @@ interface DeploymentStatisticsProps {
   deployments: any[];
 }
 
+interface TableStats {
+  name: string;
+  total: number;
+  transferred: number;
+  pending: number;
+}
+
 export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps) {
   const [databaseStats, setDatabaseStats] = useState<any>(null);
+  const [tableStats, setTableStats] = useState<TableStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const activeDeployment = deployments?.find(d => d.status === 'running');
+  const activeDeployment = deployments?.find(d => d.status === 'running' || d.status === 'completed');
 
   const fetchDatabaseStatistics = async () => {
     setLoading(true);
     try {
-      // Get list of all tables
-      const { data: tablesData, error: tablesError } = await supabase
-        .rpc('get_table_list' as any);
-
-      if (tablesError) {
-        // Fallback: Count known tables manually
-        const knownTables = [
-          'profiles', 'books', 'blog_posts', 'events', 'awards', 'faqs',
-          'gallery_items', 'contact_submissions', 'user_subscriptions',
-          'newsletter_subscribers', 'themes', 'custom_domains'
-        ];
-        
-        let tableCount = 0;
-        let totalRecords = 0;
-
-        for (const table of knownTables) {
-          try {
-            const { count } = await supabase
-              .from(table as any)
-              .select('*', { count: 'exact', head: true });
+      const tables = [
+        { name: 'profiles', label: 'User Profiles' },
+        { name: 'books', label: 'Books' },
+        { name: 'blog_posts', label: 'Blog Posts' },
+        { name: 'events', label: 'Events' },
+        { name: 'awards', label: 'Awards' },
+        { name: 'faqs', label: 'FAQs' },
+        { name: 'gallery_items', label: 'Gallery Items' },
+        { name: 'contact_submissions', label: 'Contact Submissions' },
+        { name: 'user_subscriptions', label: 'Subscriptions' },
+        { name: 'newsletter_subscribers', label: 'Newsletter Subscribers' },
+        { name: 'themes', label: 'Themes' },
+        { name: 'custom_domains', label: 'Custom Domains' }
+      ];
+      
+      let tableCount = 0;
+      let totalRecords = 0;
+      let totalTransferred = 0;
+      let totalPending = 0;
+      const stats: TableStats[] = [];
+      
+      for (const table of tables) {
+        try {
+          // Get total count
+          const { count: total } = await supabase
+            .from(table.name as any)
+            .select('*', { count: 'exact', head: true });
+          
+          if (total !== null) {
+            tableCount++;
+            totalRecords += total;
             
-            if (count !== null) {
-              tableCount++;
-              totalRecords += count;
+            // Calculate transferred vs pending
+            // Records created before last deployment are transferred
+            let transferred = 0;
+            let pending = total;
+            
+            if (activeDeployment?.last_deployed_at) {
+              const { count: transferredCount } = await supabase
+                .from(table.name as any)
+                .select('*', { count: 'exact', head: true })
+                .lte('created_at', activeDeployment.last_deployed_at);
+              
+              transferred = transferredCount || 0;
+              pending = total - transferred;
             }
-          } catch (err) {
-            // Skip tables that don't exist or we can't access
-            continue;
+            
+            totalTransferred += transferred;
+            totalPending += pending;
+            
+            stats.push({
+              name: table.label,
+              total,
+              transferred,
+              pending
+            });
           }
+        } catch (err) {
+          console.log(`Error counting ${table.name}:`, err);
         }
-
-        setDatabaseStats({
-          tableCount,
-          totalRecords,
-          tables: knownTables.slice(0, tableCount)
-        });
-      } else {
-        setDatabaseStats(tablesData);
       }
+      
+      setTableStats(stats);
+      setDatabaseStats({
+        tableCount,
+        totalRecords,
+        transferred: totalTransferred,
+        pending: totalPending
+      });
 
       setLastUpdated(new Date());
       toast.success('Statistics updated successfully');
@@ -104,19 +150,19 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
     },
     {
       title: 'Transferred',
-      value: databaseStats?.totalRecords || 0,
+      value: databaseStats?.transferred || 0,
       icon: CheckCircle2,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-50 dark:bg-emerald-950',
-      description: 'Successfully deployed records'
+      description: 'Successfully deployed to AWS'
     },
     {
       title: 'Pending',
-      value: 0,
+      value: databaseStats?.pending || 0,
       icon: AlertCircle,
       color: 'text-amber-500',
       bgColor: 'bg-amber-50 dark:bg-amber-950',
-      description: 'Awaiting deployment'
+      description: 'Awaiting next deployment'
     },
     {
       title: 'Deployments',
@@ -310,43 +356,114 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
         </CardContent>
       </Card>
 
-      {/* Database Tables List */}
-      {databaseStats && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5" />
-              Database Tables
-            </CardTitle>
-            <CardDescription>
-              Overview of your database structure
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground mb-4">
-                Your deployment includes data from the following tables:
+      {/* Database Tables Deployment Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Database Deployment Status
+          </CardTitle>
+          <CardDescription>
+            Real-time sync status for each database table
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Table Name</TableHead>
+                  <TableHead className="text-right">Total Records</TableHead>
+                  <TableHead className="text-right">Transferred</TableHead>
+                  <TableHead className="text-right">Pending</TableHead>
+                  <TableHead className="w-[180px]">Progress</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                      Loading table statistics...
+                    </TableCell>
+                  </TableRow>
+                ) : tableStats.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  tableStats.map((table) => {
+                    const percentage = table.total > 0 ? (table.transferred / table.total) * 100 : 0;
+                    const isComplete = table.pending === 0 && table.total > 0;
+                    const hasPending = table.pending > 0;
+                    
+                    return (
+                      <TableRow key={table.name}>
+                        <TableCell className="font-medium">{table.name}</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {table.total.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="font-mono text-emerald-600 dark:text-emerald-400">
+                            {table.transferred.toLocaleString()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={`font-mono ${hasPending ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}>
+                            {table.pending.toLocaleString()}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Progress value={percentage} className="h-2" />
+                            <span className="text-xs text-muted-foreground">
+                              {percentage.toFixed(0)}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {isComplete ? (
+                            <Badge variant="default" className="bg-emerald-500">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Synced
+                            </Badge>
+                          ) : hasPending ? (
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Pending
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              No Data
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          
+          {activeDeployment && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm">
+                <strong className="text-foreground">Last Deployment:</strong>{" "}
+                <span className="text-muted-foreground">
+                  {new Date(activeDeployment.last_deployed_at).toLocaleString()}
+                </span>
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {[
-                  'profiles', 'books', 'blog_posts', 'events', 'awards', 'faqs',
-                  'gallery_items', 'contact_submissions', 'user_subscriptions',
-                  'newsletter_subscribers', 'themes', 'user_roles',
-                  'publishers', 'home_page_sections', 'hero_blocks'
-                ].map((table) => (
-                  <div
-                    key={table}
-                    className="flex items-center gap-2 p-2 rounded bg-muted/50"
-                  >
-                    <Database className="h-3 w-3 text-blue-500" />
-                    <span className="text-xs font-mono">{table}</span>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Records created after this time are marked as pending and will be deployed on the next deployment.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {/* Deployment Readiness Checklist */}
       <Card>
