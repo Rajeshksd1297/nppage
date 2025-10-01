@@ -6,9 +6,11 @@ import {
   CheckCircle, AlertCircle, XCircle, Activity, RefreshCw,
   BookOpen, Newspaper, Calendar, Award, HelpCircle, Mail, 
   MessageSquare, Lock, Users, BarChart3, Palette, Crown,
-  Shield, Cloud, Database
+  Shield, Cloud, Database, Grid3x3, Table as TableIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ModuleStatus {
   id: string;
@@ -24,6 +26,7 @@ export default function LiveModuleStatus() {
   const [modules, setModules] = useState<ModuleStatus[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSync, setLastSync] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   useEffect(() => {
     checkAllModules();
@@ -169,14 +172,34 @@ export default function LiveModuleStatus() {
             Real-time monitoring of all system modules
           </p>
         </div>
-        <Button 
-          onClick={handleRefresh} 
-          disabled={isRefreshing}
-          variant="outline"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border rounded-lg p-1">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="px-3"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+              className="px-3"
+            >
+              <TableIcon className="w-4 h-4" />
+            </Button>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            variant="outline"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Overview Stats */}
@@ -245,51 +268,101 @@ export default function LiveModuleStatus() {
         </CardContent>
       </Card>
 
-      {/* Module Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {modules.map((module) => (
-          <Card key={module.id} className="hover:border-primary/50 transition-colors">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <module.icon className="w-5 h-5 text-primary" />
+      {/* Module Views */}
+      {viewMode === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {modules.map((module) => (
+            <Card key={module.id} className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <module.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{module.name}</CardTitle>
+                      <CardDescription className="text-xs">
+                        {module.lastUpdate.toLocaleTimeString()}
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{module.name}</CardTitle>
-                    <CardDescription className="text-xs">
+                  {getStatusIcon(module.status)}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    {getStatusBadge(module.status)}
+                  </div>
+                  
+                  {module.recordCount !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Records</span>
+                      <span className="text-sm font-medium">{module.recordCount}</span>
+                    </div>
+                  )}
+                  
+                  {module.errorCount !== undefined && module.errorCount > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Errors</span>
+                      <span className="text-sm font-medium text-red-600">{module.errorCount}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead>Module Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Records</TableHead>
+                  <TableHead className="text-right">Errors</TableHead>
+                  <TableHead>Last Update</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {modules.map((module) => (
+                  <TableRow key={module.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="p-2 bg-primary/10 rounded-lg inline-block">
+                        <module.icon className="w-4 h-4 text-primary" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{module.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(module.status)}
+                        {getStatusBadge(module.status)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {module.recordCount !== undefined ? module.recordCount : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {module.errorCount !== undefined && module.errorCount > 0 ? (
+                        <span className="text-red-600 font-medium">{module.errorCount}</span>
+                      ) : (
+                        <span className="text-muted-foreground">0</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
                       {module.lastUpdate.toLocaleTimeString()}
-                    </CardDescription>
-                  </div>
-                </div>
-                {getStatusIcon(module.status)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  {getStatusBadge(module.status)}
-                </div>
-                
-                {module.recordCount !== undefined && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Records</span>
-                    <span className="text-sm font-medium">{module.recordCount}</span>
-                  </div>
-                )}
-                
-                {module.errorCount !== undefined && module.errorCount > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Errors</span>
-                    <span className="text-sm font-medium text-red-600">{module.errorCount}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
