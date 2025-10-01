@@ -20,7 +20,8 @@ import {
   Shield,
   Globe,
   Database,
-  Settings
+  Settings,
+  Wrench
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -57,6 +58,7 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
   const [healthStatuses, setHealthStatuses] = useState<Map<string, InstanceHealth>>(new Map());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(30); // seconds
+  const [fixingHttp, setFixingHttp] = useState<Set<string>>(new Set());
 
   const activeDeployments = deployments?.filter(d => 
     d.status === 'running' && 
@@ -707,6 +709,8 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                       </div>
                     );
                   } else if (!isNewDeployment && hasWebServerIssue) {
+                    const isFixing = fixingHttp.has(deployment.ec2_instance_id);
+                    
                     return (
                       <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                         <div className="flex items-start gap-3">
@@ -719,23 +723,78 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                               The web server is not accessible. This usually means the security group needs configuration.
                             </p>
                             <div className="text-xs text-amber-600 dark:text-amber-400 space-y-1 mb-3">
-                              <p><strong>Quick Fix:</strong></p>
-                              <p>1. Go to AWS Console → EC2 → Security Groups</p>
-                              <p>2. Find your instance's security group</p>
-                              <p>3. Add inbound rule: HTTP (port 80) from 0.0.0.0/0</p>
+                              <p><strong>Quick Fix Options:</strong></p>
+                              <p>1. Use the Auto-Fix button below (recommended)</p>
+                              <p>2. Or manually add HTTP rule in AWS Console → EC2 → Security Groups</p>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              onClick={() => window.open(
-                                `https://console.aws.amazon.com/ec2/home?region=${deployment.region}#SecurityGroups:`,
-                                '_blank'
-                              )}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Open Security Groups in AWS
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="text-xs"
+                                disabled={isFixing}
+                                onClick={async () => {
+                                  setFixingHttp(prev => new Set(prev).add(deployment.ec2_instance_id));
+                                  try {
+                                    const { data, error } = await supabase.functions.invoke('aws-unblock-http', {
+                                      body: {
+                                        instanceId: deployment.ec2_instance_id,
+                                        region: deployment.region,
+                                      },
+                                    });
+
+                                    if (error) throw error;
+
+                                    if (data.success) {
+                                      toast.success(data.alreadyOpen ? 
+                                        'HTTP port 80 is already open' : 
+                                        'HTTP access enabled successfully! Checking status...'
+                                      );
+                                      
+                                      // Refresh health check after 2 seconds
+                                      setTimeout(() => {
+                                        checkInstanceHealth(deployment);
+                                      }, 2000);
+                                    } else {
+                                      throw new Error(data.error || 'Failed to enable HTTP access');
+                                    }
+                                  } catch (error: any) {
+                                    console.error('HTTP fix error:', error);
+                                    toast.error(error.message || 'Failed to enable HTTP access');
+                                  } finally {
+                                    setFixingHttp(prev => {
+                                      const next = new Set(prev);
+                                      next.delete(deployment.ec2_instance_id);
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              >
+                                {isFixing ? (
+                                  <>
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                    Fixing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Wrench className="h-3 w-3 mr-1" />
+                                    Auto-Fix HTTP Access
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                onClick={() => window.open(
+                                  `https://console.aws.amazon.com/ec2/home?region=${deployment.region}#SecurityGroups:`,
+                                  '_blank'
+                                )}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                AWS Console
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
