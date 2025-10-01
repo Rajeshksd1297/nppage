@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ModuleStatus {
   id: string;
@@ -36,6 +37,7 @@ export default function LiveModuleStatus() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [refreshInterval, setRefreshInterval] = useState<number>(0); // 0 = manual, minutes otherwise
   const [systemMetrics, setSystemMetrics] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,
@@ -68,17 +70,20 @@ export default function LiveModuleStatus() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'themes' }, handleUpdate)
       .subscribe();
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      checkAllModules();
-      loadSystemMetrics();
-    }, 30000);
+    // Auto-refresh based on selected interval
+    let interval: NodeJS.Timeout | null = null;
+    if (refreshInterval > 0) {
+      interval = setInterval(() => {
+        checkAllModules();
+        loadSystemMetrics();
+      }, refreshInterval * 60 * 1000); // Convert minutes to milliseconds
+    }
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, []);
+  }, [refreshInterval]);
 
   const handleUpdate = () => {
     setLastSync(new Date());
@@ -601,13 +606,27 @@ export default function LiveModuleStatus() {
               <TableIcon className="w-4 h-4" />
             </Button>
           </div>
+          
+          <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(Number(value))}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Refresh interval" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Manual Only</SelectItem>
+              <SelectItem value="5">Every 5 minutes</SelectItem>
+              <SelectItem value="15">Every 15 minutes</SelectItem>
+              <SelectItem value="30">Every 30 minutes</SelectItem>
+              <SelectItem value="60">Every 60 minutes</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button 
             onClick={handleRefresh} 
             disabled={isRefreshing}
             variant="outline"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            Refresh Now
           </Button>
         </div>
       </div>
@@ -890,7 +909,7 @@ export default function LiveModuleStatus() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">System Monitoring Dashboard</h3>
                   <Badge variant="outline" className="text-xs">
-                    Auto-refresh: 30s
+                    {refreshInterval === 0 ? 'Manual Refresh Only' : `Auto-refresh: Every ${refreshInterval} min`}
                   </Badge>
                 </div>
 
