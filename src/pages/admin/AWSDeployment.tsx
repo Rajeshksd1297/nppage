@@ -236,6 +236,8 @@ export default function AWSDeployment() {
     deployments && deployments.length > 0,
   ];
 
+  const isReadyToDeploy = completedSteps[0] && completedSteps[1] && !completedSteps[2];
+
   if (settingsLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -261,21 +263,29 @@ export default function AWSDeployment() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {deploymentSteps.map((step, index) => (
-              <div key={index} className="flex items-start gap-3">
-                {completedSteps[index] ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                )}
-                <div>
-                  <h4 className={`font-medium ${completedSteps[index] ? "text-green-600" : ""}`}>
-                    Step {index + 1}: {step.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+            {deploymentSteps.map((step, index) => {
+              const isComplete = completedSteps[index];
+              const isReady = index === 2 && isReadyToDeploy;
+              
+              return (
+                <div key={index} className="flex items-start gap-3">
+                  {isComplete ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  ) : isReady ? (
+                    <Rocket className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  )}
+                  <div>
+                    <h4 className={`font-medium ${isComplete ? "text-green-600" : isReady ? "text-primary" : ""}`}>
+                      Step {index + 1}: {step.title}
+                      {isReady && <span className="ml-2 text-xs font-normal text-primary">(Ready to deploy!)</span>}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
