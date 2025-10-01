@@ -32,7 +32,8 @@ import {
   Cookie,
   Server,
   Shield,
-  CheckCircle
+  CheckCircle,
+  Package
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -146,6 +147,7 @@ const contentManagementItems = [
 
 // Business Management
 const businessManagementItems = [
+  { title: "Module Architecture", url: "/admin/module-architecture", icon: Package },
   { title: "Publisher Management", url: "/admin/publishers", icon: Building2 },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
   { title: "Help Desk Settings", url: "/admin/help-desk-settings", icon: Settings },

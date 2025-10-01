@@ -73,6 +73,7 @@ import AWSDeployment from "./pages/admin/AWSDeployment";
 import BackupSecurityCenter from "./pages/admin/BackupSecurityCenter";
 import ProductionReadiness from "./pages/admin/ProductionReadiness";
 import RoleManagement from "./pages/admin/RoleManagement";
+import ModuleArchitecture from "./pages/admin/ModuleArchitecture";
 
 // User management imports
 import UserBlogManagement from "./pages/UserBlogManagement";
@@ -460,6 +461,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <RoleManagement />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/module-architecture" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <ModuleArchitecture />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
