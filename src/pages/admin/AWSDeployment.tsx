@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
-import { DeploymentStatusCard } from "@/components/admin/DeploymentStatusCard";
+import { LiveDeploymentMonitor } from "@/components/admin/LiveDeploymentMonitor";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -947,60 +947,7 @@ export default function AWSDeployment() {
         </TabsContent>
 
         <TabsContent value="status" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Active Deployments Health Status</CardTitle>
-                  <CardDescription>
-                    Real-time monitoring of running AWS EC2 instances
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({
-                queryKey: ["aws-deployments"]
-              })}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Status
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {(() => {
-                // Filter to only show valid running deployments
-                const activeDeployments = deployments?.filter(d => 
-                  d.ec2_instance_id && 
-                  d.ec2_public_ip && 
-                  getDeploymentStatus(d) === 'running' &&
-                  d.ec2_instance_id.match(/^i-[a-f0-9]{8,17}$/) // Valid instance ID format
-                ) || [];
-
-                if (activeDeployments.length === 0) {
-                  return (
-                    <div className="text-center py-12">
-                      <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground font-medium">
-                        No active deployments to monitor
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Deploy an instance from the Deployments tab to see its health status here
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="space-y-6">
-                    {activeDeployments.map(deployment => (
-                      <DeploymentStatusCard 
-                        key={deployment.id} 
-                        deployment={deployment} 
-                      />
-                    ))}
-                  </div>
-                );
-              })()}
-            </CardContent>
-          </Card>
+          <LiveDeploymentMonitor deployments={deployments || []} />
         </TabsContent>
 
         <TabsContent value="guide" className="space-y-6">
