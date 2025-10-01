@@ -872,6 +872,34 @@ echo "⏱️  Time: $(date)"
     }
     }
 
+    // Auto-enable HTTP access by unblocking port 80
+    console.log('Auto-configuring HTTP access for instance:', instanceId);
+    deploymentLog += `\n--- Auto-Configuring HTTP Access ---\n`;
+    
+    try {
+      const unblockResponse = await supabaseClient.functions.invoke('aws-unblock-http', {
+        body: {
+          instanceId,
+          region,
+        },
+      });
+
+      if (unblockResponse.error) {
+        console.error('Failed to auto-unblock HTTP:', unblockResponse.error);
+        deploymentLog += `⚠️ Warning: Could not auto-configure HTTP access\n`;
+        deploymentLog += `   Error: ${unblockResponse.error.message}\n`;
+        deploymentLog += `   You may need to manually configure the security group\n`;
+      } else {
+        console.log('HTTP access auto-configured successfully');
+        deploymentLog += `✓ HTTP port 80 automatically configured in security group\n`;
+        deploymentLog += `✓ Your website is now accessible via HTTP\n`;
+      }
+    } catch (autoConfigError) {
+      console.error('Error during auto-configuration:', autoConfigError);
+      deploymentLog += `⚠️ Auto-configuration encountered an issue\n`;
+      deploymentLog += `   You may need to manually enable HTTP in AWS Console\n`;
+    }
+
     // Update deployment record with final results
     const deploymentEndTime = new Date();
     const { error: updateError } = await supabaseClient
