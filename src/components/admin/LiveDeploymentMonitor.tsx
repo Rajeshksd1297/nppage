@@ -232,12 +232,30 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
           message: instanceOk ? 'All checks passed' : 'Instance checks failing'
         });
 
-        // HTTP/Web Server Component
-        components.push({
-          name: 'Web Server (Nginx)',
-          status: httpOk ? 'healthy' : 'unhealthy',
-          message: httpOk ? 'Accessible on port 80' : 'Not accessible'
-        });
+        // HTTP/Web Server Component - Check deployment age for better status
+        const deploymentAge = deployment.created_at ? 
+          (Date.now() - new Date(deployment.created_at).getTime()) / 1000 / 60 : 999;
+        
+        if (httpOk) {
+          components.push({
+            name: 'Web Server (Nginx)',
+            status: 'healthy',
+            message: 'Accessible on port 80'
+          });
+        } else if (deploymentAge < 5) {
+          // Within 5 minutes of deployment - likely still setting up
+          components.push({
+            name: 'Web Server (Nginx)',
+            status: 'degraded',
+            message: `Setup in progress (~${Math.ceil(5 - deploymentAge)} min remaining)`
+          });
+        } else {
+          components.push({
+            name: 'Web Server (Nginx)',
+            status: 'unhealthy',
+            message: 'Not accessible - check security group'
+          });
+        }
 
         // Application Component (inferred from HTTP + response time)
         if (httpOk && responseTime < 5000) {
@@ -252,11 +270,17 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
             status: 'degraded',
             message: 'Very slow response'
           });
+        } else if (deploymentAge < 5) {
+          components.push({
+            name: 'Application',
+            status: 'degraded',
+            message: 'Installing... (3-5 min setup time)'
+          });
         } else {
           components.push({
             name: 'Application',
             status: 'unknown',
-            message: 'Cannot verify'
+            message: 'Cannot verify - HTTP not accessible'
           });
         }
 
@@ -651,6 +675,74 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                     </p>
                   </div>
                 </div>
+
+                {/* Setup Progress Notice */}
+                {(() => {
+                  const deploymentAge = deployment.created_at ? 
+                    (Date.now() - new Date(deployment.created_at).getTime()) / 1000 / 60 : 999;
+                  const isNewDeployment = deploymentAge < 5;
+                  const hasWebServerIssue = health?.components.some(c => 
+                    c.name === 'Web Server (Nginx)' && (c.status === 'unhealthy' || c.status === 'degraded')
+                  );
+
+                  if (isNewDeployment && hasWebServerIssue) {
+                    return (
+                      <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <Loader2 className="h-5 w-5 text-blue-500 animate-spin mt-0.5" />
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                              Initial Setup in Progress
+                            </h5>
+                            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                              Your deployment is installing Nginx, Node.js, and security features. This takes 3-5 minutes.
+                            </p>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                              <p>• Estimated completion: {Math.ceil(5 - deploymentAge)} minutes</p>
+                              <p>• The instance will automatically become accessible when ready</p>
+                              <p>• Check back in a few minutes or wait for the status to update</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else if (!isNewDeployment && hasWebServerIssue) {
+                    return (
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                              HTTP Access Issue Detected
+                            </h5>
+                            <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+                              The web server is not accessible. This usually means the security group needs configuration.
+                            </p>
+                            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-1 mb-3">
+                              <p><strong>Quick Fix:</strong></p>
+                              <p>1. Go to AWS Console → EC2 → Security Groups</p>
+                              <p>2. Find your instance's security group</p>
+                              <p>3. Add inbound rule: HTTP (port 80) from 0.0.0.0/0</p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                              onClick={() => window.open(
+                                `https://console.aws.amazon.com/ec2/home?region=${deployment.region}#SecurityGroups:`,
+                                '_blank'
+                              )}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Open Security Groups in AWS
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {/* Component Status Grid */}
                 {health?.components && health.components.length > 0 && (
