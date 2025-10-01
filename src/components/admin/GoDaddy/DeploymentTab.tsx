@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Eye } from 'lucide-react';
+import { Upload, Eye, AlertCircle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -47,7 +47,7 @@ export const DeploymentTab = ({ settings, deployments, deploymentsLoading }: Dep
       return response.json();
     },
     onSuccess: () => {
-      toast.success('Deployment completed successfully!');
+      toast.success('Deployment recorded successfully!');
       queryClient.invalidateQueries({ queryKey: ['godaddy-deployments'] });
       setDeploymentName('');
     },
@@ -87,15 +87,28 @@ export const DeploymentTab = ({ settings, deployments, deploymentsLoading }: Dep
 
   return (
     <div className="space-y-6">
+      {/* Important Notice */}
+      <Card className="border-orange-500/50 bg-orange-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-600">
+            <AlertCircle className="h-5 w-5" />
+            Manual Deployment Tracker
+          </CardTitle>
+          <CardDescription className="text-foreground/80">
+            This records your manual deployments. Build your app locally, upload via FTP, then record it here for tracking.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
       {/* New Deployment */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Start New Deployment
+            Record Deployment
           </CardTitle>
           <CardDescription>
-            Deploy your application to GoDaddy shared hosting
+            After manually uploading files via FTP, record your deployment here for tracking
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -134,13 +147,18 @@ export const DeploymentTab = ({ settings, deployments, deploymentsLoading }: Dep
             </div>
           )}
 
-          <Button
-            onClick={handleDeploy}
-            disabled={isDeploying || !settings || !deploymentName.trim()}
-            className="w-full"
-          >
-            {isDeploying ? 'Deploying...' : 'Deploy to GoDaddy'}
-          </Button>
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground bg-muted p-2 rounded">
+              <strong>Before recording:</strong> Ensure you've built locally (<code className="bg-background px-1">npm run build</code>) and uploaded all files from the dist folder via FTP to your GoDaddy hosting.
+            </p>
+            <Button
+              onClick={handleDeploy}
+              disabled={isDeploying || !settings || !deploymentName.trim()}
+              className="w-full"
+            >
+              {isDeploying ? 'Recording...' : 'Record Deployment'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

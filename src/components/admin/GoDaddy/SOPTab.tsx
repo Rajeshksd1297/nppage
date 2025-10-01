@@ -1,359 +1,324 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Server, FileText, CheckCircle, AlertCircle, Rocket, Upload, Settings, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const SOPTab = () => {
   return (
     <div className="space-y-6">
+      {/* Important Notice */}
+      <Card className="border-orange-500/50 bg-orange-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-600">
+            <AlertCircle className="h-5 w-5" />
+            Important: Manual Deployment Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm">
+            This deployment system <strong>tracks and guides</strong> your manual deployment process. 
+            It does NOT automatically upload files to GoDaddy. You must manually build your application 
+            and upload files via FTP client (like FileZilla) or cPanel File Manager.
+          </p>
+          <div className="bg-background/50 p-3 rounded-lg space-y-2">
+            <p className="text-sm font-semibold">Why Manual?</p>
+            <ul className="text-sm space-y-1 list-disc list-inside">
+              <li>Build artifacts are not accessible from edge functions</li>
+              <li>FTP operations require local file system access</li>
+              <li>Ensures you have full control over deployment</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Prerequisites */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-amber-500" />
+            <AlertCircle className="h-5 w-5" />
             Prerequisites
           </CardTitle>
-          <CardDescription>
-            Ensure you have these items ready before starting deployment
-          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">Active GoDaddy shared hosting account</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">Domain name configured and pointing to hosting</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">FTP credentials (host, username, password)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">cPanel access for FTP account management</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm">Sufficient disk space (minimum 50MB recommended)</span>
-            </div>
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm">Active GoDaddy shared hosting account</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm">Domain configured and pointing to hosting</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm">FTP credentials (host, username, password)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm">FTP client installed (FileZilla recommended)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm">Node.js and npm/yarn installed locally</span>
           </div>
         </CardContent>
       </Card>
 
-      {/* SOP Guide */}
+      {/* Step 1 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Server className="h-5 w-5" />
-            Deployment Process - Step by Step
+            Step 1: Obtain GoDaddy FTP Credentials
+            <Badge variant="outline">~5-10 minutes</Badge>
           </CardTitle>
-          <CardDescription>
-            Follow each step in order for successful deployment
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Step 1 */}
-          <div className="space-y-3 pb-6 border-b">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                1
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-lg">Obtain GoDaddy FTP Credentials</h4>
-                  <Badge variant="outline">5-10 minutes</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Get your FTP access details from GoDaddy cPanel
-                </p>
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.1. Login to GoDaddy</p>
-                    <p className="text-xs text-muted-foreground">• Navigate to godaddy.com and sign in to your account</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.2. Access Your Hosting</p>
-                    <p className="text-xs text-muted-foreground">• Go to "My Products" → Find your hosting plan → Click "Manage"</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.3. Open cPanel</p>
-                    <p className="text-xs text-muted-foreground">• Click "cPanel Admin" button to open control panel</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.4. Navigate to FTP Accounts</p>
-                    <p className="text-xs text-muted-foreground">• In cPanel, scroll to "Files" section → Click "FTP Accounts"</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.5. Create or View FTP Account</p>
-                    <p className="text-xs text-muted-foreground">• Create new FTP account OR use existing main account</p>
-                    <p className="text-xs text-muted-foreground">• Note down: FTP Server/Host, Username, Password, Port (usually 21)</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">1.6. Verify FTP Server Address</p>
-                    <p className="text-xs text-muted-foreground">• Format is usually: ftp.yourdomain.com or your server IP address</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 2 */}
-          <div className="space-y-3 pb-6 border-b">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                2
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-lg">Configure FTP Settings in System</h4>
-                  <Badge variant="outline">2-3 minutes</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Enter your FTP credentials in the Configuration tab
-                </p>
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.1. Switch to Configuration Tab</p>
-                    <p className="text-xs text-muted-foreground">• Click "Configuration" tab at the top of this page</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.2. Enter FTP Host</p>
-                    <p className="text-xs text-muted-foreground">• Example: ftp.yourdomain.com</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.3. Enter FTP Port</p>
-                    <p className="text-xs text-muted-foreground">• Default is 21 (use 22 for SFTP if supported)</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.4. Enter FTP Username</p>
-                    <p className="text-xs text-muted-foreground">• Usually: username@yourdomain.com or just username</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.5. Enter FTP Password</p>
-                    <p className="text-xs text-muted-foreground">• Use the password you set in cPanel FTP Accounts</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.6. Set Deployment Path</p>
-                    <p className="text-xs text-muted-foreground">• For main domain: /public_html</p>
-                    <p className="text-xs text-muted-foreground">• For subdomain: /public_html/subdomain</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.7. Enter Domain Name</p>
-                    <p className="text-xs text-muted-foreground">• Example: yourdomain.com (without https://)</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">2.8. Save Configuration</p>
-                    <p className="text-xs text-muted-foreground">• Click "Save Configuration" button</p>
-                    <p className="text-xs text-muted-foreground">• Wait for success message</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 3 */}
-          <div className="space-y-3 pb-6 border-b">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                3
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-lg">Start Deployment</h4>
-                  <Badge variant="outline">5-15 minutes</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Initiate the deployment process to GoDaddy hosting
-                </p>
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.1. Navigate to Deployment Tab</p>
-                    <p className="text-xs text-muted-foreground">• Click "Deployment" tab at the top</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.2. Enter Deployment Name</p>
-                    <p className="text-xs text-muted-foreground">• Example: "Production v1.0" or "Initial Deployment"</p>
-                    <p className="text-xs text-muted-foreground">• This helps track different deployments</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.3. Review Deployment Target</p>
-                    <p className="text-xs text-muted-foreground">• Verify FTP host, path, and domain are correct</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.4. Click Deploy Button</p>
-                    <p className="text-xs text-muted-foreground">• Click "Deploy to GoDaddy" button</p>
-                    <p className="text-xs text-muted-foreground">• System will start building your application</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.5. Wait for Build Process</p>
-                    <p className="text-xs text-muted-foreground">• Application will be compiled for production</p>
-                    <p className="text-xs text-muted-foreground">• Assets will be optimized and minified</p>
-                    <p className="text-xs text-muted-foreground">• This may take 3-5 minutes</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.6. Monitor FTP Upload</p>
-                    <p className="text-xs text-muted-foreground">• Files will be uploaded to your hosting via FTP</p>
-                    <p className="text-xs text-muted-foreground">• Upload time depends on file size and connection speed</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.7. .htaccess Configuration</p>
-                    <p className="text-xs text-muted-foreground">• System automatically creates .htaccess file</p>
-                    <p className="text-xs text-muted-foreground">• Enables client-side routing for React app</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">3.8. Wait for Completion</p>
-                    <p className="text-xs text-muted-foreground">• Watch for success or error messages</p>
-                    <p className="text-xs text-muted-foreground">• Check deployment history for status</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 4 */}
-          <div className="space-y-3 pb-6 border-b">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                4
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-lg">Verify Deployment</h4>
-                  <Badge variant="outline">5-10 minutes</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Check if deployment was successful and application is working
-                </p>
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.1. Check Deployment Status</p>
-                    <p className="text-xs text-muted-foreground">• Go to "Status Check" tab</p>
-                    <p className="text-xs text-muted-foreground">• Look for green success indicator</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.2. Test Website Access</p>
-                    <p className="text-xs text-muted-foreground">• Click "Check Website" button in Status Check tab</p>
-                    <p className="text-xs text-muted-foreground">• Or open your domain in a new browser tab</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.3. Verify Homepage Loads</p>
-                    <p className="text-xs text-muted-foreground">• Ensure homepage displays correctly</p>
-                    <p className="text-xs text-muted-foreground">• Check for any missing images or styles</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.4. Test Navigation</p>
-                    <p className="text-xs text-muted-foreground">• Click through different pages/routes</p>
-                    <p className="text-xs text-muted-foreground">• Verify all links work correctly</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.5. Check Browser Console</p>
-                    <p className="text-xs text-muted-foreground">• Press F12 to open developer tools</p>
-                    <p className="text-xs text-muted-foreground">• Look for any error messages in Console tab</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.6. Test on Mobile Devices</p>
-                    <p className="text-xs text-muted-foreground">• Open website on phone/tablet</p>
-                    <p className="text-xs text-muted-foreground">• Verify responsive design works</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">4.7. Check SSL Certificate</p>
-                    <p className="text-xs text-muted-foreground">• Ensure https:// works (padlock icon in browser)</p>
-                    <p className="text-xs text-muted-foreground">• If not, enable SSL in GoDaddy cPanel</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 5 */}
+        <CardContent className="space-y-4">
           <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                5
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-lg">Post-Deployment Setup</h4>
-                  <Badge variant="outline">Optional</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Additional configurations for optimal performance
-                </p>
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">5.1. Enable SSL/HTTPS</p>
-                    <p className="text-xs text-muted-foreground">• In GoDaddy cPanel, go to SSL/TLS Status</p>
-                    <p className="text-xs text-muted-foreground">• Run AutoSSL to enable free SSL certificate</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">5.2. Set Up Email Accounts</p>
-                    <p className="text-xs text-muted-foreground">• Create professional email addresses for your domain</p>
-                    <p className="text-xs text-muted-foreground">• Configure in cPanel → Email Accounts</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">5.3. Configure Backup Schedule</p>
-                    <p className="text-xs text-muted-foreground">• Keep regular backups of deployment history</p>
-                    <p className="text-xs text-muted-foreground">• Download FTP backup periodically</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">5.4. Monitor Website Performance</p>
-                    <p className="text-xs text-muted-foreground">• Use Status Check tab regularly</p>
-                    <p className="text-xs text-muted-foreground">• Set up Google Analytics if needed</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">5.5. Document Deployment</p>
-                    <p className="text-xs text-muted-foreground">• Save deployment credentials securely</p>
-                    <p className="text-xs text-muted-foreground">• Note any custom configurations made</p>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Login to GoDaddy account at godaddy.com</li>
+                <li>Navigate to "My Products" → Find hosting plan → Click "Manage"</li>
+                <li>Click "cPanel Admin" button</li>
+                <li>In cPanel, scroll to "Files" → Click "FTP Accounts"</li>
+                <li>Create new FTP account OR use existing main account</li>
+                <li>Note down: FTP Server (ftp.yourdomain.com), Username, Password, Port (21)</li>
+              </ol>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Requirements & Tips */}
+      {/* Step 2 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Requirements & Best Practices
+            <Settings className="h-5 w-5" />
+            Step 2: Configure FTP Settings
+            <Badge variant="outline">~2-3 minutes</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-2">Requirements:</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>GoDaddy shared hosting account with FTP access</li>
-              <li>FTP credentials (host, username, password)</li>
-              <li>Domain configured and pointing to your hosting</li>
-              <li>Sufficient disk space for application files</li>
-            </ul>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Click on "Configuration" tab above</li>
+                <li>Enter your FTP Host (e.g., ftp.yourdomain.com)</li>
+                <li>Enter FTP Username and Password</li>
+                <li>Set FTP Port (usually 21 for FTP, 22 for SFTP)</li>
+                <li>Specify Deployment Path (e.g., /public_html or /public_html/yourdomain.com)</li>
+                <li>Enter your Domain Name</li>
+                <li>Click "Save FTP Configuration"</li>
+                <li>Verify green success message appears</li>
+                <li><strong className="text-orange-600">Note: Settings are saved for tracking only</strong></li>
+              </ol>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div>
-            <h4 className="font-medium mb-2">Best Practices:</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>Test deployments on a subdomain first</li>
-              <li>Ensure SSL/HTTPS is enabled in your GoDaddy cPanel</li>
-              <li>The .htaccess file enables client-side routing</li>
-              <li>Keep backup of FTP credentials secure</li>
-              <li>Monitor deployment logs for any errors</li>
-            </ul>
+      {/* Step 3 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="h-5 w-5" />
+            Step 3: Build Application Locally
+            <Badge variant="outline">~2-5 minutes</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Open terminal in your project directory</li>
+                <li>Run: <code className="bg-muted px-2 py-1 rounded">npm run build</code> or <code className="bg-muted px-2 py-1 rounded">yarn build</code></li>
+                <li>Wait for build to complete</li>
+                <li>Verify <code className="bg-muted px-2 py-1 rounded">dist</code> folder is created</li>
+                <li>Check that dist folder contains: index.html, assets/, etc.</li>
+              </ol>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div>
-            <h4 className="font-medium mb-2">Troubleshooting:</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>If deployment fails, check FTP credentials</li>
-              <li>Verify deployment path exists on server</li>
-              <li>Ensure proper file permissions (644 for files, 755 for directories)</li>
-              <li>Check if domain DNS is properly configured</li>
-              <li>Contact GoDaddy support for hosting-specific issues</li>
-            </ul>
+      {/* Step 4 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Step 4: Upload Files via FTP
+            <Badge variant="outline">~5-15 minutes</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Option A: Using FTP Client (Recommended)
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Download FileZilla or another FTP client</li>
+                <li>Open FTP client and enter your credentials</li>
+                <li>Connect to your GoDaddy server</li>
+                <li>Navigate to deployment path (e.g., /public_html)</li>
+                <li>Delete old files if updating</li>
+                <li>Upload ALL files from your <code className="bg-muted px-2 py-1 rounded">dist</code> folder</li>
+                <li>Ensure .htaccess file is uploaded (create if missing)</li>
+                <li>Wait for all files to transfer (check progress)</li>
+              </ol>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Option B: Using cPanel File Manager
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Log into your GoDaddy cPanel</li>
+                <li>Open File Manager</li>
+                <li>Navigate to public_html or your deployment folder</li>
+                <li>Delete old files if updating</li>
+                <li>Click Upload button</li>
+                <li>Select all files from your dist folder</li>
+                <li>Wait for upload to complete</li>
+                <li>Verify all files are present</li>
+              </ol>
+            </div>
+
+            <div className="bg-muted p-3 rounded-lg space-y-2">
+              <p className="text-sm font-semibold">Required .htaccess file:</p>
+              <pre className="text-xs bg-background p-2 rounded overflow-x-auto">
+{`<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>`}
+              </pre>
+              <p className="text-xs text-muted-foreground">Create this file if it doesn't exist in your dist folder</p>
+            </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 5 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5" />
+            Step 5: Record Deployment
+            <Badge variant="outline">~1 minute</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>After successful upload, return to this dashboard</li>
+                <li>Click on "Deployment" tab</li>
+                <li>Enter deployment name (e.g., "Production v1.0.0")</li>
+                <li>Click "Record Deployment" to track this deployment</li>
+                <li>View your deployment history</li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 6 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5" />
+            Step 6: Verify Deployment
+            <Badge variant="outline">~3-5 minutes</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Click on "Status Check" tab</li>
+                <li>Click "Check Website Status" button</li>
+                <li>Verify website is accessible (200 status)</li>
+                <li>Open your domain in a browser</li>
+                <li>Test navigation and all routes</li>
+                <li>Check browser console for errors (F12)</li>
+                <li>Note: Initial propagation may take 5-10 minutes</li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 7 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Step 7: Post-Deployment Setup
+            <Badge variant="outline">~5-10 minutes</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Sub-steps:
+              </p>
+              <ol className="text-sm space-y-1.5 ml-6 list-decimal">
+                <li>Enable SSL/HTTPS in GoDaddy cPanel (SSL/TLS Status)</li>
+                <li>Run AutoSSL for free SSL certificate</li>
+                <li>Verify https:// works (padlock icon in browser)</li>
+                <li>Set file permissions (644 for files, 755 for folders)</li>
+                <li>Clear browser cache and test again</li>
+                <li>Test on different devices and browsers</li>
+                <li>Set up regular backup schedule</li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tips */}
+      <Card className="border-blue-500/50 bg-blue-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-600">
+            <FileText className="h-5 w-5" />
+            Pro Tips
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <ul className="text-sm space-y-2 list-disc list-inside">
+            <li>Always test locally before deploying</li>
+            <li>Keep backups before updating existing deployment</li>
+            <li>Use meaningful deployment names with version numbers</li>
+            <li>Document any environment-specific configurations</li>
+            <li>Monitor the first 24 hours after deployment closely</li>
+            <li>Use SFTP (port 22) instead of FTP when available for better security</li>
+          </ul>
         </CardContent>
       </Card>
     </div>

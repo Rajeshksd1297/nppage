@@ -77,54 +77,35 @@ serve(async (req) => {
       throw new Error('Failed to create deployment record');
     }
 
-    // Simulate build and deployment process
-    let deploymentLog = '=== GoDaddy Shared Hosting Deployment ===\n\n';
+    // Record manual deployment
+    let deploymentLog = '=== GoDaddy Deployment Record ===\n\n';
     
     try {
-      // Step 1: Build the application
-      deploymentLog += '📦 Step 1: Building application...\n';
-      deploymentLog += '  - Running production build\n';
-      deploymentLog += '  - Optimizing assets\n';
-      deploymentLog += '  - Generating static files\n';
-      deploymentLog += '  ✓ Build completed successfully\n\n';
-
-      // Step 2: Prepare deployment
-      deploymentLog += '🔧 Step 2: Preparing deployment...\n';
+      deploymentLog += '📋 Deployment Information:\n';
+      deploymentLog += `  - Deployment Name: ${requestData.deployment_name}\n`;
       deploymentLog += `  - FTP Host: ${ftpSettings.ftp_host}\n`;
       deploymentLog += `  - FTP Port: ${ftpSettings.ftp_port}\n`;
       deploymentLog += `  - Deployment Path: ${ftpSettings.deployment_path}\n`;
-      deploymentLog += '  - Creating .htaccess for SPA routing\n';
-      deploymentLog += '  ✓ Preparation completed\n\n';
+      deploymentLog += `  - Domain: ${ftpSettings.domain}\n`;
+      deploymentLog += `  - Recorded At: ${new Date().toISOString()}\n\n`;
 
-      // Step 3: Connect to FTP
-      deploymentLog += '🌐 Step 3: Connecting to FTP server...\n';
-      deploymentLog += `  - Connecting to ${ftpSettings.ftp_host}:${ftpSettings.ftp_port}\n`;
-      deploymentLog += '  - Authenticating...\n';
-      deploymentLog += '  ✓ FTP connection established\n\n';
-
-      // Step 4: Upload files
-      deploymentLog += '📤 Step 4: Uploading files...\n';
-      deploymentLog += '  - Uploading HTML files\n';
-      deploymentLog += '  - Uploading CSS files\n';
-      deploymentLog += '  - Uploading JavaScript files\n';
-      deploymentLog += '  - Uploading images and assets\n';
-      deploymentLog += '  - Uploading .htaccess\n';
-      deploymentLog += '  ✓ All files uploaded successfully\n\n';
-
-      // Step 5: Post-deployment
-      deploymentLog += '✅ Step 5: Finalizing deployment...\n';
-      deploymentLog += '  - Setting file permissions\n';
-      deploymentLog += '  - Verifying uploaded files\n';
-      deploymentLog += '  - Clearing cache\n';
-      deploymentLog += '  ✓ Deployment finalized\n\n';
-
-      deploymentLog += '=== DEPLOYMENT SUCCESSFUL ===\n\n';
-      deploymentLog += `🎉 Your application is now live at: https://${ftpSettings.domain}\n\n`;
-      deploymentLog += 'Next Steps:\n';
-      deploymentLog += '1. Test your application at the domain\n';
-      deploymentLog += '2. Verify SSL/HTTPS is working\n';
-      deploymentLog += '3. Check all routes and pages\n';
-      deploymentLog += '4. Monitor for any errors in browser console\n';
+      deploymentLog += '✅ Deployment Recorded Successfully\n\n';
+      deploymentLog += `🌐 Your application should be live at: https://${ftpSettings.domain}\n\n`;
+      
+      deploymentLog += 'Manual Deployment Checklist:\n';
+      deploymentLog += '☐ Built application locally (npm run build)\n';
+      deploymentLog += '☐ Uploaded all dist folder contents via FTP\n';
+      deploymentLog += '☐ Verified .htaccess file is present\n';
+      deploymentLog += '☐ Set correct file permissions (644 for files, 755 for folders)\n';
+      deploymentLog += '☐ Tested website in browser\n';
+      deploymentLog += '☐ Verified all routes work correctly\n';
+      deploymentLog += '☐ Checked SSL/HTTPS is active\n\n';
+      
+      deploymentLog += 'Troubleshooting:\n';
+      deploymentLog += '• If seeing 404 errors: Check .htaccess is uploaded\n';
+      deploymentLog += '• If blank page: Check browser console for errors\n';
+      deploymentLog += '• If assets not loading: Verify all files were uploaded\n';
+      deploymentLog += '• If FTP issues: Use Status Check tab to test connection\n';
 
       // Update deployment record with success
       await supabase
@@ -139,7 +120,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Deployment completed successfully',
+          message: 'Deployment recorded successfully',
           deployment_id: deployment.id,
           url: `https://${ftpSettings.domain}`,
           log: deploymentLog
