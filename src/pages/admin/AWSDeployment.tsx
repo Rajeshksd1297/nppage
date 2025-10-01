@@ -13,29 +13,56 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { DeploymentStatusCard } from "@/components/admin/DeploymentStatusCard";
-
-const awsRegions = [
-  { value: "us-east-1", label: "US East (N. Virginia)" },
-  { value: "us-east-2", label: "US East (Ohio)" },
-  { value: "us-west-1", label: "US West (N. California)" },
-  { value: "us-west-2", label: "US West (Oregon)" },
-  { value: "eu-west-1", label: "EU (Ireland)" },
-  { value: "eu-central-1", label: "EU (Frankfurt)" },
-  { value: "ap-south-1", label: "Asia Pacific (Mumbai)" },
-  { value: "ap-southeast-1", label: "Asia Pacific (Singapore)" },
-  { value: "ap-southeast-2", label: "Asia Pacific (Sydney)" },
-  { value: "ap-northeast-1", label: "Asia Pacific (Tokyo)" },
-];
-
-const instanceTypes = [
-  { value: "t2.micro", label: "t2.micro (Free Tier)" },
-  { value: "t2.small", label: "t2.small" },
-  { value: "t2.medium", label: "t2.medium" },
-  { value: "t3.micro", label: "t3.micro" },
-  { value: "t3.small", label: "t3.small" },
-  { value: "t3.medium", label: "t3.medium" },
-];
-
+const awsRegions = [{
+  value: "us-east-1",
+  label: "US East (N. Virginia)"
+}, {
+  value: "us-east-2",
+  label: "US East (Ohio)"
+}, {
+  value: "us-west-1",
+  label: "US West (N. California)"
+}, {
+  value: "us-west-2",
+  label: "US West (Oregon)"
+}, {
+  value: "eu-west-1",
+  label: "EU (Ireland)"
+}, {
+  value: "eu-central-1",
+  label: "EU (Frankfurt)"
+}, {
+  value: "ap-south-1",
+  label: "Asia Pacific (Mumbai)"
+}, {
+  value: "ap-southeast-1",
+  label: "Asia Pacific (Singapore)"
+}, {
+  value: "ap-southeast-2",
+  label: "Asia Pacific (Sydney)"
+}, {
+  value: "ap-northeast-1",
+  label: "Asia Pacific (Tokyo)"
+}];
+const instanceTypes = [{
+  value: "t2.micro",
+  label: "t2.micro (Free Tier)"
+}, {
+  value: "t2.small",
+  label: "t2.small"
+}, {
+  value: "t2.medium",
+  label: "t2.medium"
+}, {
+  value: "t3.micro",
+  label: "t3.micro"
+}, {
+  value: "t3.small",
+  label: "t3.small"
+}, {
+  value: "t3.medium",
+  label: "t3.medium"
+}];
 const settingsSchema = z.object({
   aws_access_key_id: z.string().min(16, "Access Key ID must be at least 16 characters").max(128),
   aws_secret_access_key: z.string().min(40, "Secret Access Key must be at least 40 characters").max(128),
@@ -45,26 +72,21 @@ const settingsSchema = z.object({
   security_group_id: z.string().optional(),
   subnet_id: z.string().optional(),
   ami_id: z.string().optional(),
-  auto_deploy_enabled: z.boolean(),
+  auto_deploy_enabled: z.boolean()
 });
-
-const deploymentSteps = [
-  {
-    title: "Configure AWS Credentials",
-    description: "Add your AWS Access Key ID and Secret Access Key",
-    completed: false,
-  },
-  {
-    title: "Set Instance Configuration",
-    description: "Choose region and instance type for your deployment",
-    completed: false,
-  },
-  {
-    title: "Create Deployment",
-    description: "Name your deployment and launch EC2 instance",
-    completed: false,
-  },
-];
+const deploymentSteps = [{
+  title: "Configure AWS Credentials",
+  description: "Add your AWS Access Key ID and Secret Access Key",
+  completed: false
+}, {
+  title: "Set Instance Configuration",
+  description: "Choose region and instance type for your deployment",
+  completed: false
+}, {
+  title: "Create Deployment",
+  description: "Name your deployment and launch EC2 instance",
+  completed: false
+}];
 
 // Helper function to get display status and check for auto-fail
 const getDeploymentStatus = (deployment: any) => {
@@ -77,7 +99,6 @@ const getDeploymentStatus = (deployment: any) => {
   if (deployment.status === 'pending' && elapsed > THREE_MINUTES) {
     return 'failed';
   }
-  
   return deployment.status;
 };
 
@@ -94,7 +115,6 @@ const getStatusDisplay = (status: string) => {
       return status;
   }
 };
-
 export default function AWSDeployment() {
   const [deploymentName, setDeploymentName] = useState("");
   const [region, setRegion] = useState("ap-south-1");
@@ -106,9 +126,10 @@ export default function AWSDeployment() {
   const [existingInstanceId, setExistingInstanceId] = useState("");
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const queryClient = useQueryClient();
-
   const [settingsForm, setSettingsForm] = useState({
     aws_access_key_id: "",
     aws_secret_access_key: "",
@@ -118,24 +139,24 @@ export default function AWSDeployment() {
     security_group_id: "",
     subnet_id: "",
     ami_id: "",
-    auto_deploy_enabled: false,
+    auto_deploy_enabled: false
   });
-
-  const { data: awsSettings, isLoading: settingsLoading } = useQuery({
+  const {
+    data: awsSettings,
+    isLoading: settingsLoading
+  } = useQuery({
     queryKey: ["aws-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("aws_settings")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from("aws_settings").select("*").order("created_at", {
+        ascending: false
+      }).limit(1).maybeSingle();
       if (error) throw error;
       return data;
-    },
+    }
   });
-
   useEffect(() => {
     if (awsSettings) {
       setSettingsForm({
@@ -147,52 +168,47 @@ export default function AWSDeployment() {
         security_group_id: awsSettings.security_group_id || "",
         subnet_id: awsSettings.subnet_id || "",
         ami_id: awsSettings.ami_id || "",
-        auto_deploy_enabled: awsSettings.auto_deploy_enabled || false,
+        auto_deploy_enabled: awsSettings.auto_deploy_enabled || false
       });
       setRegion(awsSettings.default_region || "ap-south-1");
     }
   }, [awsSettings]);
-
-  const { data: deployments, isLoading } = useQuery({
+  const {
+    data: deployments,
+    isLoading
+  } = useQuery({
     queryKey: ["aws-deployments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("aws_deployments")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("aws_deployments").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
-      
+
       // Auto-fail old pending deployments
       if (data) {
         const THREE_MINUTES = 3 * 60 * 1000;
         const now = Date.now();
-        
         for (const deployment of data) {
           if (deployment.status === 'pending') {
             const createdAt = new Date(deployment.created_at).getTime();
             const elapsed = now - createdAt;
-            
             if (elapsed > THREE_MINUTES) {
               // Update status to failed
-              await supabase
-                .from("aws_deployments")
-                .update({ 
-                  status: 'failed',
-                  deployment_log: deployment.deployment_log + 
-                    `\n\n❌ Deployment timed out after ${Math.floor(elapsed / 1000)} seconds.\nDeployment was automatically marked as failed due to timeout (>3 minutes).`
-                })
-                .eq("id", deployment.id);
+              await supabase.from("aws_deployments").update({
+                status: 'failed',
+                deployment_log: deployment.deployment_log + `\n\n❌ Deployment timed out after ${Math.floor(elapsed / 1000)} seconds.\nDeployment was automatically marked as failed due to timeout (>3 minutes).`
+              }).eq("id", deployment.id);
             }
           }
         }
       }
-      
       return data;
     },
-    refetchInterval: 5000, // Refresh every 5 seconds to catch status changes
+    refetchInterval: 5000 // Refresh every 5 seconds to catch status changes
   });
-
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: typeof settingsForm) => {
       try {
@@ -203,37 +219,41 @@ export default function AWSDeployment() {
         }
         throw error;
       }
-
       if (awsSettings?.id) {
-        const { error } = await supabase
-          .from("aws_settings")
-          .update(data)
-          .eq("id", awsSettings.id);
+        const {
+          error
+        } = await supabase.from("aws_settings").update(data).eq("id", awsSettings.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("aws_settings").insert(data);
+        const {
+          error
+        } = await supabase.from("aws_settings").insert(data);
         if (error) throw error;
       }
     },
     onSuccess: () => {
       toast({
         title: "Settings Saved",
-        description: "AWS settings have been saved successfully.",
+        description: "AWS settings have been saved successfully."
       });
-      queryClient.invalidateQueries({ queryKey: ["aws-settings"] });
+      queryClient.invalidateQueries({
+        queryKey: ["aws-settings"]
+      });
     },
     onError: (error: Error) => {
       toast({
         title: "Save Failed",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
-
   const deployMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("aws-deploy", {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("aws-deploy", {
         body: {
           deploymentName,
           region,
@@ -242,21 +262,20 @@ export default function AWSDeployment() {
           includeDatabase,
           includeMigrations,
           instanceMode,
-          existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined,
-        },
+          existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined
+        }
       });
-
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       toast({
         title: "Deployment Started",
-        description: instanceMode === 'existing' 
-          ? "Updating existing EC2 instance with new code." 
-          : "Your AWS EC2 instance is being deployed.",
+        description: instanceMode === 'existing' ? "Updating existing EC2 instance with new code." : "Your AWS EC2 instance is being deployed."
       });
-      queryClient.invalidateQueries({ queryKey: ["aws-deployments"] });
+      queryClient.invalidateQueries({
+        queryKey: ["aws-deployments"]
+      });
       setDeploymentName("");
       setExistingInstanceId("");
     },
@@ -264,106 +283,56 @@ export default function AWSDeployment() {
       toast({
         title: "Deployment Failed",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
-
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     saveSettingsMutation.mutate(settingsForm);
   };
-
   const handleDeploy = () => {
     if (!awsSettings?.aws_access_key_id || !awsSettings?.aws_secret_access_key) {
       toast({
         title: "AWS Settings Required",
         description: "Please configure AWS credentials first.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!deploymentName.trim()) {
       toast({
         title: "Name Required",
         description: "Please enter a deployment name.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (instanceMode === 'existing' && !existingInstanceId.trim()) {
       toast({
         title: "Instance ID Required",
         description: "Please enter an existing EC2 instance ID.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     deployMutation.mutate();
   };
-
-  const completedSteps = [
-    !!awsSettings?.aws_access_key_id && !!awsSettings?.aws_secret_access_key,
-    !!awsSettings?.default_region && !!awsSettings?.instance_type,
-    deployments && deployments.length > 0,
-  ];
-
+  const completedSteps = [!!awsSettings?.aws_access_key_id && !!awsSettings?.aws_secret_access_key, !!awsSettings?.default_region && !!awsSettings?.instance_type, deployments && deployments.length > 0];
   const isReadyToDeploy = completedSteps[0] && completedSteps[1] && !completedSteps[2];
-
   if (settingsLoading || isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
+    return <div className="flex justify-center items-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
+  return <div className="container mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">AWS EC2 Deployment</h1>
-        <p className="text-muted-foreground">
-          Configure AWS credentials and deploy EC2 instances
-        </p>
+        <h1 className="font-bold mb-2 text-xl">AWS EC2 Deployment</h1>
+        
       </div>
 
       {/* Deployment Steps Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Deployment Steps</CardTitle>
-          <CardDescription>Follow these steps to deploy your application</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {deploymentSteps.map((step, index) => {
-              const isComplete = completedSteps[index];
-              const isReady = index === 2 && isReadyToDeploy;
-              
-              return (
-                <div key={index} className="flex items-start gap-3">
-                  {isComplete ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  ) : isReady ? (
-                    <Rocket className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                  )}
-                  <div>
-                    <h4 className={`font-medium ${isComplete ? "text-green-600" : isReady ? "text-primary" : ""}`}>
-                      Step {index + 1}: {step.title}
-                      {isReady && <span className="ml-2 text-xs font-normal text-primary">(Ready to deploy!)</span>}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      
 
       <Tabs defaultValue="settings" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -386,30 +355,12 @@ export default function AWSDeployment() {
                 <div className="space-y-2">
                   <Label htmlFor="access-key">AWS Access Key ID *</Label>
                   <div className="relative">
-                    <Input
-                      id="access-key"
-                      type={showAccessKey ? "text" : "password"}
-                      placeholder="AKIAIOSFODNN7EXAMPLE"
-                      value={settingsForm.aws_access_key_id}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, aws_access_key_id: e.target.value })
-                      }
-                      required
-                      minLength={16}
-                      maxLength={128}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowAccessKey(!showAccessKey)}
-                    >
-                      {showAccessKey ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                    <Input id="access-key" type={showAccessKey ? "text" : "password"} placeholder="AKIAIOSFODNN7EXAMPLE" value={settingsForm.aws_access_key_id} onChange={e => setSettingsForm({
+                    ...settingsForm,
+                    aws_access_key_id: e.target.value
+                  })} required minLength={16} maxLength={128} />
+                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowAccessKey(!showAccessKey)}>
+                      {showAccessKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
@@ -417,30 +368,12 @@ export default function AWSDeployment() {
                 <div className="space-y-2">
                   <Label htmlFor="secret-key">AWS Secret Access Key *</Label>
                   <div className="relative">
-                    <Input
-                      id="secret-key"
-                      type={showSecretKey ? "text" : "password"}
-                      placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                      value={settingsForm.aws_secret_access_key}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, aws_secret_access_key: e.target.value })
-                      }
-                      required
-                      minLength={40}
-                      maxLength={128}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowSecretKey(!showSecretKey)}
-                    >
-                      {showSecretKey ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                    <Input id="secret-key" type={showSecretKey ? "text" : "password"} placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" value={settingsForm.aws_secret_access_key} onChange={e => setSettingsForm({
+                    ...settingsForm,
+                    aws_secret_access_key: e.target.value
+                  })} required minLength={40} maxLength={128} />
+                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowSecretKey(!showSecretKey)}>
+                      {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
@@ -458,42 +391,34 @@ export default function AWSDeployment() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="region">Default Region *</Label>
-                    <Select
-                      value={settingsForm.default_region}
-                      onValueChange={(value) =>
-                        setSettingsForm({ ...settingsForm, default_region: value })
-                      }
-                    >
+                    <Select value={settingsForm.default_region} onValueChange={value => setSettingsForm({
+                    ...settingsForm,
+                    default_region: value
+                  })}>
                       <SelectTrigger id="region">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {awsRegions.map((region) => (
-                          <SelectItem key={region.value} value={region.value}>
+                        {awsRegions.map(region => <SelectItem key={region.value} value={region.value}>
                             {region.label}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="instance-type">Instance Type *</Label>
-                    <Select
-                      value={settingsForm.instance_type}
-                      onValueChange={(value) =>
-                        setSettingsForm({ ...settingsForm, instance_type: value })
-                      }
-                    >
+                    <Select value={settingsForm.instance_type} onValueChange={value => setSettingsForm({
+                    ...settingsForm,
+                    instance_type: value
+                  })}>
                       <SelectTrigger id="instance-type">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {instanceTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
+                        {instanceTypes.map(type => <SelectItem key={type.value} value={type.value}>
                             {type.label}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -501,14 +426,10 @@ export default function AWSDeployment() {
 
                 <div className="space-y-2">
                   <Label htmlFor="key-pair">Key Pair Name (Optional)</Label>
-                  <Input
-                    id="key-pair"
-                    placeholder="my-ec2-keypair"
-                    value={settingsForm.key_pair_name}
-                    onChange={(e) =>
-                      setSettingsForm({ ...settingsForm, key_pair_name: e.target.value })
-                    }
-                  />
+                  <Input id="key-pair" placeholder="my-ec2-keypair" value={settingsForm.key_pair_name} onChange={e => setSettingsForm({
+                  ...settingsForm,
+                  key_pair_name: e.target.value
+                })} />
                   <p className="text-xs text-muted-foreground">
                     SSH key pair name for EC2 instance access
                   </p>
@@ -516,38 +437,26 @@ export default function AWSDeployment() {
 
                 <div className="space-y-2">
                   <Label htmlFor="security-group">Security Group ID (Optional)</Label>
-                  <Input
-                    id="security-group"
-                    placeholder="sg-0123456789abcdef0"
-                    value={settingsForm.security_group_id}
-                    onChange={(e) =>
-                      setSettingsForm({ ...settingsForm, security_group_id: e.target.value })
-                    }
-                  />
+                  <Input id="security-group" placeholder="sg-0123456789abcdef0" value={settingsForm.security_group_id} onChange={e => setSettingsForm({
+                  ...settingsForm,
+                  security_group_id: e.target.value
+                })} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="subnet">Subnet ID (Optional)</Label>
-                  <Input
-                    id="subnet"
-                    placeholder="subnet-0123456789abcdef0"
-                    value={settingsForm.subnet_id}
-                    onChange={(e) =>
-                      setSettingsForm({ ...settingsForm, subnet_id: e.target.value })
-                    }
-                  />
+                  <Input id="subnet" placeholder="subnet-0123456789abcdef0" value={settingsForm.subnet_id} onChange={e => setSettingsForm({
+                  ...settingsForm,
+                  subnet_id: e.target.value
+                })} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="ami">AMI ID (Optional)</Label>
-                  <Input
-                    id="ami"
-                    placeholder="ami-0123456789abcdef0"
-                    value={settingsForm.ami_id}
-                    onChange={(e) =>
-                      setSettingsForm({ ...settingsForm, ami_id: e.target.value })
-                    }
-                  />
+                  <Input id="ami" placeholder="ami-0123456789abcdef0" value={settingsForm.ami_id} onChange={e => setSettingsForm({
+                  ...settingsForm,
+                  ami_id: e.target.value
+                })} />
                   <p className="text-xs text-muted-foreground">
                     Leave empty to use default Amazon Linux 2 AMI
                   </p>
@@ -560,22 +469,17 @@ export default function AWSDeployment() {
                       Automatically deploy on code changes
                     </p>
                   </div>
-                  <Switch
-                    id="auto-deploy"
-                    checked={settingsForm.auto_deploy_enabled}
-                    onCheckedChange={(checked) =>
-                      setSettingsForm({ ...settingsForm, auto_deploy_enabled: checked })
-                    }
-                  />
+                  <Switch id="auto-deploy" checked={settingsForm.auto_deploy_enabled} onCheckedChange={checked => setSettingsForm({
+                  ...settingsForm,
+                  auto_deploy_enabled: checked
+                })} />
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex justify-end mt-6">
               <Button type="submit" disabled={saveSettingsMutation.isPending}>
-                {saveSettingsMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {saveSettingsMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <Save className="mr-2 h-4 w-4" />
                 Save Configuration
               </Button>
@@ -592,32 +496,20 @@ export default function AWSDeployment() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!awsSettings?.aws_access_key_id && (
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-500 rounded-lg p-4 mb-4">
+              {!awsSettings?.aws_access_key_id && <div className="bg-amber-50 dark:bg-amber-950 border border-amber-500 rounded-lg p-4 mb-4">
                   <p className="text-sm text-amber-900 dark:text-amber-100">
                     ⚠️ AWS credentials not configured. Please configure AWS settings in the Configuration tab first.
                   </p>
-                </div>
-              )}
+                </div>}
 
               <div className="space-y-2">
                 <Label htmlFor="deployment-name">Deployment Name</Label>
-                <Input
-                  id="deployment-name"
-                  placeholder="my-app-production"
-                  value={deploymentName}
-                  onChange={(e) => setDeploymentName(e.target.value)}
-                  disabled={!awsSettings?.aws_access_key_id}
-                />
+                <Input id="deployment-name" placeholder="my-app-production" value={deploymentName} onChange={e => setDeploymentName(e.target.value)} disabled={!awsSettings?.aws_access_key_id} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="instance-mode">Instance Mode</Label>
-                <Select 
-                  value={instanceMode} 
-                  onValueChange={(value: 'new' | 'existing') => setInstanceMode(value)}
-                  disabled={!awsSettings?.aws_access_key_id}
-                >
+                <Select value={instanceMode} onValueChange={(value: 'new' | 'existing') => setInstanceMode(value)} disabled={!awsSettings?.aws_access_key_id}>
                   <SelectTrigger id="instance-mode">
                     <SelectValue />
                   </SelectTrigger>
@@ -631,60 +523,38 @@ export default function AWSDeployment() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {instanceMode === 'new' 
-                    ? "Creates a brand new EC2 instance for this deployment"
-                    : "Deploys to an existing EC2 instance by Instance ID"}
+                  {instanceMode === 'new' ? "Creates a brand new EC2 instance for this deployment" : "Deploys to an existing EC2 instance by Instance ID"}
                 </p>
               </div>
 
-              {instanceMode === 'existing' && (
-                <div className="space-y-2 p-4 border border-primary/20 rounded-lg bg-primary/5">
+              {instanceMode === 'existing' && <div className="space-y-2 p-4 border border-primary/20 rounded-lg bg-primary/5">
                   <Label htmlFor="instance-id">EC2 Instance ID</Label>
-                  <Input
-                    id="instance-id"
-                    placeholder="i-0123456789abcdef0"
-                    value={existingInstanceId}
-                    onChange={(e) => setExistingInstanceId(e.target.value)}
-                    disabled={!awsSettings?.aws_access_key_id}
-                  />
+                  <Input id="instance-id" placeholder="i-0123456789abcdef0" value={existingInstanceId} onChange={e => setExistingInstanceId(e.target.value)} disabled={!awsSettings?.aws_access_key_id} />
                   <p className="text-xs text-muted-foreground">
                     Enter the Instance ID from your existing EC2 deployment (e.g., from Active Deployments below)
                   </p>
-                </div>
-              )}
+                </div>}
 
               <div className="space-y-2">
                 <Label htmlFor="region">AWS Region</Label>
-                <Select 
-                  value={region} 
-                  onValueChange={setRegion}
-                  disabled={!awsSettings?.aws_access_key_id || instanceMode === 'existing'}
-                >
+                <Select value={region} onValueChange={setRegion} disabled={!awsSettings?.aws_access_key_id || instanceMode === 'existing'}>
                   <SelectTrigger id="region">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {awsRegions.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
+                    {awsRegions.map(r => <SelectItem key={r.value} value={r.value}>
                         {r.label}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
-                {instanceMode === 'existing' && (
-                  <p className="text-xs text-muted-foreground">
+                {instanceMode === 'existing' && <p className="text-xs text-muted-foreground">
                     Region is determined by the existing instance
-                  </p>
-                )}
+                  </p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="deployment-type">Deployment Type</Label>
-                <Select 
-                  value={deploymentType} 
-                  onValueChange={(value: 'fresh' | 'incremental') => setDeploymentType(value)}
-                  disabled={!awsSettings?.aws_access_key_id}
-                >
+                <Select value={deploymentType} onValueChange={(value: 'fresh' | 'incremental') => setDeploymentType(value)} disabled={!awsSettings?.aws_access_key_id}>
                   <SelectTrigger id="deployment-type">
                     <SelectValue />
                   </SelectTrigger>
@@ -698,9 +568,7 @@ export default function AWSDeployment() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {deploymentType === 'incremental' 
-                    ? "Updates code and migrations only. Preserves all user data and database records."
-                    : "Complete fresh installation. Warning: This will reset all data!"}
+                  {deploymentType === 'incremental' ? "Updates code and migrations only. Preserves all user data and database records." : "Complete fresh installation. Warning: This will reset all data!"}
                 </p>
               </div>
 
@@ -711,56 +579,27 @@ export default function AWSDeployment() {
                     Run SQL migrations during deployment
                   </p>
                 </div>
-                <Switch
-                  id="include-migrations"
-                  checked={includeMigrations}
-                  onCheckedChange={setIncludeMigrations}
-                  disabled={!awsSettings?.aws_access_key_id}
-                />
+                <Switch id="include-migrations" checked={includeMigrations} onCheckedChange={setIncludeMigrations} disabled={!awsSettings?.aws_access_key_id} />
               </div>
 
-              {deploymentType === 'fresh' && (
-                <div className="flex items-center justify-between p-4 border rounded-lg bg-amber-50 dark:bg-amber-950">
+              {deploymentType === 'fresh' && <div className="flex items-center justify-between p-4 border rounded-lg bg-amber-50 dark:bg-amber-950">
                   <div className="space-y-0.5">
                     <Label htmlFor="include-database">Initialize Database</Label>
                     <p className="text-sm text-muted-foreground">
                       Set up fresh database schema
                     </p>
                   </div>
-                  <Switch
-                    id="include-database"
-                    checked={includeDatabase}
-                    onCheckedChange={setIncludeDatabase}
-                    disabled={!awsSettings?.aws_access_key_id}
-                  />
-                </div>
-              )}
+                  <Switch id="include-database" checked={includeDatabase} onCheckedChange={setIncludeDatabase} disabled={!awsSettings?.aws_access_key_id} />
+                </div>}
 
               <div className="flex items-center space-x-2">
-                <Switch
-                  id="auto-deploy-new"
-                  checked={autoDeploy}
-                  onCheckedChange={setAutoDeploy}
-                  disabled={!awsSettings?.aws_access_key_id}
-                />
+                <Switch id="auto-deploy-new" checked={autoDeploy} onCheckedChange={setAutoDeploy} disabled={!awsSettings?.aws_access_key_id} />
                 <Label htmlFor="auto-deploy-new">Enable Auto Deploy</Label>
               </div>
 
-              <Button
-                onClick={handleDeploy}
-                disabled={deployMutation.isPending || !awsSettings?.aws_access_key_id}
-                className="w-full"
-              >
-                {deployMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Rocket className="mr-2 h-4 w-4" />
-                )}
-                {instanceMode === 'existing' 
-                  ? 'Deploy to Existing Instance' 
-                  : deploymentType === 'incremental' 
-                    ? 'Deploy New Instance (Update)' 
-                    : 'Deploy New Instance (Fresh)'}
+              <Button onClick={handleDeploy} disabled={deployMutation.isPending || !awsSettings?.aws_access_key_id} className="w-full">
+                {deployMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
+                {instanceMode === 'existing' ? 'Deploy to Existing Instance' : deploymentType === 'incremental' ? 'Deploy New Instance (Update)' : 'Deploy New Instance (Fresh)'}
               </Button>
             </CardContent>
           </Card>
@@ -774,26 +613,17 @@ export default function AWSDeployment() {
                     View and manage your EC2 instances
                   </CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["aws-deployments"] })}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
+                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({
+                queryKey: ["aws-deployments"]
+              })} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   <span className="ml-2">Refresh</span>
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {deployments && deployments.length > 0 ? (
-                <div className="space-y-4">
-                  {deployments.map((deployment) => (
-                    <Card key={deployment.id}>
+              {deployments && deployments.length > 0 ? <div className="space-y-4">
+                  {deployments.map(deployment => <Card key={deployment.id}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="space-y-1">
@@ -804,171 +634,127 @@ export default function AWSDeployment() {
                             <p className="text-sm text-muted-foreground">
                               Region: {deployment.region}
                             </p>
-                            {deployment.ec2_instance_id && (
-                              <p className="text-sm text-muted-foreground">
+                            {deployment.ec2_instance_id && <p className="text-sm text-muted-foreground">
                                 Instance: {deployment.ec2_instance_id}
-                              </p>
-                            )}
-                            {deployment.ec2_public_ip && (
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={`http://${deployment.ec2_public_ip}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                                >
+                              </p>}
+                            {deployment.ec2_public_ip && <div className="flex items-center gap-2">
+                                <a href={`http://${deployment.ec2_public_ip}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
                                   {deployment.ec2_public_ip}
                                   <ExternalLink className="h-3 w-3" />
                                 </a>
-                              </div>
-                            )}
+                              </div>}
                           </div>
                           <div className="text-right">
                             {(() => {
-                              const actualStatus = getDeploymentStatus(deployment);
-                              const displayStatus = getStatusDisplay(actualStatus);
-                              
-                              return (
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                                    actualStatus === "running"
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                      : actualStatus === "pending"
-                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                                      : actualStatus === "failed"
-                                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-                                  }`}
-                                >
+                        const actualStatus = getDeploymentStatus(deployment);
+                        const displayStatus = getStatusDisplay(actualStatus);
+                        return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${actualStatus === "running" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : actualStatus === "pending" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100" : actualStatus === "failed" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"}`}>
                                   {displayStatus}
-                                </span>
-                              );
-                            })()}
-                            {deployment.last_deployed_at && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                                </span>;
+                      })()}
+                            {deployment.last_deployed_at && <p className="text-xs text-muted-foreground mt-1">
                                 {new Date(deployment.last_deployed_at).toLocaleString()}
-                              </p>
-                            )}
+                              </p>}
                           </div>
                         </div>
 
                         {/* Progress Bar with Percentage */}
                         {(() => {
-                          const log = deployment.deployment_log || '';
-                          const actualStatus = getDeploymentStatus(deployment);
-                          const displayStatus = getStatusDisplay(actualStatus);
-                          
-                          // Calculate progress percentage based on status and logs
-                          let progress = 0;
-                          let statusText = '';
-                          let estimatedTime = '';
-                          
-                          if (actualStatus === 'running') {
-                            progress = 100;
-                            statusText = 'Completed';
-                          } else if (actualStatus === 'failed') {
-                            progress = 0;
-                            statusText = 'Failed';
-                          } else {
-                            // Count completed steps from logs
-                            const completedSteps = (log.match(/✓/g) || []).length;
-                            const totalExpectedSteps = 8; // Typical deployment has ~8 steps
-                            
-                            // Calculate progress
-                            progress = Math.min(95, (completedSteps / totalExpectedSteps) * 100);
-                            
-                            // Extract timestamps for time estimation
-                            const startMatch = log.match(/Deployment Creation Started: (.+)/);
-                            if (startMatch) {
-                              const startTime = new Date(startMatch[1]);
-                              const now = new Date();
-                              const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-                              
-                              if (progress > 0) {
-                                const estimatedTotalSeconds = (elapsedSeconds / progress) * 100;
-                                const remainingSeconds = Math.max(0, estimatedTotalSeconds - elapsedSeconds);
-                                
-                                const formatTime = (seconds: number) => {
-                                  if (seconds < 60) return `${Math.floor(seconds)}s`;
-                                  const mins = Math.floor(seconds / 60);
-                                  const secs = Math.floor(seconds % 60);
-                                  return `${mins}m ${secs}s`;
-                                };
-                                
-                                statusText = `${Math.floor(progress)}% complete`;
-                                estimatedTime = `~${formatTime(remainingSeconds)} remaining`;
-                              } else {
-                                statusText = 'Starting...';
-                                estimatedTime = `${elapsedSeconds}s elapsed`;
-                              }
-                            } else {
-                              statusText = 'Initializing...';
-                            }
-                          }
-                          
-                          return (
-                            <div className="mt-4 space-y-2">
+                    const log = deployment.deployment_log || '';
+                    const actualStatus = getDeploymentStatus(deployment);
+                    const displayStatus = getStatusDisplay(actualStatus);
+
+                    // Calculate progress percentage based on status and logs
+                    let progress = 0;
+                    let statusText = '';
+                    let estimatedTime = '';
+                    if (actualStatus === 'running') {
+                      progress = 100;
+                      statusText = 'Completed';
+                    } else if (actualStatus === 'failed') {
+                      progress = 0;
+                      statusText = 'Failed';
+                    } else {
+                      // Count completed steps from logs
+                      const completedSteps = (log.match(/✓/g) || []).length;
+                      const totalExpectedSteps = 8; // Typical deployment has ~8 steps
+
+                      // Calculate progress
+                      progress = Math.min(95, completedSteps / totalExpectedSteps * 100);
+
+                      // Extract timestamps for time estimation
+                      const startMatch = log.match(/Deployment Creation Started: (.+)/);
+                      if (startMatch) {
+                        const startTime = new Date(startMatch[1]);
+                        const now = new Date();
+                        const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+                        if (progress > 0) {
+                          const estimatedTotalSeconds = elapsedSeconds / progress * 100;
+                          const remainingSeconds = Math.max(0, estimatedTotalSeconds - elapsedSeconds);
+                          const formatTime = (seconds: number) => {
+                            if (seconds < 60) return `${Math.floor(seconds)}s`;
+                            const mins = Math.floor(seconds / 60);
+                            const secs = Math.floor(seconds % 60);
+                            return `${mins}m ${secs}s`;
+                          };
+                          statusText = `${Math.floor(progress)}% complete`;
+                          estimatedTime = `~${formatTime(remainingSeconds)} remaining`;
+                        } else {
+                          statusText = 'Starting...';
+                          estimatedTime = `${elapsedSeconds}s elapsed`;
+                        }
+                      } else {
+                        statusText = 'Initializing...';
+                      }
+                    }
+                    return <div className="mt-4 space-y-2">
                               <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-2">
-                                  {actualStatus === 'pending' && (
-                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                  )}
+                                  {actualStatus === 'pending' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
                                   <span className="font-medium">{statusText}</span>
                                 </div>
-                                {estimatedTime && actualStatus === 'pending' && (
-                                  <div className="flex items-center gap-1 text-muted-foreground">
+                                {estimatedTime && actualStatus === 'pending' && <div className="flex items-center gap-1 text-muted-foreground">
                                     <Clock className="h-3.5 w-3.5" />
                                     <span className="text-xs">{estimatedTime}</span>
-                                  </div>
-                                )}
+                                  </div>}
                               </div>
-                              <Progress 
-                                value={progress} 
-                                className={actualStatus === 'failed' ? 'bg-destructive/20' : ''}
-                              />
-                            </div>
-                          );
-                        })()}
+                              <Progress value={progress} className={actualStatus === 'failed' ? 'bg-destructive/20' : ''} />
+                            </div>;
+                  })()}
 
                         {/* Deployment Progress Report */}
                         {deployment.deployment_log && (() => {
-                          const log = deployment.deployment_log;
-                          
-                          // Extract timestamps
-                          const startMatch = log.match(/Deployment Creation Started: (.+)/);
-                          const completeMatch = log.match(/Deployment completed at: (.+)/);
-                          const startTime = startMatch ? new Date(startMatch[1]) : null;
-                          const endTime = completeMatch ? new Date(completeMatch[1]) : null;
-                          
-                          // Calculate duration
-                          let duration = '';
-                          if (startTime && endTime) {
-                            const diff = endTime.getTime() - startTime.getTime();
-                            const seconds = Math.floor(diff / 1000);
-                            duration = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-                          }
+                    const log = deployment.deployment_log;
 
-                          // Extract completed steps
-                          const completedSteps = log.split('\n')
-                            .filter(line => line.trim().startsWith('✓'))
-                            .map(line => line.trim().substring(2));
-                          
-                          // Extract deployment type and configuration
-                          const deployTypeMatch = log.match(/Deployment Type: (.+)/);
-                          const deployType = deployTypeMatch ? deployTypeMatch[1] : 'Unknown';
-                          
-                          return (
-                            <div className="mt-3 border-t pt-3 space-y-3">
+                    // Extract timestamps
+                    const startMatch = log.match(/Deployment Creation Started: (.+)/);
+                    const completeMatch = log.match(/Deployment completed at: (.+)/);
+                    const startTime = startMatch ? new Date(startMatch[1]) : null;
+                    const endTime = completeMatch ? new Date(completeMatch[1]) : null;
+
+                    // Calculate duration
+                    let duration = '';
+                    if (startTime && endTime) {
+                      const diff = endTime.getTime() - startTime.getTime();
+                      const seconds = Math.floor(diff / 1000);
+                      duration = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+                    }
+
+                    // Extract completed steps
+                    const completedSteps = log.split('\n').filter(line => line.trim().startsWith('✓')).map(line => line.trim().substring(2));
+
+                    // Extract deployment type and configuration
+                    const deployTypeMatch = log.match(/Deployment Type: (.+)/);
+                    const deployType = deployTypeMatch ? deployTypeMatch[1] : 'Unknown';
+                    return <div className="mt-3 border-t pt-3 space-y-3">
                               <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-semibold flex items-center gap-2">
                                   <Server className="h-4 w-4 text-primary" />
                                   Deployment Progress Report
                                 </h4>
-                                {duration && (
-                                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                                {duration && <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
                                     {duration}
-                                  </span>
-                                )}
+                                  </span>}
                               </div>
 
                               {/* Timeline */}
@@ -984,8 +770,7 @@ export default function AWSDeployment() {
                                     {getDeploymentStatus(deployment) === 'running' ? 'Completed' : 'Status'}
                                   </div>
                                   <div className="font-mono font-medium capitalize">
-                                    {endTime ? endTime.toLocaleTimeString() : 
-                                     getStatusDisplay(getDeploymentStatus(deployment))}
+                                    {endTime ? endTime.toLocaleTimeString() : getStatusDisplay(getDeploymentStatus(deployment))}
                                   </div>
                                 </div>
                               </div>
@@ -997,31 +782,24 @@ export default function AWSDeployment() {
                               </div>
 
                               {/* Completed Steps */}
-                              {completedSteps.length > 0 && (
-                                <div className="space-y-2">
+                              {completedSteps.length > 0 && <div className="space-y-2">
                                   <div className="text-xs font-semibold text-green-700 dark:text-green-400 flex items-center gap-1">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     Completed ({completedSteps.length} steps)
                                   </div>
                                   <div className="space-y-1 pl-5">
-                                    {completedSteps.slice(0, 6).map((step, idx) => (
-                                      <div key={idx} className="text-xs flex items-start gap-2 text-muted-foreground">
+                                    {completedSteps.slice(0, 6).map((step, idx) => <div key={idx} className="text-xs flex items-start gap-2 text-muted-foreground">
                                         <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                                         <span>{step}</span>
-                                      </div>
-                                    ))}
-                                    {completedSteps.length > 6 && (
-                                      <div className="text-xs text-muted-foreground pl-5">
+                                      </div>)}
+                                    {completedSteps.length > 6 && <div className="text-xs text-muted-foreground pl-5">
                                         + {completedSteps.length - 6} more completed
-                                      </div>
-                                    )}
+                                      </div>}
                                   </div>
-                                </div>
-                              )}
+                                </div>}
 
                               {/* Pending Items */}
-                              {getDeploymentStatus(deployment) === 'pending' && (
-                                <div className="space-y-2 border-t pt-2">
+                              {getDeploymentStatus(deployment) === 'pending' && <div className="space-y-2 border-t pt-2">
                                   <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     Deploying
@@ -1036,76 +814,45 @@ export default function AWSDeployment() {
                                       <span>Finalizing network configuration</span>
                                     </div>
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                                </div>}
+                            </div>;
+                  })()}
 
                         {/* Full Deployment Log */}
-                        {deployment.deployment_log && (
-                          <details className="mt-3">
+                        {deployment.deployment_log && <details className="mt-3">
                             <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">
                               View Full Deployment Log
                             </summary>
                             <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-96">
                               {deployment.deployment_log}
                             </pre>
-                          </details>
-                        )}
+                          </details>}
                         
                         {/* Application Setup Status Alert */}
                         {getDeploymentStatus(deployment) === 'running' && deployment.ec2_public_ip && (() => {
-                          const deployedAt = new Date(deployment.last_deployed_at || deployment.created_at);
-                          const now = new Date();
-                          const elapsedMinutes = Math.floor((now.getTime() - deployedAt.getTime()) / 60000);
-                          const setupTimeMinutes = 5; // 3-5 minutes typical setup time
-                          const isSetupComplete = elapsedMinutes >= setupTimeMinutes;
-                          
-                          return (
-                            <div className={`mt-4 p-4 border-2 rounded-lg ${
-                              isSetupComplete 
-                                ? 'border-green-500 bg-green-50 dark:bg-green-950' 
-                                : 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                            }`}>
+                    const deployedAt = new Date(deployment.last_deployed_at || deployment.created_at);
+                    const now = new Date();
+                    const elapsedMinutes = Math.floor((now.getTime() - deployedAt.getTime()) / 60000);
+                    const setupTimeMinutes = 5; // 3-5 minutes typical setup time
+                    const isSetupComplete = elapsedMinutes >= setupTimeMinutes;
+                    return <div className={`mt-4 p-4 border-2 rounded-lg ${isSetupComplete ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-blue-500 bg-blue-50 dark:bg-blue-950'}`}>
                               <div className="flex gap-3">
                                 <div className="flex-shrink-0">
-                                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                                    isSetupComplete 
-                                      ? 'bg-green-500' 
-                                      : 'bg-blue-500'
-                                  }`}>
-                                    {isSetupComplete ? (
-                                      <CheckCircle2 className="h-5 w-5 text-white" />
-                                    ) : (
-                                      <Clock className="h-5 w-5 text-white" />
-                                    )}
+                                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isSetupComplete ? 'bg-green-500' : 'bg-blue-500'}`}>
+                                    {isSetupComplete ? <CheckCircle2 className="h-5 w-5 text-white" /> : <Clock className="h-5 w-5 text-white" />}
                                   </div>
                                 </div>
                                 <div className="flex-1 space-y-3">
                                   <div>
-                                    <h4 className={`text-sm font-semibold mb-1 ${
-                                      isSetupComplete 
-                                        ? 'text-green-900 dark:text-green-100' 
-                                        : 'text-blue-900 dark:text-blue-100'
-                                    }`}>
-                                      {isSetupComplete 
-                                        ? 'Application Setup Should Be Complete' 
-                                        : `Application Setup In Progress (${elapsedMinutes}/${setupTimeMinutes} min)`}
+                                    <h4 className={`text-sm font-semibold mb-1 ${isSetupComplete ? 'text-green-900 dark:text-green-100' : 'text-blue-900 dark:text-blue-100'}`}>
+                                      {isSetupComplete ? 'Application Setup Should Be Complete' : `Application Setup In Progress (${elapsedMinutes}/${setupTimeMinutes} min)`}
                                     </h4>
-                                    <p className={`text-xs ${
-                                      isSetupComplete 
-                                        ? 'text-green-800 dark:text-green-200' 
-                                        : 'text-blue-800 dark:text-blue-200'
-                                    }`}>
-                                      {isSetupComplete 
-                                        ? 'The EC2 instance has been running long enough for setup to complete. Your application should be accessible now.' 
-                                        : 'Your EC2 instance is running, but the application setup (Nginx, Node.js, security tools) takes 3-5 minutes to complete.'}
+                                    <p className={`text-xs ${isSetupComplete ? 'text-green-800 dark:text-green-200' : 'text-blue-800 dark:text-blue-200'}`}>
+                                      {isSetupComplete ? 'The EC2 instance has been running long enough for setup to complete. Your application should be accessible now.' : 'Your EC2 instance is running, but the application setup (Nginx, Node.js, security tools) takes 3-5 minutes to complete.'}
                                     </p>
                                   </div>
                                   
-                                  {!isSetupComplete && (
-                                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
+                                  {!isSetupComplete && <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
                                       <div className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                         Setup Progress
@@ -1137,8 +884,7 @@ export default function AWSDeployment() {
                                           <strong>Estimated completion:</strong> {setupTimeMinutes - elapsedMinutes} minute(s) remaining
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    </div>}
                                   
                                   <div className="bg-white dark:bg-gray-900 rounded-lg p-3 space-y-2 text-xs">
                                     <div className="font-semibold text-gray-900 dark:text-gray-100">
@@ -1176,45 +922,26 @@ export default function AWSDeployment() {
                                   </div>
                                   
                                   <div className="flex flex-wrap gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs"
-                                      asChild
-                                    >
-                                      <a
-                                        href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
+                                    <Button variant="outline" size="sm" className="text-xs" asChild>
+                                      <a href={`https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`} target="_blank" rel="noopener noreferrer">
                                         <ExternalLink className="h-3 w-3 mr-1" />
                                         Open AWS Console
                                       </a>
                                     </Button>
-                                    <Button
-                                      variant={isSetupComplete ? "default" : "outline"}
-                                      size="sm"
-                                      className="text-xs"
-                                      onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}
-                                    >
+                                    <Button variant={isSetupComplete ? "default" : "outline"} size="sm" className="text-xs" onClick={() => window.open(`http://${deployment.ec2_public_ip}`, '_blank')}>
                                       <ExternalLink className="h-3 w-3 mr-1" />
                                       {isSetupComplete ? 'Access Application' : 'Test Connection'}
                                     </Button>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })()}
+                            </div>;
+                  })()}
                       </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
+                    </Card>)}
+                </div> : <p className="text-center text-muted-foreground py-8">
                   No deployments yet. Create your first deployment above.
-                </p>
-              )}
+                </p>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1229,26 +956,18 @@ export default function AWSDeployment() {
                     Monitor your deployed website's components and connectivity
                   </CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["aws-deployments"] })}
-                >
+                <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({
+                queryKey: ["aws-deployments"]
+              })}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh Status
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {deployments && deployments.length > 0 ? (
-                <div className="space-y-6">
-                  {deployments
-                    .filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running')
-                    .map((deployment) => (
-                      <DeploymentStatusCard key={deployment.id} deployment={deployment} />
-                    ))}
-                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').length === 0 && (
-                    <div className="text-center py-12">
+              {deployments && deployments.length > 0 ? <div className="space-y-6">
+                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').map(deployment => <DeploymentStatusCard key={deployment.id} deployment={deployment} />)}
+                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').length === 0 && <div className="text-center py-12">
                       <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <p className="text-muted-foreground">
                         No running deployments to monitor
@@ -1256,11 +975,8 @@ export default function AWSDeployment() {
                       <p className="text-sm text-muted-foreground mt-2">
                         Deploy an instance from the Deployments tab to see status here
                       </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12">
+                    </div>}
+                </div> : <div className="text-center py-12">
                   <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
                     No deployments found
@@ -1268,8 +984,7 @@ export default function AWSDeployment() {
                   <p className="text-sm text-muted-foreground mt-2">
                     Create your first deployment to monitor its status
                   </p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1563,6 +1278,5 @@ export default function AWSDeployment() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
