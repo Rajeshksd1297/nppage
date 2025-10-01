@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { LiveDeploymentMonitor } from "@/components/admin/LiveDeploymentMonitor";
 import { DeploymentProgressTracker } from "@/components/admin/DeploymentProgressTracker";
+import { DeploymentStatistics } from "@/components/admin/DeploymentStatistics";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -373,10 +374,11 @@ export default function AWSDeployment() {
       
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
           <TabsTrigger value="deployments">Deployments</TabsTrigger>
           <TabsTrigger value="status">Status Check</TabsTrigger>
+          <TabsTrigger value="statistics">Statistics</TabsTrigger>
           <TabsTrigger value="guide">Deployment Guide</TabsTrigger>
         </TabsList>
 
@@ -831,6 +833,10 @@ export default function AWSDeployment() {
 
         <TabsContent value="status" className="space-y-6">
           <LiveDeploymentMonitor deployments={deployments || []} />
+        </TabsContent>
+
+        <TabsContent value="statistics" className="space-y-6">
+          <DeploymentStatistics deployments={deployments || []} />
         </TabsContent>
 
         <TabsContent value="guide" className="space-y-6">
