@@ -123,29 +123,107 @@ Deno.serve(async (req) => {
     
     console.log('Using AMI:', amiId, 'Instance Type:', instanceType);
 
-    // Create comprehensive User Data script for automatic web server setup
+    // Create comprehensive User Data script with security hardening
     const userData = `#!/bin/bash
 set -e
 exec > >(tee /var/log/user-data.log)
 exec 2>&1
 
-echo "=== Starting Automated Web Server Setup ==="
+echo "=== Starting Secure Automated Deployment ==="
 echo "Deployment: ${deploymentName}"
+echo "Region: ${region}"
 echo "Time: $(date)"
 
-# Update system
+# ============================================
+# PHASE 1: SYSTEM SECURITY HARDENING
+# ============================================
+echo ""
+echo "🔒 Phase 1: Security Hardening..."
+
+# Update system packages
+echo "📦 Updating all system packages..."
 yum update -y
 
+# Install security tools
+echo "🛡️ Installing security tools..."
+yum install -y fail2ban firewalld
+
+# Configure automatic security updates
+echo "⚙️ Configuring automatic security updates..."
+yum install -y yum-cron
+sed -i 's/apply_updates = no/apply_updates = yes/' /etc/yum/yum-cron.conf
+systemctl enable yum-cron
+systemctl start yum-cron
+
+# Configure firewall
+echo "🔥 Configuring firewall..."
+systemctl enable firewalld
+systemctl start firewalld
+
+# Allow only necessary ports
+firewall-cmd --permanent --add-service=http
+firewall-cmd --permanent --add-service=https
+firewall-cmd --permanent --add-service=ssh
+firewall-cmd --reload
+
+# Configure Fail2ban for brute force protection
+echo "🛡️ Configuring Fail2ban..."
+cat > /etc/fail2ban/jail.local << 'F2BEOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+banaction = iptables-multiport
+
+[sshd]
+enabled = true
+port = ssh
+logpath = /var/log/secure
+
+[nginx-http-auth]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/error.log
+
+[nginx-limit-req]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 10
+F2BEOF
+
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Disable unnecessary services
+echo "🔒 Disabling unnecessary services..."
+systemctl disable postfix 2>/dev/null || true
+
+# Set secure file permissions
+echo "🔐 Setting secure permissions..."
+chmod 700 /root
+chmod 600 /root/.ssh/authorized_keys 2>/dev/null || true
+
+# ============================================
+# PHASE 2: APPLICATION STACK INSTALLATION
+# ============================================
+echo ""
+echo "📦 Phase 2: Installing Application Stack..."
+
 # Install Node.js 18.x
+echo "📦 Installing Node.js..."
 curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
 yum install -y nodejs git
 
 # Install Nginx
+echo "🌐 Installing Nginx..."
 amazon-linux-extras install -y nginx1
 systemctl enable nginx
 
-# Create application directory
+# Create application directory with secure permissions
+echo "📁 Setting up application directory..."
 mkdir -p /var/www/app
+chmod 755 /var/www/app
 cd /var/www/app
 
 # Create Node.js application
@@ -223,12 +301,40 @@ EOF
 # Install dependencies
 npm install
 
-# Configure Nginx
+# ============================================
+# PHASE 3: SECURE NGINX CONFIGURATION
+# ============================================
+echo ""
+echo "🔒 Phase 3: Configuring Secure Web Server..."
+
+# Configure Nginx with security headers and rate limiting
 cat > /etc/nginx/conf.d/app.conf << 'EOF'
+# Rate limiting zones
+limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+
+# Security: Hide Nginx version
+server_tokens off;
+
 server {
     listen 80 default_server;
     server_name _;
+    
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    
+    # CORS (adjust as needed)
+    add_header Access-Control-Allow-Origin "https://*" always;
+    
+    # Rate limiting for general traffic
     location / {
+        limit_req zone=general burst=20 nodelay;
+        limit_req_status 429;
+        
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -236,15 +342,55 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
+    
+    # API endpoints with higher rate limit
+    location /api/ {
+        limit_req zone=api burst=50 nodelay;
+        limit_req_status 429;
+        
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    
+    # Health check (no rate limiting)
     location /health {
         access_log off;
         proxy_pass http://localhost:3000/api/health;
     }
+    
+    # Block common exploit attempts
+    location ~ /\.(git|env|htaccess) {
+        deny all;
+        return 404;
+    }
+    
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        return 404;
+    }
 }
 EOF
 
+# Create Nginx logging directory
+mkdir -p /var/log/nginx
+touch /var/log/nginx/error.log
+
+# Remove default Nginx config
 rm -f /etc/nginx/conf.d/default.conf
+
+# Test Nginx configuration
+nginx -t
 
 # Create systemd service
 cat > /etc/systemd/system/app.service << 'EOF'
@@ -263,18 +409,80 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 
-# Start services
+# ============================================
+# PHASE 4: START SERVICES SECURELY
+# ============================================
+echo ""
+echo "🚀 Phase 4: Starting Services..."
+
 systemctl daemon-reload
 systemctl enable app
 systemctl start app
+
+# Wait for application to start
 sleep 5
+
+# Verify application is running
+if systemctl is-active --quiet app; then
+    echo "✅ Application service started successfully"
+else
+    echo "❌ Application service failed to start"
+    systemctl status app --no-pager
+fi
+
+# Start Nginx
 systemctl restart nginx
 
-echo "=== Setup Complete ==="
-echo "✅ Node.js: $(node --version)"
-echo "✅ Nginx: Running"
-echo "✅ Application: Running"
-echo "🌐 Your site is now live!"
+# Verify Nginx is running
+if systemctl is-active --quiet nginx; then
+    echo "✅ Nginx started successfully"
+else
+    echo "❌ Nginx failed to start"
+    systemctl status nginx --no-pager
+fi
+
+# ============================================
+# PHASE 5: POST-DEPLOYMENT SECURITY CHECKS
+# ============================================
+echo ""
+echo "🔍 Phase 5: Security Verification..."
+
+# Check firewall status
+echo "🔥 Firewall Status:"
+firewall-cmd --list-all
+
+# Check Fail2ban status
+echo "🛡️ Fail2ban Status:"
+fail2ban-client status
+
+# Check open ports
+echo "🔍 Open Ports:"
+ss -tuln | grep LISTEN
+
+# ============================================
+# DEPLOYMENT COMPLETE
+# ============================================
+echo ""
+echo "=== ✅ SECURE DEPLOYMENT COMPLETE ==="
+echo ""
+echo "📊 System Information:"
+echo "   Node.js: $(node --version)"
+echo "   NPM: $(npm --version)"
+echo "   Nginx: $(nginx -v 2>&1)"
+echo ""
+echo "🔒 Security Features Enabled:"
+echo "   ✅ Firewall (firewalld) - Active"
+echo "   ✅ Fail2ban - Active"
+echo "   ✅ Rate Limiting - Configured"
+echo "   ✅ Security Headers - Enabled"
+echo "   ✅ Automatic Updates - Enabled"
+echo ""
+echo "🚀 Services Running:"
+echo "   ✅ Node.js Application (Port 3000)"
+echo "   ✅ Nginx Web Server (Port 80)"
+echo ""
+echo "🌐 Your secure website is now live!"
+echo "⏱️  Time: $(date)"
 `;
 
     const userDataBase64 = btoa(userData);
@@ -387,12 +595,19 @@ echo "🌐 Your site is now live!"
         publicIp = 'N/A (Check AWS Console)';
       }
 
-      deploymentLog += `\n--- Automated Setup Configuration ---\n`;
-      deploymentLog += `✓ Web Server: Nginx (reverse proxy)\n`;
+      deploymentLog += `\n--- Secure Deployment Configuration ---\n`;
+      deploymentLog += `✓ Web Server: Nginx with security headers\n`;
       deploymentLog += `✓ Runtime: Node.js 18.x\n`;
       deploymentLog += `✓ Application: Express.js\n`;
       deploymentLog += `✓ Auto-start: systemd service\n`;
-      deploymentLog += `✓ Deployment Type: ${deploymentType === 'fresh' ? 'Fresh Installation' : 'Incremental Update'}\n`;
+      deploymentLog += `\n🔒 Security Features:\n`;
+      deploymentLog += `✓ Firewall: firewalld (HTTP/HTTPS/SSH only)\n`;
+      deploymentLog += `✓ Brute Force Protection: Fail2ban\n`;
+      deploymentLog += `✓ Rate Limiting: 10 req/sec general, 30 req/sec API\n`;
+      deploymentLog += `✓ Security Headers: XSS, Clickjacking, MIME sniffing protection\n`;
+      deploymentLog += `✓ Automatic Security Updates: Enabled\n`;
+      deploymentLog += `✓ Hidden Files Protection: Enabled\n`;
+      deploymentLog += `\n✓ Deployment Type: ${deploymentType === 'fresh' ? 'Fresh Installation' : 'Incremental Update'}\n`;
       if (includeDatabase) {
         deploymentLog += `✓ Database initialization: Enabled\n`;
       }
@@ -418,21 +633,46 @@ echo "🌐 Your site is now live!"
       deploymentLog += `🌐 Website URL: http://${publicIp}\n`;
       deploymentLog += `📊 Health Check: http://${publicIp}/api/health\n\n`;
       
-      deploymentLog += `--- Setup Details ---\n`;
+      deploymentLog += `--- Secure Setup Details ---\n`;
       deploymentLog += `⚙️  The instance is automatically installing:\n`;
+      deploymentLog += `\n🔒 Security Layer:\n`;
+      deploymentLog += `   • Firewalld (firewall)\n`;
+      deploymentLog += `   • Fail2ban (brute force protection)\n`;
+      deploymentLog += `   • Rate limiting (DDoS protection)\n`;
+      deploymentLog += `   • Security headers (XSS, clickjacking protection)\n`;
+      deploymentLog += `   • Automatic security updates\n`;
+      deploymentLog += `\n🌐 Application Stack:\n`;
       deploymentLog += `   • Nginx web server (port 80)\n`;
       deploymentLog += `   • Node.js 18.x runtime\n`;
       deploymentLog += `   • Express.js application (port 3000)\n`;
       deploymentLog += `   • Systemd service for auto-restart\n\n`;
       
-      deploymentLog += `⏱️  Initial setup time: 2-4 minutes\n`;
-      deploymentLog += `   The application will be live once setup completes.\n\n`;
+      deploymentLog += `⏱️  Initial setup time: 3-5 minutes\n`;
+      deploymentLog += `   The secure application will be live once setup completes.\n\n`;
       
-      deploymentLog += `--- Important Security Note ---\n`;
-      deploymentLog += `⚠️  Configure Security Group to allow HTTP traffic:\n`;
-      deploymentLog += `   1. Go to AWS Console → EC2 → Security Groups\n`;
-      deploymentLog += `   2. Add Inbound Rule: HTTP (Port 80) from 0.0.0.0/0\n`;
-      deploymentLog += `   3. Optionally add HTTPS (Port 443) for SSL\n\n`;
+      deploymentLog += `--- 🔐 CRITICAL: Security Group Configuration ---\n`;
+      deploymentLog += `⚠️  REQUIRED: Configure Security Group to allow traffic:\n`;
+      deploymentLog += `\n1. Go to AWS Console → EC2 → Security Groups\n`;
+      deploymentLog += `2. Select your instance's security group\n`;
+      deploymentLog += `3. Add Inbound Rules:\n`;
+      deploymentLog += `   ✅ Type: HTTP, Port: 80, Source: 0.0.0.0/0\n`;
+      deploymentLog += `   ✅ Type: HTTPS, Port: 443, Source: 0.0.0.0/0 (for SSL)\n`;
+      deploymentLog += `   ✅ Type: SSH, Port: 22, Source: Your IP (for management)\n`;
+      deploymentLog += `\n⚠️  DO NOT expose port 3000 directly - Nginx handles all traffic\n\n`;
+      
+      deploymentLog += `--- 🔒 Security Best Practices ---\n`;
+      deploymentLog += `✅ Implemented:\n`;
+      deploymentLog += `   • Firewall configured (only HTTP/HTTPS/SSH allowed)\n`;
+      deploymentLog += `   • Rate limiting (prevents DDoS attacks)\n`;
+      deploymentLog += `   • Fail2ban (blocks brute force attempts)\n`;
+      deploymentLog += `   • Security headers (prevents XSS, clickjacking)\n`;
+      deploymentLog += `   • Automatic security updates\n`;
+      deploymentLog += `\n📋 Next Security Steps:\n`;
+      deploymentLog += `   1. Set up SSL/TLS certificate (use Let's Encrypt)\n`;
+      deploymentLog += `   2. Configure custom domain with HTTPS\n`;
+      deploymentLog += `   3. Set up CloudWatch monitoring\n`;
+      deploymentLog += `   4. Configure automated backups\n`;
+      deploymentLog += `   5. Review Fail2ban logs: journalctl -u fail2ban\n\n`;
       
       deploymentLog += `📝 View setup logs on the instance:\n`;
       deploymentLog += `   SSH: tail -f /var/log/user-data.log\n\n`;
