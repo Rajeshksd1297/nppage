@@ -688,6 +688,8 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                   );
 
                   if (isNewDeployment && hasWebServerIssue) {
+                    const estimatedProgress = Math.min(100, Math.round((deploymentAge / 5) * 100));
+                    
                     return (
                       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <div className="flex items-start gap-3">
@@ -696,60 +698,32 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                             <h5 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
                               Initial Setup in Progress
                             </h5>
-                            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                               Your deployment is installing Nginx, Node.js, and security features. This takes 3-5 minutes.
-                            </p>
-                            <div className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
-                              <p>• Estimated completion: {Math.ceil(5 - deploymentAge)} minutes</p>
-                              <p>• The instance will automatically become accessible when ready</p>
-                              <p>• Check back in a few minutes or wait for the status to update</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  } else if (!isNewDeployment && hasWebServerIssue) {
-                    const isFixing = fixingHttp.has(deployment.ec2_instance_id);
-                    
-                    // Calculate time since deployment
-                    const deploymentAge = deployment.created_at ? 
-                      (Date.now() - new Date(deployment.created_at).getTime()) / 1000 / 60 : 999;
-                    const estimatedProgress = Math.min(100, Math.round((deploymentAge / 5) * 100));
-                    
-                    return (
-                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
-                          <div className="flex-1">
-                            <h5 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
-                              Web Server Setup Still In Progress
-                            </h5>
-                            <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-                              Connection refused - the automated setup script is still installing Nginx, Node.js, and your application.
                             </p>
                             
                             {/* Progress Indicator */}
                             <div className="mb-3">
                               <div className="flex items-center justify-between text-xs mb-1">
-                                <span className="font-medium text-amber-900 dark:text-amber-100">
+                                <span className="font-medium text-blue-900 dark:text-blue-100">
                                   Estimated Setup Progress
                                 </span>
-                                <span className="text-amber-600 dark:text-amber-400">
+                                <span className="text-blue-600 dark:text-blue-400">
                                   {Math.round(deploymentAge * 10) / 10} / 5 min
                                 </span>
                               </div>
                               <Progress value={estimatedProgress} className="h-2" />
                             </div>
 
-                            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-2 mb-3">
-                              <p><strong>What's Happening Now:</strong></p>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 space-y-2 mb-3">
+                              <p><strong>Installation Steps:</strong></p>
                               <ul className="list-disc list-inside space-y-1">
-                                {deploymentAge < 1 && <li>Starting instance initialization...</li>}
-                                {deploymentAge >= 1 && deploymentAge < 2 && <li>Updating system packages (apt-get update)...</li>}
-                                {deploymentAge >= 2 && deploymentAge < 3 && <li>Installing Nginx web server...</li>}
-                                {deploymentAge >= 3 && deploymentAge < 4 && <li>Installing Node.js 18.x runtime...</li>}
-                                {deploymentAge >= 4 && deploymentAge < 5 && <li>Configuring security (Fail2ban, firewall, rate limiting)...</li>}
-                                {deploymentAge >= 5 && <li>Setup should be complete. Checking status...</li>}
+                                {deploymentAge < 1 && <li>✓ Instance launched - Starting initialization...</li>}
+                                {deploymentAge >= 1 && deploymentAge < 2 && <li>⏳ Updating system packages (apt-get update)...</li>}
+                                {deploymentAge >= 2 && deploymentAge < 3 && <li>⏳ Installing Nginx web server...</li>}
+                                {deploymentAge >= 3 && deploymentAge < 4 && <li>⏳ Installing Node.js 18.x runtime...</li>}
+                                {deploymentAge >= 4 && deploymentAge < 5 && <li>⏳ Configuring security (Fail2ban, firewall)...</li>}
+                                {deploymentAge >= 5 && <li>✓ Setup should be complete!</li>}
                               </ul>
                               
                               {deploymentAge < 5 && (
@@ -757,12 +731,53 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                   ⏱️ Please wait approximately {Math.ceil(5 - deploymentAge)} more minute(s)...
                                 </p>
                               )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                onClick={() => checkInstanceHealth(deployment)}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Refresh Status
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else if (!isNewDeployment && hasWebServerIssue) {
+                    return (
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                              Web Server Not Responding
+                            </h5>
+                            <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                              Setup time exceeded. The web server is not accessible after 5+ minutes.
+                            </p>
+                            
+                            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-2 mb-3">
+                              <p><strong>Possible Issues:</strong></p>
+                              <ul className="list-disc list-inside space-y-1">
+                                <li>Installation failed or is taking longer than expected</li>
+                                <li>Nginx not starting properly</li>
+                                <li>User-data script encountered errors</li>
+                              </ul>
                               
-                              {deploymentAge >= 5 && (
-                                <p className="mt-2 font-medium text-red-600 dark:text-red-400">
-                                  ⚠️ Setup time exceeded. There may be an issue.
-                                </p>
-                              )}
+                              <p className="mt-2 font-medium">
+                                <strong>Troubleshooting Steps:</strong>
+                              </p>
+                              <ol className="list-decimal list-inside space-y-1">
+                                <li>Check AWS Console for instance system logs</li>
+                                <li>SSH to instance: ssh -i your-key.pem ubuntu@{deployment.ec2_public_ip}</li>
+                                <li>Check setup logs: sudo tail -100 /var/log/user-data.log</li>
+                                <li>Check Nginx status: sudo systemctl status nginx</li>
+                              </ol>
                             </div>
                             
                             <div className="flex gap-2">
