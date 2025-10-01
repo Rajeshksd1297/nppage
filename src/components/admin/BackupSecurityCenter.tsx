@@ -734,6 +734,398 @@ export const BackupSecurityCenter: React.FC = () => {
     }
   };
 
+  const downloadWebsiteStructure = () => {
+    const structure = `
+WEBSITE STRUCTURE DOCUMENTATION
+Generated: ${new Date().toISOString()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PROJECT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Technology Stack:
+├── Frontend: React + TypeScript + Vite
+├── Styling: Tailwind CSS
+├── UI Components: Shadcn/ui
+├── Backend: Supabase (Database + Auth + Storage + Edge Functions)
+└── Routing: React Router DOM
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 ROOT
+├── 📄 index.html - Main HTML entry point
+├── 📄 vite.config.ts - Vite build configuration
+├── 📄 tailwind.config.ts - Tailwind CSS configuration
+├── 📄 tsconfig.json - TypeScript configuration
+└── 📄 package.json - Dependencies and scripts
+
+📁 src/
+├── 📄 main.tsx - Application entry point
+├── 📄 App.tsx - Root component with routing
+├── 📄 index.css - Global styles and design tokens
+│
+├── 📁 pages/ - Page components (routes)
+│   ├── 📁 admin/ - Admin dashboard pages
+│   │   ├── AdminDashboard.tsx - Main admin dashboard
+│   │   ├── Users.tsx - User management
+│   │   ├── UserEdit.tsx - Edit user details
+│   │   ├── BooksManagement.tsx - Manage books
+│   │   ├── BookCatalog.tsx - Book catalog view
+│   │   ├── HomePageManagement.tsx - Homepage editor
+│   │   ├── ThemeManagement.tsx - Theme customization
+│   │   ├── BackupSecurityCenter.tsx - Backup & security
+│   │   ├── PublisherManagement.tsx - Publisher management
+│   │   ├── PackageManagement.tsx - Subscription plans
+│   │   ├── EmailSettings.tsx - Email configuration
+│   │   ├── DomainSettings.tsx - Custom domains
+│   │   ├── SEOSettings.tsx - Global SEO settings
+│   │   ├── BlogManagement.tsx - Blog post management
+│   │   ├── EventsManagement.tsx - Events management
+│   │   ├── NewsletterManagement.tsx - Newsletter campaigns
+│   │   ├── ContactManagement.tsx - Contact submissions
+│   │   ├── HelpDesk.tsx - Support tickets
+│   │   ├── AWSDeployment.tsx - AWS deployment
+│   │   └── Settings.tsx - General settings
+│   │
+│   ├── Auth.tsx - Login/signup page
+│   ├── Dashboard.tsx - User dashboard
+│   ├── Home.tsx - Homepage
+│   ├── Books.tsx - Books listing
+│   ├── BookView.tsx - Single book view
+│   ├── BookEdit.tsx - Edit book
+│   ├── AuthorProfile.tsx - Author profile page
+│   ├── ProfileSettings.tsx - User profile settings
+│   ├── Subscription.tsx - Subscription management
+│   ├── Themes.tsx - Theme customization
+│   ├── PublicPage.tsx - Dynamic public pages
+│   ├── PublisherDashboard.tsx - Publisher dashboard
+│   └── [Various user management pages]
+│
+├── 📁 components/ - Reusable components
+│   ├── 📁 admin/ - Admin-specific components
+│   │   ├── EnhancedHomePageEditor.tsx - Homepage editor
+│   │   ├── EnhancedThemeDesigner.tsx - Theme designer
+│   │   ├── HeaderEditor.tsx - Header customization
+│   │   ├── FooterEditor.tsx - Footer customization
+│   │   ├── BackupSecurityCenter.tsx - Backup management
+│   │   ├── UserManagement/ - User management components
+│   │   ├── Publisher/ - Publisher components
+│   │   └── BookManagement/ - Book management components
+│   │
+│   ├── 📁 layout/ - Layout components
+│   │   ├── DashboardLayout.tsx - Dashboard wrapper
+│   │   ├── AppSidebar.tsx - Sidebar navigation
+│   │   ├── DynamicHeader.tsx - Dynamic header
+│   │   └── DynamicFooter.tsx - Dynamic footer
+│   │
+│   ├── 📁 ui/ - Shadcn UI components
+│   │   ├── button.tsx, card.tsx, input.tsx, etc.
+│   │   └── [40+ UI components]
+│   │
+│   ├── 📁 seo/ - SEO components
+│   │   ├── SEOEditor.tsx - SEO settings editor
+│   │   ├── SEOAnalyzer.tsx - SEO analysis
+│   │   ├── AISEOAssistant.tsx - AI SEO suggestions
+│   │   └── SchemaGenerator.tsx - Schema.org markup
+│   │
+│   ├── 📁 profile/ - Profile components
+│   ├── 📁 publisher/ - Publisher components
+│   ├── 📁 forms/ - Form components
+│   ├── 📁 sections/ - Page sections
+│   └── 📁 social/ - Social media components
+│
+├── 📁 hooks/ - Custom React hooks
+│   ├── useSubscription.tsx - Subscription state
+│   ├── useAdminSettings.tsx - Admin settings
+│   ├── useDynamicHeader.tsx - Header data
+│   ├── useDynamicFooter.tsx - Footer data
+│   ├── useUserThemes.tsx - User theme settings
+│   └── useAnalytics.tsx - Analytics tracking
+│
+├── 📁 integrations/ - External service integrations
+│   └── 📁 supabase/
+│       ├── client.ts - Supabase client
+│       └── types.ts - Database types (auto-generated)
+│
+└── 📁 utils/ - Utility functions
+    ├── seo.ts - SEO utilities
+    ├── sanitization.ts - Input sanitization
+    └── inputValidation.ts - Form validation
+
+📁 supabase/
+├── 📁 functions/ - Edge functions (serverless)
+│   ├── send-contact-email/ - Contact form emails
+│   ├── send-newsletter/ - Newsletter emails
+│   ├── send-auth-email/ - Auth emails
+│   ├── send-reply-email/ - Reply emails
+│   ├── ai-seo-suggestions/ - AI SEO generation
+│   ├── aws-deploy/ - AWS deployment
+│   ├── backup-manager/ - Backup operations
+│   ├── security-monitor/ - Security monitoring
+│   └── setup-demo-users/ - Demo data setup
+│
+└── 📁 migrations/ - Database migrations (SQL)
+
+📁 public/
+└── Static assets (images, favicon, robots.txt)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. DATABASE STRUCTURE & MODULE MAPPING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 USER & AUTHENTICATION MODULE
+Tables:
+├── profiles - User profiles (src/pages/ProfileSettings.tsx)
+├── user_roles - Role-based access control (src/components/AdminAccessGuard.tsx)
+├── user_subscriptions - Subscription management (src/pages/Subscription.tsx)
+└── social_connections - Social media links (src/pages/SocialConnections.tsx)
+
+📚 BOOKS & CONTENT MODULE
+Tables:
+├── books - Book catalog (src/pages/Books.tsx, src/pages/admin/BooksManagement.tsx)
+├── articles - Articles/posts (src/pages/Articles.tsx)
+├── blog_posts - Blog content (src/pages/admin/BlogManagement.tsx)
+├── blog_settings - Blog configuration (src/pages/admin/BlogSettings.tsx)
+└── onix_jobs - ISBN/ONIX data imports (src/pages/ONIXManager.tsx)
+
+🏢 PUBLISHER MODULE
+Tables:
+├── publishers - Publisher accounts (src/pages/admin/PublisherManagement.tsx)
+├── publisher_settings - Publisher configuration (src/components/publisher/PublisherSettings.tsx)
+├── publisher_authors - Publisher-author relationships (src/components/publisher/PublisherAuthorManagement.tsx)
+├── publisher_field_settings - Custom publisher fields (src/pages/admin/PublisherFieldEdit.tsx)
+└── billing_transactions - Publisher billing (src/pages/admin/PackageManagement.tsx)
+
+🎨 THEME & DESIGN MODULE
+Tables:
+├── themes - Theme presets (src/pages/Themes.tsx, src/pages/admin/ThemeManagement.tsx)
+├── user_theme_customizations - User theme overrides (src/components/profile/UserThemeCustomizer.tsx)
+└── theme_usage_analytics - Theme usage tracking (src/hooks/useUserThemes.tsx)
+
+📄 PAGE & CONTENT MODULE
+Tables:
+├── home_page_sections - Homepage sections (src/pages/admin/HomePageManagement.tsx)
+├── hero_blocks - Hero block templates (src/components/admin/HeroBlockManager.tsx)
+├── additional_pages - Custom pages (src/components/admin/AdditionalPagesEditor.tsx)
+└── site_settings - Global site settings (src/pages/admin/SiteSettings.tsx)
+
+📧 CONTACT & COMMUNICATION MODULE
+Tables:
+├── contact_submissions - Contact form entries (src/pages/UserContactManagement.tsx)
+├── contact_replies - Reply threads (src/pages/ContactSubmissionDetail.tsx)
+├── admin_contact_form_settings - Form configuration (src/pages/admin/ContactFormSettings.tsx)
+└── user_contact_form_settings - User form settings (src/pages/ContactFormSettings.tsx)
+
+📰 NEWSLETTER MODULE
+Tables:
+├── newsletter_subscribers - Email subscribers (src/pages/UserNewsletterManagement.tsx)
+├── newsletter_campaigns - Email campaigns (src/pages/admin/NewsletterManagement.tsx)
+├── newsletter_settings - Newsletter config (src/pages/admin/NewsletterSettings.tsx)
+├── newsletter_audit_log - Subscriber activity log (src/pages/UserNewsletterSettings.tsx)
+└── user_newsletter_settings - User newsletter settings (src/pages/UserNewsletterSettings.tsx)
+
+📅 EVENTS MODULE
+Tables:
+├── events - Event listings (src/pages/UserEventsManagement.tsx)
+├── event_settings - Event configuration (src/pages/admin/EventSettings.tsx)
+└── awards - Awards & recognition (src/pages/UserAwardsManagement.tsx)
+
+❓ FAQ MODULE
+Tables:
+├── faqs - FAQ entries (src/pages/UserFaqManagement.tsx)
+└── faq_settings - FAQ configuration (src/pages/admin/FaqSettings.tsx)
+
+🖼️ GALLERY MODULE
+Tables:
+├── gallery_items - Image gallery (src/components/GalleryManager.tsx)
+└── gallery_settings - Gallery configuration (src/pages/admin/GallerySettings.tsx)
+
+🎫 HELP DESK MODULE
+Tables:
+├── tickets - Support tickets (src/pages/SupportTickets.tsx)
+├── ticket_replies - Ticket responses (src/pages/admin/TicketDetails.tsx)
+├── ticket_assignments - Ticket assignment (src/pages/admin/HelpDesk.tsx)
+├── ticket_tasks - Task tracking (src/pages/admin/HelpDesk.tsx)
+├── ticket_status_history - Status changes (src/pages/admin/HelpDesk.tsx)
+└── helpdesk_settings - Help desk config (src/pages/admin/HelpDeskSettings.tsx)
+
+🔍 SEO MODULE
+Tables:
+├── seo_settings - Page SEO settings (src/components/seo/SEOEditor.tsx)
+├── global_seo_settings - Site-wide SEO (src/pages/admin/SEOSettings.tsx)
+├── seo_suggestions_log - AI SEO suggestions log (src/components/seo/AISEOAssistant.tsx)
+└── page_analytics - Page performance data (src/pages/Analytics.tsx)
+
+💳 SUBSCRIPTION & BILLING MODULE
+Tables:
+├── subscription_plans - Available plans (src/pages/admin/PackageManagement.tsx)
+├── user_subscriptions - User subscriptions (src/pages/Subscription.tsx)
+└── billing_transactions - Payment history (src/pages/Subscription.tsx)
+
+🌐 DOMAIN & DEPLOYMENT MODULE
+Tables:
+├── custom_domains - Custom domain config (src/pages/CustomDomains.tsx)
+├── aws_deployments - AWS deployment jobs (src/pages/admin/AWSDeployment.tsx)
+└── aws_settings - AWS configuration (src/pages/admin/AWSDeployment.tsx)
+
+🔒 SECURITY & BACKUP MODULE
+Tables:
+├── backup_jobs - Backup job history (src/pages/admin/BackupSecurityCenter.tsx)
+├── backup_settings - Backup configuration (src/components/admin/BackupSecurityCenter.tsx)
+├── security_logs - Security event log (src/components/admin/BackupSecurityCenter.tsx)
+└── security_settings - Security configuration (src/components/admin/BackupSecurityCenter.tsx)
+
+🍪 COOKIE CONSENT MODULE
+Tables:
+├── cookie_settings - Cookie banner settings (src/pages/CookieConsentSettings.tsx)
+├── cookie_categories - Cookie types (src/components/admin/EnhancedCookieManagement.tsx)
+└── cookie_consent_log - Consent tracking (src/components/CookieConsentBanner.tsx)
+
+🤖 AI PLATFORM MODULE
+Tables:
+└── ai_platform_settings - AI service configuration (src/components/admin/AIPlatformSettings.tsx)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. ROUTING STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PUBLIC ROUTES (No authentication required):
+├── / - Homepage
+├── /auth - Login/Signup
+├── /:username - Public author profile
+└── /pages/:slug - Additional pages
+
+USER ROUTES (Authentication required):
+├── /dashboard - User dashboard
+├── /books - Books management
+├── /profile - Profile settings
+├── /subscription - Subscription management
+├── /themes - Theme customization
+├── /contact - Contact management
+├── /newsletter - Newsletter management
+├── /events - Events management
+├── /awards - Awards management
+└── /faq - FAQ management
+
+PUBLISHER ROUTES (Publisher role required):
+└── /publisher-dashboard - Publisher management
+
+ADMIN ROUTES (Admin role required):
+├── /admin - Admin dashboard
+├── /admin/users - User management
+├── /admin/books-management - Books management
+├── /admin/publishers - Publisher management
+├── /admin/home-page-management - Homepage editor
+├── /admin/theme-management - Theme management
+├── /admin/backup-security - Backup & security
+├── /admin/email-settings - Email configuration
+├── /admin/domain-settings - Domain management
+├── /admin/seo-settings - SEO settings
+├── /admin/blog-management - Blog management
+├── /admin/newsletter-management - Newsletter management
+├── /admin/contact-management - Contact form management
+├── /admin/helpdesk - Support tickets
+├── /admin/package-management - Subscription plans
+└── /admin/aws-deployment - AWS deployment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. KEY FEATURES & THEIR LOCATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 Core Features:
+├── User Authentication - src/pages/Auth.tsx + Supabase Auth
+├── Role-Based Access Control - src/components/AdminAccessGuard.tsx
+├── Subscription Management - src/hooks/useSubscription.tsx
+├── Dynamic Theming - src/hooks/useUserThemes.tsx
+├── SEO Optimization - src/components/seo/
+├── Email Notifications - supabase/functions/send-*-email/
+├── File Uploads - Supabase Storage + src/components/ui/input.tsx
+├── Analytics Dashboard - src/pages/Analytics.tsx
+└── Responsive Design - Tailwind CSS (mobile-first)
+
+🛡️ Security Features:
+├── Row Level Security (RLS) - Database policies
+├── Input Sanitization - src/utils/sanitization.ts
+├── Form Validation - src/utils/inputValidation.ts
+├── CSRF Protection - Supabase built-in
+└── Security Monitoring - supabase/functions/security-monitor/
+
+📊 Admin Features:
+├── User Management - src/pages/admin/Users.tsx
+├── Content Moderation - Various admin pages
+├── System Settings - src/pages/admin/Settings.tsx
+├── Backup Management - src/pages/admin/BackupSecurityCenter.tsx
+└── Analytics Reports - src/pages/admin/Analytics.tsx
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. EDGE FUNCTIONS (Serverless Backend)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Email Functions:
+├── send-contact-email - Process contact form submissions
+├── send-newsletter - Send newsletter campaigns
+├── send-auth-email - Authentication emails
+└── send-reply-email - Reply to contact submissions
+
+AI Functions:
+├── ai-seo-suggestions - Generate SEO recommendations
+└── ai-seo-suggestions-multi - Batch SEO suggestions
+
+Infrastructure Functions:
+├── aws-deploy - Deploy to AWS infrastructure
+├── backup-manager - Create and manage backups
+├── security-monitor - Monitor security events
+└── setup-demo-users - Initialize demo data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. DEVELOPMENT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Key Dependencies:
+├── @supabase/supabase-js - Backend integration
+├── react-router-dom - Routing
+├── @tanstack/react-query - Data fetching
+├── react-hook-form + zod - Form handling
+├── lucide-react - Icons
+├── recharts - Charts and analytics
+├── dompurify - XSS protection
+└── @radix-ui/* - Accessible UI primitives
+
+Build & Deploy:
+├── Development: npm run dev
+├── Build: npm run build
+├── Preview: npm run preview
+└── Supabase: Deployed automatically via Lovable
+
+Environment Variables:
+├── SUPABASE_URL - Supabase project URL
+├── SUPABASE_ANON_KEY - Public API key
+└── [Various secrets managed via Supabase dashboard]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    `.trim();
+
+    // Create and download the file
+    const blob = new Blob([structure], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `website_structure_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Structure downloaded",
+      description: "Website structure documentation has been downloaded successfully."
+    });
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -1094,6 +1486,14 @@ export const BackupSecurityCenter: React.FC = () => {
                   >
                     <Shield className="h-4 w-4" />
                     🚨 Emergency Backup + AWS Setup
+                  </Button>
+                  <Button 
+                    onClick={downloadWebsiteStructure}
+                    variant="outline"
+                    className="gap-2 h-12"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Download Website Structure
                   </Button>
                 </div>
 
