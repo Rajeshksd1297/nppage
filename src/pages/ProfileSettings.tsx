@@ -230,7 +230,7 @@ export default function ProfileSettings() {
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
+          <h1 className="text-3xl font-bold">My Profile</h1>
           <p className="text-muted-foreground mt-1">
             Manage your profile, themes, and landing page
           </p>

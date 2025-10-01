@@ -55,7 +55,7 @@ import {
 // Free tier navigation items
 const freeItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Profile Settings", url: "/profile", icon: Settings },
+  { title: "My Profile", url: "/profile", icon: Settings },
   { title: "My Books", url: "/books", icon: BookOpen },
   { title: "Basic Analytics", url: "/analytics", icon: BarChart3 },
 ];
