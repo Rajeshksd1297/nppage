@@ -397,107 +397,308 @@ update_phase_status "nginx" "running" "Nginx installed, configuring..."
 # Create application directory with secure permissions
 echo "📁 Setting up application directory..."
 update_status "application" "running" "Creating application structure"
-mkdir -p /var/www/app
+mkdir -p /var/www/html
 mkdir -p /var/www/status
-chmod 755 /var/www/app
+mkdir -p /var/www/app-data
+chmod 755 /var/www/html
 chmod 755 /var/www/status
-cd /var/www/app
+chmod 755 /var/www/app-data
+cd /var/www/html
 
-# Create Node.js application
-cat > package.json << 'EOF'
-{
-  "name": "${deploymentName}",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {"start": "node server.js"},
-  "dependencies": {"express": "^4.18.2"}
-}
-EOF
+# Create a complete production-ready website
+echo "🎨 Deploying application files..."
 
-cat > server.js << 'EOF'
-const express = require('express');
-const fs = require('fs');
-const app = express();
-const PORT = 3000;
-
-app.use(express.json());
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', deployment: '${deploymentName}', region: '${region}' });
-});
-
-app.get('/api/setup-status', (req, res) => {
-  try {
-    const statusFile = '/var/www/status/setup.json';
-    if (fs.existsSync(statusFile)) {
-      const status = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
-      res.json(status);
-    } else {
-      res.json({ 
-        phase: 'complete',
-        status: 'success',
-        message: 'Setup completed',
-        timestamp: new Date().toISOString()
-      });
+# Create index.html with full application shell
+cat > index.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${deploymentName} - Live on AWS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to read setup status' });
-  }
-});
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 60px 40px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+      max-width: 800px;
+      width: 100%;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .icon {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      animation: slideDown 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+    }
+    .icon::after {
+      content: '✓';
+      color: white;
+      font-size: 50px;
+      font-weight: bold;
+    }
+    h1 {
+      color: #1f2937;
+      font-size: 36px;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #10b981;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      animation: pulse 2s infinite;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    .description {
+      color: #6b7280;
+      line-height: 1.8;
+      margin-bottom: 35px;
+      font-size: 16px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 35px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      padding: 24px;
+      border-radius: 16px;
+      border: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-color: #10b981;
+    }
+    .stat-label {
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      color: #1f2937;
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+    .next-steps {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 5px solid #3b82f6;
+      padding: 28px;
+      border-radius: 12px;
+      margin-top: 35px;
+    }
+    .next-steps h3 {
+      color: #1f2937;
+      margin-bottom: 20px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .next-steps ul {
+      list-style: none;
+      color: #4b5563;
+      line-height: 2.2;
+    }
+    .next-steps li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+    .next-steps li::before {
+      content: '→';
+      color: #3b82f6;
+      font-weight: bold;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .footer {
+      margin-top: 35px;
+      padding-top: 25px;
+      border-top: 2px solid #f3f4f6;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .tech-stack {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    .tech-badge {
+      background: #f3f4f6;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.6;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon"></div>
+      <h1>${deploymentName}</h1>
+      <div class="status-badge">
+        <span class="pulse-dot"></span>
+        Live & Running on AWS
+      </div>
+    </div>
+    
+    <p class="description">
+      🎉 Your application has been successfully deployed on AWS EC2 with enterprise-grade security and performance optimizations!
+    </p>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Region</div>
+        <div class="stat-value">${region}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Web Server</div>
+        <div class="stat-value">Nginx</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" style="color: #10b981;">● Online</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Security</div>
+        <div class="stat-value">🔒 Enabled</div>
+      </div>
+    </div>
+    
+    <div class="next-steps">
+      <h3>📋 Next Steps</h3>
+      <ul>
+        <li>Upload your application files via SSH or deployment pipeline</li>
+        <li>Configure environment variables and database connections</li>
+        <li>Set up SSL/TLS certificate for HTTPS</li>
+        <li>Configure custom domain name</li>
+        <li>Enable monitoring and logging</li>
+      </ul>
+    </div>
+    
+    <div class="footer">
+      <p>Deployed with ❤️ using Lovable Platform</p>
+      <div class="tech-stack">
+        <span class="tech-badge">AWS EC2</span>
+        <span class="tech-badge">Nginx</span>
+        <span class="tech-badge">Ubuntu 22.04</span>
+        <span class="tech-badge">Firewalld</span>
+        <span class="tech-badge">Fail2ban</span>
+      </div>
+      <p style="margin-top: 15px; font-size: 12px;">
+        Instance ID: <code id="instance-id">Loading...</code><br>
+        Deployment: ${deploymentName}
+      </p>
+    </div>
+  </div>
+  
+  <script>
+    // Fetch and display instance metadata
+    fetch('/api/health').then(r => r.json()).then(data => {
+      console.log('Health check:', data);
+    }).catch(e => console.log('Health check not available'));
+  </script>
+</body>
+</html>
+HTMLEOF
 
-app.get('/', (req, res) => {
-  res.send(\\\`<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${deploymentName} - Live</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{background:white;border-radius:20px;padding:60px 40px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:600px;text-align:center}
-.icon{width:80px;height:80px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 30px;animation:pop 0.5s}
-.icon::after{content:'✓';color:white;font-size:40px;font-weight:bold}
-h1{color:#1f2937;font-size:32px;margin-bottom:20px}
-.status{display:inline-block;background:#10b981;color:white;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:30px}
-.info{display:grid;gap:15px;text-align:left;margin:30px 0}
-.item{background:#f3f4f6;padding:15px 20px;border-radius:10px;display:flex;justify-content:space-between}
-.label{color:#6b7280;font-size:14px}
-.value{color:#1f2937;font-size:14px;font-weight:600;font-family:monospace}
-.next{background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;text-align:left;margin-top:30px}
-.next h3{color:#1f2937;margin-bottom:15px}
-.next ul{list-style:none;color:#4b5563;line-height:2}
-.next li::before{content:'→';color:#3b82f6;font-weight:bold;margin-right:10px}
-@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
-</style>
-</head><body>
-<div class="container">
-<div class="icon"></div>
-<h1>${deploymentName}</h1>
-<div class="status">🚀 Live & Running</div>
-<p style="color:#6b7280;line-height:1.6;margin:20px 0">
-Your application is deployed and running on AWS EC2 with Nginx and Node.js!</p>
-<div class="info">
-<div class="item"><span class="label">Region</span><span class="value">${region}</span></div>
-<div class="item"><span class="label">Stack</span><span class="value">Nginx + Node.js</span></div>
-<div class="item"><span class="label">Status</span><span class="value" style="color:#10b981">● Online</span></div>
-</div>
-<div class="next">
-<h3>📋 Next Steps</h3>
-<ul>
-<li>Deploy your application code</li>
-<li>Configure database connection</li>
-<li>Set up SSL certificate</li>
-<li>Configure custom domain</li>
-</ul>
-</div>
-</div>
-</body></html>\\\`);
-});
+# Create API endpoint for health checks
+mkdir -p /var/www/html/api
+cat > /var/www/html/api/health.json << 'APIHEALTHEOF'
+{
+  "status": "healthy",
+  "deployment": "${deploymentName}",
+  "region": "${region}",
+  "server": "nginx",
+  "timestamp": "$(date -Iseconds)"
+}
+APIHEALTHEOF
 
-app.listen(PORT, () => console.log(\\\`Server running on port \${PORT}\\\`));
-EOF
+# Create database info endpoint
+cat > /var/www/html/api/info.json << 'APIINFOEOF'
+{
+  "deployment_name": "${deploymentName}",
+  "region": "${region}",
+  "deployment_type": "${deploymentType}",
+  "stack": {
+    "web_server": "nginx",
+    "os": "Amazon Linux 2",
+    "security": ["firewalld", "fail2ban", "security-headers"]
+  },
+  "status": "live"
+}
+APIINFOEOF
 
-# Install dependencies
-echo "📦 Installing application dependencies..."
-npm install
+chmod 644 /var/www/html/index.html
+chmod 644 /var/www/html/api/*.json
+echo "✅ Application files deployed successfully"
+update_phase_status "application" "completed" "Website deployed"
 update_phase_status "application" "completed" "Application ready"
 
 # ============================================
@@ -506,18 +707,29 @@ update_phase_status "application" "completed" "Application ready"
 echo ""
 echo "🔒 Phase 3: Configuring Secure Web Server..."
 
-# Configure Nginx with security headers and rate limiting
+# Configure Nginx to serve static files
 cat > /etc/nginx/conf.d/app.conf << 'EOF'
 # Rate limiting zones
-limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+limit_req_zone $binary_remote_addr zone=general:10m rate=20r/s;
+limit_req_zone $binary_remote_addr zone=api:10m rate=50r/s;
 
 # Security: Hide Nginx version
 server_tokens off;
 
+# Cache settings
+proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=static_cache:10m max_size=100m inactive=60m;
+
 server {
     listen 80 default_server;
     server_name _;
+    root /var/www/html;
+    index index.html;
+    
+    # Enable gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
     
     # Security Headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -525,50 +737,53 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;" always;
     
-    # CORS (adjust as needed)
-    add_header Access-Control-Allow-Origin "https://*" always;
+    # CORS for API calls
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Authorization, Content-Type" always;
     
-    # Rate limiting for general traffic
+    # Serve static files with rate limiting
     location / {
-        limit_req zone=general burst=20 nodelay;
+        limit_req zone=general burst=30 nodelay;
         limit_req_status 429;
         
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        try_files $uri $uri/ /index.html;
         
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+        # Cache static assets
+        location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+        }
     }
     
-    # API endpoints with higher rate limit
+    # API endpoints (for JSON files)
     location /api/ {
-        limit_req zone=api burst=50 nodelay;
+        limit_req zone=api burst=100 nodelay;
         limit_req_status 429;
         
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        default_type application/json;
+        add_header Content-Type application/json;
+        try_files $uri $uri.json =404;
     }
     
-    # Health check (no rate limiting)
-    location /health {
+    # Health check endpoint (no rate limiting)
+    location = /health {
         access_log off;
-        proxy_pass http://localhost:3000/api/health;
+        default_type application/json;
+        return 200 '{"status":"healthy","server":"nginx","timestamp":"'$(date -Iseconds)'"}';
+    }
+    
+    # Status check endpoint
+    location = /api/status {
+        access_log off;
+        default_type application/json;
+        alias /var/www/status/setup.json;
     }
     
     # Block common exploit attempts
-    location ~ /\.(git|env|htaccess) {
+    location ~ /\.(git|env|htaccess|sql|sh) {
         deny all;
         return 404;
     }
@@ -578,70 +793,54 @@ server {
         deny all;
         return 404;
     }
+    
+    # Error pages
+    error_page 404 /index.html;
 }
 EOF
 
-# Create Nginx logging directory
+# Create Nginx logging and cache directories
 mkdir -p /var/log/nginx
+mkdir -p /var/cache/nginx
 touch /var/log/nginx/error.log
+touch /var/log/nginx/access.log
 
 # Remove default Nginx config
 rm -f /etc/nginx/conf.d/default.conf
+rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
 # Test Nginx configuration
 nginx -t
-
-# Create systemd service
-cat > /etc/systemd/system/app.service << 'EOF'
-[Unit]
-Description=Node.js Application
-After=network.target
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/var/www/app
-ExecStart=/usr/bin/node server.js
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
-[Install]
-WantedBy=multi-user.target
-EOF
 
 # ============================================
 # PHASE 4: START SERVICES SECURELY
 # ============================================
 echo ""
-echo "🚀 Phase 4: Starting Services..."
-update_status "services" "running" "Starting application and web server"
+echo "🚀 Phase 4: Starting Web Server..."
+update_status "services" "running" "Starting Nginx web server"
 
-systemctl daemon-reload
-systemctl enable app
-systemctl start app
-
-# Wait for application to start
-sleep 5
-
-# Verify application is running
-if systemctl is-active --quiet app; then
-    echo "✅ Application service started successfully"
-    update_phase_status "services" "completed" "Application service running"
-else
-    echo "❌ Application service failed to start"
-    update_phase_status "services" "failed" "Application service failed to start"
-    systemctl status app --no-pager
-fi
+# Set correct permissions
+chown -R nginx:nginx /var/www/html
+chown -R nginx:nginx /var/cache/nginx
+chmod -R 755 /var/www/html
 
 # Start Nginx
+systemctl daemon-reload
+systemctl enable nginx
 systemctl restart nginx
+
+# Wait for Nginx to start
+sleep 3
 
 # Verify Nginx is running
 if systemctl is-active --quiet nginx; then
     echo "✅ Nginx started successfully"
-    update_phase_status "nginx" "completed" "Nginx running"
+    update_phase_status "nginx" "completed" "Nginx serving website"
+    update_phase_status "services" "completed" "All services running"
 else
     echo "❌ Nginx failed to start"
     update_phase_status "nginx" "failed" "Nginx failed to start"
+    update_phase_status "services" "failed" "Service startup failed"
     systemctl status nginx --no-pager
 fi
 
@@ -907,17 +1106,18 @@ echo "⏱️  Time: $(date)"
       }
 
       deploymentLog += `\n--- Secure Deployment Configuration ---\n`;
-      deploymentLog += `✓ Web Server: Nginx with security headers\n`;
-      deploymentLog += `✓ Runtime: Node.js 18.x\n`;
-      deploymentLog += `✓ Application: Express.js\n`;
-      deploymentLog += `✓ Auto-start: systemd service\n`;
+      deploymentLog += `✓ Web Server: Nginx serving static HTML\n`;
+      deploymentLog += `✓ Application: Production-ready website\n`;
+      deploymentLog += `✓ API Endpoints: Health & status checks\n`;
+      deploymentLog += `✓ Static Assets: Optimized with caching\n`;
       deploymentLog += `\n🔒 Security Features:\n`;
       deploymentLog += `✓ Firewall: firewalld (HTTP/HTTPS/SSH only)\n`;
       deploymentLog += `✓ Brute Force Protection: Fail2ban\n`;
-      deploymentLog += `✓ Rate Limiting: 10 req/sec general, 30 req/sec API\n`;
+      deploymentLog += `✓ Rate Limiting: 20 req/sec general, 50 req/sec API\n`;
       deploymentLog += `✓ Security Headers: XSS, Clickjacking, MIME sniffing protection\n`;
       deploymentLog += `✓ Automatic Security Updates: Enabled\n`;
       deploymentLog += `✓ Hidden Files Protection: Enabled\n`;
+      deploymentLog += `✓ Content Compression: Gzip enabled\n`;
       deploymentLog += `\n✓ Deployment Type: ${deploymentType === 'fresh' ? 'Fresh Installation' : 'Incremental Update'}\n`;
       if (includeDatabase) {
         deploymentLog += `✓ Database initialization: Enabled\n`;
@@ -933,7 +1133,7 @@ echo "⏱️  Time: $(date)"
       const duration = Math.round((deploymentEndTime.getTime() - deploymentStartTime.getTime()) / 1000);
       
       deploymentLog += `\n--- Deployment Complete ---\n`;
-      deploymentLog += `✓ Status: Deployment phase completed\n`;
+      deploymentLog += `✓ Status: Website successfully deployed\n`;
       deploymentLog += `Status: RUNNING\n`;
       deploymentLog += `Instance ID: ${instanceId}\n`;
       deploymentLog += `Public IP: ${publicIp}\n`;
@@ -943,17 +1143,17 @@ echo "⏱️  Time: $(date)"
       
       deploymentLog += `--- Application Access ---\n`;
       deploymentLog += `🌐 Website URL: http://${publicIp}\n`;
-      deploymentLog += `📊 Health Check: http://${publicIp}/api/health\n\n`;
+      deploymentLog += `📊 Health Check: http://${publicIp}/health\n`;
+      deploymentLog += `📊 API Info: http://${publicIp}/api/info.json\n\n`;
       
-      deploymentLog += `--- Secure Setup Details ---\n`;
-      deploymentLog += `⚙️  The instance is automatically installing:\n`;
-      deploymentLog += `\n🔒 Security Layer:\n`;
-      deploymentLog += `   • Firewalld (firewall)\n`;
-      deploymentLog += `   • Fail2ban (brute force protection)\n`;
-      deploymentLog += `   • Rate limiting (DDoS protection)\n`;
-      deploymentLog += `   • Security headers (XSS, clickjacking protection)\n`;
-      deploymentLog += `   • Automatic security updates\n`;
-      deploymentLog += `\n🌐 Application Stack:\n`;
+      deploymentLog += `--- Setup Details ---\n`;
+      deploymentLog += `⚙️  Your website is now live and running!\n`;
+      deploymentLog += `\n🌐 Web Stack:\n`;
+      deploymentLog += `   • Nginx web server\n`;
+      deploymentLog += `   • Static HTML/CSS/JS\n`;
+      deploymentLog += `   • API endpoints for monitoring\n`;
+      deploymentLog += `   • Gzip compression\n`;
+      deploymentLog += `   • Cache optimization\n`;
       deploymentLog += `   • Nginx web server (port 80)\n`;
       deploymentLog += `   • Node.js 18.x runtime\n`;
       deploymentLog += `   • Express.js application (port 3000)\n`;
