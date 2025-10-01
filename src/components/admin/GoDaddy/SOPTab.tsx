@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, FileText, CheckCircle, AlertCircle, Rocket, Upload, Settings, CheckCircle2 } from 'lucide-react';
+import { Server, FileText, CheckCircle, AlertCircle, Rocket, Upload, Settings, CheckCircle2, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const SOPTab = () => {
@@ -124,7 +124,7 @@ export const SOPTab = () => {
       </Card>
 
       {/* Step 3 */}
-      <Card>
+      <Card className="border-2 border-blue-500/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Rocket className="h-5 w-5" />
@@ -134,16 +134,76 @@ export const SOPTab = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
+            {/* Quick Action Box */}
+            <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-500/30 rounded-lg p-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 text-white rounded-full p-2 mt-1">
+                  <Rocket className="h-5 w-5" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <p className="text-sm font-bold text-blue-600">📦 Quick Download Guide</p>
+                  <p className="text-xs">Follow these steps to download your production-ready website files:</p>
+                  
+                  <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</div>
+                      <p className="text-xs"><strong>Click "Publish"</strong> button (top-right of Lovable editor)</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</div>
+                      <p className="text-xs">Wait for build to complete (~1-3 min)</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</div>
+                      <p className="text-xs">Click project name → <strong>Settings</strong> → <strong>Download</strong> tab</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</div>
+                      <p className="text-xs">Click <strong>"Download production build"</strong> button</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">5</div>
+                      <p className="text-xs">Save <code className="bg-muted px-1">production-build.zip</code> to your computer</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">6</div>
+                      <p className="text-xs">Extract the ZIP file (right-click → Extract)</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-500/20 border border-amber-500/30 rounded p-2">
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      <strong>⚠️ Note:</strong> The download button must be accessed through Lovable's interface. 
+                      Build files are not accessible from within this deployed app.
+                    </p>
+                  </div>
+
+                  <a
+                    href="https://docs.lovable.dev"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    View Lovable Documentation
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 space-y-3">
-              <p className="text-sm font-semibold text-blue-600">Option A: Download from Lovable (Recommended for this portal)</p>
+              <p className="text-sm font-semibold text-blue-600">Option A: Download from Lovable (Recommended)</p>
               <ol className="text-sm space-y-1.5 ml-6 list-decimal">
-                <li>Click the <strong>Publish</strong> button in the top-right corner of Lovable</li>
+                <li>Open Lovable editor in another tab</li>
+                <li>Click the <strong>Publish</strong> button in the top-right corner</li>
                 <li>Wait for the build to complete (usually 1-3 minutes)</li>
-                <li>Once published, go to <strong>Project Settings</strong> → <strong>Download</strong></li>
+                <li>Click your project name in top-left</li>
+                <li>Select <strong>Settings</strong> from the dropdown</li>
+                <li>Go to <strong>Download</strong> tab</li>
                 <li>Click <strong>"Download production build"</strong></li>
-                <li>Save the <code className="bg-muted px-2 py-1 rounded">production-build.zip</code> file to your computer</li>
-                <li>Extract the ZIP file - this creates a folder with all your website files</li>
-                <li>Open the extracted folder to see: index.html, assets/, etc.</li>
+                <li>Save the <code className="bg-muted px-2 py-1 rounded">production-build.zip</code> file to your Downloads folder</li>
+                <li>Go to your Downloads folder and extract the ZIP file (right-click → Extract All)</li>
+                <li>Open the extracted folder to verify: index.html, assets/, favicon.ico</li>
               </ol>
             </div>
 
