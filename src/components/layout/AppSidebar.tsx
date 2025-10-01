@@ -106,23 +106,28 @@ const supportItems = [
   { title: "Subscription", url: "/subscription", icon: CreditCard },
 ];
 
-// Core Admin Features
-const coreAdminItems = [
+// System & Monitoring
+const systemMonitoringItems = [
   { title: "Admin Dashboard", url: "/admin", icon: BarChart3 },
-  { title: "Manage Users", url: "/admin/users", icon: Users },
-  { title: "Role Management", url: "/admin/role-management", icon: Shield },
-  { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
+  { title: "Live Module Status", url: "/admin/live-module-status", icon: Activity },
+  { title: "Production Readiness", url: "/admin/production-readiness", icon: CheckCircle },
+  { title: "Module Architecture", url: "/admin/module-architecture", icon: Package },
 ];
 
-// Site Management
-const siteManagementItems = [
-  { title: "Production Readiness", url: "/admin/production-readiness", icon: CheckCircle },
-  { title: "Home Page Management", url: "/admin/home-page-management", icon: Home },
-  { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
-  { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
-  { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
-  { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
-  { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
+// User Management
+const userManagementItems = [
+  { title: "Manage Users", url: "/admin/users", icon: Users },
+  { title: "Role Management", url: "/admin/role-management", icon: Shield },
+  { title: "Publisher Management", url: "/admin/publishers", icon: Building2 },
+];
+
+// Content Management
+const contentManagementItems = [
+  { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
+  { title: "Events Management", url: "/admin/events-management", icon: Calendar },
+  { title: "Awards Management", url: "/admin/awards-management", icon: Award },
+  { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
+  { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
 ];
 
 // Book Management
@@ -134,24 +139,28 @@ const bookManagementItems = [
   { title: "Affiliate Settings", url: "/admin/affiliate-settings", icon: Globe },
 ];
 
-// Content Management
-const contentManagementItems = [
-  { title: "Blog Management", url: "/admin/blog-management", icon: Newspaper },
-  { title: "Events Management", url: "/admin/events-management", icon: Calendar },
-  { title: "Awards Management", url: "/admin/awards-management", icon: Award },
-  { title: "FAQ Management", url: "/admin/faq-management", icon: HelpCircle },
-  { title: "Newsletter Management", url: "/admin/newsletter-management", icon: Mail },
-  { title: "Contact Management", url: "/admin/contact-management", icon: MessageSquare },
-  { title: "Contact Form Settings", url: "/admin/contact-form-settings", icon: Settings },
+// Site Settings
+const siteSettingsItems = [
+  { title: "Home Page Management", url: "/admin/home-page-management", icon: Home },
+  { title: "Theme Management", url: "/admin/theme-management", icon: Palette },
+  { title: "Domain Settings", url: "/admin/domain-settings", icon: Globe },
   { title: "Cookie Consent", url: "/admin/cookie-consent", icon: Cookie },
 ];
 
-// Business Management
-const businessManagementItems = [
-  { title: "Module Architecture", url: "/admin/module-architecture", icon: Package },
-  { title: "Publisher Management", url: "/admin/publishers", icon: Building2 },
-  { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
+// Communications
+const communicationsItems = [
+  { title: "Contact Management", url: "/admin/contact-management", icon: MessageSquare },
+  { title: "Contact Form Settings", url: "/admin/contact-form-settings", icon: Settings },
+  { title: "Help Desk", url: "/admin/help-desk", icon: MessageCircle },
   { title: "Help Desk Settings", url: "/admin/help-desk-settings", icon: Settings },
+  { title: "Email Settings", url: "/admin/email-settings", icon: Mail },
+];
+
+// Infrastructure
+const infrastructureItems = [
+  { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
+  { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
+  { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
 ];
 
 export function AppSidebar() {
@@ -464,36 +473,10 @@ export function AppSidebar() {
         {isAdmin && (
           <>
             <SidebarGroup>
-              <SidebarGroupLabel>Core Admin</SidebarGroupLabel>
+              <SidebarGroupLabel>System & Monitoring</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {coreAdminItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink to={item.url} className={getNavCls}>
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/admin/live-module-status" className={getNavCls}>
-                        <Activity className="h-4 w-4" />
-                        {!collapsed && <span>Live Module Status</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Site Management</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {siteManagementItems.map((item) => (
+                  {systemMonitoringItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
                         <NavLink to={item.url} className={getNavCls}>
@@ -508,10 +491,10 @@ export function AppSidebar() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Book Management</SidebarGroupLabel>
+              <SidebarGroupLabel>User Management</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {bookManagementItems.map((item) => (
+                  {userManagementItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
                         <NavLink to={item.url} className={getNavCls}>
@@ -544,10 +527,64 @@ export function AppSidebar() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Business Management</SidebarGroupLabel>
+              <SidebarGroupLabel>Book Management</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {businessManagementItems.map((item) => (
+                  {bookManagementItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Site Settings</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {siteSettingsItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Communications</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {communicationsItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Infrastructure</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {infrastructureItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
                         <NavLink to={item.url} className={getNavCls}>
