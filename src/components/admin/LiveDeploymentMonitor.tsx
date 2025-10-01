@@ -712,20 +712,21 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                     const isFixing = fixingHttp.has(deployment.ec2_instance_id);
                     
                     return (
-                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
                           <div className="flex-1">
-                            <h5 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
-                              HTTP Access Issue Detected
+                            <h5 className="font-semibold text-red-900 dark:text-red-100 mb-1">
+                              Web Server Not Responding
                             </h5>
-                            <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-                              The web server is not accessible. This usually means the security group needs configuration.
+                            <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                              Connection refused - Nginx may not be installed or running on the instance.
                             </p>
-                            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-1 mb-3">
-                              <p><strong>Quick Fix Options:</strong></p>
-                              <p>1. Use the Auto-Fix button below (recommended)</p>
-                              <p>2. Or manually add HTTP rule in AWS Console → EC2 → Security Groups</p>
+                            <div className="text-xs text-red-600 dark:text-red-400 space-y-1 mb-3">
+                              <p><strong>Possible Issues:</strong></p>
+                              <p>• Nginx not installed or not running</p>
+                              <p>• Application not deployed correctly</p>
+                              <p>• Port 80 not configured in Nginx</p>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -736,31 +737,39 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 onClick={async () => {
                                   setFixingHttp(prev => new Set(prev).add(deployment.ec2_instance_id));
                                   try {
-                                    const { data, error } = await supabase.functions.invoke('aws-unblock-http', {
+                                    toast.info('Running diagnostics via SSH...');
+                                    
+                                    const { data, error } = await supabase.functions.invoke('aws-ssh-diagnostic', {
                                       body: {
                                         instanceId: deployment.ec2_instance_id,
                                         region: deployment.region,
+                                        autoFix: true,
                                       },
                                     });
 
                                     if (error) throw error;
 
                                     if (data.success) {
-                                      toast.success(data.alreadyOpen ? 
-                                        'HTTP port 80 is already open' : 
-                                        'HTTP access enabled successfully! Checking status...'
-                                      );
+                                      const diag = data.diagnostics;
                                       
-                                      // Refresh health check after 2 seconds
+                                      if (diag.fixes.length > 0) {
+                                        toast.success(`Applied fixes: ${diag.fixes.join(', ')}`);
+                                      } else if (diag.nginx.running) {
+                                        toast.info('Nginx is running but still not accessible. Check application logs.');
+                                      } else {
+                                        toast.warning('Could not automatically fix the issue. Manual intervention needed.');
+                                      }
+                                      
+                                      // Refresh health check after fixes
                                       setTimeout(() => {
                                         checkInstanceHealth(deployment);
-                                      }, 2000);
+                                      }, 3000);
                                     } else {
-                                      throw new Error(data.error || 'Failed to enable HTTP access');
+                                      throw new Error(data.error || 'Diagnostic failed');
                                     }
                                   } catch (error: any) {
-                                    console.error('HTTP fix error:', error);
-                                    toast.error(error.message || 'Failed to enable HTTP access');
+                                    console.error('Diagnostic error:', error);
+                                    toast.error(error.message || 'Failed to run diagnostics');
                                   } finally {
                                     setFixingHttp(prev => {
                                       const next = new Set(prev);
@@ -773,12 +782,12 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 {isFixing ? (
                                   <>
                                     <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                    Fixing...
+                                    Diagnosing...
                                   </>
                                 ) : (
                                   <>
                                     <Wrench className="h-3 w-3 mr-1" />
-                                    Auto-Fix HTTP Access
+                                    Run SSH Diagnostics & Auto-Fix
                                   </>
                                 )}
                               </Button>
@@ -787,7 +796,7 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 size="sm"
                                 className="text-xs"
                                 onClick={() => window.open(
-                                  `https://console.aws.amazon.com/ec2/home?region=${deployment.region}#SecurityGroups:`,
+                                  `https://console.aws.amazon.com/ec2/home?region=${deployment.region}#Instances:instanceId=${deployment.ec2_instance_id}`,
                                   '_blank'
                                 )}
                               >
