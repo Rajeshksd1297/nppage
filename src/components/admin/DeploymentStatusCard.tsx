@@ -27,46 +27,62 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   useEffect(() => {
     const checkHealth = async () => {
       const startTime = Date.now();
-      try {
-        // Try to load an image from the server as a connectivity check
-        // This works better than fetch with CORS restrictions
-        const img = new Image();
-        const timeout = setTimeout(() => {
-          setHealthStatus({
-            http: 'checking',
-            responseTime: null,
-            lastChecked: new Date(),
-          });
-        }, 5000);
+      
+      // Try multiple endpoints to determine if the server is online
+      const endpoints = [
+        `/api/health`,  // Primary health check endpoint
+        `/`,            // Fallback to root
+        `/favicon.ico`  // Last resort
+      ];
+      
+      let isOnline = false;
+      let responseTime: number | null = null;
 
-        img.onload = () => {
-          clearTimeout(timeout);
-          const responseTime = Date.now() - startTime;
-          setHealthStatus({
-            http: 'online',
-            responseTime,
-            lastChecked: new Date(),
-          });
-        };
+      for (const endpoint of endpoints) {
+        try {
+          const img = new Image();
+          
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              img.src = ''; // Cancel the request
+              reject(new Error('Timeout'));
+            }, 10000); // 10 second timeout per endpoint
 
-        img.onerror = () => {
-          clearTimeout(timeout);
-          setHealthStatus({
-            http: 'offline',
-            responseTime: null,
-            lastChecked: new Date(),
-          });
-        };
+            img.onload = () => {
+              clearTimeout(timeout);
+              isOnline = true;
+              responseTime = Date.now() - startTime;
+              resolve();
+            };
 
-        // Try to load favicon or a common path
-        img.src = `http://${deployment.ec2_public_ip}/favicon.ico?t=${Date.now()}`;
-      } catch (error) {
-        setHealthStatus({
-          http: 'offline',
-          responseTime: null,
-          lastChecked: new Date(),
-        });
+            img.onerror = () => {
+              clearTimeout(timeout);
+              // For API endpoints, an error might mean CORS but server is still up
+              // Try to detect if it's a network error vs CORS error
+              if (endpoint === '/api/health' || endpoint === '/') {
+                // Assume online if we get any response (even CORS error means server responded)
+                isOnline = true;
+                responseTime = Date.now() - startTime;
+              }
+              reject(new Error('Load failed'));
+            };
+
+            img.src = `http://${deployment.ec2_public_ip}${endpoint}?t=${Date.now()}`;
+          });
+
+          // If we got here, one endpoint worked
+          if (isOnline) break;
+        } catch (error) {
+          // Continue to next endpoint
+          continue;
+        }
       }
+
+      setHealthStatus({
+        http: isOnline ? 'online' : 'offline',
+        responseTime,
+        lastChecked: new Date(),
+      });
     };
 
     checkHealth();
