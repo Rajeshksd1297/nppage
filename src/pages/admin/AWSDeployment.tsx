@@ -127,6 +127,9 @@ export default function AWSDeployment() {
   const [existingInstanceId, setExistingInstanceId] = useState("");
   const [autoCreateSecurityGroup, setAutoCreateSecurityGroup] = useState(true);
   const [autoCreateKeyPair, setAutoCreateKeyPair] = useState(true);
+  const [existingSecurityGroupId, setExistingSecurityGroupId] = useState("");
+  const [existingKeyPairName, setExistingKeyPairName] = useState("");
+  const [pemFile, setPemFile] = useState<File | null>(null);
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [activeDeploymentId, setActiveDeploymentId] = useState<string | null>(null);
@@ -268,7 +271,9 @@ export default function AWSDeployment() {
           instanceMode,
           existingInstanceId: instanceMode === 'existing' ? existingInstanceId : undefined,
           autoCreateSecurityGroup: instanceMode === 'new' ? autoCreateSecurityGroup : false,
-          autoCreateKeyPair: instanceMode === 'new' ? autoCreateKeyPair : false
+          autoCreateKeyPair: instanceMode === 'new' ? autoCreateKeyPair : false,
+          securityGroupId: !autoCreateSecurityGroup ? existingSecurityGroupId : undefined,
+          keyPairName: !autoCreateKeyPair ? existingKeyPairName : undefined,
         }
       });
       if (error) throw error;
@@ -324,6 +329,22 @@ export default function AWSDeployment() {
       toast({
         title: "Instance ID Required",
         description: "Please enter an existing EC2 instance ID.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (instanceMode === 'new' && !autoCreateSecurityGroup && !existingSecurityGroupId.trim()) {
+      toast({
+        title: "Security Group ID Required",
+        description: "Please enter a Security Group ID or enable auto-create.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (instanceMode === 'new' && !autoCreateKeyPair && !existingKeyPairName.trim()) {
+      toast({
+        title: "Key Pair Name Required",
+        description: "Please enter a Key Pair name or enable auto-create.",
         variant: "destructive"
       });
       return;
@@ -622,34 +643,91 @@ export default function AWSDeployment() {
 
               {instanceMode === 'new' && (
                 <>
-                  <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="auto-create-sg">Auto-Create Security Group</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically create security group with HTTP, HTTPS, and SSH access
-                      </p>
+                  <div className="space-y-4 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="auto-create-sg">Auto-Create Security Group</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically create security group with HTTP, HTTPS, and SSH access
+                        </p>
+                      </div>
+                      <Switch 
+                        id="auto-create-sg" 
+                        checked={autoCreateSecurityGroup} 
+                        onCheckedChange={setAutoCreateSecurityGroup} 
+                        disabled={!awsSettings?.aws_access_key_id} 
+                      />
                     </div>
-                    <Switch 
-                      id="auto-create-sg" 
-                      checked={autoCreateSecurityGroup} 
-                      onCheckedChange={setAutoCreateSecurityGroup} 
-                      disabled={!awsSettings?.aws_access_key_id || !!awsSettings?.security_group_id} 
-                    />
+
+                    {!autoCreateSecurityGroup && (
+                      <div className="space-y-2 pt-3 border-t">
+                        <Label htmlFor="existing-sg">Security Group ID *</Label>
+                        <Input
+                          id="existing-sg"
+                          placeholder="sg-0123456789abcdef0"
+                          value={existingSecurityGroupId}
+                          onChange={(e) => setExistingSecurityGroupId(e.target.value)}
+                          required={!autoCreateSecurityGroup}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Enter your existing Security Group ID
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="auto-create-kp">Auto-Create SSH Key Pair</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Generate SSH key pair for secure instance access
-                      </p>
+                  <div className="space-y-4 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="auto-create-kp">Auto-Create SSH Key Pair</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Generate SSH key pair for secure instance access
+                        </p>
+                      </div>
+                      <Switch 
+                        id="auto-create-kp" 
+                        checked={autoCreateKeyPair} 
+                        onCheckedChange={setAutoCreateKeyPair} 
+                        disabled={!awsSettings?.aws_access_key_id} 
+                      />
                     </div>
-                    <Switch 
-                      id="auto-create-kp" 
-                      checked={autoCreateKeyPair} 
-                      onCheckedChange={setAutoCreateKeyPair} 
-                      disabled={!awsSettings?.aws_access_key_id || !!awsSettings?.key_pair_name} 
-                    />
+
+                    {!autoCreateKeyPair && (
+                      <div className="space-y-4 pt-3 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="existing-keypair">Key Pair Name *</Label>
+                          <Input
+                            id="existing-keypair"
+                            placeholder="my-keypair"
+                            value={existingKeyPairName}
+                            onChange={(e) => setExistingKeyPairName(e.target.value)}
+                            required={!autoCreateKeyPair}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Enter your existing Key Pair name (without .pem extension)
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="pem-file">Upload .pem Key File (Optional)</Label>
+                          <Input
+                            id="pem-file"
+                            type="file"
+                            accept=".pem"
+                            onChange={(e) => setPemFile(e.target.files?.[0] || null)}
+                            className="cursor-pointer"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Upload your private key file for reference (stored in deployment log)
+                          </p>
+                          {pemFile && (
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              ✓ File selected: {pemFile.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {(autoCreateSecurityGroup || autoCreateKeyPair) && (

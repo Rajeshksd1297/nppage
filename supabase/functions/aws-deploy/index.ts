@@ -26,6 +26,8 @@ interface DeploymentRequest {
   existingInstanceId?: string;
   autoCreateSecurityGroup?: boolean;
   autoCreateKeyPair?: boolean;
+  securityGroupId?: string;
+  keyPairName?: string;
 }
 
 Deno.serve(async (req) => {
@@ -62,7 +64,9 @@ Deno.serve(async (req) => {
       instanceMode = 'new',
       existingInstanceId,
       autoCreateSecurityGroup = true,
-      autoCreateKeyPair = true
+      autoCreateKeyPair = true,
+      securityGroupId: providedSecurityGroupId,
+      keyPairName: providedKeyPairName
     } = await req.json() as DeploymentRequest;
 
     console.log(`Starting REAL AWS deployment for user ${user.id}:`, {
@@ -128,8 +132,8 @@ Deno.serve(async (req) => {
 
     console.log('✓ EC2 client initialized for region:', region);
 
-    // Auto-create security group if requested
-    let securityGroupId = awsSettings.security_group_id;
+    // Auto-create or use provided security group
+    let securityGroupId = providedSecurityGroupId || awsSettings.security_group_id;
     let createdSecurityGroup = false;
 
     if (autoCreateSecurityGroup && !securityGroupId && instanceMode === 'new') {
@@ -185,10 +189,12 @@ Deno.serve(async (req) => {
         console.error('Failed to create security group:', error);
         // Continue without security group - AWS will use default
       }
+    } else if (providedSecurityGroupId && instanceMode === 'new') {
+      console.log(`✓ Using provided security group: ${securityGroupId}`);
     }
 
-    // Auto-create key pair if requested
-    let keyPairName = awsSettings.key_pair_name;
+    // Auto-create or use provided key pair
+    let keyPairName = providedKeyPairName || awsSettings.key_pair_name;
     let privateKeyMaterial: string | undefined;
     let createdKeyPair = false;
 
@@ -222,6 +228,8 @@ Deno.serve(async (req) => {
         console.error('Failed to create key pair:', error);
         // Continue without key pair - instance will be launched without SSH access
       }
+    } else if (providedKeyPairName && instanceMode === 'new') {
+      console.log(`✓ Using provided key pair: ${keyPairName}`);
     }
 
     // Determine AMI ID for the region (Ubuntu 22.04 LTS)
