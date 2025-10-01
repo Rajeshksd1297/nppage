@@ -7,7 +7,7 @@ import {
   BookOpen, Newspaper, Calendar, Award, HelpCircle, Mail, 
   MessageSquare, Lock, Users, BarChart3, Palette, Crown,
   Shield, Cloud, Database, Grid3x3, Table as TableIcon,
-  Zap, Network, HardDrive, AlertTriangle
+  Zap, Network, HardDrive, AlertTriangle, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -695,16 +695,20 @@ export default function LiveModuleStatus() {
                           </p>
                         ))}
                       </div>
-                      <Button 
-                        variant="link" 
-                        size="sm" 
-                        className="mt-2 h-auto p-0 text-xs"
-                        onClick={() => window.location.href = `/admin/module-details/${module.id}`}
-                      >
-                        View Full Details →
-                      </Button>
                     </div>
                   )}
+
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => window.location.href = `/admin/module-details/${module.id}`}
+                    >
+                      <Eye className="w-3 h-3 mr-2" />
+                      View Full Details
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
