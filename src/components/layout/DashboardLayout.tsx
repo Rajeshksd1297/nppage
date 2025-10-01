@@ -148,10 +148,6 @@ export function DashboardLayout({
                 </Button>
               </div>
             </div>
-            
-            <div className="px-4 pb-3">
-              <p className="text-sm text-muted-foreground">AuthorPage Dashboard</p>
-            </div>
           </header>
 
           {/* Main Content */}
