@@ -232,9 +232,20 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
 
   const isSetupInProgress = setupStatus && setupStatus.phase !== 'complete' && setupStatus.status !== 'success';
 
-  // Hide this card if the instance is terminated
+  // Don't render anything if instance is terminated
   if (awsStatus?.status?.state === 'terminated') {
     return null;
+  }
+
+  // Show minimal loading state while checking status
+  if (!awsStatus && isCheckingStatus) {
+    return (
+      <Card className="border-2">
+        <CardContent className="p-6 flex items-center justify-center">
+          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
