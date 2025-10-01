@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SOPTab } from '@/components/admin/GoDaddy/SOPTab';
 import { ConfigurationTab } from '@/components/admin/GoDaddy/ConfigurationTab';
 import { DeploymentTab } from '@/components/admin/GoDaddy/DeploymentTab';
 import { StatusCheckTab } from '@/components/admin/GoDaddy/StatusCheckTab';
@@ -64,12 +65,17 @@ const GoDaddyDeployment = () => {
 
       <Separator />
 
-      <Tabs defaultValue="configuration" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="configuration">SOP Configuration</TabsTrigger>
+      <Tabs defaultValue="sop" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="sop">SOP</TabsTrigger>
+          <TabsTrigger value="configuration">Configuration</TabsTrigger>
           <TabsTrigger value="deployment">Deployment</TabsTrigger>
           <TabsTrigger value="status">Status Check</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="sop" className="mt-6">
+          <SOPTab />
+        </TabsContent>
 
         <TabsContent value="configuration" className="mt-6">
           <ConfigurationTab settings={settings} settingsLoading={settingsLoading} />
