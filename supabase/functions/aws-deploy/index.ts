@@ -879,40 +879,6 @@ echo "⏱️  Time: $(date)"
       }
     );
 
-    } catch (awsError: any) {
-      console.error('AWS API Error:', awsError);
-      
-      deploymentLog += `\n❌ AWS API ERROR ❌\n`;
-      deploymentLog += `Error: ${awsError.message}\n`;
-      deploymentLog += `Code: ${awsError.Code || awsError.name || 'Unknown'}\n`;
-      
-      if (awsError.message.includes('UnauthorizedOperation')) {
-        deploymentLog += `\n⚠️ AUTHORIZATION ERROR:\n`;
-        deploymentLog += `Your AWS credentials don't have permission to launch EC2 instances.\n`;
-        deploymentLog += `Please ensure your IAM user has the following permissions:\n`;
-        deploymentLog += `- ec2:RunInstances\n`;
-        deploymentLog += `- ec2:DescribeInstances\n`;
-        deploymentLog += `- ec2:CreateTags\n`;
-      } else if (awsError.message.includes('InvalidCredentials') || awsError.message.includes('SignatureDoesNotMatch')) {
-        deploymentLog += `\n⚠️ CREDENTIAL ERROR:\n`;
-        deploymentLog += `Your AWS Access Key ID or Secret Access Key is incorrect.\n`;
-        deploymentLog += `Please verify your credentials in the Configuration tab.\n`;
-      }
-      
-      deploymentLog += `\n=== Deployment Failed ===\n`;
-
-      // Update deployment status to failed
-      await supabaseClient
-        .from('aws_deployments')
-        .update({
-          status: 'failed',
-          deployment_log: deploymentLog,
-        })
-        .eq('id', deployment.id);
-
-      throw new Error(`AWS Deployment Failed: ${awsError.message}`);
-    }
-
   } catch (error: any) {
     console.error('Deployment error:', error);
     return new Response(
