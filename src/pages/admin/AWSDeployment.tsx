@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
+import { DeploymentStatusCard } from "@/components/admin/DeploymentStatusCard";
 
 const awsRegions = [
   { value: "us-east-1", label: "US East (N. Virginia)" },
@@ -348,9 +349,10 @@ export default function AWSDeployment() {
       </Card>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
           <TabsTrigger value="deployments">Deployments</TabsTrigger>
+          <TabsTrigger value="status">Status Check</TabsTrigger>
           <TabsTrigger value="guide">Deployment Guide</TabsTrigger>
         </TabsList>
 
@@ -1144,6 +1146,61 @@ export default function AWSDeployment() {
                 <p className="text-center text-muted-foreground py-8">
                   No deployments yet. Create your first deployment above.
                 </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="status" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Website Health Status</CardTitle>
+                  <CardDescription>
+                    Monitor your deployed website's components and connectivity
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["aws-deployments"] })}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Status
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {deployments && deployments.length > 0 ? (
+                <div className="space-y-6">
+                  {deployments
+                    .filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running')
+                    .map((deployment) => (
+                      <DeploymentStatusCard key={deployment.id} deployment={deployment} />
+                    ))}
+                  {deployments.filter(d => d.ec2_public_ip && getDeploymentStatus(d) === 'running').length === 0 && (
+                    <div className="text-center py-12">
+                      <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">
+                        No running deployments to monitor
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Deploy an instance from the Deployments tab to see status here
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Server className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    No deployments found
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Create your first deployment to monitor its status
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
