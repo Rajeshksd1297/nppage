@@ -24,9 +24,18 @@ export default function PublisherPublicPage({ publisher }: Props) {
     public_page_title: customFields.public_page_title || publisher.name,
     public_page_description: customFields.public_page_description || '',
     public_page_content: customFields.public_page_content || '',
+    hero_image_url: customFields.hero_image_url || '',
     show_authors: customFields.show_authors ?? true,
     show_books: customFields.show_books ?? true,
+    show_statistics: customFields.show_statistics ?? true,
+    show_recent_books: customFields.show_recent_books ?? true,
+    show_featured_books: customFields.show_featured_books ?? false,
+    show_social_links: customFields.show_social_links ?? true,
     show_contact_form: customFields.show_contact_form ?? true,
+    social_twitter: customFields.social_twitter || '',
+    social_facebook: customFields.social_facebook || '',
+    social_instagram: customFields.social_instagram || '',
+    social_linkedin: customFields.social_linkedin || '',
   });
 
   const publicPageUrl = publisher.slug 
@@ -169,6 +178,21 @@ export default function PublisherPublicPage({ publisher }: Props) {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="hero_image_url">Hero/Banner Image URL</Label>
+            <Input
+              id="hero_image_url"
+              value={formData.hero_image_url}
+              onChange={(e) =>
+                setFormData({ ...formData, hero_image_url: e.target.value })
+              }
+              placeholder="https://example.com/banner.jpg"
+            />
+            <p className="text-xs text-muted-foreground">
+              Recommended size: 1920x600px
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="public_page_content">Page Content</Label>
             <Textarea
               id="public_page_content"
@@ -182,62 +206,191 @@ export default function PublisherPublicPage({ publisher }: Props) {
           </div>
         </div>
 
+        {/* Social Media Links */}
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="font-semibold">Social Media Links</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="social_twitter">Twitter/X</Label>
+              <Input
+                id="social_twitter"
+                value={formData.social_twitter}
+                onChange={(e) =>
+                  setFormData({ ...formData, social_twitter: e.target.value })
+                }
+                placeholder="https://twitter.com/yourpublisher"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="social_facebook">Facebook</Label>
+              <Input
+                id="social_facebook"
+                value={formData.social_facebook}
+                onChange={(e) =>
+                  setFormData({ ...formData, social_facebook: e.target.value })
+                }
+                placeholder="https://facebook.com/yourpublisher"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="social_instagram">Instagram</Label>
+              <Input
+                id="social_instagram"
+                value={formData.social_instagram}
+                onChange={(e) =>
+                  setFormData({ ...formData, social_instagram: e.target.value })
+                }
+                placeholder="https://instagram.com/yourpublisher"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="social_linkedin">LinkedIn</Label>
+              <Input
+                id="social_linkedin"
+                value={formData.social_linkedin}
+                onChange={(e) =>
+                  setFormData({ ...formData, social_linkedin: e.target.value })
+                }
+                placeholder="https://linkedin.com/company/yourpublisher"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Display Options */}
         <div className="space-y-4 pt-4 border-t">
-          <h3 className="font-semibold">Display Options</h3>
+          <h3 className="font-semibold">Display Sections</h3>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-0.5">
-              <Label htmlFor="show_authors" className="text-base">
-                Show Authors
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Display list of authors on your public page
-              </p>
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_statistics" className="text-base">
+                  Show Statistics
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display total books, authors, and publication years
+                </p>
+              </div>
+              <Switch
+                id="show_statistics"
+                checked={formData.show_statistics}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_statistics: checked })
+                }
+              />
             </div>
-            <Switch
-              id="show_authors"
-              checked={formData.show_authors}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, show_authors: checked })
-              }
-            />
-          </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-0.5">
-              <Label htmlFor="show_books" className="text-base">
-                Show Books
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Display books published under your house
-              </p>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_authors" className="text-base">
+                  Show Authors
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display list of authors on your public page
+                </p>
+              </div>
+              <Switch
+                id="show_authors"
+                checked={formData.show_authors}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_authors: checked })
+                }
+              />
             </div>
-            <Switch
-              id="show_books"
-              checked={formData.show_books}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, show_books: checked })
-              }
-            />
-          </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-0.5">
-              <Label htmlFor="show_contact_form" className="text-base">
-                Show Contact Form
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Allow visitors to contact you through a form
-              </p>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_books" className="text-base">
+                  Show All Books
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display complete catalog of published books
+                </p>
+              </div>
+              <Switch
+                id="show_books"
+                checked={formData.show_books}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_books: checked })
+                }
+              />
             </div>
-            <Switch
-              id="show_contact_form"
-              checked={formData.show_contact_form}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, show_contact_form: checked })
-              }
-            />
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_recent_books" className="text-base">
+                  Show Recent Books
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display latest book additions (last 5 books)
+                </p>
+              </div>
+              <Switch
+                id="show_recent_books"
+                checked={formData.show_recent_books}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_recent_books: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_featured_books" className="text-base">
+                  Show Featured Books
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Highlight specific books as featured content
+                </p>
+              </div>
+              <Switch
+                id="show_featured_books"
+                checked={formData.show_featured_books}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_featured_books: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_social_links" className="text-base">
+                  Show Social Media Links
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Display social media icons and links
+                </p>
+              </div>
+              <Switch
+                id="show_social_links"
+                checked={formData.show_social_links}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_social_links: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="show_contact_form" className="text-base">
+                  Show Contact Form
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow visitors to contact you through a form
+                </p>
+              </div>
+              <Switch
+                id="show_contact_form"
+                checked={formData.show_contact_form}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_contact_form: checked })
+                }
+              />
+            </div>
           </div>
         </div>
 
