@@ -276,6 +276,14 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
                 </span>
                 <span>•</span>
                 <span>{deployment.ec2_public_ip}</span>
+                {awsStatus && (
+                  <>
+                    <span>•</span>
+                    <span className="text-xs">
+                      Updated {new Date().toLocaleTimeString()}
+                    </span>
+                  </>
+                )}
               </CardDescription>
             </div>
           </div>
@@ -504,58 +512,150 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
 
         {/* AWS Diagnostics */}
         {awsStatus?.status && (
-          <div className="p-4 border rounded-lg space-y-3">
+          <div className="p-4 border rounded-lg space-y-4">
             <h4 className="font-semibold flex items-center gap-2">
               <Server className="h-4 w-4" />
               AWS Instance Diagnostics
             </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span>System Status</span>
-                <span className={awsStatus.status.diagnostics?.systemChecksOk ? 'text-green-600' : 'text-yellow-600'}>
-                  {awsStatus.status.systemStatus || 'Initializing'}
+            
+            {/* Main Status Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                <span className="font-medium">Instance State</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  awsStatus.status.state === 'running' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                }`}>
+                  {awsStatus.status.state || 'Unknown'}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span>Instance Status</span>
-                <span className={awsStatus.status.diagnostics?.instanceChecksOk ? 'text-green-600' : 'text-yellow-600'}>
-                  {awsStatus.status.instanceStatus || 'Initializing'}
+
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                <span className="font-medium">System Status</span>
+                <span className={awsStatus.status.diagnostics?.systemChecksOk ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'}>
+                  {awsStatus.status.systemStatus || 'Checking...'}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span>Public IP</span>
-                <span className={awsStatus.status.diagnostics?.hasPublicIp ? 'text-green-600' : 'text-red-600'}>
-                  {awsStatus.status.diagnostics?.hasPublicIp ? 'Assigned' : 'Missing'}
+
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                <span className="font-medium">Instance Checks</span>
+                <span className={awsStatus.status.diagnostics?.instanceChecksOk ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'}>
+                  {awsStatus.status.instanceStatus || 'Checking...'}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span>HTTP Access</span>
-                <span className={awsStatus.httpAccessible ? 'text-green-600' : 'text-red-600'}>
-                  {awsStatus.httpAccessible ? 'Open' : 'Blocked'}
+
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                <span className="font-medium">HTTP Access</span>
+                <span className={awsStatus.httpAccessible ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                  {awsStatus.httpAccessible ? '✓ Open' : '✗ Blocked'}
                 </span>
               </div>
             </div>
-            
+
+            {/* Instance Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm pt-2 border-t">
+              <div className="space-y-2">
+                <p className="font-semibold text-muted-foreground">Instance Information</p>
+                <div className="space-y-1 pl-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="font-medium">{awsStatus.status.instanceType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Architecture:</span>
+                    <span className="font-medium">{awsStatus.status.architecture}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Availability Zone:</span>
+                    <span className="font-medium">{awsStatus.status.availabilityZone}</span>
+                  </div>
+                  {awsStatus.status.launchTime && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Launch Time:</span>
+                      <span className="font-medium">{new Date(awsStatus.status.launchTime).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-semibold text-muted-foreground">Network Information</p>
+                <div className="space-y-1 pl-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Public IP:</span>
+                    <span className="font-medium">{awsStatus.status.publicIp || 'None'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Private IP:</span>
+                    <span className="font-medium">{awsStatus.status.privateIp || 'None'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">VPC ID:</span>
+                    <span className="font-medium text-xs">{awsStatus.status.vpcId || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Monitoring:</span>
+                    <span className={`font-medium ${awsStatus.status.monitoring === 'enabled' ? 'text-green-600' : ''}`}>
+                      {awsStatus.status.monitoring || 'disabled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* HTTP Check Details */}
             {awsStatus.httpCheckDetails?.tested && (
-              <div className="mt-3 p-3 bg-muted/30 rounded text-xs space-y-1">
-                <p className="font-medium">HTTP Connectivity Test:</p>
-                <p>Endpoint tested: <code className="px-1 py-0.5 bg-muted rounded">http://{deployment.ec2_public_ip}{awsStatus.httpCheckDetails.endpoint}</code></p>
+              <div className="mt-3 p-3 bg-muted/30 rounded border-l-4 ${awsStatus.httpAccessible ? 'border-green-500' : 'border-red-500'}">
+                <p className="font-medium text-sm mb-2">HTTP Connectivity Test:</p>
+                <p className="text-xs mb-1">
+                  <span className="text-muted-foreground">Endpoint:</span>{' '}
+                  <code className="px-1 py-0.5 bg-muted rounded">
+                    http://{deployment.ec2_public_ip}{awsStatus.httpCheckDetails.endpoint}
+                  </code>
+                </p>
                 {awsStatus.httpCheckDetails.status > 0 ? (
-                  <p className="text-green-600">✓ Server responded with status {awsStatus.httpCheckDetails.status}</p>
+                  <p className="text-xs text-green-600 font-medium">
+                    ✓ Server responded with status {awsStatus.httpCheckDetails.status}
+                  </p>
                 ) : (
-                  <p className="text-red-600">✗ Connection failed: {awsStatus.httpCheckDetails.error || 'No response from server'}</p>
+                  <p className="text-xs text-red-600 font-medium">
+                    ✗ {awsStatus.httpCheckDetails.error || 'No response from server'}
+                  </p>
                 )}
               </div>
             )}
             
+            {/* Security Groups */}
             {awsStatus.status.securityGroups && awsStatus.status.securityGroups.length > 0 && (
-              <div className="mt-3">
-                <p className="text-sm font-medium mb-2">Security Groups:</p>
+              <div className="pt-2 border-t">
+                <p className="text-sm font-semibold mb-2 text-muted-foreground">Security Groups:</p>
                 <div className="space-y-1">
                   {awsStatus.status.securityGroups.map((sg: any) => (
-                    <div key={sg.id} className="text-xs p-2 bg-muted/30 rounded">
-                      {sg.name} ({sg.id})
+                    <div key={sg.id} className="text-xs p-2 bg-muted/30 rounded flex justify-between items-center">
+                      <span className="font-medium">{sg.name}</span>
+                      <code className="text-muted-foreground">{sg.id}</code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Status Details */}
+            {awsStatus.status.statusDetails && awsStatus.status.statusDetails.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-sm font-semibold mb-2 text-muted-foreground">Status Checks Detail:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {awsStatus.status.statusDetails.map((detail: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded">
+                      <span className="capitalize">{detail.name.replace(/-/g, ' ')}</span>
+                      <span className={`font-semibold ${
+                        detail.status === 'passed' ? 'text-green-600' : 
+                        detail.status === 'failed' ? 'text-red-600' : 
+                        'text-yellow-600'
+                      }`}>
+                        {detail.status}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -564,40 +664,50 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
           </div>
         )}
 
-        {/* Recommendations */}
+        {/* Recommendations & Diagnostics */}
         {awsStatus?.recommendations && awsStatus.recommendations.length > 0 && (
-          <div className={`p-4 border rounded-lg ${
+          <div className={`p-4 border-2 rounded-lg ${
             awsStatus.httpAccessible 
-              ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
-              : 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800'
+              ? 'bg-green-50 dark:bg-green-950 border-green-500'
+              : 'bg-red-50 dark:bg-red-950 border-red-500'
           }`}>
-            <h4 className={`font-semibold mb-2 flex items-center gap-2 ${
-              awsStatus.httpAccessible ? 'text-green-900 dark:text-green-100' : 'text-amber-900 dark:text-amber-100'
+            <h4 className={`font-semibold mb-3 flex items-center gap-2 text-lg ${
+              awsStatus.httpAccessible ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
             }`}>
               {awsStatus.httpAccessible ? (
                 <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  Status: Healthy
+                  <CheckCircle2 className="h-5 w-5" />
+                  All Systems Operational
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="h-4 w-4" />
-                  Diagnostics
+                  <AlertTriangle className="h-5 w-5" />
+                  Issues Detected
                 </>
               )}
             </h4>
-            <ul className={`space-y-1 text-sm ${
+            <div className={`space-y-2 text-sm ${
               awsStatus.httpAccessible 
                 ? 'text-green-800 dark:text-green-200'
-                : 'text-amber-800 dark:text-amber-200'
+                : 'text-red-800 dark:text-red-200'
             }`}>
-              {awsStatus.recommendations.map((rec: string, idx: number) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="mt-0.5">{rec.startsWith('✓') ? '' : '•'}</span>
-                  <span>{rec}</span>
-                </li>
-              ))}
-            </ul>
+              {awsStatus.recommendations.map((rec: string, idx: number) => {
+                const isHeader = rec.startsWith('❌') || rec.startsWith('🔧') || rec.startsWith('✅');
+                const isStep = rec.trim().match(/^\d+\./);
+                const isBullet = rec.trim().startsWith('•') || rec.trim().startsWith('→');
+                
+                return (
+                  <div key={idx} className={`${
+                    isHeader ? 'font-bold text-base mt-3 first:mt-0' : 
+                    isStep ? 'ml-4 font-medium' : 
+                    isBullet ? 'ml-8 text-xs' :
+                    rec.trim() === '' ? 'h-2' : ''
+                  }`}>
+                    {rec || '\u00A0'}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
