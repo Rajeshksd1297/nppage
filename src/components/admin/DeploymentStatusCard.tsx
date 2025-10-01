@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Server, ExternalLink, CheckCircle2, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import { Server, ExternalLink, CheckCircle2, Clock, AlertTriangle, RefreshCw, Unlock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const [awsStatus, setAwsStatus] = useState<any>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [isUnblocking, setIsUnblocking] = useState(false);
 
   const checkAwsStatus = async () => {
     setIsCheckingStatus(true);
@@ -72,6 +73,44 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
       toast.error('Failed to check instance status');
     } finally {
       setIsCheckingStatus(false);
+    }
+  };
+
+  const unblockHttp = async () => {
+    setIsUnblocking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('aws-unblock-http', {
+        body: {
+          instanceId: deployment.ec2_instance_id,
+          region: deployment.region,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        if (data.alreadyOpen) {
+          toast.info('Already Unblocked', {
+            description: 'HTTP port 80 is already open in the security group',
+          });
+        } else {
+          toast.success('HTTP Unblocked!', {
+            description: 'Successfully added HTTP rule to security group. The site should be accessible in a few seconds.',
+          });
+        }
+        // Refresh status after unblocking
+        setTimeout(() => checkAwsStatus(), 3000);
+      } else if (data.needsPermissions) {
+        toast.error('IAM Permissions Required', {
+          description: `Add these permissions to your IAM user: ${data.requiredPermissions?.join(', ')}`,
+          duration: 8000,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to unblock HTTP:', error);
+      toast.error('Failed to unblock HTTP access');
+    } finally {
+      setIsUnblocking(false);
     }
   };
 
@@ -217,16 +256,28 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
               </CardDescription>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => checkAwsStatus()}
-            disabled={isCheckingStatus}
-            className="mr-2"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingStatus ? 'animate-spin' : ''}`} />
-            Check Status
-          </Button>
+          <div className="flex gap-2">
+            {awsStatus && !awsStatus.httpAccessible && awsStatus.status?.diagnostics?.isRunning && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={unblockHttp}
+                disabled={isUnblocking}
+              >
+                <Unlock className={`h-4 w-4 mr-2 ${isUnblocking ? 'animate-pulse' : ''}`} />
+                {isUnblocking ? 'Unblocking...' : 'Unblock HTTP'}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => checkAwsStatus()}
+              disabled={isCheckingStatus}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingStatus ? 'animate-spin' : ''}`} />
+              Check Status
+            </Button>
+          </div>
           <Button
             variant="outline"
             size="sm"
