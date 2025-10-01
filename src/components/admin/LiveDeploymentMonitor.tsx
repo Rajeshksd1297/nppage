@@ -737,13 +737,12 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 onClick={async () => {
                                   setFixingHttp(prev => new Set(prev).add(deployment.ec2_instance_id));
                                   try {
-                                    toast.info('Running diagnostics via SSH...');
+                                    toast.info('Checking setup progress...');
                                     
                                     const { data, error } = await supabase.functions.invoke('aws-ssh-diagnostic', {
                                       body: {
                                         instanceId: deployment.ec2_instance_id,
                                         region: deployment.region,
-                                        autoFix: true,
                                       },
                                     });
 
@@ -752,24 +751,25 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                     if (data.success) {
                                       const diag = data.diagnostics;
                                       
-                                      if (diag.fixes.length > 0) {
-                                        toast.success(`Applied fixes: ${diag.fixes.join(', ')}`);
-                                      } else if (diag.nginx.running) {
-                                        toast.info('Nginx is running but still not accessible. Check application logs.');
+                                      if (diag.setupComplete) {
+                                        toast.success('Setup is complete! Checking status...');
+                                        setTimeout(() => checkInstanceHealth(deployment), 2000);
+                                      } else if (diag.setupStarted) {
+                                        toast.info(`Setup in progress: ${diag.currentStep} (${diag.progressPercent}%)`);
                                       } else {
-                                        toast.warning('Could not automatically fix the issue. Manual intervention needed.');
+                                        toast.warning('Setup has not started yet. Please wait a few more minutes.');
                                       }
-                                      
-                                      // Refresh health check after fixes
-                                      setTimeout(() => {
-                                        checkInstanceHealth(deployment);
-                                      }, 3000);
+
+                                      if (diag.errors.length > 0) {
+                                        console.error('Setup errors:', diag.errors);
+                                        toast.error(`Setup errors detected: ${diag.errors[0]}`);
+                                      }
                                     } else {
                                       throw new Error(data.error || 'Diagnostic failed');
                                     }
                                   } catch (error: any) {
                                     console.error('Diagnostic error:', error);
-                                    toast.error(error.message || 'Failed to run diagnostics');
+                                    toast.error(error.message || 'Failed to check setup progress');
                                   } finally {
                                     setFixingHttp(prev => {
                                       const next = new Set(prev);
@@ -782,12 +782,12 @@ export function LiveDeploymentMonitor({ deployments }: LiveDeploymentMonitorProp
                                 {isFixing ? (
                                   <>
                                     <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                    Diagnosing...
+                                    Checking...
                                   </>
                                 ) : (
                                   <>
                                     <Wrench className="h-3 w-3 mr-1" />
-                                    Run SSH Diagnostics & Auto-Fix
+                                    Check Setup Progress
                                   </>
                                 )}
                               </Button>

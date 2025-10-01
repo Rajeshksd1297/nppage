@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { EC2Client, GetConsoleOutputCommand } from "npm:@aws-sdk/client-ec2@3.709.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,6 @@ const corsHeaders = {
 interface DiagnosticRequest {
   instanceId: string;
   region: string;
-  autoFix?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -35,48 +35,50 @@ Deno.serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { instanceId, region, autoFix = false } = await req.json() as DiagnosticRequest;
+    const { instanceId, region } = await req.json() as DiagnosticRequest;
 
-    console.log(`Running SSH diagnostics for instance ${instanceId} in ${region} (autoFix: ${autoFix})`);
+    console.log(`Fetching console logs for instance ${instanceId} in ${region}`);
 
-    // Get deployment details including private key
-    const { data: deployment, error: deploymentError } = await supabaseClient
-      .from('aws_deployments')
+    // Get AWS settings
+    const { data: awsSettings, error: settingsError } = await supabaseClient
+      .from('aws_settings')
       .select('*')
-      .eq('ec2_instance_id', instanceId)
       .order('created_at', { desc: true })
       .limit(1)
       .maybeSingle();
 
-    if (deploymentError || !deployment) {
-      throw new Error('Deployment not found for this instance');
+    if (settingsError || !awsSettings) {
+      throw new Error('AWS credentials not configured');
     }
 
-    if (!deployment.ec2_public_ip) {
-      throw new Error('No public IP found for this instance');
-    }
+    // Initialize EC2 Client
+    const ec2Client = new EC2Client({
+      region: region,
+      credentials: {
+        accessKeyId: awsSettings.aws_access_key_id,
+        secretAccessKey: awsSettings.aws_secret_access_key,
+      },
+    });
 
-    // Extract private key from deployment log
-    const log = deployment.deployment_log || '';
-    const keyMatch = log.match(/-----BEGIN RSA PRIVATE KEY-----[\s\S]*?-----END RSA PRIVATE KEY-----/);
-    
-    if (!keyMatch) {
-      throw new Error('SSH private key not found in deployment. Please ensure the key was saved during deployment.');
-    }
+    // Get console output (contains user-data script logs)
+    const command = new GetConsoleOutputCommand({
+      InstanceId: instanceId,
+      Latest: true,
+    });
 
-    const privateKey = keyMatch[0];
-    const publicIp = deployment.ec2_public_ip;
+    const response = await ec2Client.send(command);
+    const consoleOutput = response.Output ? atob(response.Output) : '';
 
-    console.log(`Connecting to ${publicIp} via SSH...`);
+    console.log(`Console output length: ${consoleOutput.length} bytes`);
 
-    // Run SSH diagnostics
-    const diagnostics = await runSSHDiagnostics(publicIp, privateKey, autoFix);
+    // Parse the console output to find setup progress
+    const diagnostics = parseConsoleOutput(consoleOutput);
 
     return new Response(
       JSON.stringify({
         success: true,
         diagnostics,
-        autoFixApplied: autoFix,
+        consoleOutput: consoleOutput.slice(-2000), // Last 2000 chars
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -99,145 +101,81 @@ Deno.serve(async (req) => {
   }
 });
 
-async function runSSHDiagnostics(host: string, privateKey: string, autoFix: boolean) {
+function parseConsoleOutput(output: string) {
   const diagnostics = {
-    connected: false,
-    nginx: {
-      installed: false,
-      running: false,
-      enabled: false,
-      status: '',
+    setupStarted: false,
+    setupComplete: false,
+    progressPercent: 0,
+    currentStep: 'Initializing',
+    steps: {
+      systemUpdate: false,
+      nginxInstall: false,
+      nodejsInstall: false,
+      applicationSetup: false,
+      serviceStart: false,
     },
-    nodejs: {
-      installed: false,
-      version: '',
-    },
-    application: {
-      found: false,
-      running: false,
-    },
-    ports: {
-      port80Listening: false,
-      port3000Listening: false,
-    },
-    fixes: [] as string[],
     errors: [] as string[],
+    warnings: [] as string[],
+    lastLogLines: [] as string[],
   };
 
-  try {
-    // Save private key to temporary file
-    const keyPath = await Deno.makeTempFile({ suffix: '.pem' });
-    await Deno.writeTextFile(keyPath, privateKey);
-    await Deno.chmod(keyPath, 0o600);
-
-    // Helper function to run SSH commands
-    const runSSH = async (command: string): Promise<{ stdout: string; stderr: string; success: boolean }> => {
-      try {
-        const process = new Deno.Command('ssh', {
-          args: [
-            '-i', keyPath,
-            '-o', 'StrictHostKeyChecking=no',
-            '-o', 'UserKnownHostsFile=/dev/null',
-            '-o', 'ConnectTimeout=10',
-            `ubuntu@${host}`,
-            command
-          ],
-          stdout: 'piped',
-          stderr: 'piped',
-        });
-
-        const { code, stdout, stderr } = await process.output();
-        const stdoutText = new TextDecoder().decode(stdout);
-        const stderrText = new TextDecoder().decode(stderr);
-
-        return {
-          stdout: stdoutText,
-          stderr: stderrText,
-          success: code === 0,
-        };
-      } catch (error) {
-        return {
-          stdout: '',
-          stderr: error.message,
-          success: false,
-        };
-      }
-    };
-
-    // Test SSH connection
-    console.log('Testing SSH connection...');
-    const connectionTest = await runSSH('echo "connected"');
-    if (!connectionTest.success) {
-      throw new Error(`SSH connection failed: ${connectionTest.stderr}`);
-    }
-    diagnostics.connected = true;
-    console.log('✓ SSH connection successful');
-
-    // Check Nginx installation
-    console.log('Checking Nginx...');
-    const nginxCheck = await runSSH('which nginx');
-    diagnostics.nginx.installed = nginxCheck.success;
-
-    if (diagnostics.nginx.installed) {
-      // Check if Nginx is running
-      const nginxStatus = await runSSH('systemctl is-active nginx');
-      diagnostics.nginx.running = nginxStatus.stdout.trim() === 'active';
-
-      // Check if Nginx is enabled
-      const nginxEnabled = await runSSH('systemctl is-enabled nginx');
-      diagnostics.nginx.enabled = nginxEnabled.stdout.trim() === 'enabled';
-
-      // Get full status
-      const nginxFullStatus = await runSSH('systemctl status nginx || true');
-      diagnostics.nginx.status = nginxFullStatus.stdout;
-
-      // Auto-fix: Start and enable Nginx if not running
-      if (autoFix && !diagnostics.nginx.running) {
-        console.log('Auto-fixing: Starting Nginx...');
-        await runSSH('sudo systemctl start nginx');
-        await runSSH('sudo systemctl enable nginx');
-        diagnostics.fixes.push('Started and enabled Nginx service');
-      }
-    } else if (autoFix) {
-      console.log('Auto-fixing: Installing Nginx...');
-      await runSSH('sudo apt-get update && sudo apt-get install -y nginx');
-      await runSSH('sudo systemctl start nginx');
-      await runSSH('sudo systemctl enable nginx');
-      diagnostics.nginx.installed = true;
-      diagnostics.nginx.running = true;
-      diagnostics.fixes.push('Installed and started Nginx');
-    }
-
-    // Check Node.js
-    console.log('Checking Node.js...');
-    const nodeCheck = await runSSH('node --version');
-    diagnostics.nodejs.installed = nodeCheck.success;
-    diagnostics.nodejs.version = nodeCheck.stdout.trim();
-
-    // Check ports
-    console.log('Checking listening ports...');
-    const portsCheck = await runSSH('sudo netstat -tlnp | grep LISTEN || sudo ss -tlnp | grep LISTEN');
-    diagnostics.ports.port80Listening = portsCheck.stdout.includes(':80');
-    diagnostics.ports.port3000Listening = portsCheck.stdout.includes(':3000');
-
-    // Check application
-    const appCheck = await runSSH('ls -la /home/ubuntu/app/server.js 2>/dev/null');
-    diagnostics.application.found = appCheck.success;
-
-    if (diagnostics.application.found) {
-      const appRunning = await runSSH('pm2 list | grep app || ps aux | grep "node.*server.js"');
-      diagnostics.application.running = appRunning.stdout.includes('app') || appRunning.stdout.includes('server.js');
-    }
-
-    // Clean up
-    await Deno.remove(keyPath);
-
-    console.log('Diagnostics complete:', diagnostics);
-    return diagnostics;
-
-  } catch (error) {
-    diagnostics.errors.push(error.message);
-    console.error('Diagnostic error:', error);
+  if (!output || output.length === 0) {
+    diagnostics.warnings.push('No console output available yet - instance may still be starting');
     return diagnostics;
   }
+
+  // Get last 20 lines for display
+  const lines = output.split('\n');
+  diagnostics.lastLogLines = lines.slice(-20).filter(l => l.trim());
+
+  // Check for setup markers
+  if (output.includes('Cloud-init') || output.includes('user-data')) {
+    diagnostics.setupStarted = true;
+  }
+
+  // Check each setup step
+  if (output.includes('apt-get update') || output.includes('Updating package')) {
+    diagnostics.steps.systemUpdate = true;
+    diagnostics.currentStep = 'Updating system packages';
+    diagnostics.progressPercent = 20;
+  }
+
+  if (output.includes('nginx') && (output.includes('install') || output.includes('Setting up nginx'))) {
+    diagnostics.steps.nginxInstall = true;
+    diagnostics.currentStep = 'Installing Nginx web server';
+    diagnostics.progressPercent = 40;
+  }
+
+  if (output.includes('nodejs') || output.includes('node') && output.includes('install')) {
+    diagnostics.steps.nodejsInstall = true;
+    diagnostics.currentStep = 'Installing Node.js runtime';
+    diagnostics.progressPercent = 60;
+  }
+
+  if (output.includes('systemctl start nginx') || output.includes('systemctl enable nginx')) {
+    diagnostics.steps.serviceStart = true;
+    diagnostics.currentStep = 'Starting web services';
+    diagnostics.progressPercent = 80;
+  }
+
+  // Check for completion
+  if (output.includes('Cloud-init') && output.includes('finished')) {
+    diagnostics.setupComplete = true;
+    diagnostics.currentStep = 'Setup complete';
+    diagnostics.progressPercent = 100;
+  }
+
+  // Check for errors
+  if (output.match(/error|failed|fatal/i)) {
+    const errorLines = lines.filter(l => l.match(/error|failed|fatal/i));
+    diagnostics.errors.push(...errorLines.slice(-5));
+  }
+
+  // If no specific progress detected but setup started
+  if (diagnostics.setupStarted && !diagnostics.steps.systemUpdate) {
+    diagnostics.currentStep = 'Initializing system setup';
+    diagnostics.progressPercent = 10;
+  }
+
+  return diagnostics;
 }
