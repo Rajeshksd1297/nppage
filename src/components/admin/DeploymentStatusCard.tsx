@@ -336,6 +336,9 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
               <div className="text-2xl font-bold">
                 {awsStatus?.status?.state === 'running' ? '✓' : '...'}
               </div>
+              <p className="text-xs text-muted-foreground truncate" title={deployment.ec2_instance_id}>
+                ID: {deployment.ec2_instance_id}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {deployment.region}
               </p>
