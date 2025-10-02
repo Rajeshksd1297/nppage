@@ -19,24 +19,37 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
+    // Create client for auth verification
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
       throw new Error('User not authenticated');
     }
 
+    // Use service role for database queries
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { instanceId, region } = await req.json();
 
-    // Get AWS credentials
-    const { data: settings } = await supabaseClient
+    // Get AWS credentials using service role
+    const { data: settings, error: settingsError } = await supabaseAdmin
       .from('aws_settings')
       .select('*')
-      .single();
+      .maybeSingle();
+
+    if (settingsError) {
+      console.error('Error fetching AWS settings:', settingsError);
+      throw new Error('Failed to fetch AWS settings');
+    }
 
     if (!settings?.aws_access_key_id || !settings?.aws_secret_access_key) {
       throw new Error('AWS credentials not configured');
