@@ -1276,6 +1276,32 @@ END OF DOCUMENTATION
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Quick Action Hint */}
+          <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary rounded-lg">
+                  <Database className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold">Looking for Manual Backup?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Switch to the <strong>Backup tab</strong> to create instant backups or emergency deployment packages
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setActiveTab('backup')}
+                  className="ml-auto gap-2 bg-white"
+                >
+                  Go to Backup Tab
+                  <Play className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -1445,10 +1471,13 @@ END OF DOCUMENTATION
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual Backup</CardTitle>
-                <CardDescription>Create instant backups of your data or emergency deployment packages</CardDescription>
+            <Card className="border-2 border-primary/20 shadow-lg">
+              <CardHeader className="bg-primary/5">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Play className="h-5 w-5 text-primary" />
+                  Manual Backup Actions
+                </CardTitle>
+                <CardDescription className="text-base">Create instant backups of your data or emergency deployment packages</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
