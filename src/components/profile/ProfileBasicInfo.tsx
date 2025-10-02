@@ -25,8 +25,10 @@ import {
   ArrowRight,
   Phone,
   ChevronDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Mail
 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface Profile {
   id: string;
@@ -61,6 +63,9 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [tempSlug, setTempSlug] = useState(profile.slug || "");
   const [countryCodeOpen, setCountryCodeOpen] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [changingEmail, setChangingEmail] = useState(false);
 
   // Country codes for mobile number
   const countryCodes = [
@@ -435,6 +440,55 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
     }
   };
 
+  const handleEmailChange = async () => {
+    if (!newEmail || newEmail === profile.email) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a different email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setChangingEmail(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        email: newEmail 
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Confirmation email sent",
+        description: `A confirmation email has been sent to ${newEmail}. Please check your inbox and click the link to complete the email change.`,
+        duration: 6000
+      });
+
+      setShowEmailDialog(false);
+      setNewEmail('');
+    } catch (error: any) {
+      console.error('Error changing email:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change email. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setChangingEmail(false);
+    }
+  };
+
   const saveProfile = async () => {
     setSaving(true);
     try {
@@ -474,6 +528,48 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
   const isFormValid = profile.full_name && profile.slug && slugAvailable;
 
   return (
+    <>
+      <AlertDialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Email Address</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter your new email address. You'll receive a confirmation email to verify the change.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="new-email">New Email Address</Label>
+            <Input
+              id="new-email"
+              type="email"
+              placeholder="Enter new email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={changingEmail}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleEmailChange();
+              }}
+              disabled={changingEmail || !newEmail}
+            >
+              {changingEmail ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Send Confirmation'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
@@ -553,14 +649,24 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
           <Label htmlFor="email" className="text-base font-medium">
             Email <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="email"
-            value={profile.email || ''}
-            disabled
-            className="mt-2 bg-muted"
-          />
+          <div className="flex gap-2 mt-2">
+            <Input
+              id="email"
+              value={profile.email || ''}
+              disabled
+              className="bg-muted flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowEmailDialog(true)}
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Change
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Email cannot be changed here. Use account settings.
+            Changing your email requires confirmation via email link.
           </p>
         </div>
 
@@ -737,5 +843,6 @@ export function ProfileBasicInfo({ profile, onProfileUpdate, onNext }: ProfileBa
         </div>
       </div>
     </div>
+    </>
   );
 }
