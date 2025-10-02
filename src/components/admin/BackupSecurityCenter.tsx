@@ -767,11 +767,8 @@ export const BackupSecurityCenter: React.FC = () => {
 
   const downloadRoleGuide = async () => {
     try {
-      // Fetch the role-based feature guide content
       const response = await fetch('/ROLE_BASED_FEATURE_GUIDE.md');
       const content = await response.text();
-      
-      // Create and download the file
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -781,7 +778,6 @@ export const BackupSecurityCenter: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
       toast({
         title: "Role guide downloaded",
         description: "Role-based feature guide has been downloaded as a text file. Copy this to your Knowledge Base settings."
@@ -791,6 +787,33 @@ export const BackupSecurityCenter: React.FC = () => {
       toast({
         title: "Download failed",
         description: "Could not download the role-based feature guide.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const downloadCompletePortalGuide = async () => {
+    try {
+      const response = await fetch('/COMPLETE_PORTAL_GUIDE.md');
+      const content = await response.text();
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Complete_Portal_Guide_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: "Complete portal guide downloaded",
+        description: "Full feature-by-feature portal guide has been downloaded. Add this to your Knowledge Base for comprehensive documentation."
+      });
+    } catch (error) {
+      console.error('Error downloading complete portal guide:', error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the complete portal guide.",
         variant: "destructive"
       });
     }
@@ -1601,6 +1624,14 @@ END OF DOCUMENTATION
                   >
                     <Download className="h-4 w-4 text-green-600" />
                     🔐 Download Role-Based Feature Guide (for Knowledge Base)
+                  </Button>
+                  <Button 
+                    onClick={downloadCompletePortalGuide}
+                    variant="outline"
+                    className="gap-2 h-12 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200"
+                  >
+                    <Download className="h-4 w-4 text-blue-600" />
+                    📚 Download Complete Portal Guide (for Knowledge Base)
                   </Button>
                 </div>
 
