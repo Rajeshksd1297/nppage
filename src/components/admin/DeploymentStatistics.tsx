@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Layers,
-  ExternalLink
+  ExternalLink,
+  Folder,
+  FolderOpen
 } from 'lucide-react';
 import {
   Table,
@@ -44,6 +46,12 @@ interface ModuleStats {
   size: string;
 }
 
+interface FileDirectory {
+  path: string;
+  type: 'file' | 'directory';
+  description: string;
+}
+
 export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps) {
   const [databaseStats, setDatabaseStats] = useState<any>(null);
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
@@ -64,6 +72,23 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
     { module: 'Database Migrations', category: 'Backend', files: 8, lines: 2400, size: '~92KB' },
     { module: 'Static Assets', category: 'Assets', files: 15, lines: 0, size: '~8.5MB' },
     { module: 'Configuration', category: 'Config', files: 8, lines: 450, size: '~18KB' },
+  ];
+
+  // AWS File Directory Structure
+  const awsFileDirectory: FileDirectory[] = [
+    { path: '/var/www/html', type: 'directory', description: 'Root web directory' },
+    { path: '/var/www/html/index.html', type: 'file', description: 'Main entry point' },
+    { path: '/var/www/html/assets', type: 'directory', description: 'Static assets (JS, CSS, images)' },
+    { path: '/var/www/html/assets/index-*.js', type: 'file', description: 'Compiled JavaScript bundle' },
+    { path: '/var/www/html/assets/index-*.css', type: 'file', description: 'Compiled CSS styles' },
+    { path: '/var/www/html/assets/*.jpg', type: 'file', description: 'Image assets' },
+    { path: '/etc/nginx', type: 'directory', description: 'Nginx configuration directory' },
+    { path: '/etc/nginx/nginx.conf', type: 'file', description: 'Main Nginx configuration' },
+    { path: '/etc/nginx/conf.d', type: 'directory', description: 'Additional Nginx configurations' },
+    { path: '/etc/nginx/conf.d/default.conf', type: 'file', description: 'Default server configuration' },
+    { path: '/var/log/nginx', type: 'directory', description: 'Nginx logs directory' },
+    { path: '/var/log/nginx/access.log', type: 'file', description: 'HTTP access logs' },
+    { path: '/var/log/nginx/error.log', type: 'file', description: 'Error logs' },
   ];
 
   const fetchDatabaseStatistics = async () => {
@@ -446,6 +471,110 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AWS File Directory Structure */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Folder className="h-5 w-5" />
+            AWS Deployment Directory
+          </CardTitle>
+          <CardDescription>
+            File structure and paths on the deployed EC2 instance
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Directory Tree View */}
+            <div className="rounded-md border bg-muted/30 p-4">
+              <div className="space-y-2 font-mono text-sm">
+                {awsFileDirectory.map((item, idx) => (
+                  <div 
+                    key={idx}
+                    className={`flex items-start gap-3 py-2 px-3 rounded hover:bg-accent/50 transition-colors ${
+                      item.type === 'directory' ? 'font-semibold' : ''
+                    }`}
+                  >
+                    <div className="flex-shrink-0 mt-0.5">
+                      {item.type === 'directory' ? (
+                        <FolderOpen className="h-4 w-4 text-blue-500" />
+                      ) : (
+                        <FileText className="h-4 w-4 text-gray-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`${item.type === 'directory' ? 'text-blue-600 dark:text-blue-400' : 'text-foreground'}`}>
+                        {item.path}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {item.description}
+                      </div>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`flex-shrink-0 ${
+                        item.type === 'directory' 
+                          ? 'border-blue-500 text-blue-700 dark:text-blue-400' 
+                          : 'border-gray-500 text-gray-700 dark:text-gray-400'
+                      }`}
+                    >
+                      {item.type}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="border-2 border-blue-500/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs">Web Root</CardDescription>
+                    <FolderOpen className="h-4 w-4 text-blue-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm font-mono">/var/www/html</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Application files location
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-green-500/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs">Nginx Config</CardDescription>
+                    <Server className="h-4 w-4 text-green-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm font-mono">/etc/nginx</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Server configuration
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-amber-500/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardDescription className="text-xs">Logs</CardDescription>
+                    <FileText className="h-4 w-4 text-amber-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm font-mono">/var/log/nginx</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Access & error logs
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </CardContent>
       </Card>
