@@ -13,8 +13,19 @@ import {
   Layers,
   ExternalLink,
   Folder,
-  FolderOpen
+  FolderOpen,
+  Cpu,
+  MemoryStick,
+  Network,
+  Activity,
+  Package,
+  FileCode,
+  Terminal,
+  Eye,
+  Download
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -24,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Label } from "@/components/ui/label";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -57,6 +69,8 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [instanceDetails, setInstanceDetails] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   const activeDeployment = deployments?.find(d => d.status === 'running' || d.status === 'completed');
 
@@ -171,6 +185,34 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
       toast.error('Failed to fetch database statistics');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInstanceDetails = async () => {
+    if (!activeDeployment?.ec2_instance_id) {
+      toast.error('No active deployment found');
+      return;
+    }
+
+    setLoadingDetails(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('aws-instance-details', {
+        body: {
+          instanceId: activeDeployment.ec2_instance_id,
+          region: activeDeployment.region,
+        },
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      setInstanceDetails(data);
+      toast.success('Instance details loaded successfully');
+    } catch (error: any) {
+      console.error('Error fetching instance details:', error);
+      toast.error('Failed to fetch instance details: ' + error.message);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -579,6 +621,341 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
         </CardContent>
       </Card>
 
+      {/* Comprehensive AWS Instance Details */}
+      {activeDeployment && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  AWS Instance Details
+                </CardTitle>
+                <CardDescription>
+                  Comprehensive system information from your EC2 instance
+                </CardDescription>
+              </div>
+              <Button
+                onClick={fetchInstanceDetails}
+                disabled={loadingDetails}
+                variant="outline"
+                size="sm"
+              >
+                {loadingDetails ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4 mr-2" />
+                )}
+                {instanceDetails ? 'Refresh' : 'Load Details'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!instanceDetails && !loadingDetails && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Server className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Click "Load Details" to fetch comprehensive system information</p>
+              </div>
+            )}
+
+            {loadingDetails && (
+              <div className="text-center py-12">
+                <RefreshCw className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
+                <p className="text-muted-foreground">Fetching instance details...</p>
+              </div>
+            )}
+
+            {instanceDetails && (
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-7">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="filesystem">File System</TabsTrigger>
+                  <TabsTrigger value="system">System</TabsTrigger>
+                  <TabsTrigger value="network">Network</TabsTrigger>
+                  <TabsTrigger value="processes">Processes</TabsTrigger>
+                  <TabsTrigger value="nginx">Nginx</TabsTrigger>
+                  <TabsTrigger value="logs">Logs</TabsTrigger>
+                </TabsList>
+
+                {/* Overview Tab */}
+                <TabsContent value="overview" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="border-2 border-blue-500/20">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-xs">Instance Type</CardDescription>
+                          <Server className="h-4 w-4 text-blue-500" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{instanceDetails.instanceInfo.instanceType}</div>
+                        <p className="text-xs text-muted-foreground mt-1">{instanceDetails.instanceInfo.platform}</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-2 border-green-500/20">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-xs">Status</CardDescription>
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold capitalize">{instanceDetails.instanceInfo.state}</div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {instanceDetails.instanceInfo.availabilityZone}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-2 border-purple-500/20">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardDescription className="text-xs">Uptime</CardDescription>
+                          <Activity className="h-4 w-4 text-purple-500" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">
+                          {Math.floor((new Date().getTime() - new Date(instanceDetails.instanceInfo.launchTime).getTime()) / (1000 * 60 * 60))}h
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Since {new Date(instanceDetails.instanceInfo.launchTime).toLocaleDateString()}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">System Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[200px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.systemInfo || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* File System Tab */}
+                <TabsContent value="filesystem" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <HardDrive className="h-4 w-4" />
+                        Disk Usage
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[300px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.diskUsage || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Folder className="h-4 w-4" />
+                        Directory Sizes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[200px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.directorySizes || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileCode className="h-4 w-4" />
+                        File Tree
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[400px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.fileTree || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        File Counts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[150px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.fileCounts || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* System Tab */}
+                <TabsContent value="system" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Cpu className="h-4 w-4" />
+                        CPU Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[200px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.cpuInfo || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <MemoryStick className="h-4 w-4" />
+                        Memory Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[200px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.memoryInfo || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Network Tab */}
+                <TabsContent value="network" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Network className="h-4 w-4" />
+                        Network Configuration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[400px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.networkInfo || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Processes Tab */}
+                <TabsContent value="processes" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Running Processes (Top 20 by Memory)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[500px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.processes || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Nginx Tab */}
+                <TabsContent value="nginx" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Server className="h-4 w-4" />
+                        Nginx Status
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[300px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.nginxStatus || 'No data available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Package className="h-4 w-4" />
+                        Installed Packages
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[300px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.packages || 'Loading...'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Logs Tab */}
+                <TabsContent value="logs" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Terminal className="h-4 w-4" />
+                        Recent Nginx Logs
+                      </CardTitle>
+                      <CardDescription>Last 20 lines from access and error logs</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[500px]">
+                        <pre className="text-xs font-mono whitespace-pre-wrap bg-muted p-4 rounded">
+                          {instanceDetails.systemDetails.recentLogs || 'No logs available'}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      const blob = new Blob([instanceDetails.rawOutput], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `aws-instance-${activeDeployment.ec2_instance_id}-${new Date().toISOString()}.txt`;
+                      a.click();
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Complete Report
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Database Tables Deployment Status */}
       <Card>
         <CardHeader>
@@ -748,8 +1125,4 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
       </Card>
     </div>
   );
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <label className={className}>{children}</label>;
 }
