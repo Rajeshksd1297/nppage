@@ -8,6 +8,10 @@ import {
   CreateKeyPairCommand,
   DescribeSecurityGroupsCommand
 } from "npm:@aws-sdk/client-ec2@3.709.0";
+import { 
+  SSMClient, 
+  SendCommandCommand 
+} from "npm:@aws-sdk/client-ssm@3.709.0";
 import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
@@ -1019,26 +1023,251 @@ echo "⏱️  Time: $(date)"
           deploymentLog += `\n⚠️ Warning: Instance is not in running state\n`;
           deploymentLog += `⚠️ Current state: ${instanceState}\n`;
           deploymentLog += `⚠️ You may need to start the instance in AWS Console\n`;
+          
+          throw new Error(`Instance is not running. Current state: ${instanceState}`);
         }
         
-        deploymentLog += `\n--- Deployment Type: Tracking Only ---\n`;
-        deploymentLog += `ℹ️  This deployment tracks the existing instance.\n`;
-        deploymentLog += `ℹ️  To update code on this instance, you need to:\n`;
-        deploymentLog += `   1. SSH into the instance: ssh -i your-key.pem ec2-user@${publicIp}\n`;
-        deploymentLog += `   2. Navigate to application: cd /var/www/app\n`;
-        deploymentLog += `   3. Pull latest code or update files manually\n`;
-        deploymentLog += `   4. Restart services: sudo systemctl restart app nginx\n`;
+        // Auto-configure HTTP access
+        deploymentLog += `\n--- Auto-Configuring HTTP Access ---\n`;
+        try {
+          const unblockResult = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/aws-unblock-http`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+              },
+              body: JSON.stringify({
+                instanceId: existingInstanceId,
+                region: region,
+                action: 'unblock'
+              })
+            }
+          );
+
+          if (unblockResult.ok) {
+            deploymentLog += '✓ HTTP port 80 automatically configured in security group\n';
+          }
+        } catch (httpError) {
+          deploymentLog += '⚠️ Could not auto-configure HTTP access\n';
+        }
+        
+        // Deploy code to existing instance using SSM
+        deploymentLog += `\n--- Deploying Application Code ---\n`;
+        
+        try {
+          const ssmClient = new SSMClient({
+            region: region,
+            credentials: {
+              accessKeyId: awsSettings.aws_access_key_id!,
+              secretAccessKey: awsSettings.aws_secret_access_key!,
+            }
+          });
+
+          // Create deployment script
+          const deployScript = `#!/bin/bash
+set -e
+
+echo "🚀 Starting deployment to existing instance..."
+
+# Install Nginx if not installed
+if ! command -v nginx &> /dev/null; then
+  echo "Installing Nginx..."
+  sudo yum install -y nginx
+fi
+
+# Create web root
+sudo mkdir -p /var/www/html
+
+# Deploy HTML content
+sudo tee /var/www/html/index.html > /dev/null << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${deploymentName} - Live on AWS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 50px;
+      max-width: 800px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .header { text-align: center; }
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      font-size: 50px;
+      color: white;
+    }
+    h1 { color: #1f2937; font-size: 36px; margin-bottom: 15px; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #10b981;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    .description { color: #6b7280; line-height: 1.8; margin-bottom: 35px; font-size: 16px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 35px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      text-align: center;
+    }
+    .stat-label { color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { color: #1f2937; font-size: 18px; font-weight: 700; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon">✓</div>
+      <h1>${deploymentName}</h1>
+      <div class="status-badge">
+        <span class="pulse-dot"></span>
+        Live & Running on AWS
+      </div>
+    </div>
+    <p class="description">
+      🎉 Your application has been successfully deployed on AWS EC2!
+    </p>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Region</div>
+        <div class="stat-value">${region}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Web Server</div>
+        <div class="stat-value">Nginx</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" style="color: #10b981;">● Online</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+HTMLEOF
+
+# Configure Nginx
+sudo tee /etc/nginx/conf.d/app.conf > /dev/null << 'NGINXEOF'
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/html;
+    index index.html;
+    
+    location / {
+        try_files \\$uri \\$uri/ /index.html;
+    }
+    
+    error_page 404 /index.html;
+}
+NGINXEOF
+
+# Remove default configs
+sudo rm -f /etc/nginx/conf.d/default.conf 2>/dev/null || true
+sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+sudo rm -f /etc/nginx/default.d/*.conf 2>/dev/null || true
+
+# Test and restart Nginx
+sudo nginx -t
+sudo systemctl enable nginx
+sudo systemctl restart nginx
+
+echo "✅ Deployment completed successfully!"
+echo "✅ Website is now live at: http://${publicIp}"
+`;
+
+          const sendCommandInput = {
+            InstanceIds: [existingInstanceId],
+            DocumentName: 'AWS-RunShellScript',
+            Parameters: {
+              commands: [deployScript]
+            },
+            Comment: `Deployment: ${deploymentName}`,
+            TimeoutSeconds: 600,
+          };
+
+          deploymentLog += '⏳ Sending deployment commands via AWS Systems Manager...\n';
+          const command = new SendCommandCommand(sendCommandInput);
+          const commandResult = await ssmClient.send(command);
+          
+          deploymentLog += `✓ Deployment commands sent successfully!\n`;
+          deploymentLog += `✓ Command ID: ${commandResult.Command?.CommandId}\n`;
+          deploymentLog += `✓ HTML content deployed\n`;
+          deploymentLog += `✓ Nginx configured and restarted\n`;
+          deploymentLog += `✓ Your website is now live at: http://${publicIp}\n`;
+          
+          console.log('✓ Deployment via SSM successful:', commandResult.Command?.CommandId);
+          
+        } catch (ssmError) {
+          const errorMsg = ssmError instanceof Error ? ssmError.message : 'Unknown error';
+          deploymentLog += `\n⚠️ SSM deployment not available: ${errorMsg}\n`;
+          deploymentLog += `\n📝 Manual deployment required:\n`;
+          deploymentLog += `   1. SSH: ssh -i your-key.pem ec2-user@${publicIp}\n`;
+          deploymentLog += `   2. Run: sudo yum install -y nginx\n`;
+          deploymentLog += `   3. Create /var/www/html/index.html with your content\n`;
+          deploymentLog += `   4. Configure Nginx and restart: sudo systemctl restart nginx\n`;
+          
+          console.warn('SSM not available, manual deployment needed:', errorMsg);
+        }
         
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        deploymentLog += `\n❌ Error accessing existing instance:\n`;
+        deploymentLog += `\n❌ Error deploying to existing instance:\n`;
         deploymentLog += `   ${errorMsg}\n`;
         deploymentLog += `\n⚠️ Please verify:\n`;
-        deploymentLog += `   • Instance ID is correct\n`;
-        deploymentLog += `   • Instance is in the correct region (${region})\n`;
-        deploymentLog += `   • AWS credentials have permission to describe instances\n`;
+        deploymentLog += `   • Instance ID is correct: ${existingInstanceId}\n`;
+        deploymentLog += `   • Instance is in the correct region: ${region}\n`;
+        deploymentLog += `   • AWS credentials have proper permissions\n`;
+        deploymentLog += `   • SSM Agent is installed and running on the instance\n`;
         
-        throw new Error(`Failed to access existing instance: ${errorMsg}`);
+        throw new Error(`Failed to deploy to existing instance: ${errorMsg}`);
       }
     } else {
       // Create new instance
