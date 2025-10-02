@@ -765,6 +765,37 @@ export const BackupSecurityCenter: React.FC = () => {
     }
   };
 
+  const downloadRoleGuide = async () => {
+    try {
+      // Fetch the role-based feature guide content
+      const response = await fetch('/ROLE_BASED_FEATURE_GUIDE.md');
+      const content = await response.text();
+      
+      // Create and download the file
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Role_Based_Feature_Guide_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Role guide downloaded",
+        description: "Role-based feature guide has been downloaded as a text file. Copy this to your Knowledge Base settings."
+      });
+    } catch (error) {
+      console.error('Error downloading role guide:', error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the role-based feature guide.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const downloadWebsiteStructure = () => {
     const structure = `
 WEBSITE STRUCTURE DOCUMENTATION
@@ -1562,6 +1593,14 @@ END OF DOCUMENTATION
                   >
                     <Download className="h-4 w-4 text-purple-600" />
                     📘 Download Implementation Guide (for Knowledge Base)
+                  </Button>
+                  <Button 
+                    onClick={downloadRoleGuide}
+                    variant="outline"
+                    className="gap-2 h-12 bg-gradient-to-r from-green-50 to-teal-50 hover:from-green-100 hover:to-teal-100 border-green-200"
+                  >
+                    <Download className="h-4 w-4 text-green-600" />
+                    🔐 Download Role-Based Feature Guide (for Knowledge Base)
                   </Button>
                 </div>
 
