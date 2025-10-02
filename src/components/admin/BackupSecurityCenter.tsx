@@ -734,6 +734,37 @@ export const BackupSecurityCenter: React.FC = () => {
     }
   };
 
+  const downloadImplementationGuide = async () => {
+    try {
+      // Fetch the implementation guide content
+      const response = await fetch('/COMPLETE_IMPLEMENTATION_GUIDE.md');
+      const content = await response.text();
+      
+      // Create and download the file
+      const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `COMPLETE_IMPLEMENTATION_GUIDE_${new Date().toISOString().split('T')[0]}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Guide downloaded",
+        description: "Complete implementation guide has been downloaded. Copy this to your Knowledge Base settings."
+      });
+    } catch (error) {
+      console.error('Error downloading guide:', error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the implementation guide.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const downloadWebsiteStructure = () => {
     const structure = `
 WEBSITE STRUCTURE DOCUMENTATION
@@ -1523,6 +1554,14 @@ END OF DOCUMENTATION
                   >
                     <FileText className="h-4 w-4" />
                     Download Website Structure
+                  </Button>
+                  <Button 
+                    onClick={downloadImplementationGuide}
+                    variant="outline"
+                    className="gap-2 h-12 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+                  >
+                    <Download className="h-4 w-4 text-purple-600" />
+                    📘 Download Implementation Guide (for Knowledge Base)
                   </Button>
                 </div>
 
