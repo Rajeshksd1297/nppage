@@ -805,9 +805,50 @@ mkdir -p /var/cache/nginx
 touch /var/log/nginx/error.log
 touch /var/log/nginx/access.log
 
-# Remove default Nginx config
+# Backup and modify main nginx.conf to remove default server block
+cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
+
+# Remove the default server block from nginx.conf if it exists
+sed -i '/server {/,/^}/d' /etc/nginx/nginx.conf
+
+# Ensure http block exists and includes our conf.d directory
+cat > /etc/nginx/nginx.conf << 'NGINXCONF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 4096;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    # Load our custom configurations
+    include /etc/nginx/conf.d/*.conf;
+}
+NGINXCONF
+
+# Remove any other default configs
 rm -f /etc/nginx/conf.d/default.conf
 rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+rm -f /etc/nginx/default.d/*.conf 2>/dev/null || true
 
 # Test Nginx configuration
 nginx -t
