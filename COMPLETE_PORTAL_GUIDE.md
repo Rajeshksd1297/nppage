@@ -902,92 +902,110 @@
 
 ### Profile Settings Page (`/profile`)
 
-**SEPARATE PAGE WITH TABS**
+**SEPARATE PAGE WITH 3 TABS**
 
-#### Tab 1: Basic Information
-- **Full Name** (required)
-- **Email** (read-only, managed by auth)
-- **Bio** (textarea, max 500 characters)
+#### Tab 1: Profile (Basic Information)
+**Profile Information Card:**
+- **Full Name**: Text input (required)
+- **Bio**: Textarea (max 500 characters)
 - **Profile Picture**:
-  - Upload button (max 5MB)
-  - Preview circle
+  - Upload button (max 5MB, JPEG/PNG/WebP)
+  - Preview circle (displays current avatar)
   - Remove button
-- **Cover Image** (banner):
+- **Cover Image/Banner**:
   - Upload button (max 5MB)
   - Preview rectangle
   - Remove button
-- **Location** (city, country)
-- **Website URL** (personal website link)
-- **Save Basic Info** button
+- **Location**: Text input (city, country)
+- **Website URL**: URL input (personal website)
+- **Mobile Number**: Phone input (with country code selector)
+- **Public Profile**: Toggle (make profile publicly visible)
+- **Custom Slug**: Text input (unique URL identifier)
+  - Shows current URL: `yoursite.com/{slug}`
+  - Real-time availability checker
+  - Auto-validation
+- **Specializations**: Multi-select tags (areas of expertise)
+- **Save & Next** button (saves and moves to Social tab)
 
-#### Tab 2: Social Links
-- **Twitter/X**: URL input
-- **Facebook**: URL input
-- **Instagram**: URL input
-- **LinkedIn**: URL input
-- **YouTube**: URL input
-- **TikTok**: URL input
+**Visual Features:**
+- Shows current plan badge (Free/Pro with crown icon)
+- **View Profile** button (external link icon) - opens public profile in new tab
+- Real-time sync: Changes reflected immediately via Supabase realtime
+
+#### Tab 2: Social (Social Links)
+**Social Links Configuration:**
+- **Twitter/X**: URL input (with @ validation)
+- **Facebook**: URL input (facebook.com validation)
+- **Instagram**: URL input (instagram.com validation)
+- **LinkedIn**: URL input (linkedin.com validation)
+- **YouTube**: URL input (youtube.com validation)
+- **TikTok**: URL input (tiktok.com validation)
 - **Amazon Author Page**: URL input
 - **Goodreads**: URL input
-- **Add Custom Link** button:
-  - Platform name
-  - URL
-  - Icon selection
-- **Save Social Links** button
+- **GitHub**: URL input
+- **Medium**: URL input
+- **Pinterest**: URL input
+- **Custom Social Links**:
+  - **Add Custom Link** button
+  - For each custom link:
+    - Platform name input
+    - URL input
+    - Icon picker dropdown
+    - Remove button
 
-#### Tab 3: Public Profile Settings
-- **Profile Visibility** (toggle):
-  - Public (anyone can view)
-  - Private (only you)
-- **Custom Slug**: Your public URL path
-  - Shows current: `yoursite.com/{slug}`
-  - Availability checker
-- **Show Email on Profile** (toggle)
-- **Show Social Links** (toggle)
-- **Show Books** (toggle)
-- **Show Blog Posts** (toggle)
-- **Show Events** (toggle)
-- **Show Awards** (toggle)
-- **Show Gallery** (toggle)
-- **Save Visibility Settings** button
+**Action Buttons:**
+- **Previous** (returns to Profile tab)
+- **Save & Next** (saves and moves to SEO tab)
 
-#### Tab 4: Profile Theme
-- **Select Active Theme**: Dropdown of available themes
-- **Customize Theme** button → redirects to theme customizer
-- **Profile Layout**:
-  - Section order (drag-drop reorder):
-    - About/Bio
-    - Books
-    - Blog Posts
-    - Events
-    - Awards
-    - Gallery
-  - Enable/disable each section
-- **Preview Public Profile** button (opens in new tab)
-- **Save Layout Settings** button
+**Visual Features:**
+- Social link previews
+- Validation indicators for each link
+- Grouped by categories (Professional, Creative, Social)
 
-#### Tab 5: SEO Settings
-- **Profile Meta Title** (max 60 characters)
-- **Profile Meta Description** (max 160 characters)
-- **Profile Keywords** (comma-separated)
-- **Open Graph Image**: Upload custom OG image
-- **Twitter Card Type**: Dropdown (Summary, Large Image)
+#### Tab 3: SEO (SEO Settings)
+**Feature Gate**: Requires Pro plan - shows upgrade prompt if Free plan
+
+**SEO Configuration (Pro Users):**
+- **Profile Meta Title**: Text input (max 60 characters)
+  - Character counter
+  - Preview snippet
+- **Profile Meta Description**: Textarea (max 160 characters)
+  - Character counter
+  - Preview snippet
+- **Profile Keywords**: Comma-separated input
+  - Chip/tag display
+  - Suggested keywords based on content
+- **Open Graph Image**: 
+  - Upload custom OG image (1200x630px recommended)
+  - Preview of how it appears on social media
+- **Twitter Card Type**: Dropdown
+  - Summary
+  - Summary with Large Image
+  - Preview of card appearance
+
+**SEO Preview Section:**
+- Google search result preview
+- Facebook share preview
+- Twitter card preview
+
+**Action Buttons:**
+- **Previous** (returns to Social tab)
 - **Save SEO Settings** button
 
-#### Tab 6: Account Security
-- **Change Password** button → opens change password form:
-  - Current password
-  - New password
-  - Confirm new password
-- **Two-Factor Authentication**:
-  - Status: Enabled/Disabled
-  - **Enable 2FA** button (if disabled)
-  - **Disable 2FA** button (if enabled)
-- **Active Sessions**: List of logged-in devices
-  - Device name
-  - IP address
-  - Last active
-  - **Log Out** button for each
+**For Free Users:**
+- Shows locked SEO panel with:
+  - Crown icon
+  - "SEO Settings" heading
+  - Description: "Advanced SEO customization is available with Pro plans"
+  - **Upgrade to Pro** button (links to /subscription)
+
+#### Additional Features Across All Tabs:
+- Auto-save indicators
+- Validation error messages inline
+- Success toast notifications
+- Loading states during saves
+- Responsive design for mobile
+- Keyboard navigation support
 
 ---
 
@@ -1389,41 +1407,230 @@ Shows upgrade banner if Free plan.
 
 ---
 
-### Admin Book Catalog (`/admin/books`)
+### Admin Books Management (`/admin/books-management`)
 
-**SEPARATE PAGE - FULL CATALOG VIEW**
+**SEPARATE PAGE WITH 5 TABS**
 
-- **All Books Table** (all users):
-  - Book cover thumbnail
-  - Title
-  - Author (user name)
-  - ISBN
-  - Status
+#### Tab 1: All Books
+**Statistics Cards (Top Row):**
+- **Total Books**: Count with trend indicator
+- **Published**: Count with percentage
+- **Drafts**: Count with percentage
+- **Archived**: Count with percentage
+
+**Filter & Search Section:**
+- **Search Bar**: Real-time search by title, ISBN, author
+- **Filter Dropdowns**:
+  - Status: All, Published, Draft, Archived
+  - Category: All categories from settings
+  - Genre: Multiple selection
+  - Language: Multiple selection
+  - User: Filter by specific author
+
+**Books Catalog Display:**
+- **Grid View / List View toggle**
+- Each book card/row shows:
+  - Cover image thumbnail
+  - Title & subtitle
+  - Author name (links to user profile)
+  - ISBN (if available)
+  - Status badge (color-coded)
   - Publication date
-  - Views count
-  - Last updated
-- **Search Bar**: Multi-field
-- **Filter Options**:
-  - Status: All, Published, Draft, Archived, Pending
-  - Language: Multi-select
-  - Category: Multi-select
-  - Genre: Multi-select
-  - User: Search by user
-- **Sort Options**: Title, Date, Views, Author
-- **Bulk Actions**:
-  - Bulk publish
-  - Bulk archive
-  - Bulk delete
-  - Bulk export
-- **Book Analytics Dashboard** button → `/admin/books/analytics`
+  - Category & genres tags
+  - View count (if analytics enabled)
+  - Last updated timestamp
 
-### Each Book Row Shows:
-- **Action Buttons**:
-  - **View** (public preview)
-  - **Edit** (admin can edit any book)
-  - **Change Status** (quick dropdown)
-  - **View Analytics** (book-specific)
-  - **Delete** (confirmation)
+**Action Buttons (per book):**
+- **View** (opens public preview)
+- **Edit** (opens book editor)
+- **Duplicate** (creates copy with "-copy" suffix)
+- **Delete** (confirmation dialog)
+
+**Bulk Actions:**
+- Select multiple books checkbox
+- **Bulk Publish** button
+- **Bulk Archive** button
+- **Bulk Delete** button
+- **Export Selected** button (CSV/JSON)
+
+**Pagination:**
+- Items per page selector (10, 25, 50, 100)
+- Page navigation (Previous, 1, 2, 3... Next)
+
+#### Tab 2: ISBN Lookup
+**ISBN Search Tool:**
+- **ISBN Input**: 10 or 13 digit ISBN input field
+- **Search Button**: Triggers Google Books API lookup
+- **Search History**: Recent searches displayed
+- **Clear History** button
+
+**Search Results Display:**
+- Book cover image preview
+- Title and authors
+- Publisher and publication date
+- ISBN-10 and ISBN-13
+- Page count
+- Description preview
+- Categories/genres
+- Average rating (if available)
+
+**Action Buttons (on results):**
+- **Add to Catalog** (imports book data)
+- **Generate Affiliate Links** (creates purchase links)
+- **Copy Data** (copies to clipboard as JSON)
+- **View on Google Books** (external link)
+
+**Auto-Fill Features:**
+- Automatically populates book form
+- Generates affiliate purchase links based on settings
+- Fetches cover image URL
+- Extracts metadata for SEO
+
+#### Tab 3: Affiliate Settings
+**Affiliate Program Configuration:**
+- **Enable Affiliate Links**: Toggle
+- **Auto-Generate Links**: Toggle (on ISBN lookup)
+
+**Amazon Affiliate Settings:**
+- **Amazon Associates Tag**: Text input
+- **Default Amazon Store**: Dropdown (US, UK, CA, etc.)
+- **Link Format**: Radio buttons
+  - Short link
+  - Full link with tracking
+
+**Barnes & Noble Settings:**
+- **Affiliate ID**: Text input
+- **Enable B&N Links**: Toggle
+
+**Other Retailers Configuration:**
+- **Add Custom Retailer** button
+- For each retailer:
+  - Retailer name
+  - Base URL template
+  - Affiliate parameter
+  - Active toggle
+  - Remove button
+
+**Link Generation Templates:**
+- **{{ISBN}}** placeholder
+- **{{ASIN}}** placeholder (for Amazon)
+- **{{TITLE}}** placeholder
+- **{{AUTHOR}}** placeholder
+
+**Preview Section:**
+- Shows sample generated links
+- **Test Links** button (validates URLs)
+
+**Action Buttons:**
+- **Save Affiliate Settings**
+- **Test Configuration** (sends test request)
+- **Reset to Defaults**
+
+#### Tab 4: Field Settings
+**Book Field Configuration:**
+
+**Tab 4a: Basic Info Fields**
+- **Title**: Required/Optional toggle, max length
+- **Subtitle**: Required/Optional toggle, max length
+- **Description**: Required/Optional toggle, max length, allow HTML toggle
+- **ISBN**: Required/Optional toggle, validation format
+- **Publisher**: Required/Optional toggle, max length
+- **Page Count**: Required/Optional toggle, min/max values
+
+**Tab 4b: Publishing Fields**
+- **Publication Date**: Required/Optional toggle, allow future dates
+- **Language**: Required/Optional toggle, available languages list
+- **Status**: Default value dropdown, allowed statuses
+- **Category**: Required/Optional toggle, available categories
+- **Genres**: Required/Optional toggle, max selections, available genres
+
+**Tab 4c: SEO Fields**
+- **SEO Title**: Required/Optional toggle, max 60 characters
+- **SEO Description**: Required/Optional toggle, max 160 characters
+- **SEO Keywords**: Required/Optional toggle, max keywords count
+- **Slug**: Auto-generate toggle, custom format
+
+**Tab 4d: Advanced Fields**
+- **Cover Image**: Required/Optional toggle, max size, allowed formats
+- **Purchase Links**: Min/max links, required platforms
+- **Tags**: Max tags, auto-suggest toggle
+
+**Tab 4e: Custom Fields**
+- **Add Custom Field** button
+- For each custom field:
+  - Field name
+  - Field type (text, number, date, dropdown, etc.)
+  - Required toggle
+  - Default value
+  - Validation rules
+  - Remove button
+
+**Import/Export Configuration:**
+- **Export Field Config** (JSON)
+- **Import Field Config** (JSON upload)
+
+**Action Buttons:**
+- **Save Field Settings**
+- **Preview Form** (shows how book form will look)
+- **Reset to Defaults**
+
+#### Tab 5: Analytics
+**Overview Statistics:**
+- **Total Books Across All Users**: Count
+- **Books Added This Month**: Count with trend
+- **Average Books Per User**: Number
+- **Most Active Author**: Name with count
+
+**Publication Timeline Chart:**
+- Line/bar chart showing books published over time
+- Filterable by date range
+- Group by: Day, Week, Month, Year
+
+**Category Distribution:**
+- Pie/donut chart showing book distribution by category
+- Percentage and count for each category
+- Top 5 categories highlighted
+
+**Language Distribution:**
+- Bar chart showing books by language
+- Sortable by count
+- Filterable
+
+**Genre Analysis:**
+- Top 10 most popular genres
+- Bar chart with counts
+- Combination genre analysis
+
+**User Statistics:**
+- Top 10 authors by book count
+- Average books per author
+- Authors with 0 books (inactive)
+
+**ISBN Coverage:**
+- Books with ISBN: Percentage
+- Books without ISBN: Percentage
+- Books with affiliate links: Percentage
+
+**Status Breakdown:**
+- Published books chart
+- Draft books chart
+- Archived books chart
+- Trend over time
+
+**Export Options:**
+- **Export Analytics Report** (PDF)
+- **Export Raw Data** (CSV)
+- **Schedule Reports** (email setup)
+
+**Refresh Button**: Recalculate statistics
+
+**Date Range Selector**:
+- Last 7 days
+- Last 30 days
+- Last 90 days
+- Last year
+- All time
+- Custom date range
 
 ---
 
@@ -2058,45 +2265,241 @@ Shows upgrade banner if Free plan.
 
 ### Admin GoDaddy Deployment Page (`/admin/godaddy-deployment`)
 
-**SEPARATE PAGE WITH TABS**
+**SEPARATE PAGE WITH 4 TABS**
 
-#### Tab 1: Configuration
-- **FTP Host**: Text input
-- **FTP Port**: Number input (default 21)
+#### Tab 1: SOP (Standard Operating Procedure)
+**Complete Deployment Guide:**
+- **Prerequisites Checklist**:
+  - GoDaddy hosting account active
+  - FTP credentials available
+  - Domain configured
+  - SSL certificate (if using HTTPS)
+  
+**Step-by-Step Instructions:**
+1. **Prepare Your Files**
+   - Build production version
+   - Verify all assets included
+   - Check file permissions
+   
+2. **Configure FTP Settings**
+   - Navigate to Configuration tab
+   - Enter FTP host, port, username, password
+   - Set deployment path (/public_html or subdirectory)
+   - Test connection
+   
+3. **Initial Deployment**
+   - Review files to be uploaded
+   - Click "Deploy Now"
+   - Monitor deployment log
+   - Verify deployment success
+   
+4. **Post-Deployment Verification**
+   - Navigate to Status Check tab
+   - Run all status checks
+   - Verify domain accessibility
+   - Check SSL configuration
+   - Test application functionality
+   
+5. **Troubleshooting Common Issues**
+   - FTP connection failures
+   - Permission errors
+   - Missing files
+   - SSL certificate issues
+   - Deployment timeouts
+
+**Best Practices:**
+- Always backup before deployment
+- Test in staging first
+- Deploy during low-traffic periods
+- Keep deployment logs
+- Monitor for errors post-deployment
+
+**Security Considerations:**
+- Use secure FTP (SFTP) when available
+- Rotate FTP credentials regularly
+- Limit deployment path permissions
+- Enable SSL/HTTPS
+- Monitor access logs
+
+#### Tab 2: Configuration
+**FTP Connection Settings:**
+- **FTP Host**: Text input (e.g., ftp.yourdomain.com)
+  - Help text: "Your GoDaddy FTP hostname"
+  - Validation: Must be valid hostname
+- **FTP Port**: Number input (default: 21)
+  - Help text: "Usually 21 for FTP, 22 for SFTP"
 - **FTP Username**: Text input
-- **FTP Password**: Password input (encrypted)
-- **Deployment Path**: Text input (e.g., /public_html)
-- **Domain**: Text input (your GoDaddy domain)
+  - Help text: "Your cPanel/FTP username"
+  - Encrypted storage
+- **FTP Password**: Password input
+  - Help text: "Your cPanel/FTP password"
+  - Encrypted storage
+  - Show/hide password toggle
+- **Deployment Path**: Text input (default: /public_html)
+  - Help text: "Path where files will be uploaded"
+  - Common paths dropdown:
+    - /public_html (main domain)
+    - /public_html/subdirectory
+    - /httpdocs
+  - Path validation
+
+**Domain Configuration:**
+- **Domain**: Text input (e.g., yourdomain.com)
+  - Help text: "Your GoDaddy domain name"
+  - Domain validation
+
+**Connection Testing:**
+- **Test Connection** button
+  - Validates FTP credentials
+  - Checks server accessibility
+  - Verifies write permissions
+  - Shows connection status (Success/Failed)
+  - Displays error details if failed
+
+**Action Buttons:**
 - **Save Configuration** button
-- **Test Connection** button (validates FTP)
+  - Saves settings to database
+  - Encrypts sensitive data
+  - Shows success notification
+- **Clear Configuration** button (confirmation dialog)
 
-#### Tab 2: Deployment
-- **Current Build Status**: Display
-- **Build Information**:
-  - Last deployment date
-  - Last deployment status
-  - Deployment log (collapsible)
+**Configuration Status:**
+- Shows last saved date/time
+- Configuration completeness indicator
+- Connection status badge (Connected/Not Configured/Error)
+
+#### Tab 3: Deployment
+**Current Deployment Status:**
+- **Status Badge**: Pending/In Progress/Success/Failed
+- **Last Deployment**:
+  - Date and time
+  - Duration (minutes:seconds)
+  - Files uploaded count
+  - Success/failure indicator
+- **Current User**: Who initiated deployment
+
+**Deployment Controls:**
+- **Deployment Name**: Text input (optional, e.g., "v1.2.0 Release")
 - **Deploy Now** button
-  - Shows progress bar
-  - Live deployment log
-  - Success/failure notification
-- **Deployment History**: Table
-  - Date & time
-  - Status (Success/Failed)
-  - Duration
-  - **View Log** button
+  - Disabled if configuration incomplete
+  - Shows confirmation dialog
+  - Initiates deployment process
 
-#### Tab 3: Standard Operating Procedure
-- **Step-by-step deployment guide**: Display
-- **Prerequisites checklist**
-- **Troubleshooting tips**
+**Live Deployment Monitor:**
+- **Progress Bar**: Visual progress (0-100%)
+- **Current Step Indicator**:
+  - Connecting to FTP server...
+  - Building production files...
+  - Uploading files (X/Y complete)...
+  - Verifying deployment...
+  - Deployment complete!
+  
+**Deployment Log (Real-time):**
+- Scrollable log viewer
+- Timestamped entries
+- Color-coded messages:
+  - Info (blue)
+  - Success (green)
+  - Warning (yellow)
+  - Error (red)
+- **Download Log** button
+- **Clear Log** button
+
+**Deployment History Table:**
+- **Columns**:
+  - Deployment Name
+  - Started At (date/time)
+  - Completed At (date/time)
+  - Duration
+  - Status badge (Success/Failed)
+  - Deployed By (user name)
+  - Actions
+
+**For Each Deployment:**
+- **View Log** button (opens full deployment log)
+- **Revert** button (rollback to this deployment)
+- **Delete** button (remove from history)
+
+**Pagination:**
+- Show last 10/25/50 deployments
+- Previous/Next navigation
+
+**Deployment Statistics:**
+- Total deployments count
+- Success rate percentage
+- Average deployment time
+- Last successful deployment date
 
 #### Tab 4: Status Check
-- **Domain Status**: Check if domain is accessible
-- **SSL Status**: Check HTTPS configuration
-- **File Structure Status**: Verify deployed files
-- **Run Status Check** button
-- **Results Display**: Pass/Fail for each check
+**Automated Health Checks:**
+
+**Domain Accessibility Check:**
+- **Domain URL**: Display configured domain
+- **HTTP Status**: Shows 200 OK / Error code
+- **Response Time**: Milliseconds
+- **DNS Resolution**: Success/Failed
+- **Status**: Green checkmark / Red X
+
+**SSL/HTTPS Check:**
+- **SSL Certificate Status**: Valid/Invalid/Expired
+- **Certificate Expiry Date**: Date display
+- **Certificate Issuer**: Display issuer name
+- **HTTPS Redirect**: Working/Not Working
+- **Security Grade**: A+ to F rating
+- **Status**: Green checkmark / Red X
+
+**File Structure Check:**
+- **index.html**: Present/Missing
+- **assets folder**: Present/Missing
+- **Required Files**:
+  - List of critical files
+  - Each with checkmark/X status
+- **File Count**: Total files deployed
+- **Total Size**: MB/GB
+
+**FTP Connection Check:**
+- **Connection Status**: Connected/Failed
+- **Server Response Time**: Milliseconds
+- **Write Permissions**: Yes/No
+- **Available Space**: GB free
+
+**Application Functionality Check:**
+- **Homepage Load**: Success/Failed
+- **JavaScript Errors**: Count (0 = good)
+- **Console Warnings**: Count
+- **Broken Links**: Count
+- **API Endpoints**: Responsive/Down
+
+**Run All Checks Button:**
+- Executes all status checks simultaneously
+- Shows overall progress
+- Displays summary:
+  - X/Y checks passed
+  - Overall health percentage
+  - Critical issues count
+
+**Individual Check Buttons:**
+- Run Domain Check
+- Run SSL Check
+- Run File Check
+- Run FTP Check
+- Run Application Check
+
+**Results Display:**
+- **Overall Status**: Healthy (green) / Warning (yellow) / Critical (red)
+- **Last Check Time**: Timestamp
+- **Auto-Refresh**: Toggle (refresh every 5 min)
+
+**Issue Resolution Guide:**
+For each failed check, shows:
+- Error description
+- Possible causes
+- Recommended actions
+- Links to relevant documentation
+
+**Export Reports:**
+- **Download Status Report** (PDF)
+- **Email Report** (send to admin email)
 
 ---
 

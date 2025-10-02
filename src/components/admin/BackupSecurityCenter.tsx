@@ -807,7 +807,7 @@ export const BackupSecurityCenter: React.FC = () => {
       window.URL.revokeObjectURL(url);
       toast({
         title: "Complete portal guide downloaded",
-        description: "Full feature-by-feature portal guide has been downloaded. Add this to your Knowledge Base for comprehensive documentation."
+        description: "Full feature-by-feature portal guide with ALL tabs documented. Add this to your Knowledge Base for comprehensive documentation."
       });
     } catch (error) {
       console.error('Error downloading complete portal guide:', error);
