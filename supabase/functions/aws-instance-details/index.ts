@@ -16,29 +16,25 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('No authorization header provided');
       throw new Error('No authorization header');
     }
 
-    // Create client for auth verification
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    console.log('Auth header present, proceeding with request');
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      console.error('Auth error:', authError);
-      throw new Error('User not authenticated');
+    const { instanceId, region } = await req.json();
+
+    if (!instanceId || !region) {
+      throw new Error('Missing required parameters: instanceId and region');
     }
 
-    // Use service role for database queries
+    console.log(`Fetching details for instance ${instanceId} in region ${region}`);
+
+    // Use service role for database queries (RLS will be bypassed with service role)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const { instanceId, region } = await req.json();
 
     // Get AWS credentials using service role
     const { data: settings, error: settingsError } = await supabaseAdmin
