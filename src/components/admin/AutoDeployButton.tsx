@@ -53,7 +53,16 @@ export function AutoDeployButton({ ec2Ip, instanceId }: AutoDeployButtonProps) {
       if (data.success) {
         setDeploymentSuccess(true);
         setDeployedUrl(data.deployedUrl);
-        toast.success("🎉 Deployment completed successfully!");
+        
+        // Show instructions in a dialog or copy to clipboard
+        if (data.instructions) {
+          navigator.clipboard.writeText(data.instructions);
+          toast.success("✅ Deployment instructions copied to clipboard!", {
+            description: "SSH into your EC2 and run the script"
+          });
+        } else {
+          toast.success("🎉 Deployment script ready!");
+        }
       } else {
         throw new Error(data.error || 'Deployment failed');
       }
@@ -123,26 +132,23 @@ export function AutoDeployButton({ ec2Ip, instanceId }: AutoDeployButtonProps) {
 
         {/* Deployment Status */}
         {deploymentSuccess && deployedUrl && (
-          <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <Alert className="border-blue-500 bg-blue-50 dark:bg-blue-950">
+            <CheckCircle2 className="h-4 w-4 text-blue-600" />
             <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-semibold text-green-800 dark:text-green-200">
-                  ✅ Deployment Successful!
+              <div className="space-y-3">
+                <p className="font-semibold text-blue-800 dark:text-blue-200">
+                  ✅ Deployment Script Generated!
                 </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    Your site is now live at:
-                  </p>
-                  <a
-                    href={deployedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-green-800 dark:text-green-200 hover:underline flex items-center gap-1"
-                  >
-                    {deployedUrl}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  📋 Deployment instructions have been copied to your clipboard.
+                </p>
+                <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded text-sm">
+                  <p className="font-medium mb-2">Next steps:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>SSH into your EC2: <code className="text-xs">ssh -i your-key.pem ec2-user@{ec2Ip}</code></li>
+                    <li>Paste and run the deployment script</li>
+                    <li>Your site will be live at: <a href={deployedUrl} target="_blank" rel="noopener noreferrer" className="underline">{deployedUrl}</a></li>
+                  </ol>
                 </div>
               </div>
             </AlertDescription>

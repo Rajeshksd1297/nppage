@@ -21,8 +21,8 @@ serve(async (req) => {
       projectName = 'app'
     } = await req.json();
 
-    if (!ec2Ip || !instanceId) {
-      throw new Error('EC2 IP and instance ID are required');
+    if (!ec2Ip || !instanceId || !githubRepo) {
+      throw new Error('EC2 IP, instance ID, and GitHub repository are required');
     }
 
     console.log('Starting deployment to EC2:', { ec2Ip, instanceId, githubRepo, branch });
@@ -32,57 +32,46 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get SSH key from deployment logs
-    const { data: logData, error: logError } = await supabase
-      .from('aws_deployment_logs')
-      .select('log_data')
-      .eq('instance_id', instanceId)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    // Store GitHub repo URL in deployment record
+    await supabase
+      .from('aws_deployments')
+      .update({ 
+        deployment_log: `GitHub Repository: ${githubRepo}\nBranch: ${branch}\nDeployment initiated at ${new Date().toISOString()}`
+      })
+      .eq('instance_id', instanceId);
 
-    if (logError) {
-      console.error('Error fetching logs:', logError);
-      throw new Error('Could not retrieve deployment logs');
-    }
+    console.log('Deployment record updated with GitHub info');
 
-    // Find SSH key in logs
-    let sshKeyContent = '';
-    for (const log of logData || []) {
-      if (log.log_data?.key_content) {
-        sshKeyContent = log.log_data.key_content;
-        break;
-      }
-      if (log.log_data?.message?.includes('BEGIN RSA PRIVATE KEY')) {
-        sshKeyContent = log.log_data.message;
-        break;
-      }
-    }
+    // Return instructions for manual deployment via SSH
+    const deploymentInstructions = `
+═══════════════════════════════════════════════════════════
+🚀 DEPLOYMENT INSTRUCTIONS FOR EC2
+═══════════════════════════════════════════════════════════
 
-    if (!sshKeyContent) {
-      throw new Error('SSH key not found in deployment logs');
-    }
+📍 Instance: ${instanceId}
+🌐 IP: ${ec2Ip}
+📦 Repository: ${githubRepo}
+🌿 Branch: ${branch}
 
-    // Create temporary SSH key file
-    const keyPath = `/tmp/deploy_key_${Date.now()}.pem`;
-    await Deno.writeTextFile(keyPath, sshKeyContent);
-    await Deno.chmod(keyPath, 0o600);
+Follow these steps to deploy your application:
 
-    console.log('SSH key prepared, starting deployment script...');
+1️⃣ SSH into your EC2 instance:
+   ssh -i your-key.pem ec2-user@${ec2Ip}
 
-    // Create deployment script
-    const deployScript = githubRepo ? `
+2️⃣ Run the deployment script:
+
 #!/bin/bash
 set -e
 
-echo "🚀 Starting deployment process..."
+echo "🚀 Starting deployment..."
 
-# Install git if not present
+# Install Git (if not present)
 if ! command -v git &> /dev/null; then
     echo "📦 Installing Git..."
     sudo yum install -y git
 fi
 
-# Install Node.js if not present
+# Install Node.js (if not present)
 if ! command -v node &> /dev/null; then
     echo "📦 Installing Node.js..."
     curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
@@ -91,14 +80,13 @@ fi
 
 # Create deployment directory
 DEPLOY_DIR="/var/www/${projectName}"
-sudo mkdir -p $DEPLOY_DIR
-sudo chown -R ec2-user:ec2-user $DEPLOY_DIR
+sudo mkdir -p \\$DEPLOY_DIR
+sudo chown -R ec2-user:ec2-user \\$DEPLOY_DIR
+cd \\$DEPLOY_DIR
 
-cd $DEPLOY_DIR
-
-# Clone or pull repository
+# Clone or update repository
 if [ -d ".git" ]; then
-    echo "📥 Pulling latest changes from ${branch}..."
+    echo "📥 Updating from ${branch}..."
     git fetch origin
     git checkout ${branch}
     git pull origin ${branch}
@@ -107,101 +95,39 @@ else
     git clone -b ${branch} ${githubRepo} .
 fi
 
-# Install dependencies
+# Install and build
 echo "📦 Installing dependencies..."
-npm install --production=false
+npm install
 
-# Build application
-echo "🏗️ Building application..."
+echo "🏗️ Building..."
 ${buildCommand}
 
-# Deploy to web directory
-echo "📋 Deploying to web directory..."
+# Deploy
+echo "📋 Deploying..."
 if [ -d "dist" ]; then
     sudo rm -rf /var/www/html/*
     sudo cp -r dist/* /var/www/html/
-elif [ -d "build" ]; then
-    sudo rm -rf /var/www/html/*
-    sudo cp -r build/* /var/www/html/
-else
-    echo "⚠️ No dist or build folder found, copying all files..."
-    sudo cp -r * /var/www/html/
 fi
 
 # Set permissions
-echo "🔐 Setting permissions..."
 sudo chown -R nginx:nginx /var/www/html
 sudo chmod -R 755 /var/www/html
-
-# Restart services
-echo "🔄 Restarting Nginx..."
 sudo systemctl restart nginx
 
-echo "✅ Deployment complete!"
-echo "🌐 Your site should now be live at: http://${ec2Ip}"
-` : `
-#!/bin/bash
-set -e
+echo "✅ Done! Visit: http://${ec2Ip}"
 
-echo "⚠️ No GitHub repository provided"
-echo "Please configure GitHub repository in deployment settings"
-exit 1
+═══════════════════════════════════════════════════════════
+
+💡 TIP: Save this script as deploy.sh and run with: bash deploy.sh
 `;
-
-    // Execute deployment on EC2
-    console.log('Executing deployment script on EC2...');
-    const sshCommand = new Deno.Command("ssh", {
-      args: [
-        "-i", keyPath,
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "UserKnownHostsFile=/dev/null",
-        "-o", "ConnectTimeout=30",
-        `ec2-user@${ec2Ip}`,
-        deployScript
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { code, stdout, stderr } = await sshCommand.output();
-    
-    // Clean up key file
-    try {
-      await Deno.remove(keyPath);
-    } catch (e) {
-      console.log("Could not remove temp key file:", e);
-    }
-
-    const output = new TextDecoder().decode(stdout);
-    const errorOutput = new TextDecoder().decode(stderr);
-
-    console.log('Deployment output:', output);
-    if (errorOutput) console.error('Deployment stderr:', errorOutput);
-
-    // Log deployment attempt
-    await supabase.from('aws_deployment_logs').insert({
-      instance_id: instanceId,
-      log_level: code === 0 ? 'info' : 'error',
-      message: code === 0 ? 'Deployment completed successfully' : 'Deployment failed',
-      log_data: {
-        output,
-        errorOutput,
-        exitCode: code,
-        githubRepo,
-        branch
-      }
-    });
-
-    if (code !== 0) {
-      throw new Error(`Deployment failed: ${errorOutput || output}`);
-    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Deployment completed successfully',
-        output,
-        deployedUrl: `http://${ec2Ip}`
+        message: 'Deployment instructions generated',
+        instructions: deploymentInstructions,
+        deployedUrl: `http://${ec2Ip}`,
+        note: 'SSH into your EC2 instance and run the provided deployment script'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
