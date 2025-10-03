@@ -14,6 +14,8 @@ interface DeploymentRequest {
   projectName?: string;
   deploymentType?: 'fresh' | 'code-only';
   autoSetupSSM?: boolean;
+  gitRepoUrl?: string;
+  gitBranch?: string;
   files?: Array<{ path: string; content: string }>;
 }
 
@@ -32,6 +34,8 @@ serve(async (req) => {
       projectName = "web-app",
       deploymentType = "code-only",
       autoSetupSSM = true,
+      gitRepoUrl,
+      gitBranch = "main",
       files 
     }: DeploymentRequest = await req.json();
 
@@ -153,15 +157,38 @@ sudo chown -R $USER:$USER $PROJECT_DIR
 # Ensure web root exists
 sudo mkdir -p /var/www/html
 
-# Create deployment files
+# Clone or update repository
 cd $PROJECT_DIR
-
-${files ? files.map(f => `
+${gitRepoUrl ? `
+echo "Cloning repository from ${gitRepoUrl}..."
+if [ -d ".git" ]; then
+    echo "Repository exists, pulling latest changes..."
+    git fetch origin
+    git checkout ${gitBranch}
+    git pull origin ${gitBranch}
+else
+    echo "Cloning fresh repository..."
+    git clone -b ${gitBranch} ${gitRepoUrl} .
+fi
+` : `
+echo "⚠️  No Git repository URL provided"
+echo "Please ensure your project files are already on the instance"
+echo "or provide a Git repository URL in the deployment configuration"
+${files && files.length > 0 ? `
+echo "Creating deployment files from provided content..."
+${files.map(f => `
 echo "Creating file: ${f.path}"
+mkdir -p $(dirname ${f.path})
 cat > ${f.path} << 'FILECONTENT'
 ${f.content}
 FILECONTENT
-`).join('\n') : ''}
+`).join('\n')}
+` : `
+echo "❌ Error: No source files available for deployment"
+echo "Either provide a Git repository URL or upload project files"
+exit 1
+`}
+`}
 
 # Build the project
 echo "Building project..."
@@ -275,15 +302,34 @@ done
 sudo mkdir -p $PROJECT_DIR
 sudo chown -R $USER:$USER $PROJECT_DIR
 
-# Create/update deployment files
+# Clone or update repository
 cd $PROJECT_DIR
-
-${files ? files.map(f => `
+${gitRepoUrl ? `
+echo "Updating repository from ${gitRepoUrl}..."
+if [ -d ".git" ]; then
+    echo "Pulling latest changes..."
+    git fetch origin
+    git checkout ${gitBranch}
+    git pull origin ${gitBranch}
+else
+    echo "Repository not found, cloning..."
+    git clone -b ${gitBranch} ${gitRepoUrl} .
+fi
+` : `
+echo "⚠️  No Git repository URL provided"
+${files && files.length > 0 ? `
+echo "Updating deployment files from provided content..."
+${files.map(f => `
 echo "Creating/updating file: ${f.path}"
+mkdir -p $(dirname ${f.path})
 cat > ${f.path} << 'FILECONTENT'
 ${f.content}
 FILECONTENT
-`).join('\n') : ''}
+`).join('\n')}
+` : `
+echo "Using existing project files on instance"
+`}
+`}
 
 # Build the project
 echo "Building project..."

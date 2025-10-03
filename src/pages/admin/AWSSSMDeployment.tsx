@@ -29,6 +29,8 @@ const AWSSSMDeployment = () => {
   const [buildCommand, setBuildCommand] = useState("npm install && npm run build");
   const [deploymentType, setDeploymentType] = useState<'fresh' | 'code-only'>('code-only');
   const [autoSetupSSM, setAutoSetupSSM] = useState(true);
+  const [gitRepoUrl, setGitRepoUrl] = useState('');
+  const [gitBranch, setGitBranch] = useState('main');
 
   // Visibility toggles
   const [showAccessKey, setShowAccessKey] = useState(false);
@@ -56,6 +58,8 @@ const AWSSSMDeployment = () => {
           projectName,
           deploymentType,
           autoSetupSSM,
+          gitRepoUrl: gitRepoUrl.trim() || undefined,
+          gitBranch: gitBranch.trim() || 'main',
         }
       });
 
@@ -290,6 +294,36 @@ const AWSSSMDeployment = () => {
                   </AlertDescription>
                 </Alert>
               )}
+
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Git Repository Required:</strong> Provide your Git repository URL so the EC2 instance can clone and build your project.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label htmlFor="gitRepoUrl">Git Repository URL *</Label>
+                <Input
+                  id="gitRepoUrl"
+                  placeholder="https://github.com/username/repository.git"
+                  value={gitRepoUrl}
+                  onChange={(e) => setGitRepoUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  HTTPS URL (public repos) or SSH URL (configure keys on EC2 first)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gitBranch">Git Branch</Label>
+                <Input
+                  id="gitBranch"
+                  placeholder="main"
+                  value={gitBranch}
+                  onChange={(e) => setGitBranch(e.target.value)}
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="projectName">Project Name</Label>
