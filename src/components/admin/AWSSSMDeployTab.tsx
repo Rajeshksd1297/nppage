@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff, Package, Database } from "lucide-react";
+import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff, Package, Database, Rocket } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +42,15 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
   const [s3BucketName, setS3BucketName] = useState('');
   const [uploadingToS3, setUploadingToS3] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  
+  // Auto Upload
+  const [autoUpload, setAutoUpload] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState<'s3' | 'sftp'>('s3');
+  const [sftpHost, setSftpHost] = useState("");
+  const [sftpPort, setSftpPort] = useState("22");
+  const [sftpUsername, setSftpUsername] = useState("");
+  const [sftpPassword, setSftpPassword] = useState("");
+  const [sftpPath, setSftpPath] = useState("/var/www/");
 
   // Visibility toggles
   const [showAccessKey, setShowAccessKey] = useState(false);
@@ -57,8 +66,85 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
       return;
     }
 
-    // If S3 upload is enabled, upload files first
-    if (useS3Upload && selectedFiles && selectedFiles.length > 0) {
+    // If auto-upload is enabled, use auto-package-deploy function
+    if (autoUpload) {
+      if (!gitRepoUrl) {
+        toast({
+          title: "Git Repository Required",
+          description: "Auto-upload requires a Git repository URL",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUploadingToS3(true);
+      try {
+        const autoDeployPayload: any = {
+          gitRepoUrl,
+          gitBranch: gitBranch || 'main',
+          uploadMethod,
+        };
+
+        if (uploadMethod === 's3') {
+          if (!s3BucketName) {
+            toast({
+              title: "Missing S3 Bucket",
+              description: "Please enter your S3 bucket name",
+              variant: "destructive",
+            });
+            setUploadingToS3(false);
+            return;
+          }
+          autoDeployPayload.s3BucketName = s3BucketName;
+          autoDeployPayload.s3Region = region;
+          autoDeployPayload.awsAccessKeyId = awsAccessKeyId;
+          autoDeployPayload.awsSecretAccessKey = awsSecretAccessKey;
+        } else {
+          if (!sftpHost || !sftpUsername || !sftpPassword || !sftpPath) {
+            toast({
+              title: "Missing SFTP Credentials",
+              description: "Please fill in all SFTP connection details",
+              variant: "destructive",
+            });
+            setUploadingToS3(false);
+            return;
+          }
+          autoDeployPayload.sftpHost = sftpHost;
+          autoDeployPayload.sftpPort = parseInt(sftpPort);
+          autoDeployPayload.sftpUsername = sftpUsername;
+          autoDeployPayload.sftpPassword = sftpPassword;
+          autoDeployPayload.sftpPath = sftpPath;
+        }
+
+        const { data: autoData, error: autoError } = await supabase.functions.invoke(
+          'auto-package-deploy',
+          { body: autoDeployPayload }
+        );
+
+        if (autoError) throw autoError;
+
+        if (!autoData?.success) {
+          throw new Error(autoData?.error || 'Auto-upload failed');
+        }
+
+        toast({
+          title: "Files Uploaded Successfully",
+          description: `${autoData.uploadedFiles.length} files uploaded to ${uploadMethod.toUpperCase()}`,
+        });
+      } catch (error: any) {
+        console.error('Auto-upload error:', error);
+        toast({
+          title: "Auto-Upload Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setUploadingToS3(false);
+        return;
+      }
+      setUploadingToS3(false);
+    }
+    // If manual S3 upload is enabled, upload files first
+    else if (useS3Upload && selectedFiles && selectedFiles.length > 0) {
       if (!s3BucketName) {
         toast({
           title: "Missing S3 Bucket",
@@ -411,7 +497,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                 </AlertDescription>
               </Alert>
 
-              {!gitRepoUrl && !useS3Upload && (
+              {!gitRepoUrl && !useS3Upload && !autoUpload && (
                 <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-sm space-y-2">
@@ -429,23 +515,159 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                 </Alert>
               )}
 
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-primary/10 to-primary/5">
+                <div className="space-y-1">
+                  <Label htmlFor="autoUpload" className="font-semibold flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Enable Auto Package & Upload
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically clone, package, and upload from Git repository
+                  </p>
+                </div>
+                <Switch
+                  id="autoUpload"
+                  checked={autoUpload}
+                  onCheckedChange={setAutoUpload}
+                />
+              </div>
+
+              {autoUpload && (
+                <>
+                  <Alert>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription>
+                      <strong>Automatic Workflow:</strong> System will clone your Git repository, package all files, 
+                      and upload directly to {uploadMethod === 's3' ? 'Amazon S3' : 'SFTP server'} before deployment.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-2">
+                    <Label>Upload Method</Label>
+                    <div className="flex gap-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="upload-s3"
+                          name="uploadMethod"
+                          value="s3"
+                          checked={uploadMethod === 's3'}
+                          onChange={(e) => setUploadMethod(e.target.value as 's3' | 'sftp')}
+                          className="cursor-pointer"
+                        />
+                        <Label htmlFor="upload-s3" className="cursor-pointer">Amazon S3</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="upload-sftp"
+                          name="uploadMethod"
+                          value="sftp"
+                          checked={uploadMethod === 'sftp'}
+                          onChange={(e) => setUploadMethod(e.target.value as 's3' | 'sftp')}
+                          className="cursor-pointer"
+                        />
+                        <Label htmlFor="upload-sftp" className="cursor-pointer">SFTP</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {uploadMethod === 's3' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="auto-s3-bucket">S3 Bucket Name *</Label>
+                      <Input
+                        id="auto-s3-bucket"
+                        value={s3BucketName}
+                        onChange={(e) => setS3BucketName(e.target.value)}
+                        placeholder="my-deployment-bucket"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Bucket must exist with write permissions for your AWS credentials
+                      </p>
+                    </div>
+                  )}
+
+                  {uploadMethod === 'sftp' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="sftp-host">SFTP Host *</Label>
+                        <Input
+                          id="sftp-host"
+                          value={sftpHost}
+                          onChange={(e) => setSftpHost(e.target.value)}
+                          placeholder="sftp.example.com or IP address"
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="sftp-port">Port</Label>
+                          <Input
+                            id="sftp-port"
+                            value={sftpPort}
+                            onChange={(e) => setSftpPort(e.target.value)}
+                            placeholder="22"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="sftp-username">Username *</Label>
+                          <Input
+                            id="sftp-username"
+                            value={sftpUsername}
+                            onChange={(e) => setSftpUsername(e.target.value)}
+                            placeholder="username"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sftp-password">Password *</Label>
+                        <Input
+                          id="sftp-password"
+                          type="password"
+                          value={sftpPassword}
+                          onChange={(e) => setSftpPassword(e.target.value)}
+                          placeholder="••••••••"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sftp-path">Remote Path *</Label>
+                        <Input
+                          id="sftp-path"
+                          value={sftpPath}
+                          onChange={(e) => setSftpPath(e.target.value)}
+                          placeholder="/var/www/"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Remote directory where files will be uploaded
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
               <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
                 <div className="space-y-1">
                   <Label htmlFor="useS3Upload" className="font-semibold">
-                    Enable S3 Auto-Upload
+                    Enable Manual S3 Upload
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Automatically upload project files to S3, then sync to EC2
+                    Manually select and upload project files to S3
                   </p>
                 </div>
                 <Switch
                   id="useS3Upload"
                   checked={useS3Upload}
                   onCheckedChange={setUseS3Upload}
+                  disabled={autoUpload}
                 />
               </div>
 
-              {useS3Upload && (
+              {useS3Upload && !autoUpload && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="s3BucketName">S3 Bucket Name *</Label>
@@ -545,14 +767,14 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
               <div className="pt-4">
                 <Button 
                   onClick={handleDeploy} 
-                  disabled={loading || uploadingToS3 || !awsAccessKeyId || !awsSecretAccessKey || !targetInstanceId || (useS3Upload && (!s3BucketName || !selectedFiles))}
+                  disabled={loading || uploadingToS3 || !awsAccessKeyId || !awsSecretAccessKey || !targetInstanceId || (useS3Upload && !autoUpload && (!s3BucketName || !selectedFiles)) || (autoUpload && !gitRepoUrl)}
                   className="w-full"
                   size="lg"
                 >
                   {uploadingToS3 ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading to S3...
+                      {autoUpload ? `Auto-Packaging & Uploading to ${uploadMethod.toUpperCase()}...` : 'Uploading to S3...'}
                     </>
                   ) : loading ? (
                     <>
@@ -562,7 +784,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      {useS3Upload ? 'Upload & Deploy' : 'Prepare Deployment'}
+                      {autoUpload ? `Auto Package & Deploy` : useS3Upload ? 'Upload & Deploy' : 'Prepare Deployment'}
                     </>
                   )}
                 </Button>
