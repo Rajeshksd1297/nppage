@@ -171,23 +171,20 @@ else
     git clone -b ${gitBranch} ${gitRepoUrl} .
 fi
 ` : `
-echo "⚠️  No Git repository URL provided"
-echo "Please ensure your project files are already on the instance"
-echo "or provide a Git repository URL in the deployment configuration"
-${files && files.length > 0 ? `
-echo "Creating deployment files from provided content..."
-${files.map(f => `
-echo "Creating file: ${f.path}"
-mkdir -p $(dirname ${f.path})
-cat > ${f.path} << 'FILECONTENT'
-${f.content}
-FILECONTENT
-`).join('\n')}
-` : `
-echo "❌ Error: No source files available for deployment"
-echo "Either provide a Git repository URL or upload project files"
-exit 1
-`}
+echo "⚠️  No Git repository URL provided - Using existing files on instance"
+echo "Please ensure your project files are already uploaded to $PROJECT_DIR"
+echo ""
+echo "If files are not present, you can upload them using:"
+echo "  - SCP: scp -r ./your-project/* ec2-user@your-instance:/var/www/${projectName}/"
+echo "  - SFTP: sftp ec2-user@your-instance"
+echo "  - AWS S3: aws s3 sync ./your-project s3://your-bucket/ && aws s3 sync s3://your-bucket/ /var/www/${projectName}/"
+echo ""
+if [ ! -f "package.json" ]; then
+    echo "❌ Error: No package.json found in $PROJECT_DIR"
+    echo "Please upload your project files to this directory before running deployment"
+    exit 1
+fi
+echo "✓ Found package.json - proceeding with build"
 `}
 
 # Build the project
@@ -316,19 +313,19 @@ else
     git clone -b ${gitBranch} ${gitRepoUrl} .
 fi
 ` : `
-echo "⚠️  No Git repository URL provided"
-${files && files.length > 0 ? `
-echo "Updating deployment files from provided content..."
-${files.map(f => `
-echo "Creating/updating file: ${f.path}"
-mkdir -p $(dirname ${f.path})
-cat > ${f.path} << 'FILECONTENT'
-${f.content}
-FILECONTENT
-`).join('\n')}
-` : `
-echo "Using existing project files on instance"
-`}
+echo "⚠️  No Git repository URL provided - Using existing files on instance"
+echo "Checking for existing project files in $PROJECT_DIR..."
+if [ ! -f "package.json" ]; then
+    echo "❌ Error: No package.json found in $PROJECT_DIR"
+    echo "Please upload your project files before running deployment"
+    echo ""
+    echo "Upload methods:"
+    echo "  - SCP: scp -r ./your-project/* ec2-user@your-instance:/var/www/${projectName}/"
+    echo "  - SFTP: sftp ec2-user@your-instance"
+    echo "  - AWS S3: aws s3 sync ./your-project s3://bucket/ && aws s3 sync s3://bucket/ /var/www/${projectName}/"
+    exit 1
+fi
+echo "✓ Found existing project files - proceeding with build"
 `}
 
 # Build the project

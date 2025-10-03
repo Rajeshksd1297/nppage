@@ -298,12 +298,14 @@ const AWSSSMDeployment = () => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Git Repository Required:</strong> Provide your Git repository URL so the EC2 instance can clone and build your project.
+                  <strong>Option 1 - Git Repository (Recommended):</strong> Provide your Git repository URL for automatic code deployment.
+                  <br />
+                  <strong>Option 2 - Manual Upload:</strong> Leave Git URL empty and manually upload your project files to /var/www/{projectName} on your EC2 instance via SCP, SFTP, or AWS S3.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-2">
-                <Label htmlFor="gitRepoUrl">Git Repository URL *</Label>
+                <Label htmlFor="gitRepoUrl">Git Repository URL (Optional)</Label>
                 <Input
                   id="gitRepoUrl"
                   placeholder="https://github.com/username/repository.git"
@@ -311,7 +313,7 @@ const AWSSSMDeployment = () => {
                   onChange={(e) => setGitRepoUrl(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  HTTPS URL (public repos) or SSH URL (configure keys on EC2 first)
+                  Leave empty if you prefer to manually upload files to your EC2 instance for security reasons
                 </p>
               </div>
 

@@ -340,12 +340,14 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Git Repository Required:</strong> Provide your Git repository URL so the EC2 instance can clone and build your project.
+                  <strong>Option 1 - Git Repository (Recommended):</strong> Provide your Git repository URL for automatic code deployment.
+                  <br />
+                  <strong>Option 2 - Direct Upload:</strong> Leave Git URL empty to use files already on your EC2 instance (manual upload required).
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-2">
-                <Label htmlFor="gitRepoUrl">Git Repository URL *</Label>
+                <Label htmlFor="gitRepoUrl">Git Repository URL (Optional)</Label>
                 <Input
                   id="gitRepoUrl"
                   placeholder="https://github.com/username/repository.git"
@@ -353,7 +355,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                   onChange={(e) => setGitRepoUrl(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  HTTPS URL (public repos) or SSH URL (configure keys on EC2 first)
+                  Leave empty if you prefer to manually upload files to your EC2 instance for security reasons
                 </p>
               </div>
 
