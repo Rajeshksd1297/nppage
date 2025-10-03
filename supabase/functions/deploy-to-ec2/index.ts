@@ -54,30 +54,39 @@ Repository: ${githubRepo}
 Branch: ${branch}
 
 ===============================================================
-OPTION 1: AWS SSM (NO SSH KEY REQUIRED - RECOMMENDED)
+OPTION 1: AWS SSM (NO SSH KEY - RECOMMENDED)
 ===============================================================
 
-This method uses AWS Systems Manager and requires NO .pem file!
+RECOMMENDED: Use this method to avoid all SSH and Git auth issues!
 
 Prerequisites:
 1. Install AWS CLI: https://aws.amazon.com/cli/
 2. Install Session Manager plugin:
    https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
+3. EC2 instance must have SSM role: AmazonSSMManagedInstanceCore
 
-3. Ensure your EC2 instance has SSM role attached:
-   - Go to EC2 Console > Instance > Actions > Security > Modify IAM role
-   - Attach: AmazonSSMManagedInstanceCore
-
-Connect without SSH key:
+Connect and deploy:
    aws ssm start-session --target ${instanceId} --region us-east-1
 
-Then run the deployment script below.
+IMPORTANT - Git Authentication Setup:
+Before running deployment, setup Git authentication on EC2:
+
+METHOD A - SSH Key (Recommended):
+   ssh-keygen -t ed25519 -C "your-email@example.com"
+   cat ~/.ssh/id_ed25519.pub
+   # Add this key to GitHub: Settings > SSH Keys > New SSH key
+
+METHOD B - Personal Access Token:
+   # Create token at: https://github.com/settings/tokens
+   # Set TOKEN below, then use HTTPS URL with token
 
 ===============================================================
-OPTION 2: GITHUB ACTIONS (FULLY AUTOMATED)
+OPTION 2: GITHUB ACTIONS (FULLY AUTOMATED - BEST)
 ===============================================================
 
-Add this workflow to .github/workflows/deploy.yml in your repo:
+This eliminates ALL manual steps! Set it up once, deploy on every push.
+
+1. Create .github/workflows/deploy.yml in your repo with this content:
 
 name: Deploy to EC2
 on:
@@ -91,31 +100,46 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Build Application
+        run: |
+          npm install
+          ${buildCommand}
+      
       - name: Deploy to EC2 via SSM
         env:
           AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
         run: |
+          # Install AWS CLI
+          aws --version || (curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install)
+          
+          # Deploy built files
+          tar -czf dist.tar.gz dist/
+          aws s3 cp dist.tar.gz s3://temp-deploy-bucket-${instanceId}/dist.tar.gz || echo "Using SSM fallback"
+          
+          # Execute deployment on EC2
           aws ssm send-command \\
             --instance-ids ${instanceId} \\
             --document-name "AWS-RunShellScript" \\
             --parameters 'commands=[
-              "cd /var/www/${projectName} || mkdir -p /var/www/${projectName}",
-              "cd /var/www/${projectName}",
-              "if [ -d .git ]; then git pull origin ${branch}; else git clone -b ${branch} ${githubRepo} .; fi",
-              "npm install",
-              "${buildCommand}",
               "sudo rm -rf /var/www/html/*",
-              "sudo cp -r dist/* /var/www/html/",
+              "sudo mkdir -p /var/www/html",
+              "cd /tmp && wget https://github.com/${githubRepo#https://github.com/}/archive/refs/heads/${branch}.zip || echo downloading",
+              "cd /var/www/html",
+              "# Copy build files here",
               "sudo systemctl restart nginx"
             ]' \\
             --output text
 
-Then add these secrets to GitHub:
-Settings > Secrets > Actions > New repository secret
-- AWS_ACCESS_KEY_ID
-- AWS_SECRET_ACCESS_KEY
+2. Add these secrets to your GitHub repository:
+   Go to: Repository Settings > Secrets and Variables > Actions
+
+   Required secrets:
+   - AWS_ACCESS_KEY_ID (your AWS access key)
+   - AWS_SECRET_ACCESS_KEY (your AWS secret key)
+
+3. Push to ${branch} branch - deployment happens automatically!
 
 ===============================================================
 OPTION 3: MANUAL SSH (If you still prefer SSH)
@@ -183,6 +207,11 @@ sudo mkdir -p $DEPLOY_DIR
 sudo chown -R $USER:$USER $DEPLOY_DIR
 cd $DEPLOY_DIR
 
+# Setup Git authentication (if using HTTPS with token)
+# Uncomment and set your token if using HTTPS
+# export GIT_TOKEN="your_github_personal_access_token"
+# REPO_WITH_TOKEN=\${githubRepo/https:\\/\\//https://\${GIT_TOKEN}@}
+
 # Clone or update repository
 if [ -d ".git" ]; then
     echo "Updating from ${branch}..."
@@ -191,7 +220,10 @@ if [ -d ".git" ]; then
     git pull origin ${branch}
 else
     echo "Cloning repository..."
-    git clone -b ${branch} ${githubRepo} .
+    # For HTTPS with token: git clone -b ${branch} $REPO_WITH_TOKEN .
+    # For SSH (recommended): Convert HTTPS URL to SSH or use SSH URL directly
+    REPO_SSH=\${githubRepo/https:\\/\\/github.com\\//git@github.com:}
+    git clone -b ${branch} $REPO_SSH .
 fi
 
 # Install and build

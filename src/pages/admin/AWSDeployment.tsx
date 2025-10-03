@@ -18,6 +18,7 @@ import { DeploymentStatistics } from "@/components/admin/DeploymentStatistics";
 import { CodeDeploymentMethods } from "@/components/admin/CodeDeploymentMethods";
 import { AutoDeployButton } from "@/components/admin/AutoDeployButton";
 import { SSMDeployGuide } from "@/components/admin/SSMDeployGuide";
+import { GitAuthSetup } from "@/components/admin/GitAuthSetup";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -377,15 +378,16 @@ export default function AWSDeployment() {
       
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
-          <TabsTrigger value="deployments">Deployments</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="settings">AWS Config</TabsTrigger>
+          <TabsTrigger value="deployments">Deploy</TabsTrigger>
           <TabsTrigger value="auto-deploy">Auto Deploy</TabsTrigger>
           <TabsTrigger value="ssm-deploy">No-Key Deploy</TabsTrigger>
-          <TabsTrigger value="code-deploy">Code Deployment</TabsTrigger>
-          <TabsTrigger value="status">Status Check</TabsTrigger>
-          <TabsTrigger value="statistics">Statistics</TabsTrigger>
-          <TabsTrigger value="guide">Deployment Guide</TabsTrigger>
+          <TabsTrigger value="git-auth">Git Auth Fix</TabsTrigger>
+          <TabsTrigger value="code-deploy">Code Deploy</TabsTrigger>
+          <TabsTrigger value="status">Status</TabsTrigger>
+          <TabsTrigger value="statistics">Stats</TabsTrigger>
+          <TabsTrigger value="guide">Guide</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="space-y-6">
@@ -852,6 +854,11 @@ export default function AWSDeployment() {
             githubRepo="https://github.com/your-username/your-repo.git"
             branch="main"
           />
+        </TabsContent>
+
+        {/* Git Auth Setup Tab */}
+        <TabsContent value="git-auth" className="space-y-6">
+          <GitAuthSetup />
         </TabsContent>
 
         <TabsContent value="code-deploy" className="space-y-6">
