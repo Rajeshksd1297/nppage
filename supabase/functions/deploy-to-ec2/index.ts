@@ -56,26 +56,59 @@ serve(async (req) => {
 Follow these steps to deploy your application:
 
 1️⃣ SSH into your EC2 instance:
-   ssh -i your-key.pem ec2-user@${ec2Ip}
+   ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
+   
+   OR (for Amazon Linux):
+   ssh -i /path/to/your-keypair.pem ec2-user@${ec2Ip}
 
-2️⃣ Run the deployment script:
+2️⃣ Copy and save this script as deploy.sh:
 
 #!/bin/bash
 set -e
 
 echo "🚀 Starting deployment..."
 
+# Detect OS and set package manager
+if [ -f /etc/debian_version ]; then
+    PKG_MANAGER="apt-get"
+    WEB_USER="www-data"
+    WEB_SERVER="nginx"
+    echo "📋 Detected Debian/Ubuntu system"
+elif [ -f /etc/redhat-release ]; then
+    PKG_MANAGER="yum"
+    WEB_USER="nginx"
+    WEB_SERVER="nginx"
+    echo "📋 Detected RedHat/CentOS/Amazon Linux system"
+else
+    echo "❌ Unsupported OS"
+    exit 1
+fi
+
 # Install Git (if not present)
 if ! command -v git &> /dev/null; then
     echo "📦 Installing Git..."
-    sudo yum install -y git
+    sudo $PKG_MANAGER update -y
+    sudo $PKG_MANAGER install -y git
 fi
 
 # Install Node.js (if not present)
 if ! command -v node &> /dev/null; then
     echo "📦 Installing Node.js..."
-    curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
-    sudo yum install -y nodejs
+    if [ "$PKG_MANAGER" = "apt-get" ]; then
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    else
+        curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+        sudo yum install -y nodejs
+    fi
+fi
+
+# Install Nginx (if not present)
+if ! command -v nginx &> /dev/null; then
+    echo "📦 Installing Nginx..."
+    sudo $PKG_MANAGER install -y nginx
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
 fi
 
 # Create deployment directory
@@ -105,20 +138,25 @@ ${buildCommand}
 # Deploy
 echo "📋 Deploying..."
 if [ -d "dist" ]; then
+    sudo mkdir -p /var/www/html
     sudo rm -rf /var/www/html/*
     sudo cp -r dist/* /var/www/html/
 fi
 
 # Set permissions
-sudo chown -R nginx:nginx /var/www/html
+sudo chown -R $WEB_USER:$WEB_USER /var/www/html
 sudo chmod -R 755 /var/www/html
-sudo systemctl restart nginx
+sudo systemctl restart $WEB_SERVER
 
 echo "✅ Done! Visit: http://${ec2Ip}"
 
 ═══════════════════════════════════════════════════════════
 
-💡 TIP: Save this script as deploy.sh and run with: bash deploy.sh
+3️⃣ Run the deployment:
+   chmod +x deploy.sh
+   bash deploy.sh
+
+💡 IMPORTANT: Replace /path/to/your-keypair.pem with your actual key file path
 `;
 
     return new Response(
