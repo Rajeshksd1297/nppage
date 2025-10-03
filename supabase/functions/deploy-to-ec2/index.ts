@@ -138,31 +138,16 @@ echo "Deployment complete!"
 echo "Visit: http://${ec2Ip}"
 `;
 
-    const deploymentInstructions = `
-DEPLOYMENT SCRIPT FOR EC2 INSTANCE ${instanceId}
-================================================
+    const deploymentInstructions = `# SSH into your EC2 instance first:
+# ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
 
-Repository: ${githubRepo}
-Branch: ${branch}
-IP Address: ${ec2Ip}
-
-STEP 1: Connect to your EC2 instance
-------------------------------------
-ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
-
-STEP 2: Create and run deployment script
------------------------------------------
+# Then run these commands:
 cat > deploy.sh << 'DEPLOYEOF'
 ${deployScript}
 DEPLOYEOF
 
 chmod +x deploy.sh
-./deploy.sh
-
-Your application will be deployed to: http://${ec2Ip}
-
-NOTE: Make sure your GitHub repository is public or Git authentication is configured on the EC2 instance.
-`;
+./deploy.sh`;
 
     return new Response(
       JSON.stringify({
