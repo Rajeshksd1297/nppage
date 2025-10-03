@@ -44,56 +44,56 @@ serve(async (req) => {
 
     // Return instructions for manual deployment via SSH
     const deploymentInstructions = `
-═══════════════════════════════════════════════════════════
-🚀 DEPLOYMENT INSTRUCTIONS FOR EC2
-═══════════════════════════════════════════════════════════
+===============================================================
+DEPLOYMENT INSTRUCTIONS FOR EC2
+===============================================================
 
-📍 Instance: ${instanceId}
-🌐 IP: ${ec2Ip}
-📦 Repository: ${githubRepo}
-🌿 Branch: ${branch}
+Instance: ${instanceId}
+IP: ${ec2Ip}
+Repository: ${githubRepo}
+Branch: ${branch}
 
 Follow these steps to deploy your application:
 
-1️⃣ SSH into your EC2 instance:
+STEP 1: SSH into your EC2 instance
    ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
    
-   OR (for Amazon Linux):
+   OR for Amazon Linux:
    ssh -i /path/to/your-keypair.pem ec2-user@${ec2Ip}
 
-2️⃣ Copy and save this script as deploy.sh:
+STEP 2: Copy and save this script as deploy.sh
 
 #!/bin/bash
 set -e
 
-echo "🚀 Starting deployment..."
+echo "Starting deployment..."
 
 # Detect OS and set package manager
 if [ -f /etc/debian_version ]; then
     PKG_MANAGER="apt-get"
     WEB_USER="www-data"
     WEB_SERVER="nginx"
-    echo "📋 Detected Debian/Ubuntu system"
+    echo "Detected Debian/Ubuntu system"
 elif [ -f /etc/redhat-release ]; then
     PKG_MANAGER="yum"
     WEB_USER="nginx"
     WEB_SERVER="nginx"
-    echo "📋 Detected RedHat/CentOS/Amazon Linux system"
+    echo "Detected RedHat/CentOS/Amazon Linux system"
 else
-    echo "❌ Unsupported OS"
+    echo "Unsupported OS"
     exit 1
 fi
 
-# Install Git (if not present)
+# Install Git if not present
 if ! command -v git &> /dev/null; then
-    echo "📦 Installing Git..."
+    echo "Installing Git..."
     sudo $PKG_MANAGER update -y
     sudo $PKG_MANAGER install -y git
 fi
 
-# Install Node.js (if not present)
+# Install Node.js if not present
 if ! command -v node &> /dev/null; then
-    echo "📦 Installing Node.js..."
+    echo "Installing Node.js..."
     if [ "$PKG_MANAGER" = "apt-get" ]; then
         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
         sudo apt-get install -y nodejs
@@ -103,9 +103,9 @@ if ! command -v node &> /dev/null; then
     fi
 fi
 
-# Install Nginx (if not present)
+# Install Nginx if not present
 if ! command -v nginx &> /dev/null; then
-    echo "📦 Installing Nginx..."
+    echo "Installing Nginx..."
     sudo $PKG_MANAGER install -y nginx
     sudo systemctl enable nginx
     sudo systemctl start nginx
@@ -119,24 +119,24 @@ cd $DEPLOY_DIR
 
 # Clone or update repository
 if [ -d ".git" ]; then
-    echo "📥 Updating from ${branch}..."
+    echo "Updating from ${branch}..."
     git fetch origin
     git checkout ${branch}
     git pull origin ${branch}
 else
-    echo "📥 Cloning repository..."
+    echo "Cloning repository..."
     git clone -b ${branch} ${githubRepo} .
 fi
 
 # Install and build
-echo "📦 Installing dependencies..."
+echo "Installing dependencies..."
 npm install
 
-echo "🏗️ Building..."
+echo "Building..."
 ${buildCommand}
 
 # Deploy
-echo "📋 Deploying..."
+echo "Deploying..."
 if [ -d "dist" ]; then
     sudo mkdir -p /var/www/html
     sudo rm -rf /var/www/html/*
@@ -148,15 +148,15 @@ sudo chown -R $WEB_USER:$WEB_USER /var/www/html
 sudo chmod -R 755 /var/www/html
 sudo systemctl restart $WEB_SERVER
 
-echo "✅ Done! Visit: http://${ec2Ip}"
+echo "Done! Visit: http://${ec2Ip}"
 
-═══════════════════════════════════════════════════════════
+===============================================================
 
-3️⃣ Run the deployment:
+STEP 3: Run the deployment
    chmod +x deploy.sh
    bash deploy.sh
 
-💡 IMPORTANT: Replace /path/to/your-keypair.pem with your actual key file path
+IMPORTANT: Replace /path/to/your-keypair.pem with your actual key file path
 `;
 
     return new Response(
