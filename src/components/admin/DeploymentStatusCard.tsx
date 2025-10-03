@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Server, ExternalLink, CheckCircle2, Clock, AlertTriangle, RefreshCw, Unlock } from "lucide-react";
+import { Server, ExternalLink, CheckCircle2, Clock, AlertTriangle, RefreshCw, Unlock, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -820,11 +820,44 @@ export function DeploymentStatusCard({ deployment }: DeploymentStatusCardProps) 
         )}
 
         {healthStatus.http === 'online' && (
-          <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">✓ Website is Live</h4>
-            <p className="text-sm text-green-800 dark:text-green-200">
-              Your application is successfully deployed and accessible. All systems are operational.
-            </p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg space-y-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                    Manual Application Deployment Required
+                  </h4>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Nginx is installed and running, but you need to deploy your application code to the EC2 instance.
+                  </p>
+                </div>
+                
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    📋 SSH into your instance and deploy:
+                  </p>
+                  <div className="font-mono text-xs text-blue-900 dark:text-blue-100 space-y-1 whitespace-pre-wrap">
+                    <div># 1. SSH into instance</div>
+                    <div>ssh -i your-key.pem ec2-user@{deployment.ec2_public_ip}</div>
+                    <div className="mt-2"># 2. Navigate to web directory</div>
+                    <div>cd /var/www/html</div>
+                    <div className="mt-2"># 3. Clone your application</div>
+                    <div>git clone https://github.com/your-repo.git .</div>
+                    <div className="mt-2"># 4. Install and build</div>
+                    <div>npm install && npm run build</div>
+                    <div className="mt-2"># 5. Copy build files</div>
+                    <div>sudo cp -r dist/* /var/www/html/</div>
+                    <div>sudo chown -R nginx:nginx /var/www/html</div>
+                    <div>sudo systemctl restart nginx</div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  💡 <strong>Tip:</strong> Check the deployment logs in the "Deployments" tab for your SSH private key if it was auto-generated.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
