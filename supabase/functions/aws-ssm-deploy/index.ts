@@ -170,6 +170,12 @@ echo "⚠️  Clearing web root and deploying fresh..."
 sudo rm -rf /var/www/html/*
 sudo cp -r dist/* /var/www/html/ 2>/dev/null || sudo cp -r build/* /var/www/html/ 2>/dev/null || echo "No dist or build folder found"
 
+# Set proper permissions for nginx
+echo "Setting proper file permissions..."
+sudo chown -R www-data:www-data /var/www/html
+sudo find /var/www/html -type d -exec chmod 755 {} \;
+sudo find /var/www/html -type f -exec chmod 644 {} \;
+
 # Configure Nginx
 sudo tee /etc/nginx/sites-available/default > /dev/null << 'NGINXCONF'
 server {
@@ -269,6 +275,12 @@ echo "Deploying code updates (preserving user data)..."
 
 # Deploy new build
 sudo cp -r dist/* /var/www/html/ 2>/dev/null || sudo cp -r build/* /var/www/html/ 2>/dev/null || echo "No dist or build folder found"
+
+# Set proper permissions for nginx
+echo "Setting proper file permissions..."
+sudo chown -R www-data:www-data /var/www/html
+sudo find /var/www/html -type d -exec chmod 755 {} \;
+sudo find /var/www/html -type f -exec chmod 644 {} \;
 
 # Restore user data directories
 for dir in "\${USER_DATA_DIRS[@]}"; do
