@@ -34,7 +34,8 @@ import {
   Shield,
   CheckCircle,
   Package,
-  Activity
+  Activity,
+  Cloud
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -160,8 +161,8 @@ const communicationsItems = [
 // Infrastructure
 const infrastructureItems = [
   { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
-  { title: "AWS Deployment", url: "/admin/aws-deployment", icon: Server },
-  { title: "AWS SSM Deployment", url: "/admin/aws-ssm-deployment", icon: Server },
+  { title: "AWS EC2 Deployment", url: "/admin/aws-deployment", icon: Server },
+  { title: "AWS SSM Deployment", url: "/admin/aws-ssm-deployment", icon: Cloud },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
 ];
 
