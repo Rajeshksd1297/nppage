@@ -158,12 +158,11 @@ sudo mkdir -p /var/www/html
 
 ${gitRepoUrl ? `
 echo "Cloning repository from ${gitRepoUrl}..."
-# Create directory with proper permissions
-sudo mkdir -p $PROJECT_DIR
+# Let Git create the directory - don't pre-create it
+git clone -b ${gitBranch} ${gitRepoUrl} $PROJECT_DIR
+# Set proper ownership after clone
 sudo chown -R $USER:$USER $PROJECT_DIR
-# Navigate to directory and clone into it (using . to clone into current dir)
 cd $PROJECT_DIR
-git clone -b ${gitBranch} ${gitRepoUrl} .
 echo "✓ Repository cloned successfully"
 ` : s3BucketName ? `
 echo "Creating fresh project directory: $PROJECT_DIR"
