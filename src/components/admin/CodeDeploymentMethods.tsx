@@ -2,9 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { GitBranch, Upload, Workflow, Container, Cloud, Copy, CheckCircle2 } from "lucide-react";
+import { GitBranch, Upload, Workflow, Container, Cloud, Copy, CheckCircle2, Rocket, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 interface CodeDeploymentMethodsProps {
   ec2Ip?: string;
@@ -13,6 +15,8 @@ interface CodeDeploymentMethodsProps {
 }
 
 export function CodeDeploymentMethods({ ec2Ip, instanceId, region }: CodeDeploymentMethodsProps) {
+  const [gitRemote] = useState(`ec2-user@${ec2Ip || 'YOUR_EC2_IP'}:/var/repo/app.git`);
+  
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard`);
@@ -383,6 +387,58 @@ aws deploy create-deployment \\
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Quick Setup Guide */}
+              <Alert className="border-primary/20 bg-primary/5">
+                <Rocket className="h-4 w-4 text-primary" />
+                <AlertDescription>
+                  <div className="space-y-3">
+                    <p className="font-semibold">🚀 Quick Setup - Copy & Run These Commands:</p>
+                    
+                    <div>
+                      <p className="text-sm font-medium mb-2">
+                        1️⃣ Add Git remote to your local repository:
+                      </p>
+                      <div className="relative">
+                        <pre className="bg-background p-3 rounded text-xs font-mono overflow-x-auto">
+                          git remote add production {gitRemote}
+                        </pre>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(`git remote add production ${gitRemote}`, "Git remote command")}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium mb-2">
+                        2️⃣ Deploy your application:
+                      </p>
+                      <div className="relative">
+                        <pre className="bg-background p-3 rounded text-xs font-mono">
+                          git push production main
+                        </pre>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard('git push production main', "Deploy command")}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      ✅ After setup, every push to main branch will automatically build and deploy your app!
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+
               <div>
                 <h4 className="font-semibold mb-2 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -397,7 +453,10 @@ aws deploy create-deployment \\
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">Setup Instructions</h4>
+                <h4 className="font-semibold mb-2">Complete Setup Instructions (Run on EC2)</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  First, SSH into your EC2 and run this setup script:
+                </p>
                 <div className="relative">
                   <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto font-mono">
                     {gitBareRepoScript}
