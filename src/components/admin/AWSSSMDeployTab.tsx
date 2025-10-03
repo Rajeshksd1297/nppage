@@ -37,15 +37,11 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
   const [gitRepoUrl, setGitRepoUrl] = useState('');
   const [gitBranch, setGitBranch] = useState('main');
   
-  // S3 Upload
-  const [useS3Upload, setUseS3Upload] = useState(false);
-  const [s3BucketName, setS3BucketName] = useState('');
-  const [uploadingToS3, setUploadingToS3] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  
   // Auto Upload
   const [autoUpload, setAutoUpload] = useState(false);
   const [uploadMethod, setUploadMethod] = useState<'s3' | 'sftp'>('s3');
+  const [s3BucketName, setS3BucketName] = useState('');
+  const [uploadingToS3, setUploadingToS3] = useState(false);
   const [sftpHost, setSftpHost] = useState("");
   const [sftpPort, setSftpPort] = useState("22");
   const [sftpUsername, setSftpUsername] = useState("");
@@ -143,63 +139,6 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
       }
       setUploadingToS3(false);
     }
-    // If manual S3 upload is enabled, upload files first
-    else if (useS3Upload && selectedFiles && selectedFiles.length > 0) {
-      if (!s3BucketName) {
-        toast({
-          title: "Missing S3 Bucket",
-          description: "Please enter your S3 bucket name",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setUploadingToS3(true);
-      try {
-        // Convert files to base64
-        const filePromises = Array.from(selectedFiles).map(async (file) => {
-          const arrayBuffer = await file.arrayBuffer();
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-          return {
-            path: file.webkitRelativePath || file.name,
-            content: base64,
-          };
-        });
-
-        const files = await Promise.all(filePromises);
-
-        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-          body: {
-            bucketName: s3BucketName,
-            region,
-            awsAccessKeyId,
-            awsSecretAccessKey,
-            files,
-          },
-        });
-
-        if (uploadError) throw uploadError;
-
-        if (!uploadData?.success) {
-          throw new Error(uploadData?.message || 'S3 upload failed');
-        }
-
-        toast({
-          title: "Files Uploaded to S3",
-          description: `${uploadData.uploadedFiles.length} files uploaded successfully`,
-        });
-      } catch (error: any) {
-        console.error('S3 upload error:', error);
-        toast({
-          title: "S3 Upload Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        setUploadingToS3(false);
-        return;
-      }
-      setUploadingToS3(false);
-    }
 
     setLoading(true);
     try {
@@ -215,7 +154,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
           autoSetupSSM,
           gitRepoUrl: gitRepoUrl.trim() || undefined,
           gitBranch: gitBranch.trim() || 'main',
-          s3BucketName: useS3Upload ? s3BucketName : undefined,
+          s3BucketName: autoUpload && uploadMethod === 's3' ? s3BucketName : undefined,
         }
       });
 
@@ -497,7 +436,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                 </AlertDescription>
               </Alert>
 
-              {!gitRepoUrl && !useS3Upload && !autoUpload && (
+              {!gitRepoUrl && !autoUpload && (
                 <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-sm space-y-2">
@@ -510,7 +449,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                       <div>sftp -i your-key.pem ec2-user@your-instance-ip</div>
                       <div>put -r ./your-project/* /var/www/{projectName}/</div>
                     </div>
-                    <p className="text-blue-800 dark:text-blue-200 pt-2">Or enable S3 Auto-Upload below</p>
+                    <p className="text-blue-800 dark:text-blue-200 pt-2">Or enable Auto Package & Upload below</p>
                   </AlertDescription>
                 </Alert>
               )}
@@ -650,70 +589,6 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                 </>
               )}
 
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-                <div className="space-y-1">
-                  <Label htmlFor="useS3Upload" className="font-semibold">
-                    Enable Manual S3 Upload
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Manually select and upload project files to S3
-                  </p>
-                </div>
-                <Switch
-                  id="useS3Upload"
-                  checked={useS3Upload}
-                  onCheckedChange={setUseS3Upload}
-                  disabled={autoUpload}
-                />
-              </div>
-
-              {useS3Upload && !autoUpload && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="s3BucketName">S3 Bucket Name *</Label>
-                    <Input
-                      id="s3BucketName"
-                      placeholder="my-deployment-bucket"
-                      value={s3BucketName}
-                      onChange={(e) => setS3BucketName(e.target.value)}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your S3 bucket must exist and your AWS credentials must have write access
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="projectFiles">Upload Project Files *</Label>
-                    <Input
-                      id="projectFiles"
-                      type="file"
-                      // @ts-ignore - webkitdirectory is not in TypeScript types
-                      webkitdirectory="true"
-                      directory="true"
-                      multiple
-                      onChange={(e) => setSelectedFiles(e.target.files)}
-                      className="cursor-pointer"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {selectedFiles ? `${selectedFiles.length} files selected` : 'Select your entire project folder'}
-                    </p>
-                  </div>
-
-                  <Alert>
-                    <Upload className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Auto-Upload Flow:</strong>
-                      <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-                        <li>Select your project folder above</li>
-                        <li>Click "Upload & Deploy" to upload files to S3</li>
-                        <li>Deployment script will sync from S3 to EC2</li>
-                        <li>Build and deploy automatically</li>
-                      </ol>
-                    </AlertDescription>
-                  </Alert>
-                </>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="gitRepoUrl">Git Repository URL (Optional)</Label>
@@ -767,14 +642,14 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
               <div className="pt-4">
                 <Button 
                   onClick={handleDeploy} 
-                  disabled={loading || uploadingToS3 || !awsAccessKeyId || !awsSecretAccessKey || !targetInstanceId || (useS3Upload && !autoUpload && (!s3BucketName || !selectedFiles)) || (autoUpload && !gitRepoUrl)}
+                  disabled={loading || uploadingToS3 || !awsAccessKeyId || !awsSecretAccessKey || !targetInstanceId || (autoUpload && !gitRepoUrl)}
                   className="w-full"
                   size="lg"
                 >
                   {uploadingToS3 ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {autoUpload ? `Auto-Packaging & Uploading to ${uploadMethod.toUpperCase()}...` : 'Uploading to S3...'}
+                      Auto-Packaging & Uploading to {uploadMethod.toUpperCase()}...
                     </>
                   ) : loading ? (
                     <>
@@ -783,8 +658,8 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                     </>
                   ) : (
                     <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      {autoUpload ? `Auto Package & Deploy` : useS3Upload ? 'Upload & Deploy' : 'Prepare Deployment'}
+                      <Rocket className="mr-2 h-4 w-4" />
+                      {autoUpload ? 'Auto Package & Deploy' : 'Prepare Deployment'}
                     </>
                   )}
                 </Button>
