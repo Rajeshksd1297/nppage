@@ -15,6 +15,7 @@ import { z } from "zod";
 import { LiveDeploymentMonitor } from "@/components/admin/LiveDeploymentMonitor";
 import { DeploymentProgressTracker } from "@/components/admin/DeploymentProgressTracker";
 import { DeploymentStatistics } from "@/components/admin/DeploymentStatistics";
+import { CodeDeploymentMethods } from "@/components/admin/CodeDeploymentMethods";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -374,9 +375,10 @@ export default function AWSDeployment() {
       
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
           <TabsTrigger value="deployments">Deployments</TabsTrigger>
+          <TabsTrigger value="code-deploy">Code Deployment</TabsTrigger>
           <TabsTrigger value="status">Status Check</TabsTrigger>
           <TabsTrigger value="statistics">Statistics</TabsTrigger>
           <TabsTrigger value="guide">Deployment Guide</TabsTrigger>
@@ -829,6 +831,14 @@ export default function AWSDeployment() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="code-deploy" className="space-y-6">
+          <CodeDeploymentMethods 
+            ec2Ip={deployments?.[0]?.ec2_public_ip}
+            instanceId={deployments?.[0]?.ec2_instance_id}
+            region={deployments?.[0]?.region || region}
+          />
         </TabsContent>
 
         <TabsContent value="status" className="space-y-6">
