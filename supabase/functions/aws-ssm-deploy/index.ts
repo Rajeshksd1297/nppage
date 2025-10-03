@@ -150,6 +150,9 @@ echo "Creating fresh project directory: $PROJECT_DIR"
 sudo mkdir -p $PROJECT_DIR
 sudo chown -R $USER:$USER $PROJECT_DIR
 
+# Ensure web root exists
+sudo mkdir -p /var/www/html
+
 # Create deployment files
 cd $PROJECT_DIR
 
@@ -167,8 +170,21 @@ ${buildCommand}
 
 # Deploy to web root - FRESH (remove all existing files)
 echo "⚠️  Clearing web root and deploying fresh..."
+sudo mkdir -p /var/www/html
 sudo rm -rf /var/www/html/*
-sudo cp -r dist/* /var/www/html/ 2>/dev/null || sudo cp -r build/* /var/www/html/ 2>/dev/null || echo "No dist or build folder found"
+
+# Copy build files
+if [ -d "dist" ]; then
+    echo "Deploying from dist folder..."
+    sudo cp -r dist/* /var/www/html/
+elif [ -d "build" ]; then
+    echo "Deploying from build folder..."
+    sudo cp -r build/* /var/www/html/
+else
+    echo "❌ Error: No dist or build folder found"
+    echo "Build may have failed. Check the logs above."
+    exit 1
+fi
 
 # Set proper permissions for nginx
 echo "Setting proper file permissions..."
@@ -236,8 +252,12 @@ fi
 PROJECT_DIR="/var/www/${projectName}"
 echo "Using existing project directory: $PROJECT_DIR"
 
+# Ensure directories exist
+sudo mkdir -p /var/www/html
+sudo mkdir -p $PROJECT_DIR
+
 # Create backup of current deployment
-if [ -d "/var/www/html" ]; then
+if [ -d "/var/www/html" ] && [ "$(ls -A /var/www/html)" ]; then
     echo "Creating backup of current deployment..."
     sudo cp -r /var/www/html "/var/www/html.backup.$BACKUP_TIMESTAMP"
     echo "✓ Backup created at /var/www/html.backup.$BACKUP_TIMESTAMP"
@@ -273,8 +293,18 @@ ${buildCommand}
 # Deploy to web root - CODE ONLY (preserve user data)
 echo "Deploying code updates (preserving user data)..."
 
-# Deploy new build
-sudo cp -r dist/* /var/www/html/ 2>/dev/null || sudo cp -r build/* /var/www/html/ 2>/dev/null || echo "No dist or build folder found"
+# Copy build files
+if [ -d "dist" ]; then
+    echo "Deploying from dist folder..."
+    sudo cp -r dist/* /var/www/html/
+elif [ -d "build" ]; then
+    echo "Deploying from build folder..."
+    sudo cp -r build/* /var/www/html/
+else
+    echo "❌ Error: No dist or build folder found"
+    echo "Build may have failed. Check the logs above."
+    exit 1
+fi
 
 # Set proper permissions for nginx
 echo "Setting proper file permissions..."
