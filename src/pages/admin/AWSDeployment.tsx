@@ -17,7 +17,7 @@ import { DeploymentProgressTracker } from "@/components/admin/DeploymentProgress
 import { DeploymentStatistics } from "@/components/admin/DeploymentStatistics";
 import { CodeDeploymentMethods } from "@/components/admin/CodeDeploymentMethods";
 import { AutoDeployButton } from "@/components/admin/AutoDeployButton";
-import { SSMDeployGuide } from "@/components/admin/SSMDeployGuide";
+import { AWSSSMDeployTab } from "@/components/admin/AWSSSMDeployTab";
 import { GitAuthSetup } from "@/components/admin/GitAuthSetup";
 const awsRegions = [{
   value: "us-east-1",
@@ -849,10 +849,9 @@ export default function AWSDeployment() {
 
         {/* SSM No-Key Deploy Tab */}
         <TabsContent value="ssm-deploy" className="space-y-6">
-          <SSMDeployGuide 
+          <AWSSSMDeployTab 
             instanceId={deployments?.[0]?.ec2_instance_id}
-            githubRepo="https://github.com/your-username/your-repo.git"
-            branch="main"
+            defaultRegion={region}
           />
         </TabsContent>
 

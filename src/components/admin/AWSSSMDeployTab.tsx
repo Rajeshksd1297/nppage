@@ -1,0 +1,394 @@
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface AWSSSMDeployTabProps {
+  instanceId?: string;
+  defaultRegion?: string;
+}
+
+export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWSSSMDeployTabProps) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [deployScript, setDeployScript] = useState("");
+  const [deployInstructions, setDeployInstructions] = useState("");
+  
+  // AWS Credentials
+  const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
+  const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
+  const [region, setRegion] = useState(defaultRegion);
+  const [targetInstanceId, setTargetInstanceId] = useState(instanceId || "");
+  
+  // Deployment Config
+  const [projectName, setProjectName] = useState("my-app");
+  const [buildCommand, setBuildCommand] = useState("npm install && npm run build");
+
+  // Visibility toggles
+  const [showAccessKey, setShowAccessKey] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
+
+  const handleDeploy = async () => {
+    if (!awsAccessKeyId || !awsSecretAccessKey || !region || !targetInstanceId) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all AWS credentials and instance details",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('aws-ssm-deploy', {
+        body: {
+          instanceId: targetInstanceId,
+          region,
+          awsAccessKeyId,
+          awsSecretAccessKey,
+          buildCommand,
+          projectName,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setDeployScript(data.deployScript || "");
+        setDeployInstructions(data.instructions || "");
+        toast({
+          title: "Deployment Prepared",
+          description: "Check the Script & Instructions tabs for next steps",
+        });
+      }
+    } catch (error: any) {
+      console.error('Deployment error:', error);
+      toast({
+        title: "Deployment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: "Content copied to clipboard",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Server className="w-5 h-5" />
+            AWS SSM Deployment
+          </CardTitle>
+          <CardDescription>
+            Deploy directly to EC2 without SSH keys or public GitHub repositories. Enter credentials when you're ready to push.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Tabs defaultValue="configure" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="configure">
+            <Key className="w-4 h-4 mr-2" />
+            Configure
+          </TabsTrigger>
+          <TabsTrigger value="deploy">
+            <Upload className="w-4 h-4 mr-2" />
+            Deploy
+          </TabsTrigger>
+          <TabsTrigger value="script">
+            <Code className="w-4 h-4 mr-2" />
+            Script
+          </TabsTrigger>
+          <TabsTrigger value="instructions">
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Instructions
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="configure" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                AWS Credentials
+              </CardTitle>
+              <CardDescription>
+                Your credentials are only used for this deployment and not stored permanently
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  These credentials are used temporarily to execute the deployment command via AWS Systems Manager (SSM). They are never stored in our database.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label htmlFor="accessKey">AWS Access Key ID</Label>
+                <div className="relative">
+                  <Input
+                    id="accessKey"
+                    type={showAccessKey ? "text" : "password"}
+                    placeholder="AKIA..."
+                    value={awsAccessKeyId}
+                    onChange={(e) => setAwsAccessKeyId(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowAccessKey(!showAccessKey)}
+                  >
+                    {showAccessKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="secretKey">AWS Secret Access Key</Label>
+                <div className="relative">
+                  <Input
+                    id="secretKey"
+                    type={showSecretKey ? "text" : "password"}
+                    placeholder="Enter your AWS secret key"
+                    value={awsSecretAccessKey}
+                    onChange={(e) => setAwsSecretAccessKey(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowSecretKey(!showSecretKey)}
+                  >
+                    {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="region">AWS Region</Label>
+                  <Input
+                    id="region"
+                    placeholder="us-east-1"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instanceId">EC2 Instance ID</Label>
+                  <Input
+                    id="instanceId"
+                    placeholder="i-1234567890abcdef0"
+                    value={targetInstanceId}
+                    onChange={(e) => setTargetInstanceId(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Alert>
+                <Server className="h-4 w-4" />
+                <AlertDescription>
+                  Make sure your EC2 instance has the SSM agent installed and an IAM role with SSM permissions attached.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>How SSM Deployment Works</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
+                <div>
+                  <strong>No SSH Keys Required:</strong> Uses AWS Systems Manager (SSM) for secure, encrypted access to your EC2 instance
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
+                <div>
+                  <strong>No Public GitHub:</strong> Deploy directly from your local environment without exposing your repository publicly
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
+                <div>
+                  <strong>Secure Credentials:</strong> AWS credentials are used only for this request and never stored
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600" />
+                <div>
+                  <strong>Automated Setup:</strong> Installs Node.js, dependencies, and configures Nginx automatically
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="deploy" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Deployment Configuration</CardTitle>
+              <CardDescription>
+                Configure your project settings before deploying
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="projectName">Project Name</Label>
+                <Input
+                  id="projectName"
+                  placeholder="my-app"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will be used as the directory name: /var/www/{projectName}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="buildCommand">Build Command</Label>
+                <Input
+                  id="buildCommand"
+                  placeholder="npm install && npm run build"
+                  value={buildCommand}
+                  onChange={(e) => setBuildCommand(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The command to build your project (e.g., npm run build, yarn build)
+                </p>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  onClick={handleDeploy} 
+                  disabled={loading || !awsAccessKeyId || !awsSecretAccessKey || !targetInstanceId}
+                  className="w-full"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Preparing Deployment...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Prepare Deployment
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Note:</strong> After clicking "Prepare Deployment", you'll receive a deployment script and AWS CLI commands in the following tabs. You'll need to execute these commands from your terminal with AWS CLI installed.
+            </AlertDescription>
+          </Alert>
+        </TabsContent>
+
+        <TabsContent value="script" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Deployment Script</CardTitle>
+              <CardDescription>
+                {deployScript ? "Generated bash script for your deployment" : "Click 'Prepare Deployment' in the Deploy tab to generate the script"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {deployScript ? (
+                <div className="space-y-2">
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(deployScript)}
+                    >
+                      Copy Script
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={deployScript}
+                    readOnly
+                    className="font-mono text-xs h-96"
+                  />
+                </div>
+              ) : (
+                <Alert>
+                  <Code className="h-4 w-4" />
+                  <AlertDescription>
+                    The deployment script will appear here after you configure and prepare the deployment.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="instructions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Deployment Instructions</CardTitle>
+              <CardDescription>
+                {deployInstructions ? "Follow these steps to complete your deployment" : "Instructions will appear after preparing deployment"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {deployInstructions ? (
+                <div className="space-y-2">
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(deployInstructions)}
+                    >
+                      Copy Instructions
+                    </Button>
+                  </div>
+                  <pre className="p-4 bg-muted rounded-lg text-xs whitespace-pre-wrap font-mono">
+                    {deployInstructions}
+                  </pre>
+                </div>
+              ) : (
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertDescription>
+                    Step-by-step instructions for executing the deployment will appear here once you've prepared the deployment in the Deploy tab.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
