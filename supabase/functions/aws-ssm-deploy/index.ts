@@ -152,27 +152,23 @@ fi
 PROJECT_DIR="/var/www/${projectName}"
 echo "⚠️  Removing existing project directory: $PROJECT_DIR"
 sudo rm -rf $PROJECT_DIR
-echo "Creating fresh project directory: $PROJECT_DIR"
-sudo mkdir -p $PROJECT_DIR
-sudo chown -R $USER:$USER $PROJECT_DIR
 
 # Ensure web root exists
 sudo mkdir -p /var/www/html
 
-# Clone or update repository
-cd $PROJECT_DIR
 ${gitRepoUrl ? `
 echo "Cloning repository from ${gitRepoUrl}..."
-if [ -d ".git" ]; then
-    echo "Repository exists, pulling latest changes..."
-    git fetch origin
-    git checkout ${gitBranch}
-    git pull origin ${gitBranch}
-else
-    echo "Cloning fresh repository..."
-    git clone -b ${gitBranch} ${gitRepoUrl} .
-fi
+# Clone into parent directory with project name
+cd /var/www
+git clone -b ${gitBranch} ${gitRepoUrl} ${projectName}
+cd $PROJECT_DIR
+sudo chown -R $USER:$USER $PROJECT_DIR
+echo "✓ Repository cloned successfully"
 ` : s3BucketName ? `
+echo "Creating fresh project directory: $PROJECT_DIR"
+sudo mkdir -p $PROJECT_DIR
+sudo chown -R $USER:$USER $PROJECT_DIR
+cd $PROJECT_DIR
 echo "Syncing files from S3 bucket: ${s3BucketName}..."
 aws s3 sync s3://${s3BucketName}/ $PROJECT_DIR/ --region ${region}
 if [ ! -f "package.json" ]; then
