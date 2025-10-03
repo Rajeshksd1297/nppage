@@ -42,6 +42,12 @@ serve(async (req) => {
 
     console.log('Deployment record updated with GitHub info');
 
+    // Extract repo path from GitHub URL (e.g., "username/repo" from "https://github.com/username/repo.git")
+    const repoPath = githubRepo
+      .replace('https://github.com/', '')
+      .replace('http://github.com/', '')
+      .replace('.git', '');
+
     // Return instructions for automated deployment
     const deploymentInstructions = `
 ===============================================================
@@ -125,7 +131,7 @@ jobs:
             --parameters 'commands=[
               "sudo rm -rf /var/www/html/*",
               "sudo mkdir -p /var/www/html",
-              "cd /tmp && wget https://github.com/${githubRepo#https://github.com/}/archive/refs/heads/${branch}.zip || echo downloading",
+              "cd /tmp && wget https://github.com/${repoPath}/archive/refs/heads/${branch}.zip || echo downloading",
               "cd /var/www/html",
               "# Copy build files here",
               "sudo systemctl restart nginx"
