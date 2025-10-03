@@ -291,7 +291,6 @@ export default function DomainSettings() {
                       <option value="cloudflare">Cloudflare</option>
                       <option value="route53">AWS Route 53</option>
                       <option value="namecheap">Namecheap</option>
-                      <option value="godaddy">GoDaddy</option>
                       <option value="manual">Manual Configuration</option>
                     </select>
                   </div>

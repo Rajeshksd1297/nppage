@@ -70,8 +70,6 @@ import Home from "./pages/Home";
 import PublicPage from "./pages/PublicPage";
 import PublisherPublicView from "./pages/PublisherPublicView";
 import AWSDeployment from "./pages/admin/AWSDeployment";
-import GoDaddyDeployment from "./pages/admin/GoDaddyDeployment";
-import GoDaddySettings from "./pages/admin/GoDaddySettings";
 import BackupSecurityCenter from "./pages/admin/BackupSecurityCenter";
 import ProductionReadiness from "./pages/admin/ProductionReadiness";
 import RoleManagement from "./pages/admin/RoleManagement";
@@ -444,20 +442,6 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <AWSDeployment />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
-            <Route path="/admin/godaddy-deployment" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <GoDaddyDeployment />
-                </AdminAccessGuard>
-              </DashboardLayout>
-            } />
-            <Route path="/admin/godaddy-settings" element={
-              <DashboardLayout>
-                <AdminAccessGuard>
-                  <GoDaddySettings />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
