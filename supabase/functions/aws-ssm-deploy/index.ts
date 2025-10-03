@@ -16,6 +16,7 @@ interface DeploymentRequest {
   autoSetupSSM?: boolean;
   gitRepoUrl?: string;
   gitBranch?: string;
+  s3BucketName?: string;
   files?: Array<{ path: string; content: string }>;
 }
 
@@ -36,6 +37,7 @@ serve(async (req) => {
       autoSetupSSM = true,
       gitRepoUrl,
       gitBranch = "main",
+      s3BucketName,
       files 
     }: DeploymentRequest = await req.json();
 
@@ -170,8 +172,17 @@ else
     echo "Cloning fresh repository..."
     git clone -b ${gitBranch} ${gitRepoUrl} .
 fi
+` : s3BucketName ? `
+echo "Syncing files from S3 bucket: ${s3BucketName}..."
+aws s3 sync s3://${s3BucketName}/ $PROJECT_DIR/ --region ${region}
+if [ ! -f "package.json" ]; then
+    echo "❌ Error: No package.json found after S3 sync"
+    echo "Make sure you uploaded your project files to S3 bucket: ${s3BucketName}"
+    exit 1
+fi
+echo "✓ Files synced from S3 successfully"
 ` : `
-echo "⚠️  No Git repository URL provided - Using existing files on instance"
+echo "⚠️  No Git repository URL or S3 bucket provided - Using existing files on instance"
 echo "Please ensure your project files are already uploaded to $PROJECT_DIR"
 echo ""
 echo "If files are not present, you can upload them using:"
@@ -312,8 +323,17 @@ else
     echo "Repository not found, cloning..."
     git clone -b ${gitBranch} ${gitRepoUrl} .
 fi
+` : s3BucketName ? `
+echo "Syncing updated files from S3 bucket: ${s3BucketName}..."
+aws s3 sync s3://${s3BucketName}/ $PROJECT_DIR/ --region ${region}
+if [ ! -f "package.json" ]; then
+    echo "❌ Error: No package.json found after S3 sync"
+    echo "Make sure you uploaded your project files to S3 bucket: ${s3BucketName}"
+    exit 1
+fi
+echo "✓ Files synced from S3 successfully"
 ` : `
-echo "⚠️  No Git repository URL provided - Using existing files on instance"
+echo "⚠️  No Git repository URL or S3 bucket provided - Using existing files on instance"
 echo "Checking for existing project files in $PROJECT_DIR..."
 if [ ! -f "package.json" ]; then
     echo "❌ Error: No package.json found in $PROJECT_DIR"
