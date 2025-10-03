@@ -304,6 +304,27 @@ const AWSSSMDeployment = () => {
                 </AlertDescription>
               </Alert>
 
+              {!gitRepoUrl && (
+                <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-sm space-y-2">
+                    <strong className="text-blue-900 dark:text-blue-100">Manual Upload Required:</strong>
+                    <p className="text-blue-800 dark:text-blue-200">Before deploying, upload your project files to your EC2 instance:</p>
+                    <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded font-mono text-xs space-y-1">
+                      <div><strong>Option A - SCP:</strong></div>
+                      <div>scp -i your-key.pem -r ./your-project/* ec2-user@your-instance-ip:/var/www/{projectName}/</div>
+                      <div className="pt-2"><strong>Option B - SFTP:</strong></div>
+                      <div>sftp -i your-key.pem ec2-user@your-instance-ip</div>
+                      <div>put -r ./your-project/* /var/www/{projectName}/</div>
+                      <div className="pt-2"><strong>Option C - AWS S3:</strong></div>
+                      <div>aws s3 sync ./your-project s3://your-bucket/project/</div>
+                      <div>Then on EC2: aws s3 sync s3://your-bucket/project/ /var/www/{projectName}/</div>
+                    </div>
+                    <p className="text-blue-800 dark:text-blue-200 pt-2">✓ Upload files first, then click "Prepare Deployment"</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="gitRepoUrl">Git Repository URL (Optional)</Label>
                 <Input
