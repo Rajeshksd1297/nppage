@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff, Package, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 
 interface AWSSSMDeployTabProps {
   instanceId?: string;
@@ -32,6 +33,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
   const [projectName, setProjectName] = useState("my-app");
   const [buildCommand, setBuildCommand] = useState("npm install && npm run build");
   const [deploymentType, setDeploymentType] = useState<'fresh' | 'code-only'>('code-only');
+  const [autoSetupSSM, setAutoSetupSSM] = useState(true);
 
   // Visibility toggles
   const [showAccessKey, setShowAccessKey] = useState(false);
@@ -58,6 +60,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
           buildCommand,
           projectName,
           deploymentType,
+          autoSetupSSM,
         }
       });
 
@@ -210,10 +213,29 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
                 </div>
               </div>
 
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-1">
+                  <Label htmlFor="autoSetupSSM" className="font-semibold">
+                    Auto-Setup SSM Permissions
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically configure IAM role and attach SSM permissions if not present
+                  </p>
+                </div>
+                <Switch
+                  id="autoSetupSSM"
+                  checked={autoSetupSSM}
+                  onCheckedChange={setAutoSetupSSM}
+                />
+              </div>
+
               <Alert>
                 <Server className="h-4 w-4" />
                 <AlertDescription>
-                  Make sure your EC2 instance has the SSM agent installed and an IAM role with SSM permissions attached.
+                  {autoSetupSSM 
+                    ? "The deployment instructions will include commands to automatically setup SSM permissions if they're not already configured."
+                    : "Make sure your EC2 instance has the SSM agent installed and an IAM role with SSM permissions (AmazonSSMManagedInstanceCore policy) attached."
+                  }
                 </AlertDescription>
               </Alert>
             </CardContent>

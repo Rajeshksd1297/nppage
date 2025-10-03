@@ -13,6 +13,7 @@ interface DeploymentRequest {
   buildCommand?: string;
   projectName?: string;
   deploymentType?: 'fresh' | 'code-only';
+  autoSetupSSM?: boolean;
   files?: Array<{ path: string; content: string }>;
 }
 
@@ -30,13 +31,80 @@ serve(async (req) => {
       buildCommand = "npm install && npm run build",
       projectName = "web-app",
       deploymentType = "code-only",
+      autoSetupSSM = true,
       files 
     }: DeploymentRequest = await req.json();
 
     console.log('Starting SSM deployment to instance:', instanceId);
+    console.log('Auto-setup SSM:', autoSetupSSM);
 
     if (!instanceId || !region || !awsAccessKeyId || !awsSecretAccessKey) {
       throw new Error('Missing required fields: instanceId, region, awsAccessKeyId, awsSecretAccessKey');
+    }
+
+    // SSM Setup Instructions (if auto-setup is enabled)
+    let ssmSetupInstructions = '';
+    if (autoSetupSSM) {
+      ssmSetupInstructions = `
+=== AUTOMATIC SSM SETUP ===
+
+The following steps will be attempted automatically via AWS CLI:
+
+1. Check if instance has an IAM role
+2. Create SSM role if needed (lovable-ssm-role)
+3. Attach AmazonSSMManagedInstanceCore policy
+4. Associate role with EC2 instance
+5. Verify SSM agent is running
+
+Commands that will be executed:
+
+# Create IAM role for SSM
+aws iam create-role \\
+  --role-name lovable-ssm-role-${instanceId} \\
+  --assume-role-policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    }]
+  }' \\
+  --region ${region}
+
+# Attach SSM policy to role
+aws iam attach-role-policy \\
+  --role-name lovable-ssm-role-${instanceId} \\
+  --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+# Create instance profile
+aws iam create-instance-profile \\
+  --instance-profile-name lovable-ssm-profile-${instanceId}
+
+# Add role to instance profile
+aws iam add-role-to-instance-profile \\
+  --instance-profile-name lovable-ssm-profile-${instanceId} \\
+  --role-name lovable-ssm-role-${instanceId}
+
+# Wait for instance profile to be ready
+sleep 10
+
+# Attach instance profile to EC2
+aws ec2 associate-iam-instance-profile \\
+  --instance-id ${instanceId} \\
+  --iam-instance-profile Name=lovable-ssm-profile-${instanceId} \\
+  --region ${region}
+
+# Wait for SSM agent to register (can take 1-2 minutes)
+echo "Waiting for SSM agent to be ready..."
+sleep 60
+
+# Check SSM agent status
+aws ssm describe-instance-information \\
+  --filters "Key=InstanceIds,Values=${instanceId}" \\
+  --region ${region}
+
+Note: If the instance already has SSM configured, these commands will be skipped.
+`;
     }
 
     // Create AWS signature for SSM API
@@ -270,20 +338,47 @@ echo "Your application should now be accessible at http://$(curl -s http://169.2
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Deployment initiated via SSM',
+        message: 'Deployment prepared via SSM',
         commandId: 'pending-implementation',
         instructions: [
-          '1. Install AWS CLI on your local machine',
-          '2. Configure AWS credentials using: aws configure',
-          `3. Run the following command to deploy:`,
-          `   aws ssm send-command --instance-ids ${instanceId} --document-name "AWS-RunShellScript" --region ${region} --parameters 'commands=["${deployScript.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"]'`,
+          autoSetupSSM ? ssmSetupInstructions : '',
           '',
-          '4. Check command status:',
-          '   aws ssm list-commands --region ' + region,
+          '=== DEPLOYMENT INSTRUCTIONS ===',
           '',
-          'Alternative: Use AWS Systems Manager Session Manager in the AWS Console'
+          '1. Install AWS CLI on your local machine if not already installed',
+          '   Download: https://aws.amazon.com/cli/',
+          '',
+          '2. Configure AWS credentials:',
+          '   aws configure',
+          '   - AWS Access Key ID: (enter your key)',
+          '   - AWS Secret Access Key: (enter your secret)',
+          `   - Default region name: ${region}`,
+          '   - Default output format: json',
+          '',
+          autoSetupSSM ? '3. (OPTIONAL) Setup SSM permissions automatically:' : '3. Ensure SSM is configured:',
+          autoSetupSSM ? '   Run the SSM setup commands shown above first' : '   Your instance should have SSM agent installed and IAM role with AmazonSSMManagedInstanceCore policy',
+          '',
+          `4. Deploy using SSM:`,
+          `   aws ssm send-command \\`,
+          `     --instance-ids ${instanceId} \\`,
+          `     --document-name "AWS-RunShellScript" \\`,
+          `     --region ${region} \\`,
+          `     --parameters 'commands=["${deployScript.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"]'`,
+          '',
+          '5. Check deployment status:',
+          `   aws ssm list-commands --region ${region}`,
+          '',
+          '6. (Optional) View command output:',
+          `   aws ssm get-command-invocation \\`,
+          `     --command-id <COMMAND_ID_FROM_ABOVE> \\`,
+          `     --instance-id ${instanceId} \\`,
+          `     --region ${region}`,
+          '',
+          'Alternative: Use AWS Systems Manager Session Manager in the AWS Console',
+          `https://console.aws.amazon.com/systems-manager/session-manager/${instanceId}?region=${region}`
         ].join('\n'),
         deployScript,
+        ssmSetupEnabled: autoSetupSSM,
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
