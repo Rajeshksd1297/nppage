@@ -116,7 +116,8 @@ fi
 echo "Installing dependencies..."
 npm install
 
-echo "Building application..."
+echo "Building application with increased memory..."
+export NODE_OPTIONS="--max-old-space-size=4096"
 ${buildCommand}
 
 # Deploy to web root
