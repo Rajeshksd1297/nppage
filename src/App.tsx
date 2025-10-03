@@ -70,6 +70,7 @@ import Home from "./pages/Home";
 import PublicPage from "./pages/PublicPage";
 import PublisherPublicView from "./pages/PublisherPublicView";
 import AWSDeployment from "./pages/admin/AWSDeployment";
+import AWSSSMDeployment from "./pages/admin/AWSSSMDeployment";
 import BackupSecurityCenter from "./pages/admin/BackupSecurityCenter";
 import ProductionReadiness from "./pages/admin/ProductionReadiness";
 import RoleManagement from "./pages/admin/RoleManagement";
@@ -442,6 +443,13 @@ function App() {
               <DashboardLayout>
                 <AdminAccessGuard>
                   <AWSDeployment />
+                </AdminAccessGuard>
+              </DashboardLayout>
+            } />
+            <Route path="/admin/aws-ssm-deployment" element={
+              <DashboardLayout>
+                <AdminAccessGuard>
+                  <AWSSSMDeployment />
                 </AdminAccessGuard>
               </DashboardLayout>
             } />
