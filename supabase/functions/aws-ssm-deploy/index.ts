@@ -148,17 +148,17 @@ if ! command -v nginx &> /dev/null; then
     sudo systemctl enable nginx
 fi
 
-# FRESH INSTALLATION - Remove all existing data
+# FRESH INSTALLATION - Clean install (wipe /var/www first)
 PROJECT_DIR="/var/www/${projectName}"
-echo "⚠️  Removing existing project directory: $PROJECT_DIR"
-sudo rm -rf $PROJECT_DIR
+echo "⚠️  WARNING: Performing clean install - wiping /var/www/* first"
+sudo rm -rf /var/www/*
 
 # Ensure web root exists
 sudo mkdir -p /var/www/html
 
 ${gitRepoUrl ? `
 echo "Cloning repository from ${gitRepoUrl}..."
-# Let Git create the directory - don't pre-create it
+# Clone into clean directory
 git clone -b ${gitBranch} ${gitRepoUrl} $PROJECT_DIR
 # Set proper ownership after clone
 sudo chown -R $USER:$USER $PROJECT_DIR
