@@ -15,5 +15,8 @@ verify_jwt = true
 [functions.aws-deploy]
 verify_jwt = true
 
+[functions.deploy-to-ec2]
+verify_jwt = true
+
 [functions.aws-instance-details]
 verify_jwt = true
