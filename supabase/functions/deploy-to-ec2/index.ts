@@ -114,7 +114,7 @@ fi
 # Create deployment directory
 DEPLOY_DIR="/var/www/${projectName}"
 sudo mkdir -p \\$DEPLOY_DIR
-sudo chown -R ec2-user:ec2-user \\$DEPLOY_DIR
+sudo chown -R \\$USER:\\$USER \\$DEPLOY_DIR
 cd \\$DEPLOY_DIR
 
 # Clone or update repository
