@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, Upload, Key, Server, Code, CheckCircle2, AlertCircle, Eye, EyeOff, Package, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface AWSSSMDeployTabProps {
   instanceId?: string;
@@ -30,6 +31,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
   // Deployment Config
   const [projectName, setProjectName] = useState("my-app");
   const [buildCommand, setBuildCommand] = useState("npm install && npm run build");
+  const [deploymentType, setDeploymentType] = useState<'fresh' | 'code-only'>('code-only');
 
   // Visibility toggles
   const [showAccessKey, setShowAccessKey] = useState(false);
@@ -55,6 +57,7 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
           awsSecretAccessKey,
           buildCommand,
           projectName,
+          deploymentType,
         }
       });
 
@@ -258,6 +261,56 @@ export const AWSSSMDeployTab = ({ instanceId, defaultRegion = "us-east-1" }: AWS
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <Label>Deployment Type</Label>
+                <RadioGroup value={deploymentType} onValueChange={(value: 'fresh' | 'code-only') => setDeploymentType(value)}>
+                  <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer">
+                    <RadioGroupItem value="code-only" id="code-only" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="code-only" className="cursor-pointer font-semibold flex items-center gap-2">
+                        <Code className="w-4 h-4" />
+                        Code Only Update (Recommended)
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Updates only your application code. Preserves all user data, databases, uploads, and configurations. Safe for production.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded">✓ Keeps user data</span>
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded">✓ Preserves database</span>
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded">✓ Zero downtime</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-accent cursor-pointer border-orange-200 dark:border-orange-800">
+                    <RadioGroupItem value="fresh" id="fresh" className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor="fresh" className="cursor-pointer font-semibold flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        Fresh Installation
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Complete clean installation. Removes all existing data and starts fresh. Use only for initial setup or testing.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-2 py-0.5 rounded">⚠ Deletes all data</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-2 py-0.5 rounded">⚠ Wipes database</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-2 py-0.5 rounded">⚠ Removes uploads</span>
+                      </div>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {deploymentType === 'fresh' && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Warning:</strong> Fresh installation will permanently delete all existing data, databases, uploaded files, and configurations. This action cannot be undone.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="projectName">Project Name</Label>
                 <Input
