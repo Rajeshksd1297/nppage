@@ -42,10 +42,10 @@ serve(async (req) => {
 
     console.log('Deployment record updated with GitHub info');
 
-    // Return instructions for manual deployment via SSH
+    // Return instructions for automated deployment
     const deploymentInstructions = `
 ===============================================================
-DEPLOYMENT INSTRUCTIONS FOR EC2
+AUTOMATED DEPLOYMENT OPTIONS FOR EC2
 ===============================================================
 
 Instance: ${instanceId}
@@ -53,15 +53,81 @@ IP: ${ec2Ip}
 Repository: ${githubRepo}
 Branch: ${branch}
 
-Follow these steps to deploy your application:
+===============================================================
+OPTION 1: AWS SSM (NO SSH KEY REQUIRED - RECOMMENDED)
+===============================================================
 
-STEP 1: SSH into your EC2 instance
-   ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
-   
-   OR for Amazon Linux:
-   ssh -i /path/to/your-keypair.pem ec2-user@${ec2Ip}
+This method uses AWS Systems Manager and requires NO .pem file!
 
-STEP 2: Copy and save this script as deploy.sh
+Prerequisites:
+1. Install AWS CLI: https://aws.amazon.com/cli/
+2. Install Session Manager plugin:
+   https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
+
+3. Ensure your EC2 instance has SSM role attached:
+   - Go to EC2 Console > Instance > Actions > Security > Modify IAM role
+   - Attach: AmazonSSMManagedInstanceCore
+
+Connect without SSH key:
+   aws ssm start-session --target ${instanceId} --region us-east-1
+
+Then run the deployment script below.
+
+===============================================================
+OPTION 2: GITHUB ACTIONS (FULLY AUTOMATED)
+===============================================================
+
+Add this workflow to .github/workflows/deploy.yml in your repo:
+
+name: Deploy to EC2
+on:
+  push:
+    branches: [${branch}]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to EC2 via SSM
+        env:
+          AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          aws ssm send-command \\
+            --instance-ids ${instanceId} \\
+            --document-name "AWS-RunShellScript" \\
+            --parameters 'commands=[
+              "cd /var/www/${projectName} || mkdir -p /var/www/${projectName}",
+              "cd /var/www/${projectName}",
+              "if [ -d .git ]; then git pull origin ${branch}; else git clone -b ${branch} ${githubRepo} .; fi",
+              "npm install",
+              "${buildCommand}",
+              "sudo rm -rf /var/www/html/*",
+              "sudo cp -r dist/* /var/www/html/",
+              "sudo systemctl restart nginx"
+            ]' \\
+            --output text
+
+Then add these secrets to GitHub:
+Settings > Secrets > Actions > New repository secret
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+
+===============================================================
+OPTION 3: MANUAL SSH (If you still prefer SSH)
+===============================================================
+
+ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
+
+Then run the deployment script:
+
+===============================================================
+DEPLOYMENT SCRIPT (deploy.sh)
+===============================================================
 
 #!/bin/bash
 set -e
@@ -152,11 +218,20 @@ echo "Done! Visit: http://${ec2Ip}"
 
 ===============================================================
 
-STEP 3: Run the deployment
-   chmod +x deploy.sh
-   bash deploy.sh
+To run this script:
 
-IMPORTANT: Replace /path/to/your-keypair.pem with your actual key file path
+Via SSM (no key needed):
+   aws ssm start-session --target ${instanceId}
+   # Then paste and run the script above
+
+Via SSH (requires .pem file):
+   ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
+   # Then paste and run the script above
+
+===============================================================
+RECOMMENDATION: Use Option 1 (SSM) or Option 2 (GitHub Actions)
+for automated deployment without managing SSH keys!
+===============================================================
 `;
 
     return new Response(

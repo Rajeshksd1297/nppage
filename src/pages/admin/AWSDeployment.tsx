@@ -17,6 +17,7 @@ import { DeploymentProgressTracker } from "@/components/admin/DeploymentProgress
 import { DeploymentStatistics } from "@/components/admin/DeploymentStatistics";
 import { CodeDeploymentMethods } from "@/components/admin/CodeDeploymentMethods";
 import { AutoDeployButton } from "@/components/admin/AutoDeployButton";
+import { SSMDeployGuide } from "@/components/admin/SSMDeployGuide";
 const awsRegions = [{
   value: "us-east-1",
   label: "US East (N. Virginia)"
@@ -376,10 +377,11 @@ export default function AWSDeployment() {
       
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="settings">AWS Configuration</TabsTrigger>
           <TabsTrigger value="deployments">Deployments</TabsTrigger>
           <TabsTrigger value="auto-deploy">Auto Deploy</TabsTrigger>
+          <TabsTrigger value="ssm-deploy">No-Key Deploy</TabsTrigger>
           <TabsTrigger value="code-deploy">Code Deployment</TabsTrigger>
           <TabsTrigger value="status">Status Check</TabsTrigger>
           <TabsTrigger value="statistics">Statistics</TabsTrigger>
@@ -840,6 +842,15 @@ export default function AWSDeployment() {
           <AutoDeployButton 
             ec2Ip={deployments?.[0]?.ec2_public_ip}
             instanceId={deployments?.[0]?.ec2_instance_id}
+          />
+        </TabsContent>
+
+        {/* SSM No-Key Deploy Tab */}
+        <TabsContent value="ssm-deploy" className="space-y-6">
+          <SSMDeployGuide 
+            instanceId={deployments?.[0]?.ec2_instance_id}
+            githubRepo="https://github.com/your-username/your-repo.git"
+            branch="main"
           />
         </TabsContent>
 
