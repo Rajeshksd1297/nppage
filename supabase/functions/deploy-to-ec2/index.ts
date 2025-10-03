@@ -48,149 +48,37 @@ serve(async (req) => {
       .replace('http://github.com/', '')
       .replace('.git', '');
 
-    // Return instructions for automated deployment
-    const deploymentInstructions = `
-===============================================================
-AUTOMATED DEPLOYMENT OPTIONS FOR EC2
-===============================================================
-
-Instance: ${instanceId}
-IP: ${ec2Ip}
-Repository: ${githubRepo}
-Branch: ${branch}
-
-===============================================================
-OPTION 1: AWS SSM (NO SSH KEY - RECOMMENDED)
-===============================================================
-
-RECOMMENDED: Use this method to avoid all SSH and Git auth issues!
-
-Prerequisites:
-1. Install AWS CLI: https://aws.amazon.com/cli/
-2. Install Session Manager plugin:
-   https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
-3. EC2 instance must have SSM role: AmazonSSMManagedInstanceCore
-
-Connect and deploy:
-   aws ssm start-session --target ${instanceId} --region us-east-1
-
-IMPORTANT - Git Authentication Setup:
-Before running deployment, setup Git authentication on EC2:
-
-METHOD A - SSH Key (Recommended):
-   ssh-keygen -t ed25519 -C "your-email@example.com"
-   cat ~/.ssh/id_ed25519.pub
-   # Add this key to GitHub: Settings > SSH Keys > New SSH key
-
-METHOD B - Personal Access Token:
-   # Create token at: https://github.com/settings/tokens
-   # Set TOKEN below, then use HTTPS URL with token
-
-===============================================================
-OPTION 2: GITHUB ACTIONS (FULLY AUTOMATED - BEST)
-===============================================================
-
-This eliminates ALL manual steps! Set it up once, deploy on every push.
-
-1. Create .github/workflows/deploy.yml in your repo with this content:
-
-name: Deploy to EC2
-on:
-  push:
-    branches: [${branch}]
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Build Application
-        run: |
-          npm install
-          ${buildCommand}
-      
-      - name: Deploy to EC2 via SSM
-        env:
-          AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          # Install AWS CLI
-          aws --version || (curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install)
-          
-          # Deploy built files
-          tar -czf dist.tar.gz dist/
-          aws s3 cp dist.tar.gz s3://temp-deploy-bucket-${instanceId}/dist.tar.gz || echo "Using SSM fallback"
-          
-          # Execute deployment on EC2
-          aws ssm send-command \\
-            --instance-ids ${instanceId} \\
-            --document-name "AWS-RunShellScript" \\
-            --parameters 'commands=[
-              "sudo rm -rf /var/www/html/*",
-              "sudo mkdir -p /var/www/html",
-              "cd /tmp && wget https://github.com/${repoPath}/archive/refs/heads/${branch}.zip || echo downloading",
-              "cd /var/www/html",
-              "# Copy build files here",
-              "sudo systemctl restart nginx"
-            ]' \\
-            --output text
-
-2. Add these secrets to your GitHub repository:
-   Go to: Repository Settings > Secrets and Variables > Actions
-
-   Required secrets:
-   - AWS_ACCESS_KEY_ID (your AWS access key)
-   - AWS_SECRET_ACCESS_KEY (your AWS secret key)
-
-3. Push to ${branch} branch - deployment happens automatically!
-
-===============================================================
-OPTION 3: MANUAL SSH (If you still prefer SSH)
-===============================================================
-
-ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
-
-Then run the deployment script:
-
-===============================================================
-DEPLOYMENT SCRIPT (deploy.sh)
-===============================================================
-
-#!/bin/bash
+    // Generate clean executable deployment script
+    const deployScript = `#!/bin/bash
 set -e
 
-echo "Starting deployment..."
+echo "Starting deployment to EC2..."
 
-# Detect OS and set package manager
+# Detect OS
 if [ -f /etc/debian_version ]; then
     PKG_MANAGER="apt-get"
     WEB_USER="www-data"
-    WEB_SERVER="nginx"
     echo "Detected Debian/Ubuntu system"
 elif [ -f /etc/redhat-release ]; then
     PKG_MANAGER="yum"
     WEB_USER="nginx"
-    WEB_SERVER="nginx"
     echo "Detected RedHat/CentOS/Amazon Linux system"
 else
     echo "Unsupported OS"
     exit 1
 fi
 
-# Install Git if not present
+# Install Git
 if ! command -v git &> /dev/null; then
     echo "Installing Git..."
-    sudo $PKG_MANAGER update -y
-    sudo $PKG_MANAGER install -y git
+    sudo \$PKG_MANAGER update -y
+    sudo \$PKG_MANAGER install -y git
 fi
 
-# Install Node.js if not present
+# Install Node.js
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
-    if [ "$PKG_MANAGER" = "apt-get" ]; then
+    if [ "\$PKG_MANAGER" = "apt-get" ]; then
         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
         sudo apt-get install -y nodejs
     else
@@ -199,77 +87,80 @@ if ! command -v node &> /dev/null; then
     fi
 fi
 
-# Install Nginx if not present
+# Install Nginx
 if ! command -v nginx &> /dev/null; then
     echo "Installing Nginx..."
-    sudo $PKG_MANAGER install -y nginx
+    sudo \$PKG_MANAGER install -y nginx
     sudo systemctl enable nginx
     sudo systemctl start nginx
 fi
 
-# Create deployment directory
+# Setup deployment directory
 DEPLOY_DIR="/var/www/${projectName}"
-sudo mkdir -p $DEPLOY_DIR
-sudo chown -R $USER:$USER $DEPLOY_DIR
-cd $DEPLOY_DIR
-
-# Setup Git authentication (if using HTTPS with token)
-# Uncomment and set your token if using HTTPS
-# export GIT_TOKEN="your_github_personal_access_token"
-# REPO_WITH_TOKEN=\${githubRepo/https:\\/\\//https://\${GIT_TOKEN}@}
+sudo mkdir -p \$DEPLOY_DIR
+sudo chown -R \$USER:\$USER \$DEPLOY_DIR
+cd \$DEPLOY_DIR
 
 # Clone or update repository
 if [ -d ".git" ]; then
-    echo "Updating from ${branch}..."
+    echo "Updating repository..."
     git fetch origin
     git checkout ${branch}
     git pull origin ${branch}
 else
     echo "Cloning repository..."
-    # For HTTPS with token: git clone -b ${branch} $REPO_WITH_TOKEN .
-    # For SSH (recommended): Convert HTTPS URL to SSH or use SSH URL directly
-    REPO_SSH=\${githubRepo/https:\\/\\/github.com\\//git@github.com:}
-    git clone -b ${branch} $REPO_SSH .
+    git clone -b ${branch} ${githubRepo} .
 fi
 
-# Install and build
+# Build application
 echo "Installing dependencies..."
 npm install
 
-echo "Building..."
+echo "Building application..."
 ${buildCommand}
 
-# Deploy
-echo "Deploying..."
+# Deploy to web root
 if [ -d "dist" ]; then
+    echo "Deploying to web root..."
     sudo mkdir -p /var/www/html
     sudo rm -rf /var/www/html/*
     sudo cp -r dist/* /var/www/html/
+    sudo chown -R \$WEB_USER:\$WEB_USER /var/www/html
+    sudo chmod -R 755 /var/www/html
 fi
 
-# Set permissions
-sudo chown -R $WEB_USER:$WEB_USER /var/www/html
-sudo chmod -R 755 /var/www/html
-sudo systemctl restart $WEB_SERVER
+# Restart web server
+echo "Restarting web server..."
+sudo systemctl restart nginx
 
-echo "Done! Visit: http://${ec2Ip}"
+echo "Deployment complete!"
+echo "Visit: http://${ec2Ip}"
+`;
 
-===============================================================
+    const deploymentInstructions = `
+DEPLOYMENT SCRIPT FOR EC2 INSTANCE ${instanceId}
+================================================
 
-To run this script:
+Repository: ${githubRepo}
+Branch: ${branch}
+IP Address: ${ec2Ip}
 
-Via SSM (no key needed):
-   aws ssm start-session --target ${instanceId}
-   # Then paste and run the script above
+STEP 1: Connect to your EC2 instance
+------------------------------------
+ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
 
-Via SSH (requires .pem file):
-   ssh -i /path/to/your-keypair.pem ubuntu@${ec2Ip}
-   # Then paste and run the script above
+STEP 2: Create and run deployment script
+-----------------------------------------
+cat > deploy.sh << 'DEPLOYEOF'
+${deployScript}
+DEPLOYEOF
 
-===============================================================
-RECOMMENDATION: Use Option 1 (SSM) or Option 2 (GitHub Actions)
-for automated deployment without managing SSH keys!
-===============================================================
+chmod +x deploy.sh
+./deploy.sh
+
+Your application will be deployed to: http://${ec2Ip}
+
+NOTE: Make sure your GitHub repository is public or Git authentication is configured on the EC2 instance.
 `;
 
     return new Response(
