@@ -112,7 +112,7 @@ const getDeploymentStatus = (deployment: any) => {
 const getStatusDisplay = (status: string) => {
   switch (status) {
     case 'running':
-      return 'completed';
+      return 'active';
     case 'pending':
       return 'deploying';
     case 'failed':
@@ -627,7 +627,7 @@ export default function AWSDeployment() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {deploymentType === 'incremental' ? "Updates code and migrations only. Preserves all user data and database records." : "Complete fresh installation. Warning: This will reset all data!"}
+                  {deploymentType === 'incremental' ? "Updates code and migrations only. Preserves all user data and database records." : "Fresh installation. Warning: This will reset all data!"}
                 </p>
               </div>
 
@@ -881,7 +881,7 @@ export default function AWSDeployment() {
             <CardHeader>
               <CardTitle>AWS EC2 Deployment Guide</CardTitle>
               <CardDescription>
-                Complete step-by-step guide for deploying your application to AWS EC2
+                Step-by-step guide for deploying your application to AWS EC2
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1019,7 +1019,7 @@ export default function AWSDeployment() {
                         <div className="p-4 border rounded-lg bg-red-50 dark:bg-red-950">
                           <h5 className="font-medium text-sm mb-2 text-red-900 dark:text-red-100">⚠️ Fresh Installation</h5>
                           <ul className="space-y-1 text-sm text-red-700 dark:text-red-300">
-                            <li>• Completely wipes existing data</li>
+                            <li>• Wipes existing data</li>
                             <li>• Sets up clean database</li>
                             <li>• Use only for first-time deployment</li>
                             <li>• Cannot be undone - creates new instance</li>

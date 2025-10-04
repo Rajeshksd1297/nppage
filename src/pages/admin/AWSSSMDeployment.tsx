@@ -274,7 +274,7 @@ const AWSSSMDeployment = () => {
                         Fresh Installation
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Complete clean installation. Removes all existing data and starts fresh. Use only for initial setup or testing.
+                        Clean installation. Removes all existing data and starts fresh. Use only for initial setup or testing.
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <span className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-2 py-0.5 rounded">⚠ Deletes all data</span>
@@ -444,7 +444,7 @@ const AWSSSMDeployment = () => {
             <CardHeader>
               <CardTitle>Deployment Instructions</CardTitle>
               <CardDescription>
-                {deployInstructions ? "Follow these steps to complete your deployment" : "Instructions will appear after preparing deployment"}
+                {deployInstructions ? "Follow these steps for your deployment" : "Instructions will appear after preparing deployment"}
               </CardDescription>
             </CardHeader>
             <CardContent>
