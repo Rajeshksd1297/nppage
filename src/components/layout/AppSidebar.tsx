@@ -161,8 +161,6 @@ const communicationsItems = [
 // Infrastructure
 const infrastructureItems = [
   { title: "Backup & Security", url: "/admin/backup-security", icon: Shield },
-  { title: "AWS EC2 Deployment", url: "/admin/aws-deployment", icon: Server },
-  { title: "AWS SSM Deployment", url: "/admin/aws-ssm-deployment", icon: Cloud },
   { title: "Package Management", url: "/admin/package-management", icon: CreditCard },
 ];
 
