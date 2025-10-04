@@ -495,7 +495,7 @@ export const BackupSecurityCenter: React.FC = () => {
 
       toast({
         title: "Emergency backup created",
-        description: "Complete backup with AWS setup instructions is downloading..."
+        description: "Full backup with AWS setup instructions is downloading..."
       });
 
       await loadBackupJobs();
