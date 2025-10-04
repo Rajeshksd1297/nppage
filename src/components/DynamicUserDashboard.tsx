@@ -464,7 +464,7 @@ export function DynamicUserDashboard() {
                 </Button>
               ) : (
                 <Button variant="link" className="h-auto p-0 text-xs" onClick={() => navigate('/profile')}>
-                  Complete Setup
+                  Setup Profile
                 </Button>
               )}
             </p>

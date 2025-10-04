@@ -947,7 +947,7 @@ export function DeploymentStatistics({ deployments }: DeploymentStatisticsProps)
                     }}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Download Complete Report
+                    Download Full Report
                   </Button>
                 </TabsContent>
               </Tabs>

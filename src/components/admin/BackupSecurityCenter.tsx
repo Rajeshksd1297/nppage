@@ -623,7 +623,7 @@ export const BackupSecurityCenter: React.FC = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Download completed",
+        title: "Download finished",
         description: `${data.backup_type === 'full' ? 'Full backup' : `${data.backup_type} backup`} "${filename}" downloaded successfully.`
       });
     } catch (error) {
@@ -688,8 +688,8 @@ export const BackupSecurityCenter: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "Security scan completed",
-        description: "Security analysis has been completed."
+        title: "Security scan finished",
+        description: "Security analysis is done."
       });
 
       await loadSecurityLogs();
@@ -753,7 +753,7 @@ export const BackupSecurityCenter: React.FC = () => {
 
       toast({
         title: "Guide downloaded",
-        description: "Complete implementation guide has been downloaded. Copy this to your Knowledge Base settings."
+        description: "Implementation guide has been downloaded. Copy this to your Knowledge Base settings."
       });
     } catch (error) {
       console.error('Error downloading guide:', error);
@@ -806,14 +806,14 @@ export const BackupSecurityCenter: React.FC = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       toast({
-        title: "Complete portal guide downloaded",
+        title: "Portal guide downloaded",
         description: "Full feature-by-feature portal guide with ALL tabs documented. Add this to your Knowledge Base for comprehensive documentation."
       });
     } catch (error) {
-      console.error('Error downloading complete portal guide:', error);
+      console.error('Error downloading portal guide:', error);
       toast({
         title: "Download failed",
-        description: "Could not download the complete portal guide.",
+        description: "Could not download the portal guide.",
         variant: "destructive"
       });
     }
@@ -1631,7 +1631,7 @@ END OF DOCUMENTATION
                     className="gap-2 h-12 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200"
                   >
                     <Download className="h-4 w-4 text-blue-600" />
-                    📚 Download Complete Portal Guide (for Knowledge Base)
+                    📚 Download Full Portal Guide (for Knowledge Base)
                   </Button>
                 </div>
 

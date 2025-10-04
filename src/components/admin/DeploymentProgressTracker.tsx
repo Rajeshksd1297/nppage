@@ -142,7 +142,7 @@ export function DeploymentProgressTracker({ deploymentId, onComplete }: Deployme
     // Finalize
     if (log.includes('SECURE DEPLOYMENT COMPLETE') || log.includes('Deployment completed at:')) {
       defaultSteps[7].status = 'completed';
-      defaultSteps[7].message = 'Deployment complete';
+      defaultSteps[7].message = 'Deployment finished';
       const match = log.match(/completed at: (.+)/);
       if (match) defaultSteps[7].timestamp = match[1];
     } else if (log.includes('Starting services') || defaultSteps[5].status === 'completed') {
@@ -275,12 +275,12 @@ export function DeploymentProgressTracker({ deploymentId, onComplete }: Deployme
         <div>
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="font-medium">
-              {overallStatus === 'completed' ? 'Deployment Complete' : 
+              {overallStatus === 'completed' ? 'Deployment Finished' : 
                overallStatus === 'failed' ? 'Deployment Failed' : 
                'Deploying...'}
             </span>
             <span className="text-muted-foreground">
-              {completedSteps} of {totalSteps} steps complete
+              {completedSteps} of {totalSteps} steps done
               {failedSteps > 0 && ` • ${failedSteps} failed`}
             </span>
           </div>
@@ -363,7 +363,7 @@ export function DeploymentProgressTracker({ deploymentId, onComplete }: Deployme
           <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
             <div className="flex items-center justify-center gap-1 mb-1">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span className="text-xs font-medium text-green-600 dark:text-green-400">Complete</span>
+              <span className="text-xs font-medium text-green-600 dark:text-green-400">Done</span>
             </div>
             <p className="text-2xl font-bold text-green-700 dark:text-green-300">{completedSteps}</p>
           </div>

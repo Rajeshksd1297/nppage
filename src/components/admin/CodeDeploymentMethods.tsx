@@ -453,7 +453,7 @@ aws deploy create-deployment \\
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">Complete Setup Instructions (Run on EC2)</h4>
+                <h4 className="font-semibold mb-2">Setup Instructions (Run on EC2)</h4>
                 <p className="text-sm text-muted-foreground mb-2">
                   First, SSH into your EC2 and run this setup script:
                 </p>
